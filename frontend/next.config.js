@@ -1,10 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // Enable static export for better reliability
-    output: 'export',
-    trailingSlash: true,
+    // Web Service deployment - no static export needed
     images: {
-        unoptimized: true,
         domains: ['localhost', 'kmu-disciplinedesk.onrender.com'],
         remotePatterns: [{
             protocol: 'https',
