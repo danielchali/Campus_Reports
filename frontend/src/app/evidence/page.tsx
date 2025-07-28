@@ -30,7 +30,9 @@ export default function EvidencePage() {
   
   // Handle authentication like profile page
   if (!token) {
-    router.replace('/login');
+    if (typeof window !== 'undefined') {
+      router.replace('/login');
+    }
     return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
   }
   

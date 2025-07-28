@@ -49,7 +49,9 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
     
     // Handle authentication like profile page
     if (!token) {
-        router.replace('/login');
+        if (typeof window !== 'undefined') {
+            router.replace('/login');
+        }
         return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
     
