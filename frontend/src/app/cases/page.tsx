@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from 'react';
-import ProtectedRoute from '../(protected)/ProtectedRoute';
 import { useAuth } from '../../context/AuthContext';
 import { authHeaders, remove, exportDocx, exportExcel } from '../../utils/api';
 import { useOfflineApi } from '../../hooks/useOfflineSync';
@@ -34,6 +33,19 @@ const STATUS_OPTIONS = ['Open', 'Closed', 'Pending'];
 const SEVERITY_OPTIONS = ['Low', 'Medium', 'High'];
 
 export default function CasesPage() {
+  const { token, user } = useAuth();
+  const router = useRouter();
+  
+  // Handle authentication like profile page
+  if (!token) {
+    router.replace('/login');
+    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+  }
+  
+  if (!user) {
+    return <div className="text-center text-kmuGreen">Loading...</div>;
+  }
+
   const [cases, setCases] = useState<Case[]>([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -46,10 +58,8 @@ export default function CasesPage() {
   const [total, setTotal] = useState(0);
   const [exporting, setExporting] = useState(false);
   const [offlineMode, setOfflineMode] = useState(false);
-  const { token, user } = useAuth();
   const { apiCall, isLoading: apiLoading, error: apiError } = useOfflineApi();
 
-  const router = useRouter();
   const searchParams = useSearchParams();
   const studentIdFilter = searchParams?.get('studentId') || '';
 
@@ -251,8 +261,7 @@ export default function CasesPage() {
   };
 
   return (
-    <ProtectedRoute>
-      <section>
+    <section>
         <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold text-kmuGreen">Cases</h1>
@@ -437,6 +446,5 @@ export default function CasesPage() {
           </table>
         </div>
       </section>
-    </ProtectedRoute>
   );
 }
