@@ -21,13 +21,32 @@ export async function listCases(req, res) {
             const StudentModel = (await
                 import ('../models/student.js')).default;
             for (let i = 0; i < cases.length; i++) {
-                const student = await StudentModel.findOne({ studentId: cases[i].student_id });
                 cases[i] = cases[i].toObject();
-                if (student) {
-                    cases[i].student = student.toObject();
+
+                // Handle both single and multiple student cases
+                if (cases[i].student_ids && cases[i].student_ids.length > 0) {
+                    // Multiple students case - get the first student for display
+                    const student = await StudentModel.findOne({ studentId: cases[i].student_ids[0] });
+                    if (student) {
+                        cases[i].student = student.toObject();
+                    } else {
+                        cases[i].student = null;
+                        console.warn(`Student not found for case ${cases[i]._id}, student_id: ${cases[i].student_ids[0]}`);
+                    }
+                } else if (cases[i].student_id) {
+                    // Single student case
+                    const student = await StudentModel.findOne({ studentId: cases[i].student_id });
+                    if (student) {
+                        cases[i].student = student.toObject();
+                    } else {
+                        cases[i].student = null;
+                        console.warn(`Student not found for case ${cases[i]._id}, student_id: ${cases[i].student_id}`);
+                    }
                 } else {
-                    cases[i].student = null; // Set to null if student not found
+                    cases[i].student = null;
+                    console.warn(`Case ${cases[i]._id} has no student_id or student_ids`);
                 }
+
                 // Transform field names to camelCase for frontend
                 cases[i] = {
                     ...cases[i],

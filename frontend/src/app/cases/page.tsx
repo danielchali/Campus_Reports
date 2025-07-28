@@ -12,7 +12,8 @@ import { saveAs } from 'file-saver';
 
 interface Case {
   _id: string;
-  student: {
+  student_id?: string; // Raw student ID from database
+  student?: {
     _id: string;
     studentId: string;
     fullName: string;
@@ -78,6 +79,18 @@ export default function CasesPage() {
         const response = await apiCall<Case[]>('get', endpoint);
         const responseData = response.data as any;
         const casesArray = Array.isArray(responseData) ? responseData : (Array.isArray(responseData.cases) ? responseData.cases : []);
+        
+        // Debug: Log cases with missing student data
+        casesArray.forEach((caseItem: any, index: number) => {
+          if (!caseItem.student) {
+            console.warn(`Case ${index} has no student data:`, {
+              caseId: caseItem._id,
+              studentId: caseItem.student_id,
+              caseData: caseItem
+            });
+          }
+        });
+        
         setCases(casesArray);
         setOfflineMode(response.offline);
         
@@ -375,11 +388,13 @@ export default function CasesPage() {
                   <td className="py-2 px-4 text-sm hidden md:table-cell">{s._id}</td>
                   <td className="py-2 px-4">
                     {s.student ? (
-                      <Link href={`/students/${s.student._id}`} className="text-kmuGreen hover:underline">
+                      <Link href={`/students/${s.student._id || s.student.studentId}`} className="text-kmuGreen hover:underline">
                         {s.student.fullName}
                       </Link>
                     ) : (
-                      <span className="text-gray-500">Student not found</span>
+                      <span className="text-gray-500" title={`Student ID: ${s.student_id || 'Unknown'}`}>
+                        Student not found
+                      </span>
                     )}
                   </td>
                   <td className="py-2 px-4 hidden md:table-cell">{s.student?.department || '-'}</td>
