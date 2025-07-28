@@ -46,22 +46,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Load stored auth data on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('auth_token');
-    const storedUser = localStorage.getItem('auth_user');
-    const storedOfflineData = localStorage.getItem('offline_auth_data');
-    
-    if (storedToken && storedUser) {
-      try {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing stored auth data:', error);
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
+    const loadStoredAuth = async () => {
+      const storedToken = localStorage.getItem('auth_token');
+      const storedUser = localStorage.getItem('auth_user');
+      const storedOfflineData = localStorage.getItem('offline_auth_data');
+      
+      if (storedToken && storedUser) {
+        try {
+          // Validate token if it's not an offline token
+          if (storedToken !== 'offline_token') {
+            try {
+              // Test token by making a simple API call
+              const response = await fetch(`${API_BASE_URL}/cases?limit=1`, {
+                headers: { 'Authorization': `Bearer ${storedToken}` }
+              });
+              
+              if (!response.ok) {
+                throw new Error('Token validation failed');
+              }
+            } catch (error) {
+              console.warn('Token validation failed, clearing stored auth:', error);
+              localStorage.removeItem('auth_token');
+              localStorage.removeItem('auth_user');
+              setLoading(false);
+              return;
+            }
+          }
+          
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        } catch (error) {
+          console.error('Error parsing stored auth data:', error);
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+        }
       }
-    }
+      
+      setLoading(false);
+    };
     
-    setLoading(false);
+    loadStoredAuth();
   }, []);
 
   // Simple encryption/decryption for offline data (for demo purposes)

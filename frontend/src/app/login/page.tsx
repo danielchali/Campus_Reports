@@ -24,6 +24,16 @@ export default function LoginPage() {
   // Redirect if user is already logged in
   useEffect(() => {
     if (user) {
+      // Check if we're already on a valid page for this user
+      const currentPath = window.location.pathname;
+      const validPaths = ['/admin', '/academic-dashboard', '/security-dashboard', '/dashboard', '/cases', '/students', '/reports', '/evidence', '/audit', '/profile', '/help'];
+      
+      // If we're on a valid page, don't redirect
+      if (validPaths.some(path => currentPath.startsWith(path))) {
+        return;
+      }
+      
+      // Otherwise, redirect based on role
       const role = user.role;
       if (role === 'admin') {
           router.push('/admin');
