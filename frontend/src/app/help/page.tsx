@@ -31,7 +31,7 @@ export default function HelpPage() {
           <div>
             <h3 className="text-lg font-medium mb-3 text-kmuGreen">Navigation Tips</h3>
             <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-              <li>• Use the back button (↶) in the top-right corner</li>
+
               <li>• Toggle dark mode using the button in the sidebar</li>
               <li>• Check audit logs for system activity</li>
               <li>• Update your profile and settings as needed</li>

@@ -13,7 +13,7 @@ import { useSyncManager } from '../hooks/useSyncManager';
 import { useOfflineSync } from '../hooks/useOfflineSync';
 
 import SyncManagerClient from '../components/SyncManagerClient';
-import FixedBackButton from '../components/FixedBackButton';
+
 import ServiceWorkerRegistration from '../components/ServiceWorkerRegistration';
 import ConflictResolution from '../components/ConflictResolution';
 import clsx from 'clsx';
@@ -158,7 +158,6 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
       {/* Main content */}
       <div className="flex-1 flex flex-col">
         {shouldShowNav && <TopNavbar />}
-        {shouldShowNav && <FixedBackButton />}
         <main className="flex-1 px-2 py-4 md:px-6 md:py-8">
           {children}
         </main>
