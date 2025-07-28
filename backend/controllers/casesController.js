@@ -113,13 +113,30 @@ export async function getCase(req, res) {
                 // Populate student information
                 const StudentModel = (await
                     import ('../models/student.js')).default;
-                const student = await StudentModel.findOne({ studentId: caseItem.student_id });
                 caseItem = caseItem.toObject();
-                if (student) {
-                    caseItem.student = student.toObject();
+
+                // Handle both single and multiple student cases
+                if (caseItem.student_ids && caseItem.student_ids.length > 0) {
+                    // Multiple students case - get all students
+                    const students = await StudentModel.find({ studentId: { $in: caseItem.student_ids } });
+                    caseItem.students = students.map(s => s.toObject());
+                    // Keep first student for backward compatibility
+                    caseItem.student = students.length > 0 ? students[0].toObject() : null;
+                } else if (caseItem.student_id) {
+                    // Single student case
+                    const student = await StudentModel.findOne({ studentId: caseItem.student_id });
+                    if (student) {
+                        caseItem.student = student.toObject();
+                        caseItem.students = [student.toObject()]; // Add students array for consistency
+                    } else {
+                        caseItem.student = null;
+                        caseItem.students = [];
+                    }
                 } else {
-                    caseItem.student = null; // Set to null if student not found
+                    caseItem.student = null;
+                    caseItem.students = [];
                 }
+
                 // Transform field names to camelCase for frontend
                 caseItem = {
                     ...caseItem,

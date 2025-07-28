@@ -13,12 +13,20 @@ import { API_BASE_URL } from '../../../config/constants';
 
 interface Case {
     _id: string;
-    student: {
+    student?: {
         _id: string;
         studentId: string;
         fullName: string;
         department?: string;
     };
+    students?: {
+        _id: string;
+        studentId: string;
+        fullName: string;
+        department?: string;
+    }[];
+    student_ids?: string[];
+    case_type?: 'single' | 'group';
     incidentDate: string;
     description: string;
     offenseType: string;
@@ -254,8 +262,52 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                     <div className="space-y-6">
                         {/* Student Information */}
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                            <h2 className="text-xl font-semibold text-kmuOrange mb-4">Student Information</h2>
-                            {caseData.student ? (
+                            <h2 className="text-xl font-semibold text-kmuOrange mb-4">
+                                {caseData.case_type === 'group' ? 'Involved Students' : 'Student Information'}
+                                {caseData.students && caseData.students.length > 1 && (
+                                    <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                        {caseData.students.length} students
+                                    </span>
+                                )}
+                            </h2>
+                            
+                            {caseData.students && caseData.students.length > 0 ? (
+                                <div className="space-y-4">
+                                    {caseData.students.map((student, index) => (
+                                        <div key={student._id || student.studentId} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                                            {caseData.students && caseData.students.length > 1 && (
+                                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                                    Student {index + 1} of {caseData.students.length}
+                                                </div>
+                                            )}
+                                            <div className="space-y-2">
+                                                <div>
+                                                    <span className="text-gray-600 dark:text-gray-400 text-sm">Full Name</span>
+                                                    <p className="font-medium text-gray-900 dark:text-white">{student.fullName}</p>
+                                                </div>
+                                                <div>
+                                                    <span className="text-gray-600 dark:text-gray-400 text-sm">Student ID</span>
+                                                    <p className="font-medium text-gray-900 dark:text-white">{student.studentId}</p>
+                                                </div>
+                                                {student.department && (
+                                                    <div>
+                                                        <span className="text-gray-600 dark:text-gray-400 text-sm">Department</span>
+                                                        <p className="font-medium text-gray-900 dark:text-white">{student.department}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                                                <Link
+                                                    href={`/students/${student._id || student.studentId}`}
+                                                    className="text-kmuGreen hover:text-kmuOrange transition text-sm"
+                                                >
+                                                    View Student Profile →
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : caseData.student ? (
                                 <div className="space-y-3">
                                     <div>
                                         <span className="text-gray-600 dark:text-gray-400 text-sm">Full Name</span>
@@ -271,20 +323,18 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                                             <p className="font-medium text-gray-900 dark:text-white">{caseData.student.department}</p>
                                         </div>
                                     )}
+                                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                                        <Link
+                                            href={`/students/${caseData.student._id || caseData.student.studentId}`}
+                                            className="text-kmuGreen hover:text-kmuOrange transition"
+                                        >
+                                            View Student Profile →
+                                        </Link>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="text-gray-500 dark:text-gray-400">
                                     Student information not available
-                                </div>
-                            )}
-                            {caseData.student && (
-                                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                                    <Link
-                                        href={`/students/${caseData.student._id}`}
-                                        className="text-kmuGreen hover:text-kmuOrange transition"
-                                    >
-                                        View Student Profile →
-                                    </Link>
                                 </div>
                             )}
                         </div>
