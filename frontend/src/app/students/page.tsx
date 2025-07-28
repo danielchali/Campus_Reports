@@ -1,5 +1,4 @@
 "use client";
-import ProtectedRoute from '../(protected)/ProtectedRoute';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
@@ -26,6 +25,17 @@ const GENDERS = ['Male', 'Female', 'Other'];
 export default function StudentsPage() {
   const { user, token } = useAuth();
   const router = useRouter();
+  
+  // Handle authentication like profile page
+  if (!token) {
+    router.replace('/login');
+    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+  }
+  
+  if (!user) {
+    return <div className="text-center text-kmuGreen">Loading...</div>;
+  }
+
   const [students, setStudents] = useState<Student[]>([]);
   const [studentId, setStudentId] = useState('');
   const [fullName, setFullName] = useState('');
@@ -185,8 +195,7 @@ export default function StudentsPage() {
   }
 
   return (
-    <ProtectedRoute>
-      <section>
+    <section>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-kmuGreen">Students</h1>
@@ -313,6 +322,5 @@ export default function StudentsPage() {
           </table>
         </div>
       </section>
-    </ProtectedRoute>
   );
 }
