@@ -23,17 +23,17 @@ const YEARS = ['1', '2', '3', '4'];
 const GENDERS = ['Male', 'Female', 'Other'];
 
 export default function StudentsPage() {
-  const { user, token } = useAuth();
+  const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
   
   // Handle authentication like profile page - only on client side
   if (typeof window !== 'undefined') {
-    if (!token) {
+    if (!authLoading && !token) {
       router.replace('/login');
       return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
     
-    if (!user) {
+    if (authLoading) {
       return <div className="text-center text-kmuGreen">Loading...</div>;
     }
   }

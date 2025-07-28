@@ -17,21 +17,21 @@ interface Student {
 }
 
 export default function SecurityDashboard() {
-  const { user, token } = useAuth();
+  const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
   
   // Handle authentication like profile page - only on client side
   if (typeof window !== 'undefined') {
-    if (!token) {
+    if (!authLoading && !token) {
       router.replace('/login');
       return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
     
-    if (!user) {
+    if (authLoading) {
       return <div className="text-center text-kmuGreen">Loading...</div>;
     }
     
-    if (user.role !== 'security_officer') return <div className="text-red-600">Access denied.</div>;
+    if (!user || user.role !== 'security_officer') return <div className="text-red-600">Access denied.</div>;
   }
 
   const [students, setStudents] = useState<Student[]>([]);

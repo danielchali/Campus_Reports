@@ -33,17 +33,17 @@ const STATUS_OPTIONS = ['Open', 'Closed', 'Pending'];
 const SEVERITY_OPTIONS = ['Low', 'Medium', 'High'];
 
 export default function CasesPage() {
-  const { token, user } = useAuth();
+  const { token, user, loading: authLoading } = useAuth();
   const router = useRouter();
   
   // Handle authentication like profile page - only on client side
   if (typeof window !== 'undefined') {
-    if (!token) {
+    if (!authLoading && !token) {
       router.replace('/login');
       return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
     
-    if (!user) {
+    if (authLoading) {
       return <div className="text-center text-kmuGreen">Loading...</div>;
     }
   }

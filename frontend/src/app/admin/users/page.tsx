@@ -13,21 +13,21 @@ const ROLES = [
 ];
 
 export default function UserManagementPage() {
-  const { token, user } = useAuth();
+  const { token, user, loading: authLoading } = useAuth();
   const router = useRouter();
   
   // Handle authentication like profile page - only on client side
   if (typeof window !== 'undefined') {
-    if (!token) {
+    if (!authLoading && !token) {
       router.replace('/login');
       return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
     
-    if (!user) {
+    if (authLoading) {
       return <div className="text-center text-kmuGreen">Loading...</div>;
     }
     
-    if (user.role !== 'admin') {
+    if (!user || user.role !== 'admin') {
       return <div className="text-red-600">Access denied. Admin privileges required.</div>;
     }
   }
