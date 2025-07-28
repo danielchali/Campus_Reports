@@ -119,7 +119,7 @@ function Sidebar() {
             link.label === 'Logout' ? (
               <button
                 key={link.path}
-                onClick={() => { logout(); router.push('/login'); }}
+                onClick={() => logout()}
                 className={
                   `${linkBase} ${link.danger ? 'hover:bg-red-900 hover:text-red-400 dark:hover:text-red-400' : ''} text-gray-900 dark:text-white`}
               >
@@ -239,7 +239,8 @@ function TopNavbar() {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { theme } = useTheme();
-  const isLogin = pathname === "/login" || pathname === "/";
+  const { user } = useAuth();
+  const isLogin = pathname === "/login" || pathname === "/" || !user;
   const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {

@@ -150,6 +150,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('offline_auth_data');
     setToken(null);
     setUser(null);
+    
+    // Force redirect to login page
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   };
 
   const changePassword = async (oldPassword: string, newPassword: string): Promise<boolean> => {
