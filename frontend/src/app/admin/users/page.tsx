@@ -16,20 +16,20 @@ export default function UserManagementPage() {
   const { token, user } = useAuth();
   const router = useRouter();
   
-  // Handle authentication like profile page
-  if (!token) {
-    if (typeof window !== 'undefined') {
+  // Handle authentication like profile page - only on client side
+  if (typeof window !== 'undefined') {
+    if (!token) {
       router.replace('/login');
+      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
-    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
-  }
-  
-  if (!user) {
-    return <div className="text-center text-kmuGreen">Loading...</div>;
-  }
-  
-  if (user.role !== 'admin') {
-    return <div className="text-red-600">Access denied. Admin privileges required.</div>;
+    
+    if (!user) {
+      return <div className="text-center text-kmuGreen">Loading...</div>;
+    }
+    
+    if (user.role !== 'admin') {
+      return <div className="text-red-600">Access denied. Admin privileges required.</div>;
+    }
   }
 
   const [users, setUsers] = useState<any[]>([]);

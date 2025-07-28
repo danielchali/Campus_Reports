@@ -19,19 +19,19 @@ export default function ReportsPage() {
   const { user, token } = useAuth();
   const router = useRouter();
   
-  // Handle authentication like profile page
-  if (!token) {
-    if (typeof window !== 'undefined') {
+  // Handle authentication like profile page - only on client side
+  if (typeof window !== 'undefined') {
+    if (!token) {
       router.replace('/login');
+      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
-    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+    
+    if (!user) {
+      return <div className="text-center text-kmuGreen">Loading...</div>;
+    }
+    
+    if (!['admin','academic_office','security_officer'].includes(user.role)) return <div className="text-red-600">Access denied.</div>;
   }
-  
-  if (!user) {
-    return <div className="text-center text-kmuGreen">Loading...</div>;
-  }
-  
-  if (!['admin','academic_office','security_officer'].includes(user.role)) return <div className="text-red-600">Access denied.</div>;
 
   const [offenseTrends, setOffenseTrends] = useState<{ _id: string; count: number }[]>([]);
   const [departmentStats, setDepartmentStats] = useState<{ _id: string; count: number }[]>([]);

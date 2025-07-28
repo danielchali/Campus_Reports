@@ -36,16 +36,16 @@ export default function CasesPage() {
   const { token, user } = useAuth();
   const router = useRouter();
   
-  // Handle authentication like profile page
-  if (!token) {
-    if (typeof window !== 'undefined') {
+  // Handle authentication like profile page - only on client side
+  if (typeof window !== 'undefined') {
+    if (!token) {
       router.replace('/login');
+      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
-    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
-  }
-  
-  if (!user) {
-    return <div className="text-center text-kmuGreen">Loading...</div>;
+    
+    if (!user) {
+      return <div className="text-center text-kmuGreen">Loading...</div>;
+    }
   }
 
   const [cases, setCases] = useState<Case[]>([]);

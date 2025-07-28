@@ -24,19 +24,19 @@ export default function AuditPage() {
   const router = useRouter();
   const { user, token } = useAuth();
   
-  // Handle authentication like profile page
-  if (!token) {
-    if (typeof window !== 'undefined') {
+  // Handle authentication like profile page - only on client side
+  if (typeof window !== 'undefined') {
+    if (!token) {
       router.replace('/login');
+      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
-    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+    
+    if (!user) {
+      return <div className="text-center text-kmuGreen">Loading...</div>;
+    }
+    
+    if (user.role !== 'admin' && user.role !== 'academic_office') return <div className="text-red-600">Access denied.</div>;
   }
-  
-  if (!user) {
-    return <div className="text-center text-kmuGreen">Loading...</div>;
-  }
-  
-  if (user.role !== 'admin' && user.role !== 'academic_office') return <div className="text-red-600">Access denied.</div>;
 
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
