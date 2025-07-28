@@ -105,7 +105,7 @@ function Sidebar() {
       <div className={`fixed inset-0 bg-black bg-opacity-30 z-30 transition-opacity md:hidden ${open ? 'block' : 'hidden'}`} onClick={() => setOpen(false)} />
       <aside className={`${sidebarBase} ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static md:block dark:bg-gray-900 dark:text-white bg-white text-gray-900`}>
         <div className="flex flex-col items-center gap-2 pt-8 pb-4 border-b border-gray-800 dark:border-gray-800 border-gray-200">
-          <Image src="/kmu_logo.svg" alt="KMU Logo" width={64} height={64} className="mb-2" />
+          <img src="/kmu_logo.svg" alt="KMU Logo" width={64} height={64} className="mb-2" />
           <button
             className="mt-2 px-2 py-1 rounded bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm hover:bg-gray-300 dark:hover:bg-gray-700"
             onClick={toggleTheme}
