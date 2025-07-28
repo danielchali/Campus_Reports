@@ -1,6 +1,5 @@
 "use client";
 
-import ProtectedRoute from '../(protected)/ProtectedRoute';
 import { useState, useEffect } from 'react';
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from 'docx';
 import { saveAs } from 'file-saver';
@@ -27,7 +26,17 @@ export default function AcademicDashboard() {
   const { user, token } = useAuth();
   const router = useRouter();
   
-  if (!user || user.role !== 'academic_office') return <div className="text-red-600">Access denied.</div>;
+  // Handle authentication like profile page
+  if (!token) {
+    router.replace('/login');
+    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+  }
+  
+  if (!user) {
+    return <div className="text-center text-kmuGreen">Loading...</div>;
+  }
+  
+  if (user.role !== 'academic_office') return <div className="text-red-600">Access denied.</div>;
 
   const [search, setSearch] = useState('');
   const [cases, setCases] = useState<Case[]>([]);
@@ -170,8 +179,7 @@ export default function AcademicDashboard() {
   };
 
   return (
-    <ProtectedRoute>
-      <section>
+    <section>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col items-center justify-center">
             <div className="text-4xl font-bold text-kmuGreen">{totalCases}</div>
@@ -276,6 +284,5 @@ export default function AcademicDashboard() {
           </button>
         </div>
       </section>
-    </ProtectedRoute>
   );
 } 

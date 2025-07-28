@@ -4,7 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from '../../../config/constants';
 import { getAll, register, update, remove, exportDocx, exportExcel } from '../../../utils/api';
-import ProtectedRoute from '../../(protected)/ProtectedRoute';
+
 
 const ROLES = [
   { value: 'admin', label: 'Admin' },
@@ -15,6 +15,21 @@ const ROLES = [
 export default function UserManagementPage() {
   const { token, user } = useAuth();
   const router = useRouter();
+  
+  // Handle authentication like profile page
+  if (!token) {
+    router.replace('/login');
+    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+  }
+  
+  if (!user) {
+    return <div className="text-center text-kmuGreen">Loading...</div>;
+  }
+  
+  if (user.role !== 'admin') {
+    return <div className="text-red-600">Access denied. Admin privileges required.</div>;
+  }
+
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -146,16 +161,7 @@ export default function UserManagementPage() {
     await exportExcel('users');
   }
 
-  if (!user || user.role !== 'admin') {
-    return (
-      <ProtectedRoute>
-        <div className="text-red-600">Access denied. Admin privileges required.</div>
-      </ProtectedRoute>
-    );
-  }
-
   return (
-    <ProtectedRoute>
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -370,6 +376,5 @@ export default function UserManagementPage() {
           )}
         </div>
       </div>
-    </ProtectedRoute>
   );
 }

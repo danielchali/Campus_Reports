@@ -1,5 +1,5 @@
 "use client";
-import ProtectedRoute from '../(protected)/ProtectedRoute';
+
 import { useAuth } from '../../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
@@ -23,6 +23,19 @@ interface AuditLog {
 export default function AuditPage() {
   const router = useRouter();
   const { user, token } = useAuth();
+  
+  // Handle authentication like profile page
+  if (!token) {
+    router.replace('/login');
+    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+  }
+  
+  if (!user) {
+    return <div className="text-center text-kmuGreen">Loading...</div>;
+  }
+  
+  if (user.role !== 'admin' && user.role !== 'academic_office') return <div className="text-red-600">Access denied.</div>;
+
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,10 +90,8 @@ export default function AuditPage() {
     };
   }, [user]);
 
-  if (!user || (user.role !== 'admin' && user.role !== 'academic_office')) return <div className="text-red-600">Access denied.</div>;
   const safeLogs = Array.isArray(logs) ? logs : [];
   return (
-    <ProtectedRoute>
       <section>
         <h1 className="text-4xl font-bold mb-4 text-kmuGreen">Audit Logs</h1>
         <p className="mb-4 text-gray-700 dark:text-gray-300">This page shows a comprehensive record of all actions taken in the system. Only admins and academic office users can view audit logs. Audit logs help ensure transparency and accountability.</p>
@@ -295,6 +306,5 @@ export default function AuditPage() {
           </button>
         </div>
       </section>
-    </ProtectedRoute>
   );
 }

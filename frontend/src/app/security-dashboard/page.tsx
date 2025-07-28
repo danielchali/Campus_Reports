@@ -1,6 +1,5 @@
 "use client";
 
-import ProtectedRoute from '../(protected)/ProtectedRoute';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL, OFFENSE_TYPES, SEVERITY_LEVELS } from '../../config/constants';
@@ -21,7 +20,17 @@ export default function SecurityDashboard() {
   const { user, token } = useAuth();
   const router = useRouter();
   
-  if (!user || user.role !== 'security_officer') return <div className="text-red-600">Access denied.</div>;
+  // Handle authentication like profile page
+  if (!token) {
+    router.replace('/login');
+    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+  }
+  
+  if (!user) {
+    return <div className="text-center text-kmuGreen">Loading...</div>;
+  }
+  
+  if (user.role !== 'security_officer') return <div className="text-red-600">Access denied.</div>;
 
   const [students, setStudents] = useState<Student[]>([]);
   const [studentId, setStudentId] = useState('');
@@ -139,8 +148,7 @@ export default function SecurityDashboard() {
   }
 
   return (
-    <ProtectedRoute>
-      <section>
+    <section>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
           <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Add New Case</h2>
           <form className="mb-6 flex gap-2 flex-wrap" onSubmit={handleSubmit} aria-label="Add case form">
@@ -284,6 +292,5 @@ export default function SecurityDashboard() {
           </div>
         </div>
       </section>
-    </ProtectedRoute>
   );
 } 

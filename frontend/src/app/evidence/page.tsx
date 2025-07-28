@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
 import { useOfflineApi } from '../../hooks/useOfflineSync';
-import ProtectedRoute from '../(protected)/ProtectedRoute';
+
 
 interface Evidence {
   _id?: string;
@@ -27,6 +27,21 @@ interface Case {
 export default function EvidencePage() {
   const { user, token } = useAuth();
   const router = useRouter();
+  
+  // Handle authentication like profile page
+  if (!token) {
+    router.replace('/login');
+    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+  }
+  
+  if (!user) {
+    return <div className="text-center text-kmuGreen">Loading...</div>;
+  }
+  
+  if (user.role !== 'admin' && user.role !== 'security_officer') {
+    return <div className="text-red-600">Access denied.</div>;
+  }
+
   const [evidence, setEvidence] = useState<Evidence[]>([]);
   const [cases, setCases] = useState<Case[]>([]);
   const [caseId, setCaseId] = useState('');
@@ -208,16 +223,7 @@ export default function EvidencePage() {
 
   const safeEvidence = Array.isArray(evidence) ? evidence : [];
 
-  if (!user || (user.role !== 'admin' && user.role !== 'security_officer')) {
-    return (
-      <ProtectedRoute>
-        <div className="text-red-600">Access denied.</div>
-      </ProtectedRoute>
-    );
-  }
-
   return (
-    <ProtectedRoute>
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -359,6 +365,5 @@ export default function EvidencePage() {
           )}
         </div>
       </div>
-    </ProtectedRoute>
   );
 } 

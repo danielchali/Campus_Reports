@@ -1,6 +1,5 @@
 "use client";
 
-import ProtectedRoute from '../(protected)/ProtectedRoute';
 import { useState, useEffect } from 'react';
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from 'docx';
 import { saveAs } from 'file-saver';
@@ -26,8 +25,17 @@ export default function AdminPage() {
   const { user, token } = useAuth();
   const router = useRouter();
   
-  if (token && !user) return <div className="text-kmuGreen">Loading...</div>;
-  if (!user || user.role !== 'admin') return <div className="text-red-600">Access denied.</div>;
+  // Handle authentication like profile page
+  if (!token) {
+    router.replace('/login');
+    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+  }
+  
+  if (!user) {
+    return <div className="text-center text-kmuGreen">Loading...</div>;
+  }
+  
+  if (user.role !== 'admin') return <div className="text-red-600">Access denied.</div>;
 
   const [search, setSearch] = useState('');
   const [cases, setCases] = useState([]);
@@ -174,8 +182,7 @@ export default function AdminPage() {
   };
 
   return (
-    <ProtectedRoute>
-      <section>
+    <section>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-kmuGreen">Admin Panel</h1>
         </div>
@@ -283,6 +290,5 @@ export default function AdminPage() {
           </button>
         </div>
       </section>
-    </ProtectedRoute>
   );
 }
