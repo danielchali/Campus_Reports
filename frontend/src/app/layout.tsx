@@ -141,11 +141,11 @@ function Sidebar() {
         </nav>
       </aside>
       <div className="fixed top-3 left-3 z-50 flex gap-2 md:hidden">
-        <button className="p-2 rounded bg-gray-900 text-white shadow dark:bg-gray-900 dark:text-white bg-white text-gray-900" onClick={() => setOpen(!open)} aria-label="Toggle sidebar">
+        <button className="p-2 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow border border-gray-200 dark:border-gray-700" onClick={() => setOpen(!open)} aria-label="Toggle sidebar">
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
         </button>
         <button 
-          className="p-2 rounded bg-gray-900 text-white shadow dark:bg-gray-900 dark:text-white bg-white text-gray-900" 
+          className="p-2 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow border border-gray-200 dark:border-gray-700" 
           onClick={toggleTheme} 
           aria-label="Toggle dark mode"
         >
