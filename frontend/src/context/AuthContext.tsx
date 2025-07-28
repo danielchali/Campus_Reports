@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/constants';
+import { offlineApi } from '../utils/offlineApi';
+import { backgroundSync } from '../utils/backgroundSync';
 
 interface User {
   id: string;
@@ -19,6 +21,8 @@ interface AuthContextType {
   changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>;
   loading: boolean;
   isOnline: boolean;
+  preloadData: () => Promise<void>;
+  isPreloading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,6 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(true);
+  const [isPreloading, setIsPreloading] = useState(false);
 
   // Check online status
   useEffect(() => {
@@ -131,6 +136,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setToken(data.token);
       setUser(data.user);
+      
+      // Start preloading data for offline functionality
+      setTimeout(() => {
+        preloadData();
+      }, 1000); // Wait 1 second after login to start preload
+      
       return true;
     } catch (error) {
       console.error('Login error:', error);
@@ -169,6 +180,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = () => {
+    // Stop background sync
+    backgroundSync.stop();
+    
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
     localStorage.removeItem('offline_auth_data');
@@ -225,6 +239,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Preload critical data for offline functionality
+  const preloadData = async (): Promise<void> => {
+    if (!token || isPreloading) return;
+    
+    setIsPreloading(true);
+    try {
+      console.log('Starting data preload for offline functionality...');
+      
+      // Initialize offline API service
+      await offlineApi.init();
+      
+      // Preload critical data
+      await offlineApi.preloadCriticalData();
+      
+      // Preload role-specific data
+      if (user?.role) {
+        await offlineApi.preloadRoleSpecificData(user.role);
+      }
+      
+      // Start background sync service
+      setTimeout(() => {
+        backgroundSync.start(5); // Sync every 5 minutes
+      }, 2000);
+      
+      console.log('Data preload completed successfully');
+      
+    } catch (error) {
+      console.error('Data preload failed:', error);
+    } finally {
+      setIsPreloading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -234,7 +281,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       changePassword,
       loading,
-      isOnline
+      isOnline,
+      preloadData,
+      isPreloading
     }}>
       {children}
     </AuthContext.Provider>

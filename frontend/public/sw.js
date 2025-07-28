@@ -11,12 +11,21 @@ const STATIC_FILES = [
     '/cases',
     '/reports',
     '/admin',
-
     '/audit',
     '/evidence',
     '/settings',
     '/profile',
-    '/help'
+    '/help',
+    '/security-dashboard',
+    '/academic-dashboard',
+    '/admin/users'
+];
+
+// Critical assets to cache
+const CRITICAL_ASSETS = [
+    '/kmu_logo.svg',
+    '/manifest.json',
+    '/sw.js'
 ];
 
 // API endpoints to cache
@@ -34,12 +43,18 @@ const API_ENDPOINTS = [
 self.addEventListener('install', (event) => {
     console.log('Service Worker installing...');
     event.waitUntil(
-        caches.open(STATIC_CACHE)
-        .then((cache) => {
-            console.log('Caching static files');
-            return cache.addAll(STATIC_FILES);
-        })
-        .then(() => self.skipWaiting())
+        Promise.all([
+            // Cache static files
+            caches.open(STATIC_CACHE).then((cache) => {
+                console.log('Caching static files');
+                return cache.addAll(STATIC_FILES);
+            }),
+            // Cache critical assets
+            caches.open(STATIC_CACHE).then((cache) => {
+                console.log('Caching critical assets');
+                return cache.addAll(CRITICAL_ASSETS);
+            })
+        ]).then(() => self.skipWaiting())
     );
 });
 

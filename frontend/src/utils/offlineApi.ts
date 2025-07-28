@@ -484,6 +484,128 @@ class OfflineApiService {
       await indexedDB.clear(store);
     }
   }
+
+  // Enhanced caching methods for better offline functionality
+  async preloadCriticalData(): Promise<void> {
+    await this.init();
+    
+    console.log('Preloading critical data for offline functionality...');
+    
+    const preloadTasks = [
+      this.preloadStudents(),
+      this.preloadCases(),
+      this.preloadUsers(),
+    ];
+    
+    await Promise.allSettled(preloadTasks);
+    console.log('Critical data preload completed');
+  }
+
+  async preloadRoleSpecificData(userRole: string): Promise<void> {
+    await this.init();
+    
+    console.log(`Preloading role-specific data for ${userRole}...`);
+    
+    const roleTasks = [];
+    
+    if (userRole === 'admin') {
+      roleTasks.push(this.preloadAudit());
+    }
+    
+    if (userRole === 'security_officer' || userRole === 'admin') {
+      roleTasks.push(this.preloadEvidence());
+    }
+    
+    if (roleTasks.length > 0) {
+      await Promise.allSettled(roleTasks);
+      console.log('Role-specific data preload completed');
+    }
+  }
+
+  private async preloadStudents(): Promise<void> {
+    try {
+      const response = await this.get('/students?limit=500');
+      console.log(`Preloaded ${Array.isArray(response.data) ? response.data.length : 0} students`);
+    } catch (error) {
+      console.warn('Failed to preload students:', error);
+    }
+  }
+
+  private async preloadCases(): Promise<void> {
+    try {
+      const response = await this.get('/cases?limit=500');
+      console.log(`Preloaded ${Array.isArray(response.data) ? response.data.length : 0} cases`);
+    } catch (error) {
+      console.warn('Failed to preload cases:', error);
+    }
+  }
+
+  private async preloadUsers(): Promise<void> {
+    try {
+      const response = await this.get('/users');
+      console.log(`Preloaded ${Array.isArray(response.data) ? response.data.length : 0} users`);
+    } catch (error) {
+      console.warn('Failed to preload users:', error);
+    }
+  }
+
+  private async preloadAudit(): Promise<void> {
+    try {
+      const response = await this.get('/audit?limit=100');
+      console.log(`Preloaded ${Array.isArray(response.data) ? response.data.length : 0} audit records`);
+    } catch (error) {
+      console.warn('Failed to preload audit:', error);
+    }
+  }
+
+  private async preloadEvidence(): Promise<void> {
+    try {
+      const response = await this.get('/evidence?limit=100');
+      console.log(`Preloaded ${Array.isArray(response.data) ? response.data.length : 0} evidence records`);
+    } catch (error) {
+      console.warn('Failed to preload evidence:', error);
+    }
+  }
+
+  // Background sync enhancement
+  async startBackgroundSync(): Promise<void> {
+    if (!navigator.onLine) return;
+    
+    try {
+      console.log('Starting background sync...');
+      await this.syncAll();
+      console.log('Background sync completed');
+    } catch (error) {
+      console.error('Background sync failed:', error);
+    }
+  }
+
+  // Get cache statistics
+  async getCacheStats(): Promise<{
+    students: number;
+    cases: number;
+    evidence: number;
+    users: number;
+    settings: number;
+  }> {
+    await this.init();
+    
+    const [students, cases, evidence, users, settings] = await Promise.all([
+      indexedDB.count('students'),
+      indexedDB.count('cases'),
+      indexedDB.count('evidence'),
+      indexedDB.count('users'),
+      indexedDB.count('settings'),
+    ]);
+    
+    return {
+      students,
+      cases,
+      evidence,
+      users,
+      settings,
+    };
+  }
 }
 
 // Export singleton instance

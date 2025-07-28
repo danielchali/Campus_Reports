@@ -15,6 +15,8 @@ import { useOfflineSync } from '../hooks/useOfflineSync';
 import SyncManagerClient from '../components/SyncManagerClient';
 
 import ServiceWorkerRegistration from '../components/ServiceWorkerRegistration';
+import PreloadProgress from '../components/PreloadProgress';
+import CacheStatus from '../components/CacheStatus';
 import ConflictResolution from '../components/ConflictResolution';
 import clsx from 'clsx';
 import { API_BASE_URL } from '../config/constants';
@@ -297,6 +299,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               
               {/* Service Worker Registration */}
               <ServiceWorkerRegistration />
+              
+              {/* Preload Progress */}
+              <PreloadProgress />
+              
+              {/* Cache Status */}
+              <CacheStatus />
             </ThemeProvider>
           </SyncProvider>
         </AuthProvider>
