@@ -10,6 +10,11 @@ import { OFFENSE_TYPES, SEVERITY_LEVELS } from '../../../config/constants';
 import { authHeaders } from '../../../utils/api';
 import { saveAs } from 'file-saver';
 
+// Required for static export - indicates this route is handled client-side
+export async function generateStaticParams() {
+  return [];
+}
+
 interface Case {
     _id: string;
     incidentDate: string;

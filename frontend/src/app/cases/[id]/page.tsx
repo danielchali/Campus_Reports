@@ -7,6 +7,11 @@ import ProtectedRoute from "../../(protected)/ProtectedRoute";
 import Link from "next/link";
 import { API_BASE_URL } from '../../../config/constants';
 
+// Required for static export - indicates this route is handled client-side
+export async function generateStaticParams() {
+  return [];
+}
+
 interface Case {
     _id: string;
     student: {
