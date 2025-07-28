@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
-import ProtectedRoute from "../../(protected)/ProtectedRoute";
+
 import Link from "next/link";
 import { API_BASE_URL } from '../../../config/constants';
 
@@ -46,6 +46,16 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
     
     const { token, user } = useAuth();
     const router = useRouter();
+    
+    // Handle authentication like profile page
+    if (!token) {
+        router.replace('/login');
+        return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+    }
+    
+    if (!user) {
+        return <div className="text-center text-kmuGreen">Loading...</div>;
+    }
     const [caseData, setCaseData] = useState<Case | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -134,31 +144,25 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
 
     if (loading) {
         return (
-            <ProtectedRoute>
-                <div className="flex items-center justify-center min-h-screen">
-                    <div className="text-kmuGreen text-lg">Loading case details...</div>
-                </div>
-            </ProtectedRoute>
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-kmuGreen text-lg">Loading case details...</div>
+            </div>
         );
     }
 
     if (error) {
         return (
-            <ProtectedRoute>
-                <div className="flex items-center justify-center min-h-screen">
-                    <div className="text-red-600 text-lg">{error}</div>
-                </div>
-            </ProtectedRoute>
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-red-600 text-lg">{error}</div>
+            </div>
         );
     }
 
     if (!caseData) {
         return (
-            <ProtectedRoute>
-                <div className="flex items-center justify-center min-h-screen">
-                    <div className="text-gray-600 dark:text-gray-400 text-lg">Case not found</div>
-                </div>
-            </ProtectedRoute>
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-gray-600 dark:text-gray-400 text-lg">Case not found</div>
+            </div>
         );
     }
 
@@ -183,8 +187,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
     };
 
     return (
-        <ProtectedRoute>
-            <div className="max-w-4xl mx-auto p-6">
+        <div className="max-w-4xl mx-auto p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold text-kmuGreen">Case Details</h1>
@@ -474,6 +477,5 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                     </div>
                 </div>
             )}
-        </ProtectedRoute>
     );
 }
