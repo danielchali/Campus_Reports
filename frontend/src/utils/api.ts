@@ -29,13 +29,26 @@ export async function authFetch(url: string, options: RequestInit = {}, token?: 
 }
 
 export async function login(username: string, password: string) {
-  const res = await fetch(`${API_BASE_URL}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  });
-  if (!res.ok) throw new Error((await res.json()).error || 'Login failed');
-  return res.json();
+  console.log('Attempting login to:', `${API_BASE_URL}/login`);
+  try {
+    const res = await fetch(`${API_BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    console.log('Login response status:', res.status);
+    if (!res.ok) {
+      const errorData = await res.json();
+      console.error('Login error:', errorData);
+      throw new Error(errorData.error || 'Login failed');
+    }
+    const data = await res.json();
+    console.log('Login successful:', data);
+    return data;
+  } catch (error) {
+    console.error('Login fetch error:', error);
+    throw error;
+  }
 }
 
 export async function register(username: string, password: string, name?: string, role?: string) {

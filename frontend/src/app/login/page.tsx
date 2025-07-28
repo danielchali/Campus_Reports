@@ -92,7 +92,18 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-lg">
         <div className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-12 flex flex-col items-center">
-          <img src="/kmu_logo.svg" alt="KMU Logo" width={96} height={96} className="mb-8" />
+          <img 
+            src="/kmu_logo.svg" 
+            alt="KMU Logo" 
+            width={96} 
+            height={96} 
+            className="mb-8"
+            onError={(e) => {
+              console.error('Logo failed to load:', e);
+              e.currentTarget.style.display = 'none';
+            }}
+            onLoad={() => console.log('Logo loaded successfully')}
+          />
           <h2 className="text-3xl font-extrabold text-kmuGreen text-center mb-8">Sign in to KMU DisciplineDesk</h2>
           
           {/* Online/Offline Status */}
