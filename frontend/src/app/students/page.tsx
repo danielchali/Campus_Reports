@@ -108,56 +108,256 @@ export default function StudentsPage() {
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    
+    // Clear previous messages
     setError(null);
     setSuccess(null);
     setLoading(true);
+    
     try {
+      // Validate file type
+      const validExtensions = ['.csv', '.xls', '.xlsx'];
+      const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+      
+      if (!validExtensions.includes(fileExtension)) {
+        setError(`Unsupported file type: ${fileExtension}. Please upload a CSV (.csv) or Excel (.xls, .xlsx) file.`);
+        setLoading(false);
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        setError(`File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB. Maximum size is 5MB.`);
+        setLoading(false);
+        return;
+      }
+      
       let studentsToImport: Student[] = [];
+      let validationErrors: string[] = [];
+      let rowNumber = 1; // Start from 1 for user-friendly row numbers
+      
       if (file.name.endsWith('.csv')) {
         const text = await file.text();
-        const parsed = Papa.parse(text, { header: true });
-        studentsToImport = parsed.data.map((row: any) => ({
-          studentId: row.studentId || row.StudentId || row.ID || row.id,
-          fullName: row.fullName || row.FullName || row.Name || row.name,
-          department: row.department || row.Department,
-          year: row.year || row.Year,
-          gender: row.gender || row.Gender,
-        })).filter(s => s.studentId && s.fullName && s.department);
+        const parsed = Papa.parse(text, { 
+          header: true, 
+          skipEmptyLines: true,
+          transformHeader: (header) => header.trim()
+        });
+        
+        // Validate headers
+        const headers = Object.keys(parsed.data[0] || {});
+        const requiredHeaders = ['studentId', 'fullName', 'department'];
+        const missingHeaders = requiredHeaders.filter(h => 
+          !headers.some(header => 
+            header.toLowerCase().includes(h.toLowerCase())
+          )
+        );
+        
+        if (missingHeaders.length > 0) {
+          setError(`Missing required columns: ${missingHeaders.join(', ')}. Please include: studentId, fullName, department`);
+          setLoading(false);
+          return;
+        }
+        
+        studentsToImport = parsed.data.map((row: any, index: number) => {
+          rowNumber = index + 2; // +2 because index starts at 0 and we have header row
+          
+          const student = {
+            studentId: (row.studentId || row.StudentId || row.ID || row.id || '').toString().trim(),
+            fullName: (row.fullName || row.FullName || row.Name || row.name || '').toString().trim(),
+            department: (row.department || row.Department || '').toString().trim(),
+            year: (row.year || row.Year || '').toString().trim(),
+            gender: (row.gender || row.Gender || '').toString().trim(),
+          };
+          
+          // Validate required fields
+          if (!student.studentId) {
+            validationErrors.push(`Row ${rowNumber}: Missing Student ID`);
+          } else if (student.studentId.length < 3) {
+            validationErrors.push(`Row ${rowNumber}: Student ID too short (minimum 3 characters)`);
+          }
+          
+          if (!student.fullName) {
+            validationErrors.push(`Row ${rowNumber}: Missing Full Name`);
+          } else if (student.fullName.length < 2) {
+            validationErrors.push(`Row ${rowNumber}: Full Name too short (minimum 2 characters)`);
+          }
+          
+          if (!student.department) {
+            validationErrors.push(`Row ${rowNumber}: Missing Department`);
+          }
+          
+          // Validate optional fields
+          if (student.year && !['1', '2', '3', '4'].includes(student.year)) {
+            validationErrors.push(`Row ${rowNumber}: Invalid Year (must be 1, 2, 3, or 4)`);
+          }
+          
+          if (student.gender && !['Male', 'Female', 'Other'].includes(student.gender)) {
+            validationErrors.push(`Row ${rowNumber}: Invalid Gender (must be Male, Female, or Other)`);
+          }
+          
+          return student;
+        });
+        
       } else if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
         const data = await file.arrayBuffer();
         const workbook = XLSX.read(data);
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json(sheet);
-        studentsToImport = (rows as any[]).map((row: any) => ({
-          studentId: row.studentId || row.StudentId || row.ID || row.id,
-          fullName: row.fullName || row.FullName || row.Name || row.name,
-          department: row.department || row.Department,
-          year: row.year || row.Year,
-          gender: row.gender || row.Gender,
-        })).filter(s => s.studentId && s.fullName && s.department);
-      } else {
-        setError('Unsupported file type. Please upload a CSV or Excel file.');
+        
+        if (rows.length === 0) {
+          setError('Excel file is empty or has no data rows.');
+          setLoading(false);
+          return;
+        }
+        
+        // Validate headers
+        const headers = Object.keys(rows[0] || {});
+        const requiredHeaders = ['studentId', 'fullName', 'department'];
+        const missingHeaders = requiredHeaders.filter(h => 
+          !headers.some(header => 
+            header.toLowerCase().includes(h.toLowerCase())
+          )
+        );
+        
+        if (missingHeaders.length > 0) {
+          setError(`Missing required columns: ${missingHeaders.join(', ')}. Please include: studentId, fullName, department`);
+          setLoading(false);
+          return;
+        }
+        
+        studentsToImport = (rows as any[]).map((row: any, index: number) => {
+          rowNumber = index + 2; // +2 because index starts at 0 and we have header row
+          
+          const student = {
+            studentId: (row.studentId || row.StudentId || row.ID || row.id || '').toString().trim(),
+            fullName: (row.fullName || row.FullName || row.Name || row.name || '').toString().trim(),
+            department: (row.department || row.Department || '').toString().trim(),
+            year: (row.year || row.Year || '').toString().trim(),
+            gender: (row.gender || row.Gender || '').toString().trim(),
+          };
+          
+          // Validate required fields
+          if (!student.studentId) {
+            validationErrors.push(`Row ${rowNumber}: Missing Student ID`);
+          } else if (student.studentId.length < 3) {
+            validationErrors.push(`Row ${rowNumber}: Student ID too short (minimum 3 characters)`);
+          }
+          
+          if (!student.fullName) {
+            validationErrors.push(`Row ${rowNumber}: Missing Full Name`);
+          } else if (student.fullName.length < 2) {
+            validationErrors.push(`Row ${rowNumber}: Full Name too short (minimum 2 characters)`);
+          }
+          
+          if (!student.department) {
+            validationErrors.push(`Row ${rowNumber}: Missing Department`);
+          }
+          
+          // Validate optional fields
+          if (student.year && !['1', '2', '3', '4'].includes(student.year)) {
+            validationErrors.push(`Row ${rowNumber}: Invalid Year (must be 1, 2, 3, or 4)`);
+          }
+          
+          if (student.gender && !['Male', 'Female', 'Other'].includes(student.gender)) {
+            validationErrors.push(`Row ${rowNumber}: Invalid Gender (must be Male, Female, or Other)`);
+          }
+          
+          return student;
+        });
+      }
+      
+      // Check for validation errors
+      if (validationErrors.length > 0) {
+        const errorMessage = `Validation errors found:\n${validationErrors.slice(0, 10).join('\n')}${validationErrors.length > 10 ? `\n... and ${validationErrors.length - 10} more errors` : ''}`;
+        setError(errorMessage);
         setLoading(false);
         return;
       }
-      if (studentsToImport.length === 0) {
-        setError('No valid students found in the file.');
+      
+      // Filter out invalid records
+      const validStudents = studentsToImport.filter(s => s.studentId && s.fullName && s.department);
+      
+      if (validStudents.length === 0) {
+        setError('No valid students found in the file. Please ensure all required fields (Student ID, Full Name, Department) are filled.');
         setLoading(false);
         return;
       }
+      
+      // Check for duplicate student IDs in the import file
+      const studentIds = validStudents.map(s => s.studentId);
+      const duplicateIds = studentIds.filter((id, index) => studentIds.indexOf(id) !== index);
+      if (duplicateIds.length > 0) {
+        const uniqueDuplicates = Array.from(new Set(duplicateIds));
+        setError(`Duplicate Student IDs found in import file: ${uniqueDuplicates.join(', ')}. Each Student ID must be unique.`);
+        setLoading(false);
+        return;
+      }
+      
+      // Show preview
+      const confirmed = window.confirm(
+        `Ready to import ${validStudents.length} students:\n\n` +
+        `- Valid records: ${validStudents.length}\n` +
+        `- Skipped records: ${studentsToImport.length - validStudents.length}\n\n` +
+        `Continue with import?`
+      );
+      
+      if (!confirmed) {
+        setLoading(false);
+        return;
+      }
+      
+      // Send to backend
       const res = await fetch(`${API_BASE_URL}/students/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ students: studentsToImport }),
+        body: JSON.stringify({ students: validStudents }),
       });
-      if (!res.ok) throw new Error(await res.text());
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText);
+      }
+      
       const result = await res.json();
-      setSuccess(`Imported ${result.inserted} students. ${result.errors.length ? result.errors.length + ' errors.' : ''}`);
+      
+      // Show detailed results
+      let successMessage = `✅ Successfully imported ${result.inserted} students.`;
+      
+      if (result.skipped && result.skipped > 0) {
+        successMessage += `\n\n⚠️ ${result.skipped} students were skipped (already exist in database).`;
+      }
+      
+      if (result.errors && result.errors.length > 0) {
+        successMessage += `\n\n❌ ${result.errors.length} errors occurred:`;
+        result.errors.slice(0, 5).forEach((error: any) => {
+          successMessage += `\n- ${error.student?.studentId || 'Unknown'}: ${error.error}`;
+        });
+        if (result.errors.length > 5) {
+          successMessage += `\n... and ${result.errors.length - 5} more errors`;
+        }
+      }
+      
+      if (studentsToImport.length - validStudents.length > 0) {
+        successMessage += `\n\n⚠️ ${studentsToImport.length - validStudents.length} records were skipped due to missing required fields.`;
+      }
+      
+      // Show summary if available
+      if (result.summary) {
+        successMessage += `\n\n📊 Summary: ${result.summary.successful} imported, ${result.summary.skipped} skipped, ${result.summary.failed} failed`;
+      }
+      
+      setSuccess(successMessage);
       loadStudents();
+      
     } catch (err: any) {
-      setError(err.message || 'Failed to import students');
+      console.error('Import error:', err);
+      setError(`Import failed: ${err.message || 'Unknown error occurred'}`);
     } finally {
       setLoading(false);
+      // Clear the file input
+      e.target.value = '';
     }
   }
 
@@ -234,6 +434,19 @@ export default function StudentsPage() {
             Import Students (CSV/Excel)
             <input type="file" accept=".csv,.xls,.xlsx" onChange={handleImport} className="hidden" />
           </label>
+          <button 
+            onClick={() => {
+              const link = document.createElement('a');
+              link.href = '/students_import_template.csv';
+              link.download = 'students_import_template.csv';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          >
+            📥 Download Template
+          </button>
           <input
             type="text"
             placeholder="Search by name or ID"

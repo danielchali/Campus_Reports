@@ -169,42 +169,149 @@ export async function importStudents(req, res) {
         if (!Array.isArray(students) || students.length === 0) {
             return res.status(400).json({ error: 'No students provided' });
         }
-        let inserted = 0,
-            errors = [];
+
+        // Validate input data
+        const validationErrors = [];
+        for (let i = 0; i < students.length; i++) {
+            const student = students[i];
+            const rowNumber = i + 1;
+
+            if (!student.studentId || typeof student.studentId !== 'string' || student.studentId.trim().length < 3) {
+                validationErrors.push(`Row ${rowNumber}: Invalid Student ID (minimum 3 characters)`);
+            }
+
+            if (!student.fullName || typeof student.fullName !== 'string' || student.fullName.trim().length < 2) {
+                validationErrors.push(`Row ${rowNumber}: Invalid Full Name (minimum 2 characters)`);
+            }
+
+            if (!student.department || typeof student.department !== 'string' || student.department.trim().length === 0) {
+                validationErrors.push(`Row ${rowNumber}: Missing Department`);
+            }
+
+            if (student.year && !['1', '2', '3', '4'].includes(student.year.toString())) {
+                validationErrors.push(`Row ${rowNumber}: Invalid Year (must be 1, 2, 3, or 4)`);
+            }
+
+            if (student.gender && !['Male', 'Female', 'Other'].includes(student.gender.toString())) {
+                validationErrors.push(`Row ${rowNumber}: Invalid Gender (must be Male, Female, or Other)`);
+            }
+        }
+
+        if (validationErrors.length > 0) {
+            return res.status(400).json({
+                error: 'Validation failed',
+                details: validationErrors.slice(0, 10) // Limit to first 10 errors
+            });
+        }
+
+        let inserted = 0;
+        let errors = [];
+        let existingStudents = [];
+
+        // Check for existing students first
         if (dbType === 'mongo') {
-            for (const s of students) {
+            const existingStudentIds = await StudentModel.find({
+                studentId: { $in: students.map(s => s.studentId) }
+            }).select('studentId');
+            existingStudents = existingStudentIds.map(s => s.studentId);
+        } else if (dbType === 'mysql') {
+            const studentIds = students.map(s => s.studentId);
+            const placeholders = studentIds.map(() => '?').join(',');
+            const [rows] = await db.execute(`SELECT studentId FROM students WHERE studentId IN (${placeholders})`, studentIds);
+            existingStudents = rows.map(row => row.studentId);
+        }
+
+        // Filter out existing students
+        const newStudents = students.filter(s => !existingStudents.includes(s.studentId));
+
+        if (newStudents.length === 0) {
+            return res.status(400).json({
+                error: 'All students already exist in the database',
+                existingCount: existingStudents.length
+            });
+        }
+
+        // Insert new students
+        if (dbType === 'mongo') {
+            for (const s of newStudents) {
                 try {
-                    await StudentModel.create(s);
+                    // Clean and validate data
+                    const cleanStudent = {
+                        studentId: s.studentId.trim(),
+                        fullName: s.fullName.trim(),
+                        department: s.department.trim(),
+                        year: s.year ? s.year.toString().trim() : undefined,
+                        gender: s.gender ? s.gender.toString().trim() : undefined
+                    };
+
+                    await StudentModel.create(cleanStudent);
                     inserted++;
                 } catch (err) {
-                    errors.push({ student: s, error: err.message });
+                    console.error('MongoDB insert error:', err);
+                    errors.push({
+                        student: s,
+                        error: err.code === 11000 ? 'Student ID already exists' : err.message
+                    });
                 }
             }
         } else if (dbType === 'mysql') {
-            for (const s of students) {
+            for (const s of newStudents) {
                 try {
-                    await db.execute('INSERT INTO students (studentId, fullName, department, year, gender) VALUES (?, ?, ?, ?, ?)', [s.studentId, s.fullName, s.department, s.year, s.gender]);
+                    // Clean and validate data
+                    const cleanStudent = {
+                        studentId: s.studentId.trim(),
+                        fullName: s.fullName.trim(),
+                        department: s.department.trim(),
+                        year: s.year ? s.year.toString().trim() : undefined,
+                        gender: s.gender ? s.gender.toString().trim() : undefined
+                    };
+
+                    await db.execute(
+                        'INSERT INTO students (studentId, fullName, department, year, gender) VALUES (?, ?, ?, ?, ?)', [cleanStudent.studentId, cleanStudent.fullName, cleanStudent.department, cleanStudent.year, cleanStudent.gender]
+                    );
                     inserted++;
                 } catch (err) {
-                    errors.push({ student: s, error: err.message });
+                    console.error('MySQL insert error:', err);
+                    errors.push({
+                        student: s,
+                        error: err.code === 'ER_DUP_ENTRY' ? 'Student ID already exists' : err.message
+                    });
                 }
             }
         }
+
+        // Log audit
         await logAudit({
             action: 'students_imported',
             entity: 'student',
             user: req.user && req.user.username,
             details: {
-                count: inserted,
-                errors,
+                totalRequested: students.length,
+                inserted,
+                skipped: existingStudents.length,
+                errors: errors.length,
                 timestamp: new Date().toISOString()
             },
             ipAddress: req.ip,
             userAgent: req.get('User-Agent')
         });
-        res.json({ success: true, inserted, errors });
+
+        // Return detailed results
+        res.json({
+            success: true,
+            inserted,
+            skipped: existingStudents.length,
+            errors,
+            summary: {
+                total: students.length,
+                successful: inserted,
+                skipped: existingStudents.length,
+                failed: errors.length
+            }
+        });
     } catch (err) {
-        res.status(500).json({ error: 'Server error' });
+        console.error('Import error:', err);
+        res.status(500).json({ error: 'Server error during import' });
     }
 }
 
