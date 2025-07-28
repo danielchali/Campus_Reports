@@ -7,6 +7,9 @@
 import app from '../app.js';
 import debugLib from 'debug';
 import http from 'http';
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
+import User from '../models/user.js';
 
 const debug = debugLib('backend:server');
 
@@ -30,6 +33,64 @@ const server = http.createServer(app);
 server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
+
+// Create default users if they don't exist
+async function createDefaultUsers() {
+    try {
+        if (process.env.CREATE_DEFAULT_USERS === 'true') {
+            console.log('Checking for default users...');
+
+            // Check if admin user exists
+            const existingAdmin = await User.findOne({ username: 'admin' });
+            if (!existingAdmin) {
+                const hashedPassword = await bcrypt.hash('admin123', 10);
+                const adminUser = new User({
+                    username: 'admin',
+                    password: hashedPassword,
+                    name: 'System Administrator',
+                    role: 'admin'
+                });
+                await adminUser.save();
+                console.log('✅ Admin user created: admin / admin123');
+            }
+
+            // Check if security user exists
+            const existingSecurity = await User.findOne({ username: 'security' });
+            if (!existingSecurity) {
+                const hashedPassword = await bcrypt.hash('admin123', 10);
+                const securityUser = new User({
+                    username: 'security',
+                    password: hashedPassword,
+                    name: 'Security Officer',
+                    role: 'security_officer'
+                });
+                await securityUser.save();
+                console.log('✅ Security user created: security / admin123');
+            }
+
+            // Check if academic user exists
+            const existingAcademic = await User.findOne({ username: 'academic' });
+            if (!existingAcademic) {
+                const hashedPassword = await bcrypt.hash('admin123', 10);
+                const academicUser = new User({
+                    username: 'academic',
+                    password: hashedPassword,
+                    name: 'Academic Office',
+                    role: 'academic_office'
+                });
+                await academicUser.save();
+                console.log('✅ Academic user created: academic / admin123');
+            }
+        }
+    } catch (error) {
+        console.error('Error creating default users:', error);
+    }
+}
+
+// Run user creation after server starts
+server.on('listening', async() => {
+    await createDefaultUsers();
+});
 
 /**
  * Normalize a port into a number, string, or false.
