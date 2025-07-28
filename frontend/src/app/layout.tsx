@@ -103,7 +103,7 @@ function Sidebar() {
   return (
     <>
       <div className={`fixed inset-0 bg-black bg-opacity-30 z-30 transition-opacity md:hidden ${open ? 'block' : 'hidden'}`} onClick={() => setOpen(false)} />
-      <aside className={`${sidebarBase} ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static md:block dark:bg-gray-900 dark:text-white bg-white text-gray-900`}>
+      <aside className={`${sidebarBase} ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static md:block dark:bg-gray-900 dark:text-white bg-white text-gray-900 w-64 md:w-64`}>
         <div className="flex flex-col items-center gap-2 pt-8 pb-4 border-b border-gray-800 dark:border-gray-800 border-gray-200">
           <img src="/kmu_logo.svg" alt="KMU Logo" width={64} height={64} className="mb-2" />
           <button
@@ -140,7 +140,7 @@ function Sidebar() {
           )}
         </nav>
       </aside>
-      <button className="fixed top-4 left-4 z-50 p-2 rounded bg-gray-900 text-white shadow md:hidden dark:bg-gray-900 dark:text-white bg-white text-gray-900" onClick={() => setOpen(!open)} aria-label="Toggle sidebar">
+      <button className="fixed top-3 left-3 z-50 p-2 rounded bg-gray-900 text-white shadow md:hidden dark:bg-gray-900 dark:text-white bg-white text-gray-900" onClick={() => setOpen(!open)} aria-label="Toggle sidebar">
         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
       </button>
     </>
@@ -157,8 +157,11 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
       {shouldShowNav && <Sidebar />}
       {/* Main content */}
       <div className="flex-1 flex flex-col">
-        {shouldShowNav && <TopNavbar />}
-        <main className="flex-1 px-2 py-4 md:px-6 md:py-8">
+        {/* Hide top navbar on mobile */}
+        <div className="hidden md:block">
+          {shouldShowNav && <TopNavbar />}
+        </div>
+        <main className="flex-1 px-3 py-2 md:px-6 md:py-8 overflow-x-hidden">
           {children}
         </main>
       </div>

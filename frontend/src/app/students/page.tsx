@@ -217,7 +217,8 @@ export default function StudentsPage() {
             <button type="submit" className="bg-kmuGreen text-white px-4 py-1 rounded" disabled={loading} aria-label="Add student">Add</button>
           </form>
         )}
-        <div className="mb-4 flex gap-2 flex-wrap items-center">
+        <div className="mb-4 flex flex-col md:flex-row gap-2 md:items-center">
+          <div className="flex flex-wrap gap-2">
           <label className="bg-kmuOrange text-white px-4 py-2 rounded cursor-pointer hover:bg-kmuGreen transition">
             Import Students (CSV/Excel)
             <input type="file" accept=".csv,.xls,.xlsx" onChange={handleImport} className="hidden" />
@@ -252,9 +253,10 @@ export default function StudentsPage() {
               <button className="bg-blue-600 text-white px-2 py-1 rounded" onClick={handleBulkExportExcel}>Export Selected (Excel)</button>
             </>
           )}
+          </div>
         </div>
         {/* Pagination controls */}
-        <div className="flex gap-2 items-center my-4">
+        <div className="flex flex-wrap gap-2 items-center my-4">
           <button
             className="px-2 py-1 rounded bg-gray-200 text-gray-700"
             onClick={() => setPage(p => Math.max(1, p - 1))}
@@ -283,8 +285,8 @@ export default function StudentsPage() {
         {error && <div className="text-red-600 text-sm mb-2" aria-live="polite">{error}</div>}
         {success && <div className="text-kmuGreen text-sm mb-2" aria-live="polite">{success}</div>}
         {loading && <div className="text-kmuGreen text-sm mb-2">Loading...</div>}
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="overflow-x-auto -mx-3 md:mx-0">
+          <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow text-sm md:text-base">
             <thead className="bg-kmuGreen text-white">
               <tr>
                 <th><input type="checkbox" checked={selected.length === filteredStudents.length && filteredStudents.length > 0} onChange={e => e.target.checked ? selectAll() : clearSelected()} /></th>

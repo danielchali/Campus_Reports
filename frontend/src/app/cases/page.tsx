@@ -258,35 +258,38 @@ export default function CasesPage() {
             </button>
           )}
         </div>
-        <div className="mb-4 flex gap-2 flex-wrap items-center">
-          <input
-            type="text"
-            placeholder="Search by name, ID, offense, status, etc."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-          />
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-            <option value="">All Statuses</option>
-            {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <select value={severityFilter} onChange={e => setSeverityFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-            <option value="">All Severities</option>
-            {SEVERITY_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded" onClick={selectAll}>Select All</button>
-          <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded" onClick={clearSelected}>Clear</button>
-          {selected.length > 0 && (
-            <>
-              <button className="bg-red-600 text-white px-2 py-1 rounded" onClick={handleBulkDelete}>Delete Selected</button>
-              <button className="bg-kmuGreen text-white px-2 py-1 rounded" onClick={() => handleExportSelected('docx')}>Export Selected (Word)</button>
-              <button className="bg-blue-600 text-white px-2 py-1 rounded" onClick={() => handleExportSelected('xlsx')}>Export Selected (Excel)</button>
-            </>
-          )}
+        <div className="mb-4 flex flex-col md:flex-row gap-2 md:items-center">
+          <div className="flex flex-wrap gap-2">
+            <input
+              type="text"
+              placeholder="Search by name, ID, offense, status, etc."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            />
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+              <option value="">All Statuses</option>
+              {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select value={severityFilter} onChange={e => setSeverityFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+              <option value="">All Severities</option>
+              {SEVERITY_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded" onClick={selectAll}>Select All</button>
+            <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded" onClick={clearSelected}>Clear</button>
+            {selected.length > 0 && (
+              <>
+                <button className="bg-red-600 text-white px-2 py-1 rounded" onClick={handleBulkDelete}>Delete Selected</button>
+                <button className="bg-kmuGreen text-white px-2 py-1 rounded" onClick={() => handleExportSelected('docx')}>Export Selected (Word)</button>
+                <button className="bg-blue-600 text-white px-2 py-1 rounded" onClick={() => handleExportSelected('xlsx')}>Export Selected (Excel)</button>
+              </>
+            )}
+          </div>
         </div>
         
         {/* Export Controls */}
-        <div className="mb-4 flex gap-2 flex-wrap items-center">
+        <div className="mb-4 flex flex-col md:flex-row gap-2 md:items-center">
+          <div className="flex flex-wrap gap-2">
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Export Options:</span>
           <button
             onClick={() => handleExportCurrentPage('docx')}
@@ -309,16 +312,17 @@ export default function CasesPage() {
           >
             {exporting ? 'Exporting...' : 'Export Filtered (Word)'}
           </button>
-          <button
-            onClick={() => handleExportFiltered('xlsx')}
-            disabled={exporting}
-            className="bg-purple-700 text-white px-3 py-1 rounded hover:bg-purple-800 disabled:opacity-50 text-sm"
-          >
-            {exporting ? 'Exporting...' : 'Export Filtered (Excel)'}
-          </button>
+                      <button
+              onClick={() => handleExportFiltered('xlsx')}
+              disabled={exporting}
+              className="bg-purple-700 text-white px-3 py-1 rounded hover:bg-purple-800 disabled:opacity-50 text-sm"
+            >
+              {exporting ? 'Exporting...' : 'Export Filtered (Excel)'}
+            </button>
+          </div>
         </div>
         {/* Pagination controls */}
-        <div className="flex gap-2 items-center my-4">
+        <div className="flex flex-wrap gap-2 items-center my-4">
           <button
             className="px-2 py-1 rounded bg-gray-200 text-gray-700"
             onClick={() => setPage(p => Math.max(1, p - 1))}
@@ -346,8 +350,8 @@ export default function CasesPage() {
         </div>
         {error && <div className="text-red-600 text-sm mb-2" aria-live="polite">{error}</div>}
         {loading && <div className="text-kmuGreen text-sm mb-2">Loading...</div>}
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div className="overflow-x-auto -mx-3 md:mx-0">
+          <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow text-sm md:text-base">
             <thead className="bg-kmuGreen text-white">
               <tr>
                 <th><input type="checkbox" checked={selected.length === filteredCases.length && filteredCases.length > 0} onChange={e => e.target.checked ? selectAll() : clearSelected()} /></th>

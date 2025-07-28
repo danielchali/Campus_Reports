@@ -79,9 +79,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <div className="w-full max-w-lg">
-        <div className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 md:p-12 flex flex-col items-center">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-3">
+      <div className="w-full max-w-sm md:max-w-lg">
+        <div className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 md:p-8 lg:p-12 flex flex-col items-center">
           <div className="mb-8 flex justify-center">
             <img 
               src="/kmu_logo.svg" 
