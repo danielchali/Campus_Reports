@@ -1,0 +1,43 @@
+{
+    "name": "kmu-discipline-desk-frontend",
+    "version": "1.0.0",
+    "private": true,
+    "main": "main.js",
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "test": "jest",
+        "lint": "next lint",
+        "electron-dev": "NODE_ENV=development electron .",
+        "electron-pack": "npm run build && electron-packager . KMUDisciplineDesk --platform=win32 --arch=x64 --out=dist --overwrite --ignore=node_modules --ignore=.next --ignore=dist",
+        "electron-pack-complete": "npm run build && electron-packager . KMUDisciplineDesk --platform=win32 --arch=x64 --out=dist --overwrite --ignore=node_modules --ignore=.next --ignore=dist --extra-resource=../backend"
+    },
+    "dependencies": {
+        "docx": "^9.5.1",
+        "file-saver": "^2.0.5",
+        "lowdb": "^6.0.1",
+        "next": "14.0.0",
+        "papaparse": "^5.5.3",
+        "react": "18.2.0",
+        "react-dom": "18.2.0",
+        "xlsx": "^0.18.5"
+    },
+    "devDependencies": {
+        "@types/file-saver": "^2.0.7",
+        "@types/node": "20.4.2",
+        "@types/papaparse": "^5.3.16",
+        "@types/react": "18.2.14",
+        "@types/react-dom": "18.2.7",
+        "@typescript-eslint/eslint-plugin": "^8.38.0",
+        "@typescript-eslint/parser": "^8.38.0",
+        "autoprefixer": "10.4.14",
+        "electron": "^29.0.0",
+        "electron-packager": "^17.1.2",
+        "eslint": "8.45.0",
+        "eslint-config-next": "^14.0.0",
+        "postcss": "8.4.24",
+        "tailwindcss": "3.3.2",
+        "typescript": "5.1.6"
+    }
+}

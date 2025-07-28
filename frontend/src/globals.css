@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body {
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+}
+
+html,
+body {
+    @apply bg-white text-gray-900 transition-colors duration-200;
+}
+
+.dark html,
+.dark body {
+    @apply bg-gray-900 text-white;
+}
+
+
+/* Dark mode transitions for better UX */
+
+* {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+
+/* Prevent browser autofill styling */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px white inset !important;
+    -webkit-text-fill-color: #111827 !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #374151 inset !important;
+    -webkit-text-fill-color: #f9fafb !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+
+/* Ensure proper focus states */
+
+input:focus,
+textarea:focus,
+select:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px #10b981 !important;
+}
+
+
+/* Remove any unwanted borders */
+
+* {
+    box-sizing: border-box;
+}
