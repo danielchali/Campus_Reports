@@ -147,6 +147,26 @@ function Sidebar() {
   );
 }
 
+function AppContent({ isLogin, children }: { isLogin: boolean; children: React.ReactNode }) {
+  const { user } = useAuth();
+  const shouldShowNav = !isLogin && user;
+  
+  return (
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      {shouldShowNav && <Sidebar />}
+      {/* Main content */}
+      <div className="flex-1 flex flex-col">
+        {shouldShowNav && <TopNavbar />}
+        {shouldShowNav && <FixedBackButton />}
+        <main className="flex-1 px-2 py-4 md:px-6 md:py-8">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+}
+
 function TopNavbar() {
   const { user, token } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -239,8 +259,7 @@ function TopNavbar() {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { theme } = useTheme();
-  const { user } = useAuth();
-  const isLogin = pathname === "/login" || pathname === "/" || !user;
+  const isLogin = pathname === "/login" || pathname === "/";
   const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -270,18 +289,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <SyncProvider>
             <ThemeProvider>
-              <div className="flex min-h-screen">
-                {/* Sidebar */}
-                {!isLogin && <Sidebar />}
-                {/* Main content */}
-                <div className="flex-1 flex flex-col">
-                  {!isLogin && <TopNavbar />}
-                  {!isLogin && <FixedBackButton />}
-                  <main className="flex-1 px-2 py-4 md:px-6 md:py-8">
-                    {children}
-                  </main>
-                </div>
-              </div>
+              <AppContent isLogin={isLogin}>
+                {children}
+              </AppContent>
               
               {/* Service Worker Registration */}
               <ServiceWorkerRegistration />
