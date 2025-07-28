@@ -13,7 +13,8 @@
         "deploy-pwa": "node scripts/deploy-pwa.js",
         "deploy-backend": "node scripts/deploy-pwa.js --backend",
         "fix-permissions": "node scripts/fix-permissions.js",
-        "test-db": "node scripts/test-database.js"
+        "test-db": "node scripts/test-database.js",
+        "keep-alive": "node scripts/keep-alive.js"
     },
     "dependencies": {
         "chart.js": "^4.5.0",

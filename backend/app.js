@@ -16,9 +16,7 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' ?
-        ['https://kmudd.onrender.com', 'http://localhost:3000'] :
-        'http://localhost:3000',
+    origin: process.env.NODE_ENV === 'production' ? ['https://kmudd.onrender.com', 'http://localhost:3000'] : 'http://localhost:3000',
     credentials: true,
 }));
 app.use(express.json());
@@ -34,6 +32,15 @@ app.use('/api/audit', auditRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+
+// Keep-alive endpoint for Render
+app.get('/api/ping', (req, res) => {
+    res.json({
+        status: 'alive',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
 
 // Root endpoint
 app.get('/', (req, res) => {
