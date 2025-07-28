@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import db from './db.js';
 
+const dbType = process.env.DB_TYPE || 'mongo';
 
 let UserModel;
 
