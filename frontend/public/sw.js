@@ -18,14 +18,16 @@ const STATIC_FILES = [
     '/help',
     '/security-dashboard',
     '/academic-dashboard',
-    '/admin/users'
+    '/admin/users',
+    '/offline.html'
 ];
 
 // Critical assets to cache
 const CRITICAL_ASSETS = [
     '/kmu_logo.svg',
     '/manifest.json',
-    '/sw.js'
+    '/sw.js',
+    '/offline.html'
 ];
 
 // API endpoints to cache
@@ -43,18 +45,15 @@ const API_ENDPOINTS = [
 self.addEventListener('install', (event) => {
     console.log('Service Worker installing...');
     event.waitUntil(
-        Promise.all([
-            // Cache static files
-            caches.open(STATIC_CACHE).then((cache) => {
-                console.log('Caching static files');
-                return cache.addAll(STATIC_FILES);
-            }),
-            // Cache critical assets
-            caches.open(STATIC_CACHE).then((cache) => {
-                console.log('Caching critical assets');
-                return cache.addAll(CRITICAL_ASSETS);
-            })
-        ]).then(() => self.skipWaiting())
+        caches.open(STATIC_CACHE).then((cache) => {
+            console.log('Caching static files and critical assets');
+            return cache.addAll([...STATIC_FILES, ...CRITICAL_ASSETS]);
+        }).then(() => {
+            console.log('All files cached successfully');
+            return self.skipWaiting();
+        }).catch((error) => {
+            console.error('Failed to cache files:', error);
+        })
     );
 });
 
@@ -80,17 +79,25 @@ self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
+    // Skip non-GET requests for static files
+    if (request.method !== 'GET') {
+        return;
+    }
+
     // Handle API requests
     if (url.pathname.startsWith('/api/')) {
         event.respondWith(handleApiRequest(request));
         return;
     }
 
-    // Handle static file requests
-    if (request.method === 'GET') {
-        event.respondWith(handleStaticRequest(request));
+    // Handle navigation requests (HTML pages)
+    if (request.mode === 'navigate') {
+        event.respondWith(handleNavigationRequest(request));
         return;
     }
+
+    // Handle static file requests
+    event.respondWith(handleStaticRequest(request));
 });
 
 // Handle API requests with offline-first strategy
@@ -160,12 +167,55 @@ async function handleStaticRequest(request) {
 
         return networkResponse;
     } catch (error) {
+        console.log('Network failed for static request:', request.url);
+
         // Return offline page for navigation requests
-        if (request.destination === 'document') {
+        if (request.destination === 'document' || request.mode === 'navigate') {
+            const offlineResponse = await cache.match('/offline.html');
+            if (offlineResponse) {
+                return offlineResponse;
+            }
+            // Fallback to root page
             return cache.match('/');
         }
 
-        throw error;
+        // For other static files, return a simple offline response
+        return new Response('Offline - Resource not available', {
+            status: 503,
+            statusText: 'Service Unavailable'
+        });
+    }
+}
+
+// Handle navigation requests (HTML pages)
+async function handleNavigationRequest(request) {
+    const cache = await caches.open(STATIC_CACHE);
+
+    try {
+        // Try cache first
+        const cachedResponse = await cache.match(request);
+        if (cachedResponse) {
+            return cachedResponse;
+        }
+
+        // Try network
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+            const responseClone = networkResponse.clone();
+            cache.put(request, responseClone);
+        }
+        return networkResponse;
+    } catch (error) {
+        console.log('Navigation request failed:', request.url);
+
+        // Return offline page
+        const offlineResponse = await cache.match('/offline.html');
+        if (offlineResponse) {
+            return offlineResponse;
+        }
+
+        // Fallback to root page
+        return cache.match('/');
     }
 }
 
