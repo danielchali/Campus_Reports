@@ -1,0 +1,59 @@
+{
+    "name": "KMU Discipline Desk",
+    "short_name": "KMU Desk",
+    "description": "KMU Discipline Management System",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#1f2937",
+    "orientation": "portrait-primary",
+    "icons": [{
+            "src": "/kmu_logo.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/kmu_logo.ico",
+            "sizes": "48x48",
+            "type": "image/x-icon"
+        }
+    ],
+    "categories": ["education", "productivity"],
+    "lang": "en",
+    "dir": "ltr",
+    "scope": "/",
+    "prefer_related_applications": false,
+    "related_applications": [],
+    "shortcuts": [{
+            "name": "New Case",
+            "short_name": "New Case",
+            "description": "Create a new disciplinary case",
+            "url": "/cases/new",
+            "icons": [{
+                "src": "/kmu_logo.svg",
+                "sizes": "96x96"
+            }]
+        },
+        {
+            "name": "Students",
+            "short_name": "Students",
+            "description": "View student records",
+            "url": "/students",
+            "icons": [{
+                "src": "/kmu_logo.svg",
+                "sizes": "96x96"
+            }]
+        },
+        {
+            "name": "Cases",
+            "short_name": "Cases",
+            "description": "View all cases",
+            "url": "/cases",
+            "icons": [{
+                "src": "/kmu_logo.svg",
+                "sizes": "96x96"
+            }]
+        }
+    ]
+}
