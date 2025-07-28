@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { login as apiLogin } from '../../utils/api';
 
 export default function LoginPage() {
-  const { login, loginOffline, user, isOnline } = useAuth();
+  const { login, loginOffline, user } = useAuth();
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -45,27 +45,17 @@ export default function LoginPage() {
     try {
       let result;
       
-      if (isOnline) {
-        // Try online login first
-        try {
-          result = await apiLogin(username, password);
-          await login(username, password);
-        } catch (onlineError) {
-          // If online login fails, try offline login
-          const offlineSuccess = await loginOffline(username, password);
-          if (offlineSuccess) {
-            result = { user: { role: 'offline_user' } }; // Use stored user data
-          } else {
-            throw onlineError;
-          }
-        }
-      } else {
-        // Offline mode - try offline login
+      // Try online login first
+      try {
+        result = await apiLogin(username, password);
+        await login(username, password);
+      } catch (onlineError) {
+        // If online login fails, try offline login
         const offlineSuccess = await loginOffline(username, password);
         if (offlineSuccess) {
           result = { user: { role: 'offline_user' } }; // Use stored user data
         } else {
-          throw new Error('Offline login failed. Please connect to the internet to login for the first time.');
+          throw onlineError;
         }
       }
       
@@ -112,15 +102,6 @@ export default function LoginPage() {
             />
           </div>
           <h2 className="text-3xl font-extrabold text-kmuGreen text-center mb-8">Sign in to KMU DisciplineDesk</h2>
-          
-          {/* Online/Offline Status */}
-          <div className={`mb-6 px-4 py-2 rounded-lg text-sm font-medium ${
-            isOnline 
-              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' 
-              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-          }`}>
-            {isOnline ? '🟢 Online Mode' : '🟡 Offline Mode'}
-          </div>
           
           <form className="space-y-6 w-full" onSubmit={handleSubmit} aria-label="Login form" autoComplete="off">
           {/* Hidden fields to prevent autofill */}
@@ -171,13 +152,6 @@ export default function LoginPage() {
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
-          
-          {!isOnline && (
-            <div className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4">
-              <p>⚠️ You are currently offline.</p>
-              <p>You can only login with previously stored credentials.</p>
-            </div>
-          )}
           </form>
         </div>
       </div>
