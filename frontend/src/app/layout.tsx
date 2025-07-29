@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import { SyncProvider, useSync } from '../context/SyncContext';
 import { useSyncManager } from '../hooks/useSyncManager';
 import { useOfflineSync } from '../hooks/useOfflineSync';
+import { SidebarProvider, useSidebar } from '../context/SidebarContext';
 
 // Lazy load heavy components
 const SyncManagerClient = lazy(() => import('../components/SyncManagerClient'));
@@ -21,15 +22,6 @@ const ConflictResolution = lazy(() => import('../components/ConflictResolution')
 import clsx from 'clsx';
 import { API_BASE_URL } from '../config/constants';
 import { onSyncError, offSyncError } from '../hooks/useSyncManager';
-
-// Sidebar width context
-const SidebarContext = createContext<{
-  sidebarWidth: number;
-  setSidebarWidth: (width: number) => void;
-}>({
-  sidebarWidth: 256,
-  setSidebarWidth: () => {},
-});
 
 // Optimized nav icons - using simple emojis for faster loading
 const navIcons = {
@@ -109,7 +101,7 @@ function TopNavbar() {
 
 function AppContent({ isLogin, children }: { isLogin: boolean; children: React.ReactNode }) {
   const { user } = useAuth();
-  const { sidebarWidth } = useContext(SidebarContext);
+  const { sidebarWidth } = useSidebar();
   const [isMobile, setIsMobile] = useState(false);
   const shouldShowNav = !isLogin && user;
 
@@ -157,7 +149,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const { theme } = useTheme();
   const isLogin = pathname === "/login" || pathname === "/";
   const [syncError, setSyncError] = useState<string | null>(null);
-  const [sidebarWidth, setSidebarWidth] = useState(256);
 
   useEffect(() => {
     onSyncError(handleSyncError);
@@ -199,7 +190,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <SyncProvider>
             <ThemeProvider>
-              <SidebarContext.Provider value={{ sidebarWidth, setSidebarWidth }}>
+              <SidebarProvider>
                 <AppContent isLogin={isLogin}>
                   {children}
                 </AppContent>
@@ -228,7 +219,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <Suspense fallback={null}>
                   <SyncManagerClient />
                 </Suspense>
-              </SidebarContext.Provider>
+              </SidebarProvider>
             </ThemeProvider>
           </SyncProvider>
         </AuthProvider>

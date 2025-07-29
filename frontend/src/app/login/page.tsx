@@ -103,11 +103,17 @@ export default function LoginPage() {
             alt="KMU Logo"
             width={80}
             height={80}
-            className="mx-auto mb-4"
+            className="mx-auto mb-4 h-20 w-20 object-contain"
             onError={(e) => {
               console.error('Logo failed to load');
               e.currentTarget.style.display = 'none';
+              // Show fallback text
+              const fallback = document.createElement('div');
+              fallback.className = 'text-4xl font-bold text-white mb-4';
+              fallback.textContent = 'KMU';
+              e.currentTarget.parentNode?.appendChild(fallback);
             }}
+            onLoad={() => console.log('Logo loaded successfully')}
           />
           <h2 className="text-3xl font-bold text-white mb-2">
             KMU Discipline Desk
@@ -191,13 +197,13 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-md">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Demo Credentials:</h3>
-            <div className="text-xs text-gray-600 space-y-1">
-              <div><strong>Admin:</strong> admin / admin123</div>
-              <div><strong>Security:</strong> security / admin123</div>
-              <div><strong>Academic:</strong> academic / admin123</div>
+          {/* Help Text */}
+          <div className="mt-6 p-4 bg-blue-50 rounded-md">
+            <h3 className="text-sm font-medium text-blue-700 mb-2">Need Help?</h3>
+            <div className="text-xs text-blue-600 space-y-1">
+              <div>• Contact your system administrator for login credentials</div>
+              <div>• Ensure you have a stable internet connection</div>
+              <div>• The system works offline once you've logged in</div>
             </div>
           </div>
         </div>

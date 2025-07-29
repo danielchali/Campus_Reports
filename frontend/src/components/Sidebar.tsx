@@ -5,9 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { usePathname } from 'next/navigation';
-
-// Sidebar width context
-const SidebarContext = require('../app/layout').SidebarContext;
+import { useSidebar } from '../context/SidebarContext';
 
 // Optimized nav icons - using simple emojis for faster loading
 const navIcons = {
@@ -30,7 +28,7 @@ const navIcons = {
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const { sidebarWidth, setSidebarWidth } = useContext(SidebarContext);
+  const { sidebarWidth, setSidebarWidth } = useSidebar();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
@@ -148,7 +146,23 @@ export default function Sidebar() {
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </button>
-          <img src="/kmu_logo.svg" alt="KMU Logo" width={64} height={64} className="mb-2" />
+          <img 
+            src="/kmu_logo.svg" 
+            alt="KMU Logo" 
+            width={64} 
+            height={64} 
+            className="mb-2 h-16 w-16 object-contain" 
+            onError={(e) => {
+              console.error('Logo failed to load in sidebar');
+              e.currentTarget.style.display = 'none';
+              // Show fallback text
+              const fallback = document.createElement('div');
+              fallback.className = 'text-2xl font-bold text-white mb-2';
+              fallback.textContent = 'KMU';
+              e.currentTarget.parentNode?.appendChild(fallback);
+            }}
+            onLoad={() => console.log('Sidebar logo loaded successfully')}
+          />
           <button
             className="mt-2 px-3 py-2 rounded bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
             onClick={toggleTheme}
