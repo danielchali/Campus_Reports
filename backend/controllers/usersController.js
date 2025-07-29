@@ -81,7 +81,12 @@ export async function getOwnProfile(req, res) {
             let id = req.user.id;
             // Only convert to ObjectId if it looks like a valid ObjectId
             if (id && typeof id === 'string' && id.length === 24 && /^[a-fA-F0-9]+$/.test(id)) {
-                id = new mongoose.Types.ObjectId(id);
+                try {
+                    id = new mongoose.Types.ObjectId(id);
+                } catch (error) {
+                    console.error('Invalid ObjectId format:', id);
+                    return res.status(400).json({ error: 'Invalid user ID format' });
+                }
             }
             user = await UserModel.findById(id, '-password');
         } else if (dbType === 'mysql') {
@@ -104,15 +109,46 @@ export async function updateOwnProfile(req, res) {
     try {
         let result;
         if (dbType === 'mongo') {
-            // Only allow updating name for now
-            result = await UserModel.findByIdAndUpdate(req.user.id, { name: req.body.name }, { new: true, select: '-password' });
+            // Allow updating both name and username
+            const updateData = {};
+            if (req.body.name !== undefined) updateData.name = req.body.name;
+            if (req.body.username !== undefined) updateData.username = req.body.username;
+
+            let id = req.user.id;
+            // Only convert to ObjectId if it looks like a valid ObjectId
+            if (id && typeof id === 'string' && id.length === 24 && /^[a-fA-F0-9]+$/.test(id)) {
+                try {
+                    id = new mongoose.Types.ObjectId(id);
+                } catch (error) {
+                    console.error('Invalid ObjectId format:', id);
+                    return res.status(400).json({ error: 'Invalid user ID format' });
+                }
+            }
+
+            result = await UserModel.findByIdAndUpdate(id, updateData, { new: true, select: '-password' });
         } else if (dbType === 'mysql') {
-            await db.execute('UPDATE users SET name = ? WHERE id = ?', [req.body.name, req.user.id]);
+            const updates = [];
+            const values = [];
+            if (req.body.name !== undefined) {
+                updates.push('name = ?');
+                values.push(req.body.name);
+            }
+            if (req.body.username !== undefined) {
+                updates.push('username = ?');
+                values.push(req.body.username);
+            }
+
+            if (updates.length > 0) {
+                values.push(req.user.id);
+                await db.execute(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values);
+            }
+
             const [rows] = await db.execute('SELECT id, username, name, role FROM users WHERE id = ?', [req.user.id]);
             result = rows[0];
         }
         res.json(result);
     } catch (err) {
+        console.error('updateOwnProfile error:', err);
         res.status(500).json({ error: 'Server error' });
     }
 }
@@ -122,7 +158,18 @@ export async function changeOwnPassword(req, res) {
         const { oldPassword, newPassword } = req.body;
         let user;
         if (dbType === 'mongo') {
-            user = await UserModel.findById(req.user.id);
+            let id = req.user.id;
+            // Only convert to ObjectId if it looks like a valid ObjectId
+            if (id && typeof id === 'string' && id.length === 24 && /^[a-fA-F0-9]+$/.test(id)) {
+                try {
+                    id = new mongoose.Types.ObjectId(id);
+                } catch (error) {
+                    console.error('Invalid ObjectId format:', id);
+                    return res.status(400).json({ error: 'Invalid user ID format' });
+                }
+            }
+
+            user = await UserModel.findById(id);
             if (!user) return res.status(404).json({ error: 'User not found' });
             const valid = await bcrypt.compare(oldPassword, user.password);
             if (!valid) return res.status(400).json({ error: 'Old password is incorrect' });
