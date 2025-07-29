@@ -96,38 +96,38 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'} p-4`}>
-      <div className="max-w-md w-full space-y-8">
-        {/* Logo and Title */}
-        <div className="text-center">
-          <img
-            src="/kmu_logo.svg"
-            alt="KMU Logo"
-            width={80}
-            height={80}
-            className="mx-auto mb-4 h-20 w-20 object-contain"
-            onError={(e) => {
-              console.error('Logo failed to load');
-              e.currentTarget.style.display = 'none';
-              // Show fallback text
-              const fallback = document.createElement('div');
-              fallback.className = 'text-4xl font-bold text-kmuGreen mb-4';
-              fallback.textContent = 'KMU';
-              e.currentTarget.parentNode?.appendChild(fallback);
-            }}
-            onLoad={() => console.log('Logo loaded successfully')}
-          />
-          <h2 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>
-            Sign in to KMU DisciplineDesk
-          </h2>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
+      <div className="max-w-md w-full">
+        {/* Login Form Card */}
+        <div className="bg-gray-800 rounded-lg shadow-xl p-8">
+          {/* Logo and Title */}
+          <div className="text-center mb-8">
+            <img
+              src="/kmu_logo.svg"
+              alt="KMU Logo"
+              width={80}
+              height={80}
+              className="mx-auto mb-4 h-20 w-20 object-contain"
+              onError={(e) => {
+                console.error('Logo failed to load');
+                e.currentTarget.style.display = 'none';
+                // Show fallback text
+                const fallback = document.createElement('div');
+                fallback.className = 'text-4xl font-bold text-kmuGreen mb-4';
+                fallback.textContent = 'KMU';
+                e.currentTarget.parentNode?.appendChild(fallback);
+              }}
+              onLoad={() => console.log('Logo loaded successfully')}
+            />
+            <h2 className="text-3xl font-bold text-kmuGreen mb-2">
+              Sign in to KMU DisciplineDesk
+            </h2>
+          </div>
 
-        {/* Login Form */}
-        <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8`}>
           <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
             {/* Username Field */}
             <div>
-              <label htmlFor="username" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
                 Username
               </label>
               <input
@@ -136,11 +136,7 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent ${
-                  theme === 'dark' 
-                    ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400' 
-                    : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-                }`}
+                className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white placeholder-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent"
                 placeholder="Enter your username"
                 autoComplete="off"
                 autoCorrect="off"
@@ -151,7 +147,7 @@ export default function LoginPage() {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
                 Password
               </label>
               <input
@@ -160,11 +156,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent ${
-                  theme === 'dark' 
-                    ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400' 
-                    : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-                }`}
+                className="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white placeholder-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent"
                 placeholder="Enter your password"
                 autoComplete="new-password"
                 autoCorrect="off"
