@@ -226,7 +226,18 @@ function Sidebar() {
 function AppContent({ isLogin, children }: { isLogin: boolean; children: React.ReactNode }) {
   const { user } = useAuth();
   const { sidebarWidth } = useContext(SidebarContext);
+  const [isMobile, setIsMobile] = useState(false);
   const shouldShowNav = !isLogin && user;
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   return (
     <div className="flex min-h-screen">
@@ -235,7 +246,9 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
       {/* Main content */}
       <div 
         className="flex-1 flex flex-col relative"
-        style={{ marginLeft: shouldShowNav ? `${sidebarWidth}px` : '0px' }}
+        style={{ 
+          marginLeft: shouldShowNav && !isMobile ? `${sidebarWidth}px` : '0px'
+        }}
       >
         {/* Hide top navbar on mobile */}
         <div className="hidden md:block">
