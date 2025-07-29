@@ -124,7 +124,7 @@ export default function LoginPage() {
             </h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
             {/* Username Field */}
             <div>
               <label htmlFor="username" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
@@ -143,6 +143,9 @@ export default function LoginPage() {
                 }`}
                 placeholder="Enter your username"
                 autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
               />
             </div>
 
@@ -163,7 +166,10 @@ export default function LoginPage() {
                     : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
                 }`}
                 placeholder="Enter your password"
-                autoComplete="off"
+                autoComplete="new-password"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
               />
             </div>
 
