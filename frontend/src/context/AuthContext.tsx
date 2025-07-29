@@ -134,13 +134,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }));
       localStorage.setItem('offline_auth_data', offlineData);
       
+      // Set auth state immediately for instant login
       setToken(data.token);
       setUser(data.user);
       
-      // Start preloading data for offline functionality
-      setTimeout(() => {
-        preloadData();
-      }, 1000); // Wait 1 second after login to start preload
+      // Start preloading data in the background (non-blocking)
+      // Use requestIdleCallback for better performance, fallback to setTimeout
+      const startPreload = () => {
+        // Use a very short delay to ensure UI updates first
+        setTimeout(() => {
+          preloadData().catch(error => {
+            console.warn('Background preload failed:', error);
+            // Don't block login if preload fails
+          });
+        }, 100);
+      };
+      
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(startPreload);
+      } else {
+        startPreload();
+      }
       
       return true;
     } catch (error) {
@@ -245,25 +259,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     setIsPreloading(true);
     try {
-      console.log('Starting data preload for offline functionality...');
+      console.log('Starting background data preload...');
       
-      // Initialize offline API service
-      await offlineApi.init();
+      // Initialize offline API service (non-blocking)
+      await Promise.race([
+        offlineApi.init(),
+        new Promise(resolve => setTimeout(resolve, 5000)) // 5 second timeout
+      ]).catch(error => {
+        console.warn('Offline API init timeout or error:', error);
+        return;
+      });
       
-      // Preload critical data
-      await offlineApi.preloadCriticalData();
+      // Preload critical data with timeout
+      await Promise.race([
+        offlineApi.preloadCriticalData(),
+        new Promise(resolve => setTimeout(resolve, 10000)) // 10 second timeout
+      ]).catch(error => {
+        console.warn('Critical data preload timeout or error:', error);
+      });
       
-      // Preload role-specific data
+      // Preload role-specific data with timeout
       if (user?.role) {
-        await offlineApi.preloadRoleSpecificData(user.role);
+        await Promise.race([
+          offlineApi.preloadRoleSpecificData(user.role),
+          new Promise(resolve => setTimeout(resolve, 8000)) // 8 second timeout
+        ]).catch(error => {
+          console.warn('Role-specific data preload timeout or error:', error);
+        });
       }
       
-      // Start background sync service
+      // Start background sync service (non-blocking)
       setTimeout(() => {
-        backgroundSync.start(5); // Sync every 5 minutes
-      }, 2000);
+        try {
+          backgroundSync.start(5); // Sync every 5 minutes
+        } catch (error) {
+          console.warn('Background sync start failed:', error);
+        }
+      }, 1000);
       
-      console.log('Data preload completed successfully');
+      console.log('Background data preload completed');
       
     } catch (error) {
       console.error('Data preload failed:', error);

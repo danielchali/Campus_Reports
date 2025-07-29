@@ -1,22 +1,40 @@
 "use client";
 
 import { useAuth } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
 
 export default function PreloadProgress() {
   const { isPreloading } = useAuth();
+  const [showIndicator, setShowIndicator] = useState(false);
 
-  if (!isPreloading) {
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
+    if (isPreloading) {
+      // Only show indicator if preloading takes longer than 2 seconds
+      timeoutId = setTimeout(() => {
+        setShowIndicator(true);
+      }, 2000);
+    } else {
+      setShowIndicator(false);
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [isPreloading]);
+
+  if (!showIndicator) {
     return null;
   }
 
   return (
-    <div className="fixed top-4 right-4 bg-blue-600 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm">
-      <div className="flex items-center space-x-3">
-        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-        <div>
-          <h3 className="font-semibold text-sm">Preloading Data</h3>
-          <p className="text-xs opacity-90">Preparing offline functionality...</p>
-        </div>
+    <div className="fixed bottom-4 right-4 bg-blue-600 text-white px-3 py-2 rounded-lg shadow-lg z-50 max-w-sm opacity-90 hover:opacity-100 transition-opacity">
+      <div className="flex items-center space-x-2">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+        <span className="text-xs font-medium">Preparing offline data...</span>
       </div>
     </div>
   );
