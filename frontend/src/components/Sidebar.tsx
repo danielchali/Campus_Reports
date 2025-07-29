@@ -183,7 +183,7 @@ export default function Sidebar() {
             {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
           </button>
         </div>
-        <nav className="flex flex-col gap-0.5 mt-6 px-4 pb-6 flex-1 justify-start">
+        <nav className="flex flex-col gap-0.5 mt-6 px-4 pb-6 flex-1 justify-start overflow-y-auto">
           {navLinks
             .filter(link => !link.mobileOnly || isMobile) // Only show mobileOnly items on mobile
             .map(link =>
@@ -203,6 +203,7 @@ export default function Sidebar() {
                 href={link.path}
                 className={
                   `${linkBase} ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-900 hover:text-red-400 dark:hover:text-red-400' : ''} text-gray-900 dark:text-white`}
+                onClick={() => setOpen(false)} // Close sidebar on mobile when clicking a link
               >
                 <span className="text-xl">{link.icon}</span>
                 <span>{link.label}</span>

@@ -233,63 +233,67 @@ export default function UserManagementPage() {
         {error && <div className="text-red-600 text-sm mb-2 bg-red-100 dark:bg-red-900/20 p-2 rounded">{error}</div>}
 
         {/* Filters and Actions */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-          <div className="mb-4 flex gap-2 flex-wrap items-center">
-            <input
-              type="text"
-              placeholder="Search by username or name"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            />
-            <select 
-              value={roleFilter} 
-              onChange={e => setRoleFilter(e.target.value)} 
-              className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            >
-              <option value="">All Roles</option>
-              {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-            </select>
-            <button className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600" onClick={selectAll}>
-              Select All
-            </button>
-            <button className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded hover:bg-gray-300 dark:hover:bg-gray-600" onClick={clearSelected}>
-              Clear
-            </button>
-            {selected.length > 0 && (
-              <>
-                <button className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700" onClick={handleBulkDelete}>
-                  Delete Selected
-                </button>
-                <button className="bg-kmuGreen text-white px-2 py-1 rounded hover:bg-kmuOrange" onClick={handleBulkExport}>
-                  Export Selected (Word)
-                </button>
-                <button className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700" onClick={handleBulkExportExcel}>
-                  Export Selected (Excel)
-                </button>
-              </>
-            )}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6 mb-6">
+          <div className="mb-4 flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <input
+                type="text"
+                placeholder="Search by username or name"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+              />
+              <select 
+                value={roleFilter} 
+                onChange={e => setRoleFilter(e.target.value)} 
+                className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+              >
+                <option value="">All Roles</option>
+                {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+              </select>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600" onClick={selectAll}>
+                Select All
+              </button>
+              <button className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600" onClick={clearSelected}>
+                Clear
+              </button>
+              {selected.length > 0 && (
+                <>
+                  <button className="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700" onClick={handleBulkDelete}>
+                    Delete Selected
+                  </button>
+                  <button className="bg-kmuGreen text-white px-2 py-1 rounded text-sm hover:bg-kmuOrange" onClick={handleBulkExport}>
+                    Export Selected (Word)
+                  </button>
+                  <button className="bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700" onClick={handleBulkExportExcel}>
+                    Export Selected (Excel)
+                  </button>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Users Table */}
           {loading ? (
             <div className="text-gray-500 dark:text-gray-400">Loading users...</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow">
+            <div className="overflow-x-auto -mx-3 md:mx-0">
+              <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow text-sm md:text-base">
                 <thead className="bg-kmuGreen text-white">
                   <tr>
-                    <th className="py-2 px-4 text-left">
+                    <th className="py-2 px-2 md:px-4 text-left">
                       <input 
                         type="checkbox" 
                         checked={selected.length === filteredUsers.length && filteredUsers.length > 0} 
                         onChange={e => e.target.checked ? selectAll() : clearSelected()} 
                       />
                     </th>
-                    <th className="py-2 px-4 text-left">Username</th>
-                    <th className="py-2 px-4 text-left">Name</th>
-                    <th className="py-2 px-4 text-left">Role</th>
-                    <th className="py-2 px-4 text-left">Actions</th>
+                    <th className="py-2 px-2 md:px-4 text-left">Username</th>
+                    <th className="py-2 px-2 md:px-4 text-left hidden sm:table-cell">Name</th>
+                    <th className="py-2 px-2 md:px-4 text-left">Role</th>
+                    <th className="py-2 px-2 md:px-4 text-left">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -299,7 +303,7 @@ export default function UserManagementPage() {
                     
                     return (
                       <tr key={userId} className="border-b border-gray-200 dark:border-gray-600">
-                        <td className="py-2 px-4">
+                        <td className="py-2 px-2 md:px-4">
                           <input 
                             type="checkbox" 
                             checked={selected.includes(userId)} 
@@ -308,64 +312,75 @@ export default function UserManagementPage() {
                         </td>
                         {isEditing ? (
                           <>
-                            <td className="py-2 px-4">
+                            <td className="py-2 px-2 md:px-4">
                               <input 
                                 type="text" 
-                                className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" 
                                 value={editUser.username} 
                                 onChange={e => setEditUser((eu: any) => ({ ...eu, username: e.target.value }))} 
                               />
                             </td>
-                            <td className="py-2 px-4">
+                            <td className="py-2 px-2 md:px-4 hidden sm:table-cell">
                               <input 
                                 type="text" 
-                                className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" 
                                 value={editUser.name} 
                                 onChange={e => setEditUser((eu: any) => ({ ...eu, name: e.target.value }))} 
                               />
                             </td>
-                            <td className="py-2 px-4">
+                            <td className="py-2 px-2 md:px-4">
                               <select 
-                                className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" 
                                 value={editUser.role} 
                                 onChange={e => setEditUser((eu: any) => ({ ...eu, role: e.target.value }))}
                               >
                                 {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                               </select>
                             </td>
-                            <td className="py-2 px-4">
-                              <button 
-                                className="bg-kmuGreen text-white px-2 py-1 rounded mr-2 hover:bg-kmuOrange transition" 
-                                onClick={handleEdit}
-                              >
-                                Save
-                              </button>
-                              <button 
-                                className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded hover:bg-gray-400 dark:hover:bg-gray-500 transition" 
-                                onClick={cancelEdit}
-                              >
-                                Cancel
-                              </button>
+                            <td className="py-2 px-2 md:px-4">
+                              <div className="flex flex-col sm:flex-row gap-1">
+                                <button 
+                                  className="bg-kmuGreen text-white px-2 py-1 rounded text-xs hover:bg-kmuOrange transition" 
+                                  onClick={handleEdit}
+                                >
+                                  Save
+                                </button>
+                                <button 
+                                  className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs hover:bg-gray-400 dark:hover:bg-gray-500 transition" 
+                                  onClick={cancelEdit}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
                             </td>
                           </>
                         ) : (
                           <>
-                            <td className="py-2 px-4 text-gray-900 dark:text-white">{u.username}</td>
-                            <td className="py-2 px-4 text-gray-900 dark:text-white">{u.name}</td>
-                            <td className="py-2 px-4 text-gray-900 dark:text-white">{u.role}</td>
-                            <td className="py-2 px-4">
-                              <button 
-                                className="bg-blue-500 text-white px-2 py-1 rounded mr-2 hover:bg-blue-600 transition" 
-                                onClick={() => startEdit(u)}
-                              >
-                                Edit
-                              </button>
-                              <button 
-                                className="bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700 transition" 
-                                onClick={() => handleDelete(userId)}
-                              >
-                                Delete
-                              </button>
+                            <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white">
+                              <div className="font-medium">{u.username}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 sm:hidden">{u.name}</div>
+                            </td>
+                            <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white hidden sm:table-cell">{u.name}</td>
+                            <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white">
+                              <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
+                                {u.role}
+                              </span>
+                            </td>
+                            <td className="py-2 px-2 md:px-4">
+                              <div className="flex flex-col sm:flex-row gap-1">
+                                <button 
+                                  className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition" 
+                                  onClick={() => startEdit(u)}
+                                >
+                                  Edit
+                                </button>
+                                <button 
+                                  className="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 transition" 
+                                  onClick={() => handleDelete(userId)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
                             </td>
                           </>
                         )}

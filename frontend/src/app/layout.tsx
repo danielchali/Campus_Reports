@@ -117,7 +117,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
         <div className="hidden md:block">
           {shouldShowNav && <TopNavbar />}
         </div>
-        <main className="flex-1 px-3 py-2 md:px-6 md:py-8 overflow-x-hidden">
+        <main className="flex-1 px-2 py-2 md:px-6 md:py-8 overflow-x-hidden">
           <Suspense fallback={<LoadingFallback />}>
             {children}
           </Suspense>
