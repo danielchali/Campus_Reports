@@ -64,11 +64,6 @@ function TopNavbar() {
           <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
             KMU Discipline Desk
           </h1>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {user.role === 'admin' ? 'Administrator' : 
-             user.role === 'security_officer' ? 'Security Officer' : 
-             user.role === 'academic_office' ? 'Academic Office' : 'User'}
-          </span>
         </div>
         
         <div className="flex items-center space-x-2">
