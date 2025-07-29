@@ -50,9 +50,9 @@ function Sidebar() {
 
   // Sidebar style classes
   const sidebarBase =
-    'fixed z-40 left-0 top-0 h-full w-64 sm:w-72 bg-gray-900 text-white shadow-lg border-r border-gray-800 transform transition-transform duration-200 ease-in-out overflow-y-auto';
+    'fixed z-40 left-0 top-0 h-full w-64 sm:w-72 bg-gray-900 text-white shadow-lg border-r border-gray-800 transform transition-transform duration-200 ease-in-out';
   const linkBase =
-    'flex items-center gap-3 py-3 px-4 rounded-lg transition-all font-medium hover:bg-gray-200 dark:hover:bg-gray-800 text-sm sm:text-base';
+    'flex items-center gap-3 py-2 px-4 rounded-lg transition-all font-medium hover:bg-gray-200 dark:hover:bg-gray-800 text-sm sm:text-base';
   const linkActive =
     'bg-kmuGreen text-white shadow dark:bg-kmuGreen dark:text-white';
   const sectionHeader =
@@ -128,7 +128,7 @@ function Sidebar() {
             {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
           </button>
         </div>
-        <nav className="flex flex-col gap-1 mt-6 px-4 pb-6">
+        <nav className="flex flex-col gap-0.5 mt-6 px-4 pb-6 flex-1 justify-start">
           {navLinks.map(link =>
             link.label === 'Logout' ? (
               <button
