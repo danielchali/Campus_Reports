@@ -2,7 +2,6 @@
 const nextConfig = {
     // Performance optimizations
     experimental: {
-        optimizeCss: true,
         optimizePackageImports: ['chart.js', 'react-chartjs-2', 'clsx'],
         turbo: {
             rules: {
