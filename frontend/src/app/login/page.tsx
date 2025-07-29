@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { performanceMonitor, addResourceHints } from '../../utils/performance';
 
 export default function LoginPage() {
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isOnline, setIsOnline] = useState(true);
   const { user, login, loginOffline, isOnline: authIsOnline } = useAuth();
+  const { theme } = useTheme();
   const router = useRouter();
 
   // Performance monitoring
@@ -94,41 +96,38 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-kmuGreen">
-      <div className="max-w-md w-full space-y-8">
-        {/* Logo and Title */}
-        <div className="text-center">
-          <img
-            src="/kmu_logo.svg"
-            alt="KMU Logo"
-            width={80}
-            height={80}
-            className="mx-auto mb-4 h-20 w-20 object-contain"
-            onError={(e) => {
-              console.error('Logo failed to load');
-              e.currentTarget.style.display = 'none';
-              // Show fallback text
-              const fallback = document.createElement('div');
-              fallback.className = 'text-4xl font-bold text-white mb-4';
-              fallback.textContent = 'KMU';
-              e.currentTarget.parentNode?.appendChild(fallback);
-            }}
-            onLoad={() => console.log('Logo loaded successfully')}
-          />
-          <h2 className="text-3xl font-bold text-white mb-2">
-            KMU Discipline Desk
-          </h2>
-          <p className="text-white/80 text-sm">
-            Student Discipline Management System
-          </p>
-        </div>
-
+    <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+      <div className="w-full max-w-md mx-4">
         {/* Login Form */}
-        <div className="bg-white rounded-lg shadow-xl p-8">
+        <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8`}>
+          {/* Logo and Title */}
+          <div className="text-center mb-8">
+            <img
+              src="/kmu_logo.svg"
+              alt="KMU Logo"
+              width={80}
+              height={80}
+              className="mx-auto mb-4 h-20 w-20 object-contain"
+              onError={(e) => {
+                console.error('Logo failed to load');
+                e.currentTarget.style.display = 'none';
+                // Show fallback text
+                const fallback = document.createElement('div');
+                fallback.className = 'text-4xl font-bold text-kmuGreen mb-4';
+                fallback.textContent = 'KMU';
+                e.currentTarget.parentNode?.appendChild(fallback);
+              }}
+              onLoad={() => console.log('Logo loaded successfully')}
+            />
+            <h2 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>
+              KMU Discipline Desk
+            </h2>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Username Field */}
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="username" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                 Username
               </label>
               <input
@@ -137,7 +136,11 @@ export default function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent ${
+                  theme === 'dark' 
+                    ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400' 
+                    : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
+                }`}
                 placeholder="Enter your username"
                 autoComplete="off"
               />
@@ -145,7 +148,7 @@ export default function LoginPage() {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className={`block text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                 Password
               </label>
               <input
@@ -154,7 +157,11 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent ${
+                  theme === 'dark' 
+                    ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400' 
+                    : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
+                }`}
                 placeholder="Enter your password"
                 autoComplete="off"
               />
@@ -196,11 +203,11 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-        </div>
 
-        {/* Footer */}
-        <div className="text-center text-white/60 text-xs">
-          <p>© 2025 KMU Discipline Desk. All rights reserved.</p>
+          {/* Footer */}
+          <div className={`text-center text-xs mt-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+            <p>© 2025 KMU Discipline Desk. All rights reserved.</p>
+          </div>
         </div>
       </div>
     </div>
