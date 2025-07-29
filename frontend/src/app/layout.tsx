@@ -4,7 +4,7 @@ import '../globals.css';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { usePathname } from 'next/navigation';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { useRouter } from 'next/navigation';
@@ -22,6 +22,15 @@ import ConflictResolution from '../components/ConflictResolution';
 import clsx from 'clsx';
 import { API_BASE_URL } from '../config/constants';
 import { onSyncError, offSyncError } from '../hooks/useSyncManager';
+
+// Sidebar width context
+const SidebarContext = createContext<{
+  sidebarWidth: number;
+  setSidebarWidth: (width: number) => void;
+}>({
+  sidebarWidth: 256,
+  setSidebarWidth: () => {},
+});
 
 const navIcons = {
   dashboard: '🏠',
@@ -43,6 +52,8 @@ const navIcons = {
 
 function Sidebar() {
   const [open, setOpen] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const { sidebarWidth, setSidebarWidth } = useContext(SidebarContext);
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
@@ -50,7 +61,7 @@ function Sidebar() {
 
   // Sidebar style classes
   const sidebarBase =
-    'fixed z-40 left-0 top-0 h-full w-64 sm:w-72 bg-gray-900 text-white shadow-lg border-r border-gray-800 transform transition-transform duration-200 ease-in-out';
+    'fixed z-40 left-0 top-0 h-full bg-gray-900 text-white shadow-lg border-r border-gray-800 transform transition-transform duration-200 ease-in-out';
   const linkBase =
     'flex items-center gap-3 py-2 px-4 rounded-lg transition-all font-medium hover:bg-gray-200 dark:hover:bg-gray-800 text-sm sm:text-base';
   const linkActive =
@@ -103,10 +114,54 @@ function Sidebar() {
     ];
   }
 
+  // Resize functionality
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isResizing) return;
+    
+    const newWidth = e.clientX;
+    // Limit width between 200px and 400px
+    if (newWidth >= 200 && newWidth <= 400) {
+      setSidebarWidth(newWidth);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsResizing(false);
+  };
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing]);
+
   return (
     <>
       <div className={`fixed inset-0 bg-black bg-opacity-30 z-30 transition-opacity md:hidden ${open ? 'block' : 'hidden'}`} onClick={() => setOpen(false)} />
-      <aside className={`${sidebarBase} ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 dark:bg-gray-900 dark:text-white bg-white text-gray-900 w-64 sm:w-72`}>
+      <aside 
+        className={`${sidebarBase} ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 dark:bg-gray-900 dark:text-white bg-white text-gray-900`}
+        style={{ width: `${sidebarWidth}px` }}
+      >
         <div className="flex flex-col items-center gap-2 pt-8 pb-4 border-b border-gray-800 dark:border-gray-800 border-gray-200 px-4 relative">
           {/* Close button for mobile */}
           <button 
@@ -151,9 +206,16 @@ function Sidebar() {
                 <span>{link.label}</span>
               </Link>
             )
-          )}
-        </nav>
-      </aside>
+                      )}
+          </nav>
+          
+          {/* Resize handle - only visible on desktop */}
+          <div 
+            className="absolute right-0 top-0 bottom-0 w-1 bg-gray-600 hover:bg-gray-500 cursor-col-resize hidden md:block"
+            onMouseDown={handleMouseDown}
+            title="Drag to resize sidebar"
+          />
+        </aside>
       <button className="fixed top-4 left-4 z-50 p-3 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-lg border border-gray-200 dark:border-gray-700 md:hidden hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" onClick={() => setOpen(!open)} aria-label="Toggle sidebar">
         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
       </button>
@@ -163,6 +225,7 @@ function Sidebar() {
 
 function AppContent({ isLogin, children }: { isLogin: boolean; children: React.ReactNode }) {
   const { user } = useAuth();
+  const { sidebarWidth } = useContext(SidebarContext);
   const shouldShowNav = !isLogin && user;
   
   return (
@@ -170,7 +233,10 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
       {/* Sidebar */}
       {shouldShowNav && <Sidebar />}
       {/* Main content */}
-      <div className={`flex-1 flex flex-col ${shouldShowNav ? 'md:ml-64 lg:ml-72' : ''}`}>
+      <div 
+        className="flex-1 flex flex-col"
+        style={{ marginLeft: shouldShowNav ? `${sidebarWidth}px` : '0px' }}
+      >
         {/* Hide top navbar on mobile */}
         <div className="hidden md:block">
           {shouldShowNav && <TopNavbar />}
@@ -277,6 +343,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const { theme } = useTheme();
   const isLogin = pathname === "/login" || pathname === "/";
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [sidebarWidth, setSidebarWidth] = useState(256);
 
   useEffect(() => {
     function handleSyncError(msg: string) {
@@ -305,21 +372,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <SyncProvider>
             <ThemeProvider>
-              <AppContent isLogin={isLogin}>
-                {children}
-              </AppContent>
-              
-              {/* Service Worker Registration */}
-              <ServiceWorkerRegistration />
-              
-              {/* Preload Progress */}
-              <PreloadProgress />
-              
-              {/* Cache Status */}
-              <CacheStatus />
-              
-              {/* Offline Indicator */}
-              <OfflineIndicator />
+              <SidebarContext.Provider value={{ sidebarWidth, setSidebarWidth }}>
+                <AppContent isLogin={isLogin}>
+                  {children}
+                </AppContent>
+                
+                {/* Service Worker Registration */}
+                <ServiceWorkerRegistration />
+                
+                {/* Preload Progress */}
+                <PreloadProgress />
+                
+                {/* Cache Status */}
+                <CacheStatus />
+                
+                {/* Offline Indicator */}
+                <OfflineIndicator />
+              </SidebarContext.Provider>
             </ThemeProvider>
           </SyncProvider>
         </AuthProvider>
