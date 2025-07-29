@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { authHeaders, remove, exportDocx, exportExcel } from '../../utils/api';
+import { authHeaders, remove, exportDocx, exportExcel, exportDocxList } from '../../utils/api';
 import { useOfflineApi } from '../../hooks/useOfflineSync';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
