@@ -1,5 +1,27 @@
 // Performance optimization utilities
 
+// Extend Performance interface for memory API
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface ExtendedPerformance extends Performance {
+  memory?: PerformanceMemory;
+}
+
+// Extend Navigator interface for connection API
+interface NetworkInformation {
+  effectiveType?: string;
+  downlink?: number;
+  rtt?: number;
+}
+
+interface ExtendedNavigator extends Navigator {
+  connection?: NetworkInformation;
+}
+
 // Debounce function for performance
 export function debounce<T extends (...args: any[]) => any>(
   func: T,
@@ -175,11 +197,17 @@ export class PerformanceMonitor {
 
 // Memory usage monitoring
 export function getMemoryUsage(): { used: number; total: number; limit: number } | null {
-  if (typeof performance === 'undefined' || !performance.memory) {
+  if (typeof performance === 'undefined' || !('memory' in performance)) {
     return null;
   }
 
-  const memory = performance.memory;
+  const extendedPerformance = performance as ExtendedPerformance;
+  const memory = extendedPerformance.memory;
+  
+  if (!memory) {
+    return null;
+  }
+
   return {
     used: memory.usedJSHeapSize,
     total: memory.totalJSHeapSize,
@@ -189,11 +217,17 @@ export function getMemoryUsage(): { used: number; total: number; limit: number }
 
 // Network information
 export function getNetworkInfo(): { effectiveType: string; downlink: number; rtt: number } | null {
-  if (typeof navigator === 'undefined' || !navigator.connection) {
+  if (typeof navigator === 'undefined' || !('connection' in navigator)) {
     return null;
   }
 
-  const connection = navigator.connection;
+  const extendedNavigator = navigator as ExtendedNavigator;
+  const connection = extendedNavigator.connection;
+  
+  if (!connection) {
+    return null;
+  }
+
   return {
     effectiveType: connection.effectiveType || 'unknown',
     downlink: connection.downlink || 0,
