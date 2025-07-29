@@ -52,7 +52,6 @@ const Sidebar = lazy(() => import('../components/Sidebar'));
 
 function TopNavbar() {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -72,26 +71,16 @@ function TopNavbar() {
           </span>
         </div>
         
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600 dark:text-gray-300">
+            {user.name || user.username}
+          </span>
           <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            aria-label="Toggle theme"
+            onClick={logout}
+            className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
           >
-            {theme === 'dark' ? '☀️' : '🌙'}
+            Logout
           </button>
-          
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600 dark:text-gray-300">
-              {user.name || user.username}
-            </span>
-            <button
-              onClick={logout}
-              className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-            >
-              Logout
-            </button>
-          </div>
         </div>
       </div>
     </nav>

@@ -28,10 +28,22 @@ const navIcons = {
 export default function Sidebar() {
   const [open, setOpen] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const { sidebarWidth, setSidebarWidth } = useSidebar();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
+
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Sidebar style classes
   const sidebarBase =
@@ -55,7 +67,7 @@ export default function Sidebar() {
       { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
       { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
       { icon: navIcons.help, label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true },
+      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
     ];
   } else if (user?.role === 'security_officer') {
     navLinks = [
@@ -66,7 +78,7 @@ export default function Sidebar() {
       { icon: navIcons.newcase, label: 'New Case', path: '/cases/new' },
       { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
       { icon: navIcons.help, label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true },
+      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
     ];
   } else if (user?.role === 'academic_office') {
     navLinks = [
@@ -78,11 +90,11 @@ export default function Sidebar() {
       { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
       { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
       { icon: navIcons.help, label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true },
+      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
     ];
   } else {
     navLinks = [
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true },
+      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
     ];
   }
 
@@ -172,7 +184,9 @@ export default function Sidebar() {
           </button>
         </div>
         <nav className="flex flex-col gap-0.5 mt-6 px-4 pb-6 flex-1 justify-start">
-          {navLinks.map(link =>
+          {navLinks
+            .filter(link => !link.mobileOnly || isMobile) // Only show mobileOnly items on mobile
+            .map(link =>
             link.label === 'Logout' ? (
               <button
                 key={link.path}
