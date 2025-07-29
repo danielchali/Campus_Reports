@@ -60,11 +60,29 @@ export default function CasesPage() {
   const [total, setTotal] = useState(0);
   const [exporting, setExporting] = useState(false);
   const [offlineMode, setOfflineMode] = useState(false);
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
   const { apiCall, isLoading: apiLoading, error: apiError } = useOfflineApi();
 
   const searchParams = useSearchParams();
   const studentIdFilter = searchParams?.get('studentId') || '';
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.export-dropdown')) {
+        setShowExportDropdown(false);
+      }
+    };
+
+    if (showExportDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showExportDropdown]);
 
 
   useEffect(() => {
@@ -314,52 +332,98 @@ export default function CasesPage() {
         {/* Export Controls */}
         <div className="mb-4 flex flex-col md:flex-row gap-2 md:items-center">
           <div className="flex flex-wrap gap-2">
-          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Export Options:</span>
-          <button
-            onClick={() => handleExportCurrentPage('docx')}
-            disabled={exporting || filteredCases.length === 0}
-            className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50 text-sm"
-          >
-            {exporting ? 'Exporting...' : 'Export Current Page (Word)'}
-          </button>
-          <button
-            onClick={() => handleExportCurrentPage('xlsx')}
-            disabled={exporting || filteredCases.length === 0}
-            className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 disabled:opacity-50 text-sm"
-          >
-            {exporting ? 'Exporting...' : 'Export Current Page (Excel)'}
-          </button>
-          <button
-            onClick={() => handleExportFiltered('docx')}
-            disabled={exporting}
-            className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 disabled:opacity-50 text-sm"
-          >
-            {exporting ? 'Exporting...' : 'Export Filtered (Word)'}
-          </button>
-          <button
-            onClick={() => handleExportFiltered('xlsx')}
-            disabled={exporting}
-            className="bg-purple-700 text-white px-3 py-1 rounded hover:bg-purple-800 disabled:opacity-50 text-sm"
-          >
-            {exporting ? 'Exporting...' : 'Export Filtered (Excel)'}
-          </button>
-          <button
-            onClick={async () => {
-              setExporting(true);
-              try {
-                await exportDocxList('cases');
-              } catch (err) {
-                console.error('List export failed:', err);
-                alert('Export failed');
-              } finally {
-                setExporting(false);
-              }
-            }}
-            disabled={exporting}
-            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50 text-sm"
-          >
-            {exporting ? 'Exporting...' : 'Export All (List Format)'}
-          </button>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Export Options:</span>
+            
+            {/* Word Export Dropdown */}
+            <div className="relative export-dropdown">
+              <button
+                onClick={() => setShowExportDropdown(!showExportDropdown)}
+                disabled={exporting}
+                className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50 text-sm flex items-center gap-1"
+              >
+                {exporting ? 'Exporting...' : 'Export to Word'}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {showExportDropdown && (
+                <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-50 min-w-48">
+                  <div className="py-1">
+                    <button
+                      onClick={async () => {
+                        setShowExportDropdown(false);
+                        setExporting(true);
+                        try {
+                          await handleExportCurrentPage('docx');
+                        } catch (err) {
+                          console.error('Export failed:', err);
+                          alert('Export failed');
+                        } finally {
+                          setExporting(false);
+                        }
+                      }}
+                      disabled={exporting || filteredCases.length === 0}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Current Page (Table Format)
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setShowExportDropdown(false);
+                        setExporting(true);
+                        try {
+                          await handleExportFiltered('docx');
+                        } catch (err) {
+                          console.error('Export failed:', err);
+                          alert('Export failed');
+                        } finally {
+                          setExporting(false);
+                        }
+                      }}
+                      disabled={exporting}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Filtered Results (Table Format)
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setShowExportDropdown(false);
+                        setExporting(true);
+                        try {
+                          await exportDocxList('cases');
+                        } catch (err) {
+                          console.error('List export failed:', err);
+                          alert('Export failed');
+                        } finally {
+                          setExporting(false);
+                        }
+                      }}
+                      disabled={exporting}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      All Cases (List Format)
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Excel Export Buttons */}
+            <button
+              onClick={() => handleExportCurrentPage('xlsx')}
+              disabled={exporting || filteredCases.length === 0}
+              className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 disabled:opacity-50 text-sm"
+            >
+              {exporting ? 'Exporting...' : 'Export Current Page (Excel)'}
+            </button>
+            <button
+              onClick={() => handleExportFiltered('xlsx')}
+              disabled={exporting}
+              className="bg-purple-700 text-white px-3 py-1 rounded hover:bg-purple-800 disabled:opacity-50 text-sm"
+            >
+              {exporting ? 'Exporting...' : 'Export Filtered (Excel)'}
+            </button>
           </div>
         </div>
         {/* Pagination controls */}
