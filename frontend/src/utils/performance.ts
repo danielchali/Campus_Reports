@@ -1,4 +1,5 @@
 // Performance optimization utilities
+// Updated for TypeScript compatibility and cross-browser support
 
 // Extend Performance interface for memory API
 interface PerformanceMemory {
