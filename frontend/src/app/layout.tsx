@@ -78,7 +78,7 @@ function TopNavbar() {
           </button>
         </div>
       </div>
-    </nav>
+        </nav>
   );
 }
 
@@ -122,10 +122,10 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
             {children}
           </Suspense>
         </main>
-      </div>
-    </div>
-  );
-}
+        </div>
+              </div>
+    );
+  }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -175,12 +175,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ThemeProvider>
               <SidebarProvider>
                 <AppContent isLogin={isLogin}>
-                  {children}
+                    {children}
                 </AppContent>
-                
+              
                 {/* Lazy load PWA components */}
                 <Suspense fallback={null}>
-                  <ServiceWorkerRegistration />
+              <ServiceWorkerRegistration />
                 </Suspense>
                 
                 <Suspense fallback={null}>

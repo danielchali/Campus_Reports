@@ -182,7 +182,7 @@ export default function Sidebar() {
           >
             {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
           </button>
-        </div>
+      </div>
         <nav className="flex flex-col gap-0.5 mt-6 px-4 pb-6 flex-1 justify-start overflow-y-auto">
           {navLinks
             .filter(link => !link.mobileOnly || isMobile) // Only show mobileOnly items on mobile
@@ -218,7 +218,7 @@ export default function Sidebar() {
           onMouseDown={handleMouseDown}
           title="Drag to resize sidebar"
         />
-      </aside>
+    </aside>
       <button className="absolute top-4 left-4 z-50 p-3 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-lg border border-gray-200 dark:border-gray-700 md:hidden hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" onClick={() => setOpen(!open)} aria-label="Toggle sidebar">
         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
       </button>

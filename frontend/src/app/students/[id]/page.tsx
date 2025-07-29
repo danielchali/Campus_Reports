@@ -355,44 +355,55 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                                         <div className="text-gray-500 dark:text-gray-400">No disciplinary cases found for this student.</div>
                                 </div>
                                 ) : (
-                                    <div className="overflow-x-auto">
-                                        <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow">
+                                    <div className="overflow-x-auto -mx-3 md:mx-0">
+                                        <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow text-sm md:text-base">
                                             <thead className="bg-kmuGreen text-white">
                                                 <tr>
-                                                    <th className="py-2 px-4 text-left">Case ID</th>
-                                                    <th className="py-2 px-4 text-left">Description</th>
-                                                    <th className="py-2 px-4 text-left">Severity</th>
-                                                    <th className="py-2 px-4 text-left">Status</th>
-                                                    <th className="py-2 px-4 text-left">Sanctions</th>
-                                                    <th className="py-2 px-4 text-left">Actions</th>
+                                                    <th className="py-2 px-2 md:px-4 text-left">Case ID</th>
+                                                    <th className="py-2 px-2 md:px-4 text-left">Description</th>
+                                                    <th className="py-2 px-2 md:px-4 text-left">Severity</th>
+                                                    <th className="py-2 px-2 md:px-4 text-left">Status</th>
+                                                    <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Sanctions</th>
+                                                    <th className="py-2 px-2 md:px-4 text-left">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {cases.map((caseItem) => (
                                                     <tr key={caseItem._id} className="border-b border-gray-200 dark:border-gray-600">
-                                                        <td className="py-2 px-4 text-gray-900 dark:text-white text-sm">{caseItem._id}</td>
-                                                        <td className="py-2 px-4 text-gray-900 dark:text-white max-w-xs truncate" title={caseItem.description}>
-                                                            {caseItem.description || '-'}
+                                                        <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white text-sm">
+                                                            <div className="font-mono text-xs">{caseItem._id}</div>
                                                         </td>
-                                                        <td className="py-2 px-4">
+                                                        <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white">
+                                                            <div className="max-w-xs truncate" title={caseItem.description}>
+                                                                {caseItem.description || '-'}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
+                                                                {caseItem.sanctions && (
+                                                                    <div className="mt-1">
+                                                                        Sanctions: {caseItem.sanctions}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-2 px-2 md:px-4">
                                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSeverityColor(caseItem.severity)}`}>
                                                                 {caseItem.severity}
                                                             </span>
                                                         </td>
-                                                        <td className="py-2 px-4">
+                                                        <td className="py-2 px-2 md:px-4">
                                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(caseItem.status)}`}>
                                                                 {caseItem.status}
                                                             </span>
                                                         </td>
-                                                        <td className="py-2 px-4 text-gray-900 dark:text-white max-w-xs truncate" title={caseItem.sanctions}>
+                                                        <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white max-w-xs truncate hidden md:table-cell" title={caseItem.sanctions}>
                                                             {caseItem.sanctions || '-'}
                                                         </td>
-                                                        <td className="py-2 px-4">
+                                                        <td className="py-2 px-2 md:px-4">
                                                             <Link
                                                                 href={`/cases/${caseItem._id}`}
-                                                                className="text-kmuGreen hover:text-kmuOrange transition"
+                                                                className="text-kmuGreen hover:text-kmuOrange transition text-sm"
                                                             >
-                                                                View Details →
+                                                                View →
                                                             </Link>
                                                         </td>
                                                     </tr>

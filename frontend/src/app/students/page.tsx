@@ -405,7 +405,7 @@ export default function StudentsPage() {
   }
 
   return (
-    <section>
+      <section>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-kmuGreen">Students</h1>
@@ -436,9 +436,9 @@ export default function StudentsPage() {
             <button type="submit" className="bg-kmuGreen text-white px-4 py-1 rounded" disabled={loading} aria-label="Add student">Add</button>
           </form>
         )}
-        <div className="mb-4 flex flex-col md:flex-row gap-2 md:items-center">
+        <div className="mb-4 flex flex-col sm:flex-row gap-2 md:items-center">
           <div className="flex flex-wrap gap-2">
-          <label className="bg-kmuOrange text-white px-4 py-2 rounded cursor-pointer hover:bg-kmuGreen transition">
+          <label className="bg-kmuOrange text-white px-4 py-2 rounded cursor-pointer hover:bg-kmuGreen transition text-sm">
             Import Students (CSV/Excel)
             <input type="file" accept=".csv,.xls,.xlsx" onChange={handleImport} className="hidden" />
           </label>
@@ -451,42 +451,46 @@ export default function StudentsPage() {
               link.click();
               document.body.removeChild(link);
             }}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition text-sm"
           >
             📥 Download Template
           </button>
-          <input
-            type="text"
-            placeholder="Search by name or ID"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-          />
-          <select value={departmentFilter} onChange={e => setDepartmentFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-            <option value="">All Departments</option>
-            {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
-          </select>
-          <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-            <option value="">All Years</option>
-            {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-          </select>
-          <select value={genderFilter} onChange={e => setGenderFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-            <option value="">All Genders</option>
-            {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
-          </select>
-          <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded" onClick={selectAll}>Select All</button>
-          <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded" onClick={clearSelected}>Clear</button>
-          {selected.length > 0 && (
-            <>
-              {(user?.role === 'admin' || user?.role === 'academic_office') && (
-                <button className="bg-red-600 text-white px-2 py-1 rounded" onClick={handleBulkDelete}>Delete Selected</button>
-              )}
-              <button className="bg-kmuGreen text-white px-2 py-1 rounded" onClick={handleBulkExport}>Export Selected (Word)</button>
-              <button className="bg-blue-600 text-white px-2 py-1 rounded" onClick={handleBulkExportExcel}>Export Selected (Excel)</button>
-            </>
-          )}
           </div>
-        </div>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <input
+              type="text"
+              placeholder="Search by name or ID"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
+            />
+            <select value={departmentFilter} onChange={e => setDepartmentFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+              <option value="">All Departments</option>
+              {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+              <option value="">All Years</option>
+              {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <select value={genderFilter} onChange={e => setGenderFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+              <option value="">All Genders</option>
+              {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm" onClick={selectAll}>Select All</button>
+            <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm" onClick={clearSelected}>Clear</button>
+            {selected.length > 0 && (
+              <>
+                {(user?.role === 'admin' || user?.role === 'academic_office') && (
+                  <button className="bg-red-600 text-white px-2 py-1 rounded text-sm" onClick={handleBulkDelete}>Delete Selected</button>
+                )}
+                <button className="bg-kmuGreen text-white px-2 py-1 rounded text-sm" onClick={handleBulkExport}>Export Selected (Word)</button>
+                <button className="bg-blue-600 text-white px-2 py-1 rounded text-sm" onClick={handleBulkExportExcel}>Export Selected (Excel)</button>
+              </>
+            )}
+          </div>
+          </div>
         {/* Pagination controls */}
         <div className="flex flex-wrap gap-2 items-center my-4">
           <button
@@ -521,24 +525,47 @@ export default function StudentsPage() {
           <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow text-sm md:text-base">
             <thead className="bg-kmuGreen text-white">
               <tr>
-                <th><input type="checkbox" checked={selected.length === filteredStudents.length && filteredStudents.length > 0} onChange={e => e.target.checked ? selectAll() : clearSelected()} /></th>
-                <th className="py-2 px-4 text-left">ID</th>
-                <th className="py-2 px-4 text-left">Name</th>
-                <th className="py-2 px-4 text-left">Department</th>
+                <th className="py-2 px-2 md:px-4 text-left">
+                  <input type="checkbox" checked={selected.length === filteredStudents.length && filteredStudents.length > 0} onChange={e => e.target.checked ? selectAll() : clearSelected()} />
+                </th>
+                <th className="py-2 px-2 md:px-4 text-left">ID</th>
+                <th className="py-2 px-2 md:px-4 text-left">Name</th>
+                <th className="py-2 px-2 md:px-4 text-left hidden sm:table-cell">Department</th>
               </tr>
             </thead>
             <tbody>
               {filteredStudents.map(s => (
                 <tr key={(s as any)._id} className="border-b border-gray-200 dark:border-gray-600">
-                  <td><input type="checkbox" checked={selected.includes((s as any)._id)} onChange={() => toggleSelect((s as any)._id)} /></td>
-                  <td className="py-2 px-4">{s.studentId}</td>
-                  <td className="py-2 px-4">
-                    <Link href={`/students/${(s as any)._id}`} className="text-kmuGreen hover:underline">
-                      {s.fullName}
-                    </Link>
-                    <Link href={`/students/${(s as any)._id}?tab=add-case`} className="ml-2 text-kmuOrange hover:underline text-sm">Add Case</Link>
+                  <td className="py-2 px-2 md:px-4">
+                    <input type="checkbox" checked={selected.includes((s as any)._id)} onChange={() => toggleSelect((s as any)._id)} />
                   </td>
-                  <td className="py-2 px-4">{s.department}</td>
+                  <td className="py-2 px-2 md:px-4">
+                    <div className="font-medium">{s.studentId}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 sm:hidden">{s.department}</div>
+                  </td>
+                  <td className="py-2 px-2 md:px-4">
+                    <div>
+                      <Link href={`/students/${(s as any)._id}`} className="text-kmuGreen hover:underline font-medium">
+                        {s.fullName}
+                      </Link>
+                      <div className="flex flex-col sm:flex-row gap-1 mt-1">
+                        <Link href={`/students/${(s as any)._id}?tab=add-case`} className="text-kmuOrange hover:underline text-xs">
+                          Add Case
+                        </Link>
+                        {s.year && (
+                          <span className="text-xs text-gray-500 dark:text-gray-400 sm:ml-2">
+                            Year: {s.year}
+                          </span>
+                        )}
+                        {s.gender && (
+                          <span className="text-xs text-gray-500 dark:text-gray-400 sm:ml-2">
+                            {s.gender}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-2 px-2 md:px-4 hidden sm:table-cell">{s.department}</td>
                 </tr>
               ))}
             </tbody>

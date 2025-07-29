@@ -456,35 +456,64 @@ export default function CasesPage() {
           <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow text-sm md:text-base">
             <thead className="bg-kmuGreen text-white">
               <tr>
-                <th><input type="checkbox" checked={selected.length === filteredCases.length && filteredCases.length > 0} onChange={e => e.target.checked ? selectAll() : clearSelected()} /></th>
-                <th className="py-2 px-4 text-left">Name</th>
-                <th className="py-2 px-4 text-left hidden md:table-cell">Department</th>
-                <th className="py-2 px-4 text-left hidden md:table-cell">Date</th>
-                <th className="py-2 px-4 text-left">Offense</th>
-                <th className="py-2 px-4 text-left hidden md:table-cell">Status</th>
-                <th className="py-2 px-4 text-left hidden md:table-cell">Severity</th>
-                <th className="py-2 px-4 text-left">Actions</th>
+                <th className="py-2 px-2 md:px-4 text-left">
+                  <input type="checkbox" checked={selected.length === filteredCases.length && filteredCases.length > 0} onChange={e => e.target.checked ? selectAll() : clearSelected()} />
+                </th>
+                <th className="py-2 px-2 md:px-4 text-left">Name</th>
+                <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Department</th>
+                <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Date</th>
+                <th className="py-2 px-2 md:px-4 text-left">Offense</th>
+                <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Status</th>
+                <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Severity</th>
+                <th className="py-2 px-2 md:px-4 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredCases.map(s => (
                 <tr key={s._id} className="border-b border-gray-200 dark:border-gray-600">
-                  <td><input type="checkbox" checked={selected.includes(s._id)} onChange={() => toggleSelect(s._id)} /></td>
-                  <td className="py-2 px-4">
+                  <td className="py-2 px-2 md:px-4">
+                    <input type="checkbox" checked={selected.includes(s._id)} onChange={() => toggleSelect(s._id)} />
+                  </td>
+                  <td className="py-2 px-2 md:px-4">
                     {s.student ? (
-                      <Link href={`/students/${s.student._id || s.student.studentId}`} className="text-kmuGreen hover:underline">
-                        {s.student.fullName}
-                      </Link>
+                      <div>
+                        <Link href={`/students/${s.student._id || s.student.studentId}`} className="text-kmuGreen hover:underline font-medium">
+                          {s.student.fullName}
+                        </Link>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
+                          {s.student?.department || '-'} • {s.incidentDate ? new Date(s.incidentDate).toLocaleDateString() : '-'}
+                        </div>
+                      </div>
                     ) : (
                       <span className="text-gray-500" title={`Student ID: ${s.student_id || 'Unknown'}`}>
                         Student not found
                       </span>
                     )}
                   </td>
-                  <td className="py-2 px-4 hidden md:table-cell">{s.student?.department || '-'}</td>
-                  <td className="py-2 px-4 hidden md:table-cell">{s.incidentDate ? new Date(s.incidentDate).toLocaleDateString() : '-'}</td>
-                  <td className="py-2 px-4">{s.offenseType || '-'}</td>
-                  <td className="py-2 px-4 hidden md:table-cell">
+                  <td className="py-2 px-2 md:px-4 hidden md:table-cell">{s.student?.department || '-'}</td>
+                  <td className="py-2 px-2 md:px-4 hidden md:table-cell">{s.incidentDate ? new Date(s.incidentDate).toLocaleDateString() : '-'}</td>
+                  <td className="py-2 px-2 md:px-4">
+                    <div className="font-medium">{s.offenseType || '-'}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
+                      <span className={`inline-flex px-1 py-0.5 text-xs font-semibold rounded-full ${
+                        s.status?.toLowerCase() === 'open' ? 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20' :
+                        s.status?.toLowerCase() === 'closed' ? 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20' :
+                        'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700'
+                      }`}>
+                        {s.status || '-'}
+                      </span>
+                      {' • '}
+                      <span className={`inline-flex px-1 py-0.5 text-xs font-semibold rounded-full ${
+                        s.severity?.toLowerCase() === 'high' ? 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20' :
+                        s.severity?.toLowerCase() === 'medium' ? 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20' :
+                        s.severity?.toLowerCase() === 'low' ? 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20' :
+                        'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700'
+                      }`}>
+                        {s.severity || '-'}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-2 px-2 md:px-4 hidden md:table-cell">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       s.status?.toLowerCase() === 'open' ? 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20' :
                       s.status?.toLowerCase() === 'closed' ? 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20' :
@@ -493,7 +522,7 @@ export default function CasesPage() {
                       {s.status || '-'}
                     </span>
                   </td>
-                  <td className="py-2 px-4 hidden md:table-cell">
+                  <td className="py-2 px-2 md:px-4 hidden md:table-cell">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       s.severity?.toLowerCase() === 'high' ? 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20' :
                       s.severity?.toLowerCase() === 'medium' ? 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20' :
@@ -503,8 +532,8 @@ export default function CasesPage() {
                       {s.severity || '-'}
                     </span>
                   </td>
-                  <td className="py-2 px-4">
-                    <Link href={`/cases/${s._id}`} className="text-kmuGreen hover:text-kmuOrange transition">
+                  <td className="py-2 px-2 md:px-4">
+                    <Link href={`/cases/${s._id}`} className="text-kmuGreen hover:text-kmuOrange transition text-sm">
                       View →
                     </Link>
                   </td>
