@@ -216,7 +216,7 @@ function Sidebar() {
             title="Drag to resize sidebar"
           />
         </aside>
-      <button className="fixed top-4 left-4 z-50 p-3 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-lg border border-gray-200 dark:border-gray-700 md:hidden hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" onClick={() => setOpen(!open)} aria-label="Toggle sidebar">
+      <button className="absolute top-4 left-4 z-50 p-3 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-lg border border-gray-200 dark:border-gray-700 md:hidden hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" onClick={() => setOpen(!open)} aria-label="Toggle sidebar">
         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
       </button>
     </>
@@ -234,14 +234,14 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
       {shouldShowNav && <Sidebar />}
       {/* Main content */}
       <div 
-        className="flex-1 flex flex-col"
+        className="flex-1 flex flex-col relative"
         style={{ marginLeft: shouldShowNav ? `${sidebarWidth}px` : '0px' }}
       >
         {/* Hide top navbar on mobile */}
         <div className="hidden md:block">
           {shouldShowNav && <TopNavbar />}
         </div>
-        <main className="flex-1 px-3 py-2 md:px-6 md:py-8 overflow-x-hidden pt-16 md:pt-0">
+        <main className="flex-1 px-3 py-2 md:px-6 md:py-8 overflow-x-hidden">
           {children}
         </main>
       </div>
