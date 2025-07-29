@@ -154,6 +154,24 @@ export async function exportDocx(resource: string) {
   window.URL.revokeObjectURL(url);
 }
 
+// Bulk DOCX export - List format (better for portrait paper)
+export async function exportDocxList(resource: string) {
+  const res = await fetch(`${API_BASE_URL}/${resource}/export-docx-list`, {
+    method: 'POST',
+    headers: { ...authHeaders() }
+  });
+  if (!res.ok) throw new Error('Export failed');
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${resource}_list_export.docx`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 // Bulk Excel export
 export async function exportExcel(resource: string) {
   const res = await fetch(`${API_BASE_URL}/${resource}/export-excel`, {

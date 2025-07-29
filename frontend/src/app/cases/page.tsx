@@ -336,13 +336,30 @@ export default function CasesPage() {
           >
             {exporting ? 'Exporting...' : 'Export Filtered (Word)'}
           </button>
-                      <button
-              onClick={() => handleExportFiltered('xlsx')}
-              disabled={exporting}
-              className="bg-purple-700 text-white px-3 py-1 rounded hover:bg-purple-800 disabled:opacity-50 text-sm"
-            >
-              {exporting ? 'Exporting...' : 'Export Filtered (Excel)'}
-            </button>
+          <button
+            onClick={() => handleExportFiltered('xlsx')}
+            disabled={exporting}
+            className="bg-purple-700 text-white px-3 py-1 rounded hover:bg-purple-800 disabled:opacity-50 text-sm"
+          >
+            {exporting ? 'Exporting...' : 'Export Filtered (Excel)'}
+          </button>
+          <button
+            onClick={async () => {
+              setExporting(true);
+              try {
+                await exportDocxList('cases');
+              } catch (err) {
+                console.error('List export failed:', err);
+                alert('Export failed');
+              } finally {
+                setExporting(false);
+              }
+            }}
+            disabled={exporting}
+            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50 text-sm"
+          >
+            {exporting ? 'Exporting...' : 'Export All (List Format)'}
+          </button>
           </div>
         </div>
         {/* Pagination controls */}

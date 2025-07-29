@@ -3,7 +3,7 @@ import db from '../models/db.js';
 import CaseModel from '../models/case.js';
 import StudentModel from '../models/student.js';
 import ExcelJS from 'exceljs';
-import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun } from 'docx';
+import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, AlignmentType } from 'docx';
 import { authenticate, authorize } from '../middleware/auth.js';
 const dbType = process.env.DB_TYPE || 'mongo';
 const router = express.Router();
@@ -92,15 +92,30 @@ router.post('/docx', async(req, res) => {
         const tableRows = [
             new TableRow({
                 children: [
-                    new TableCell({ children: [new Paragraph('ID')] }),
-                    new TableCell({ children: [new Paragraph('Student ID')] }),
-                    new TableCell({ children: [new Paragraph('Student Name')] }),
-                    new TableCell({ children: [new Paragraph('Offense')] }),
-                    new TableCell({ children: [new Paragraph('Date')] }),
-                    new TableCell({ children: [new Paragraph('Description')] }),
-                    new TableCell({ children: [new Paragraph('Severity')] }),
-                    new TableCell({ children: [new Paragraph('Status')] }),
-                    new TableCell({ children: [new Paragraph('Sanctions')] }),
+                    new TableCell({
+                        children: [new Paragraph('Student Name')],
+                        width: { size: 25, type: WidthType.PERCENTAGE }
+                    }),
+                    new TableCell({
+                        children: [new Paragraph('Student ID')],
+                        width: { size: 15, type: WidthType.PERCENTAGE }
+                    }),
+                    new TableCell({
+                        children: [new Paragraph('Offense')],
+                        width: { size: 20, type: WidthType.PERCENTAGE }
+                    }),
+                    new TableCell({
+                        children: [new Paragraph('Date')],
+                        width: { size: 15, type: WidthType.PERCENTAGE }
+                    }),
+                    new TableCell({
+                        children: [new Paragraph('Status')],
+                        width: { size: 12, type: WidthType.PERCENTAGE }
+                    }),
+                    new TableCell({
+                        children: [new Paragraph('Severity')],
+                        width: { size: 13, type: WidthType.PERCENTAGE }
+                    }),
                 ],
             }),
             ...allCases.map(c => {
@@ -116,15 +131,30 @@ router.post('/docx', async(req, res) => {
 
                 return new TableRow({
                     children: [
-                        new TableCell({ children: [new Paragraph(String(c.id || c._id || ''))] }),
-                        new TableCell({ children: [new Paragraph(String(c.student_id || c.studentId || ''))] }),
-                        new TableCell({ children: [new Paragraph(studentName)] }),
-                        new TableCell({ children: [new Paragraph(c.offense_type || c.offenseType || '')] }),
-                        new TableCell({ children: [new Paragraph(c.incident_date || c.incidentDate || '')] }),
-                        new TableCell({ children: [new Paragraph(c.description || '')] }),
-                        new TableCell({ children: [new Paragraph(c.severity || '')] }),
-                        new TableCell({ children: [new Paragraph(c.status || '')] }),
-                        new TableCell({ children: [new Paragraph(c.sanctions || '')] }),
+                        new TableCell({
+                            children: [new Paragraph(studentName || 'Unknown')],
+                            width: { size: 25, type: WidthType.PERCENTAGE }
+                        }),
+                        new TableCell({
+                            children: [new Paragraph(String(c.student_id || c.studentId || ''))],
+                            width: { size: 15, type: WidthType.PERCENTAGE }
+                        }),
+                        new TableCell({
+                            children: [new Paragraph(c.offense_type || c.offenseType || '')],
+                            width: { size: 20, type: WidthType.PERCENTAGE }
+                        }),
+                        new TableCell({
+                            children: [new Paragraph(c.incident_date || c.incidentDate || '')],
+                            width: { size: 15, type: WidthType.PERCENTAGE }
+                        }),
+                        new TableCell({
+                            children: [new Paragraph(c.status || '')],
+                            width: { size: 12, type: WidthType.PERCENTAGE }
+                        }),
+                        new TableCell({
+                            children: [new Paragraph(c.severity || '')],
+                            width: { size: 13, type: WidthType.PERCENTAGE }
+                        }),
                     ],
                 });
             }),
@@ -136,10 +166,19 @@ router.post('/docx', async(req, res) => {
             sections: [{
                 children: [
                     new Paragraph({
-                        children: [new TextRun({ text: 'Disciplinary Cases Report', bold: true, size: 32 })],
+                        children: [new TextRun({ text: 'Disciplinary Cases Report', bold: true, size: 28 })],
                         spacing: { after: 300 },
+                        alignment: AlignmentType.CENTER
                     }),
-                    new Table({ rows: tableRows })
+                    new Paragraph({
+                        children: [new TextRun({ text: `Generated on ${new Date().toLocaleDateString()}`, size: 20 })],
+                        spacing: { after: 400 },
+                        alignment: AlignmentType.CENTER
+                    }),
+                    new Table({
+                        rows: tableRows,
+                        width: { size: 100, type: WidthType.PERCENTAGE }
+                    })
                 ]
             }],
         });
