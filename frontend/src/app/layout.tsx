@@ -50,9 +50,9 @@ function Sidebar() {
 
   // Sidebar style classes
   const sidebarBase =
-    'fixed z-40 left-0 top-0 h-full w-64 bg-gray-900 text-white shadow-lg border-r border-gray-800 transform transition-transform duration-200 ease-in-out';
+    'fixed z-40 left-0 top-0 h-full w-64 sm:w-72 bg-gray-900 text-white shadow-lg border-r border-gray-800 transform transition-transform duration-200 ease-in-out overflow-y-auto';
   const linkBase =
-    'flex items-center gap-3 py-2 px-4 rounded transition font-medium hover:bg-gray-200 dark:hover:bg-gray-800';
+    'flex items-center gap-3 py-3 px-4 rounded-lg transition-all font-medium hover:bg-gray-200 dark:hover:bg-gray-800 text-sm sm:text-base';
   const linkActive =
     'bg-kmuGreen text-white shadow dark:bg-kmuGreen dark:text-white';
   const sectionHeader =
@@ -106,18 +106,29 @@ function Sidebar() {
   return (
     <>
       <div className={`fixed inset-0 bg-black bg-opacity-30 z-30 transition-opacity md:hidden ${open ? 'block' : 'hidden'}`} onClick={() => setOpen(false)} />
-      <aside className={`${sidebarBase} ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 md:static md:block dark:bg-gray-900 dark:text-white bg-white text-gray-900 w-64 md:w-64`}>
-        <div className="flex flex-col items-center gap-2 pt-8 pb-4 border-b border-gray-800 dark:border-gray-800 border-gray-200">
+      <aside className={`${sidebarBase} ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 dark:bg-gray-900 dark:text-white bg-white text-gray-900 w-64 sm:w-72`}>
+        <div className="flex flex-col items-center gap-2 pt-8 pb-4 border-b border-gray-800 dark:border-gray-800 border-gray-200 px-4 relative">
+          {/* Close button for mobile */}
+          <button 
+            className="absolute top-2 right-2 p-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors md:hidden"
+            onClick={() => setOpen(false)}
+            aria-label="Close sidebar"
+          >
+            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
           <img src="/kmu_logo.svg" alt="KMU Logo" width={64} height={64} className="mb-2" />
           <button
-            className="mt-2 px-2 py-1 rounded bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm hover:bg-gray-300 dark:hover:bg-gray-700"
+            className="mt-2 px-3 py-2 rounded bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
             onClick={toggleTheme}
             aria-label="Toggle dark mode"
           >
             {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
           </button>
         </div>
-        <nav className="flex flex-col gap-1 mt-6">
+        <nav className="flex flex-col gap-1 mt-6 px-4 pb-6">
           {navLinks.map(link =>
             link.label === 'Logout' ? (
               <button
@@ -143,7 +154,7 @@ function Sidebar() {
           )}
         </nav>
       </aside>
-      <button className="fixed top-3 left-3 z-50 p-2 rounded bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow border border-gray-200 dark:border-gray-700 md:hidden" onClick={() => setOpen(!open)} aria-label="Toggle sidebar">
+      <button className="fixed top-4 left-4 z-50 p-3 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-lg border border-gray-200 dark:border-gray-700 md:hidden hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" onClick={() => setOpen(!open)} aria-label="Toggle sidebar">
         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
       </button>
     </>
@@ -159,12 +170,12 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
       {/* Sidebar */}
       {shouldShowNav && <Sidebar />}
       {/* Main content */}
-      <div className="flex-1 flex flex-col">
+      <div className={`flex-1 flex flex-col ${shouldShowNav ? 'md:ml-64 lg:ml-72' : ''}`}>
         {/* Hide top navbar on mobile */}
         <div className="hidden md:block">
           {shouldShowNav && <TopNavbar />}
         </div>
-        <main className="flex-1 px-3 py-2 md:px-6 md:py-8 overflow-x-hidden">
+        <main className="flex-1 px-3 py-2 md:px-6 md:py-8 overflow-x-hidden pt-16 md:pt-0">
           {children}
         </main>
       </div>
@@ -182,7 +193,7 @@ function TopNavbar() {
   if (!user) return null;
 
   return (
-    <nav className="flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-900 shadow border-b border-gray-200 dark:border-gray-800">
+    <nav className="flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-900 shadow border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
       <span className="font-bold text-xl text-kmuGreen dark:text-kmuGreen">KMU DisciplineDesk</span>
       <div className="flex gap-4 items-center">
         {(user.role === 'admin' || user.role === 'security_officer' || user.role === 'academic_office') && (
