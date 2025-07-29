@@ -94,7 +94,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-kmuGreen to-kmuOrange p-4">
+    <div className="min-h-screen flex items-center justify-center bg-kmuGreen">
       <div className="max-w-md w-full space-y-8">
         {/* Logo and Title */}
         <div className="text-center">
@@ -139,7 +139,7 @@ export default function LoginPage() {
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent"
                 placeholder="Enter your username"
-                autoComplete="username"
+                autoComplete="off"
               />
             </div>
 
@@ -156,7 +156,7 @@ export default function LoginPage() {
                 required
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent"
                 placeholder="Enter your password"
-                autoComplete="current-password"
+                autoComplete="off"
               />
             </div>
 
@@ -196,22 +196,11 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Help Text */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-md">
-            <h3 className="text-sm font-medium text-blue-700 mb-2">Need Help?</h3>
-            <div className="text-xs text-blue-600 space-y-1">
-              <div>• Contact your system administrator for login credentials</div>
-              <div>• Ensure you have a stable internet connection</div>
-              <div>• The system works offline once you've logged in</div>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}
         <div className="text-center text-white/60 text-xs">
-          <p>© 2024 KMU Discipline Desk. All rights reserved.</p>
-          <p className="mt-1">Optimized for performance and offline use</p>
+          <p>© 2025 KMU Discipline Desk. All rights reserved.</p>
         </div>
       </div>
     </div>
