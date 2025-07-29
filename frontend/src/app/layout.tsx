@@ -17,7 +17,6 @@ const ServiceWorkerRegistration = lazy(() => import('../components/ServiceWorker
 const PreloadProgress = lazy(() => import('../components/PreloadProgress'));
 const CacheStatus = lazy(() => import('../components/CacheStatus'));
 const OfflineIndicator = lazy(() => import('../components/OfflineIndicator'));
-const ConflictResolution = lazy(() => import('../components/ConflictResolution'));
 
 import clsx from 'clsx';
 import { API_BASE_URL } from '../config/constants';
@@ -210,10 +209,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 
                 <Suspense fallback={null}>
                   <OfflineIndicator />
-                </Suspense>
-                
-                <Suspense fallback={null}>
-                  <ConflictResolution />
                 </Suspense>
                 
                 <Suspense fallback={null}>
