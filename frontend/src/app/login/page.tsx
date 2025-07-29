@@ -96,34 +96,34 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
-      <div className="w-full max-w-md mx-4">
+    <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'} p-4`}>
+      <div className="max-w-md w-full space-y-8">
+        {/* Logo and Title */}
+        <div className="text-center">
+          <img
+            src="/kmu_logo.svg"
+            alt="KMU Logo"
+            width={80}
+            height={80}
+            className="mx-auto mb-4 h-20 w-20 object-contain"
+            onError={(e) => {
+              console.error('Logo failed to load');
+              e.currentTarget.style.display = 'none';
+              // Show fallback text
+              const fallback = document.createElement('div');
+              fallback.className = 'text-4xl font-bold text-kmuGreen mb-4';
+              fallback.textContent = 'KMU';
+              e.currentTarget.parentNode?.appendChild(fallback);
+            }}
+            onLoad={() => console.log('Logo loaded successfully')}
+          />
+          <h2 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>
+            Sign in to KMU DisciplineDesk
+          </h2>
+        </div>
+
         {/* Login Form */}
         <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8`}>
-          {/* Logo and Title */}
-          <div className="text-center mb-8">
-            <img
-              src="/kmu_logo.svg"
-              alt="KMU Logo"
-              width={80}
-              height={80}
-              className="mx-auto mb-4 h-20 w-20 object-contain"
-              onError={(e) => {
-                console.error('Logo failed to load');
-                e.currentTarget.style.display = 'none';
-                // Show fallback text
-                const fallback = document.createElement('div');
-                fallback.className = 'text-4xl font-bold text-kmuGreen mb-4';
-                fallback.textContent = 'KMU';
-                e.currentTarget.parentNode?.appendChild(fallback);
-              }}
-              onLoad={() => console.log('Logo loaded successfully')}
-            />
-            <h2 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>
-              KMU Discipline Desk
-            </h2>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-6" autoComplete="off">
             {/* Username Field */}
             <div>
@@ -209,11 +209,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Footer */}
-          <div className={`text-center text-xs mt-6 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-            <p>© 2025 KMU Discipline Desk. All rights reserved.</p>
-          </div>
         </div>
       </div>
     </div>
