@@ -8,10 +8,23 @@ export async function listCases(req, res) {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
         const studentId = req.query.studentId;
+        const search = req.query.search;
+        const status = req.query.status;
+        const severity = req.query.severity;
         let cases, total;
         if (dbType === 'mongo') {
-            // Build query with optional studentId filter
-            const query = studentId ? { student_id: studentId } : {};
+            // Build query with filters
+            const query = {};
+            if (studentId) query.student_id = studentId;
+            if (status) query.status = status;
+            if (severity) query.severity = severity;
+            if (search) {
+                query.$or = [
+                    { offense_type: { $regex: search, $options: 'i' } },
+                    { description: { $regex: search, $options: 'i' } }
+                ];
+            }
+
             total = await CaseModel.countDocuments(query);
             cases = await CaseModel.find(query)
                 .skip((page - 1) * limit)
@@ -58,19 +71,38 @@ export async function listCases(req, res) {
                 };
             }
         } else if (dbType === 'mysql') {
-            // Build query with optional studentId filter
-            let countQuery = 'SELECT COUNT(*) as count FROM cases';
+            // Build query with filters
+            let countQuery = 'SELECT COUNT(*) as count FROM cases c';
             let selectQuery = `
                 SELECT c.*, s.studentId, s.fullName, s.department, s.year, s.gender 
                 FROM cases c 
                 LEFT JOIN students s ON c.student_id = s.studentId
             `;
+            let whereConditions = [];
             let queryParams = [];
 
             if (studentId) {
-                countQuery += ' WHERE student_id = ?';
-                selectQuery += ' WHERE c.student_id = ?';
+                whereConditions.push('c.student_id = ?');
                 queryParams.push(studentId);
+            }
+            if (status) {
+                whereConditions.push('c.status = ?');
+                queryParams.push(status);
+            }
+            if (severity) {
+                whereConditions.push('c.severity = ?');
+                queryParams.push(severity);
+            }
+            if (search) {
+                whereConditions.push('(c.offense_type LIKE ? OR c.description LIKE ?)');
+                const searchTerm = `%${search}%`;
+                queryParams.push(searchTerm, searchTerm);
+            }
+
+            if (whereConditions.length > 0) {
+                const whereClause = ' WHERE ' + whereConditions.join(' AND ');
+                countQuery += whereClause;
+                selectQuery += whereClause;
             }
 
             selectQuery += ' LIMIT ? OFFSET ?';
@@ -78,7 +110,7 @@ export async function listCases(req, res) {
 
             const [
                 [{ count }]
-            ] = await db.execute(countQuery, studentId ? [studentId] : []);
+            ] = await db.execute(countQuery, queryParams.slice(0, -2));
             total = count;
             const [rows] = await db.execute(selectQuery, queryParams);
 

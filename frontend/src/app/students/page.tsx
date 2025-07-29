@@ -62,7 +62,24 @@ export default function StudentsPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiCall<{students: Student[], total: number}>('get', `/students?page=${pageNum}&limit=${limit}`);
+      const params = new URLSearchParams();
+      params.append('page', pageNum.toString());
+      params.append('limit', limit.toString());
+      
+      if (search) {
+        params.append('search', search);
+      }
+      if (departmentFilter) {
+        params.append('department', departmentFilter);
+      }
+      if (yearFilter) {
+        params.append('year', yearFilter);
+      }
+      if (genderFilter) {
+        params.append('gender', genderFilter);
+      }
+      
+      const response = await apiCall<{students: Student[], total: number}>('get', `/students?${params.toString()}`);
       const data = response.data;
       setStudents(data.students);
       setTotal(data.total);
@@ -77,7 +94,7 @@ export default function StudentsPage() {
   useEffect(() => {
     loadStudents(page);
     // eslint-disable-next-line
-  }, [apiCall, page, limit]);
+  }, [apiCall, page, limit, search, departmentFilter, yearFilter, genderFilter]);
 
   // Auto-clear success message
   useEffect(() => {
@@ -362,16 +379,7 @@ export default function StudentsPage() {
   }
 
   const safeStudents = Array.isArray(students) ? students : [];
-  const filteredStudents = safeStudents.filter(
-    (s) =>
-      (!search ||
-        s.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-        s.studentId?.toLowerCase().includes(search.toLowerCase())
-      ) &&
-      (!departmentFilter || s.department === departmentFilter) &&
-      (!yearFilter || s.year === yearFilter) &&
-      (!genderFilter || s.gender === genderFilter)
-  );
+  const filteredStudents = safeStudents; // Backend handles all filtering now
   function toggleSelect(id: string) {
     setSelected(sel => sel.includes(id) ? sel.filter(x => x !== id) : [...sel, id]);
   }

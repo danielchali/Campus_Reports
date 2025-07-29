@@ -95,6 +95,15 @@ export default function CasesPage() {
         if (studentIdFilter) {
           params.append('studentId', studentIdFilter);
         }
+        if (search) {
+          params.append('search', search);
+        }
+        if (statusFilter) {
+          params.append('status', statusFilter);
+        }
+        if (severityFilter) {
+          params.append('severity', severityFilter);
+        }
         if (page > 1) {
           params.append('page', page.toString());
         }
@@ -135,22 +144,10 @@ export default function CasesPage() {
       }
     }
     fetchCases();
-  }, [apiCall, studentIdFilter, page, limit]);
+  }, [apiCall, studentIdFilter, search, statusFilter, severityFilter, page, limit]);
 
   const safeCases = Array.isArray(cases) ? cases : [];
-  const filteredCases = safeCases.filter(
-    (c) =>
-      (!search ||
-        c.student?.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-        c.student?.studentId?.toLowerCase().includes(search.toLowerCase()) ||
-        c.offenseType?.toLowerCase().includes(search.toLowerCase()) ||
-        c.status?.toLowerCase().includes(search.toLowerCase()) ||
-        c.severity?.toLowerCase().includes(search.toLowerCase()) ||
-        c.description?.toLowerCase().includes(search.toLowerCase())
-      ) &&
-      (!statusFilter || c.status === statusFilter) &&
-      (!severityFilter || c.severity === severityFilter)
-  );
+  const filteredCases = safeCases; // Backend handles all filtering now
 
   function toggleSelect(id: string) {
     setSelected(sel => sel.includes(id) ? sel.filter(x => x !== id) : [...sel, id]);

@@ -8,18 +8,67 @@ export async function listStudents(req, res) {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
+        const search = req.query.search;
+        const department = req.query.department;
+        const year = req.query.year;
+        const gender = req.query.gender;
         let students, total;
         if (dbType === 'mongo') {
-            total = await StudentModel.countDocuments();
-            students = await StudentModel.find()
+            // Build query with filters
+            const query = {};
+            if (search) {
+                query.$or = [
+                    { fullName: { $regex: search, $options: 'i' } },
+                    { studentId: { $regex: search, $options: 'i' } }
+                ];
+            }
+            if (department) query.department = department;
+            if (year) query.year = year;
+            if (gender) query.gender = gender;
+
+            total = await StudentModel.countDocuments(query);
+            students = await StudentModel.find(query)
                 .skip((page - 1) * limit)
                 .limit(limit);
         } else if (dbType === 'mysql') {
+            // Build query with filters
+            let countQuery = 'SELECT COUNT(*) as count FROM students';
+            let selectQuery = 'SELECT * FROM students';
+            let whereConditions = [];
+            let queryParams = [];
+
+            if (search) {
+                whereConditions.push('(fullName LIKE ? OR studentId LIKE ?)');
+                const searchTerm = `%${search}%`;
+                queryParams.push(searchTerm, searchTerm);
+            }
+            if (department) {
+                whereConditions.push('department = ?');
+                queryParams.push(department);
+            }
+            if (year) {
+                whereConditions.push('year = ?');
+                queryParams.push(year);
+            }
+            if (gender) {
+                whereConditions.push('gender = ?');
+                queryParams.push(gender);
+            }
+
+            if (whereConditions.length > 0) {
+                const whereClause = ' WHERE ' + whereConditions.join(' AND ');
+                countQuery += whereClause;
+                selectQuery += whereClause;
+            }
+
+            selectQuery += ' LIMIT ? OFFSET ?';
+            queryParams.push(limit, (page - 1) * limit);
+
             const [
                 [{ count }]
-            ] = await db.execute('SELECT COUNT(*) as count FROM students');
+            ] = await db.execute(countQuery, queryParams.slice(0, -2));
             total = count;
-            const [rows] = await db.execute('SELECT * FROM students LIMIT ? OFFSET ?', [limit, (page - 1) * limit]);
+            const [rows] = await db.execute(selectQuery, queryParams);
             students = rows;
         }
         res.json({ students, total });
