@@ -99,7 +99,7 @@ export default function LoginPage() {
     <div className={`min-h-screen flex items-center justify-center ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
       <div className="max-w-md w-full">
         {/* Login Form Card */}
-        <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8`}>
+        <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-8 min-h-[500px] flex flex-col justify-center`}>
           {/* Logo and Title */}
           <div className="text-center mb-8">
             <img
