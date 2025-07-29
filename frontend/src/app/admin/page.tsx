@@ -159,7 +159,7 @@ export default function AdminPage() {
     if (c.offenseType) offenceCounts[c.offenseType] = (offenceCounts[c.offenseType] || 0) + 1;
     if (c.student?.fullName) offenderCounts[c.student.fullName] = (offenderCounts[c.student.fullName] || 0) + 1;
   });
-  const topOffences = Object.entries(offenceCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const topOffences = Object.entries(offenceCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
   const topOffenders = Object.entries(offenderCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
   const offenceChartData = {
