@@ -1,12 +1,16 @@
 {
     "name": "KMU Discipline Desk",
     "short_name": "KMU Desk",
-    "description": "KMU Discipline Management System",
+    "description": "Student Discipline Management System - Fast, Secure, and Offline-Capable",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#1f2937",
+    "background_color": "#10B981",
+    "theme_color": "#10B981",
     "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "en",
+    "dir": "ltr",
+    "categories": ["education", "productivity", "business"],
     "icons": [{
             "src": "/kmu_logo.svg",
             "sizes": "any",
@@ -14,22 +18,33 @@
             "purpose": "any maskable"
         },
         {
-            "src": "/kmu_logo.ico",
-            "sizes": "48x48",
-            "type": "image/x-icon"
+            "src": "/kmu_logo.svg",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "/kmu_logo.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any"
         }
     ],
-    "categories": ["education", "productivity"],
-    "lang": "en",
-    "dir": "ltr",
-    "scope": "/",
-    "prefer_related_applications": false,
-    "related_applications": [],
     "shortcuts": [{
             "name": "New Case",
             "short_name": "New Case",
-            "description": "Create a new disciplinary case",
+            "description": "Create a new discipline case",
             "url": "/cases/new",
+            "icons": [{
+                "src": "/kmu_logo.svg",
+                "sizes": "96x96"
+            }]
+        },
+        {
+            "name": "View Cases",
+            "short_name": "Cases",
+            "description": "View all discipline cases",
+            "url": "/cases",
             "icons": [{
                 "src": "/kmu_logo.svg",
                 "sizes": "96x96"
@@ -38,22 +53,47 @@
         {
             "name": "Students",
             "short_name": "Students",
-            "description": "View student records",
+            "description": "Manage student records",
             "url": "/students",
             "icons": [{
                 "src": "/kmu_logo.svg",
                 "sizes": "96x96"
             }]
+        }
+    ],
+    "screenshots": [{
+            "src": "/kmu_logo.svg",
+            "sizes": "1280x720",
+            "type": "image/svg+xml",
+            "form_factor": "wide",
+            "label": "KMU Discipline Desk Dashboard"
         },
         {
-            "name": "Cases",
-            "short_name": "Cases",
-            "description": "View all cases",
-            "url": "/cases",
-            "icons": [{
-                "src": "/kmu_logo.svg",
-                "sizes": "96x96"
-            }]
+            "src": "/kmu_logo.svg",
+            "sizes": "750x1334",
+            "type": "image/svg+xml",
+            "form_factor": "narrow",
+            "label": "KMU Discipline Desk Mobile View"
         }
-    ]
+    ],
+    "prefer_related_applications": false,
+    "related_applications": [],
+    "edge_side_panel": {
+        "preferred_width": 400
+    },
+    "launch_handler": {
+        "client_mode": "navigate-existing"
+    },
+    "protocol_handlers": [{
+        "protocol": "web+kmudesk",
+        "url": "/?case=%s"
+    }],
+    "file_handlers": [{
+        "action": "/",
+        "accept": {
+            "text/csv": [".csv"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+            "application/vnd.ms-excel": [".xls"]
+        }
+    }]
 }

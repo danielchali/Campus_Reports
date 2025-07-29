@@ -1,10 +1,8 @@
 "use client";
 
 import '../globals.css';
-import Image from 'next/image';
-import Link from 'next/link';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, Suspense, lazy } from 'react';
 import { usePathname } from 'next/navigation';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { useRouter } from 'next/navigation';
@@ -12,13 +10,14 @@ import { SyncProvider, useSync } from '../context/SyncContext';
 import { useSyncManager } from '../hooks/useSyncManager';
 import { useOfflineSync } from '../hooks/useOfflineSync';
 
-import SyncManagerClient from '../components/SyncManagerClient';
+// Lazy load heavy components
+const SyncManagerClient = lazy(() => import('../components/SyncManagerClient'));
+const ServiceWorkerRegistration = lazy(() => import('../components/ServiceWorkerRegistration'));
+const PreloadProgress = lazy(() => import('../components/PreloadProgress'));
+const CacheStatus = lazy(() => import('../components/CacheStatus'));
+const OfflineIndicator = lazy(() => import('../components/OfflineIndicator'));
+const ConflictResolution = lazy(() => import('../components/ConflictResolution'));
 
-import ServiceWorkerRegistration from '../components/ServiceWorkerRegistration';
-import PreloadProgress from '../components/PreloadProgress';
-import CacheStatus from '../components/CacheStatus';
-import OfflineIndicator from '../components/OfflineIndicator';
-import ConflictResolution from '../components/ConflictResolution';
 import clsx from 'clsx';
 import { API_BASE_URL } from '../config/constants';
 import { onSyncError, offSyncError } from '../hooks/useSyncManager';
@@ -32,6 +31,7 @@ const SidebarContext = createContext<{
   setSidebarWidth: () => {},
 });
 
+// Optimized nav icons - using simple emojis for faster loading
 const navIcons = {
   dashboard: '🏠',
   cases: '📄',
@@ -45,181 +45,65 @@ const navIcons = {
   dean: '👨‍🎓',
   audit: '🔍',
   users: '👥',
-
   profile: '👤',
   help: '❓',
 };
 
-function Sidebar() {
-  const [open, setOpen] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const { sidebarWidth, setSidebarWidth } = useContext(SidebarContext);
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center p-4">
+    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-kmuGreen"></div>
+  </div>
+);
+
+// Lazy load Sidebar component
+const Sidebar = lazy(() => import('../components/Sidebar'));
+
+function TopNavbar() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
 
-  // Sidebar style classes
-  const sidebarBase =
-    'fixed z-40 left-0 top-0 h-full bg-gray-900 text-white shadow-lg border-r border-gray-800 transform transition-transform duration-200 ease-in-out';
-  const linkBase =
-    'flex items-center gap-3 py-2 px-4 rounded-lg transition-all font-medium hover:bg-gray-200 dark:hover:bg-gray-800 text-sm sm:text-base';
-  const linkActive =
-    'bg-kmuGreen text-white shadow dark:bg-kmuGreen dark:text-white';
-  const sectionHeader =
-    'uppercase text-xs text-gray-400 font-bold tracking-wider px-4 mt-6 mb-2';
-
-  // Role-based navs
-  let navLinks = [];
-  if (user?.role === 'admin') {
-    navLinks = [
-      { icon: navIcons.admin, label: 'Admin Panel', path: '/admin' },
-      { icon: navIcons.users, label: 'Manage Users', path: '/admin/users' },
-      { icon: navIcons.cases, label: 'Cases', path: '/cases' },
-      { icon: navIcons.reports, label: 'Reports', path: '/reports' },
-      { icon: navIcons.students, label: 'Students', path: '/students' },
-      { icon: navIcons.evidence, label: 'Evidence', path: '/evidence' },
-      { icon: navIcons.newcase, label: 'New Case', path: '/cases/new' },
-      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
-      { icon: navIcons.profile || '👤', label: 'Profile & Settings', path: '/profile' },
-      { icon: navIcons.help || '❓', label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true },
-    ];
-  } else if (user?.role === 'security_officer') {
-    navLinks = [
-      { icon: navIcons.dashboard, label: 'Home', path: '/security-dashboard' },
-      { icon: navIcons.cases, label: 'Cases', path: '/cases' },
-      { icon: navIcons.evidence, label: 'Evidence', path: '/evidence' },
-      { icon: navIcons.students, label: 'Students', path: '/students' },
-      { icon: navIcons.newcase, label: 'New Case', path: '/cases/new' },
-      { icon: navIcons.profile || '👤', label: 'Profile & Settings', path: '/profile' },
-      { icon: navIcons.help || '❓', label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true },
-    ];
-  } else if (user?.role === 'academic_office') {
-    navLinks = [
-      { icon: navIcons.dashboard, label: 'Home', path: '/academic-dashboard' },
-      { icon: navIcons.cases, label: 'Cases', path: '/cases' },
-      { icon: navIcons.reports, label: 'Reports', path: '/reports' },
-      { icon: navIcons.students, label: 'Students', path: '/students' },
-      { icon: navIcons.newcase, label: 'New Case', path: '/cases/new' },
-      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
-      { icon: navIcons.profile || '👤', label: 'Profile & Settings', path: '/profile' },
-      { icon: navIcons.help || '❓', label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true },
-    ];
-  } else {
-    navLinks = [
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true },
-    ];
-  }
-
-  // Resize functionality
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizing(true);
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isResizing) return;
-    
-    const newWidth = e.clientX;
-    // Limit width between 200px and 400px
-    if (newWidth >= 200 && newWidth <= 400) {
-      setSidebarWidth(newWidth);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsResizing(false);
-  };
-
-  useEffect(() => {
-    if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = 'col-resize';
-      document.body.style.userSelect = 'none';
-    } else {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-  }, [isResizing]);
+  if (!user) return null;
 
   return (
-    <>
-      <div className={`fixed inset-0 bg-black bg-opacity-30 z-30 transition-opacity md:hidden ${open ? 'block' : 'hidden'}`} onClick={() => setOpen(false)} />
-      <aside 
-        className={`${sidebarBase} ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 dark:bg-gray-900 dark:text-white bg-white text-gray-900`}
-        style={{ width: `${sidebarWidth}px` }}
-      >
-        <div className="flex flex-col items-center gap-2 pt-8 pb-4 border-b border-gray-800 dark:border-gray-800 border-gray-200 px-4 relative">
-          {/* Close button for mobile */}
-          <button 
-            className="absolute top-2 right-2 p-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors md:hidden"
-            onClick={() => setOpen(false)}
-            aria-label="Close sidebar"
-          >
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-          <img src="/kmu_logo.svg" alt="KMU Logo" width={64} height={64} className="mb-2" />
-          <button
-            className="mt-2 px-3 py-2 rounded bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
-            onClick={toggleTheme}
-            aria-label="Toggle dark mode"
-          >
-            {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
-          </button>
+    <nav className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+            KMU Discipline Desk
+          </h1>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            {user.role === 'admin' ? 'Administrator' : 
+             user.role === 'security_officer' ? 'Security Officer' : 
+             user.role === 'academic_office' ? 'Academic Office' : 'User'}
+          </span>
         </div>
-        <nav className="flex flex-col gap-0.5 mt-6 px-4 pb-6 flex-1 justify-start">
-          {navLinks.map(link =>
-            link.label === 'Logout' ? (
-              <button
-                key={link.path}
-                onClick={() => logout()}
-                className={
-                  `${linkBase} ${link.danger ? 'hover:bg-red-900 hover:text-red-400 dark:hover:text-red-400' : ''} text-gray-900 dark:text-white`}
-              >
-                <span className="text-xl">{link.icon}</span>
-                <span>{link.label}</span>
-              </button>
-            ) : (
-              <Link
-                key={link.path}
-                href={link.path}
-                className={
-                  `${linkBase} ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-900 hover:text-red-400 dark:hover:text-red-400' : ''} text-gray-900 dark:text-white`}
-              >
-                <span className="text-xl">{link.icon}</span>
-                <span>{link.label}</span>
-              </Link>
-            )
-                      )}
-          </nav>
+        
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
           
-          {/* Resize handle - only visible on desktop */}
-          <div 
-            className="absolute right-0 top-0 bottom-0 w-1 bg-gray-600 hover:bg-gray-500 cursor-col-resize hidden md:block"
-            onMouseDown={handleMouseDown}
-            title="Drag to resize sidebar"
-          />
-        </aside>
-      <button className="absolute top-4 left-4 z-50 p-3 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-lg border border-gray-200 dark:border-gray-700 md:hidden hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" onClick={() => setOpen(!open)} aria-label="Toggle sidebar">
-        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
-      </button>
-    </>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600 dark:text-gray-300">
+              {user.name || user.username}
+            </span>
+            <button
+              onClick={logout}
+              className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
   );
 }
 
@@ -228,25 +112,29 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
   const { sidebarWidth } = useContext(SidebarContext);
   const [isMobile, setIsMobile] = useState(false);
   const shouldShowNav = !isLogin && user;
-  
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  
+
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar */}
-      {shouldShowNav && <Sidebar />}
+      {/* Lazy load Sidebar */}
+      {shouldShowNav && (
+        <Suspense fallback={<LoadingFallback />}>
+          <Sidebar />
+        </Suspense>
+      )}
+      
       {/* Main content */}
-      <div 
+      <div
         className="flex-1 flex flex-col relative"
-        style={{ 
+        style={{
           marginLeft: shouldShowNav && !isMobile ? `${sidebarWidth}px` : '0px'
         }}
       >
@@ -255,101 +143,14 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
           {shouldShowNav && <TopNavbar />}
         </div>
         <main className="flex-1 px-3 py-2 md:px-6 md:py-8 overflow-x-hidden">
-          {children}
+          <Suspense fallback={<LoadingFallback />}>
+            {children}
+          </Suspense>
         </main>
       </div>
     </div>
   );
 }
-
-function TopNavbar() {
-  const { user, token } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const { syncStatus, conflicts, syncAll, clearAllConflicts } = useOfflineSync();
-  const [showConflicts, setShowConflicts] = useState(false);
-  const router = useRouter();
-  
-  if (!user) return null;
-
-  return (
-    <nav className="flex items-center justify-between px-6 py-3 bg-white dark:bg-gray-900 shadow border-b border-gray-200 dark:border-gray-800 sticky top-0 z-30">
-      <span className="font-bold text-xl text-kmuGreen dark:text-kmuGreen">KMU DisciplineDesk</span>
-      <div className="flex gap-4 items-center">
-        {(user.role === 'admin' || user.role === 'security_officer' || user.role === 'academic_office') && (
-          <button onClick={() => router.push('/cases/new')} className="text-kmuOrange dark:text-kmuOrange hover:underline font-medium">+ New Case</button>
-        )}
-        {(user.role === 'admin' || user.role === 'security_officer') && (
-          <button onClick={() => router.push('/evidence')} className="text-purple-600 dark:text-purple-400 hover:underline font-medium">Upload Evidence</button>
-        )}
-        {/* Dark mode toggle */}
-        {/* Offline/Sync status */}
-        <div className="flex items-center gap-2">
-          <span
-            className={`px-2 py-1 rounded text-xs font-semibold ${
-              syncStatus.isOnline 
-                ? (syncStatus.error 
-                    ? 'bg-red-100 text-red-700' 
-                    : syncStatus.isSyncing 
-                      ? 'bg-yellow-100 text-yellow-700' 
-                      : 'bg-green-100 text-green-700')
-                : 'bg-red-100 text-red-700'
-            }`}
-            title={syncStatus.isOnline 
-              ? (syncStatus.error 
-                  ? 'Sync Error' 
-                  : syncStatus.isSyncing 
-                    ? 'Syncing...' 
-                    : 'Online')
-              : 'Offline'
-            }
-          >
-            {syncStatus.isOnline 
-              ? (syncStatus.error 
-                  ? 'Sync Error' 
-                  : syncStatus.isSyncing 
-                    ? 'Syncing...' 
-                    : 'Online')
-              : 'Offline'
-            }
-          </span>
-          
-          {syncStatus.pendingChanges > 0 && (
-            <button
-              onClick={syncAll}
-              disabled={syncStatus.isSyncing || !syncStatus.isOnline}
-              className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:opacity-50"
-            >
-              Sync ({syncStatus.pendingChanges})
-            </button>
-          )}
-          
-          {conflicts.length > 0 && (
-            <button
-              onClick={() => setShowConflicts(true)}
-              className="px-2 py-1 bg-orange-600 text-white text-xs rounded hover:bg-orange-700"
-            >
-              Conflicts ({conflicts.length})
-            </button>
-          )}
-        </div>
-              </div>
-        
-        {/* Conflict Resolution Modal */}
-        {showConflicts && (
-          <ConflictResolution
-            conflicts={conflicts}
-            onResolve={async (conflictId, useLocal) => {
-              // This will be implemented in the useOfflineSync hook
-              // For now, we'll use a placeholder
-              console.log('Resolving conflict:', conflictId, useLocal);
-            }}
-            onClearAll={clearAllConflicts}
-            onClose={() => setShowConflicts(false)}
-          />
-        )}
-      </nav>
-    );
-  }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -359,29 +160,42 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const [sidebarWidth, setSidebarWidth] = useState(256);
 
   useEffect(() => {
-    function handleSyncError(msg: string) {
-      setSyncError(msg);
-    }
     onSyncError(handleSyncError);
     return () => offSyncError(handleSyncError);
   }, []);
 
+  function handleSyncError(msg: string) {
+    setSyncError(msg);
+    setTimeout(() => setSyncError(null), 5000);
+  }
+
   return (
     <html lang="en" suppressHydrationWarning className={theme === 'dark' ? 'dark' : ''}>
       <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#1f2937" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="KMU Desk" />
-        <link rel="apple-touch-icon" href="/kmu_logo.svg" />
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content="KMU Discipline Desk - Student Discipline Management System" />
+        <meta name="theme-color" content="#10B981" />
+        
+        {/* Preload critical resources */}
+        <link rel="preload" href="/kmu_logo.svg" as="image" type="image/svg+xml" />
+        <link rel="preload" href="/api/health" as="fetch" crossOrigin="anonymous" />
+        
+        {/* DNS prefetch for external domains */}
+        <link rel="dns-prefetch" href="//kmu-disciplinedesk.onrender.com" />
+        
+        {/* Preconnect to API */}
+        <link rel="preconnect" href="https://kmu-disciplinedesk.onrender.com" />
+        
+        <title>KMU Discipline Desk</title>
       </head>
       <body className="min-h-screen">
         {syncError && (
-          <div className="bg-red-600 text-white text-center py-2 font-semibold">
-            Sync error: {syncError}
+          <div className="fixed top-0 left-0 right-0 bg-red-600 text-white p-3 text-center z-50">
+            {syncError}
           </div>
         )}
+        
         <AuthProvider>
           <SyncProvider>
             <ThemeProvider>
@@ -390,17 +204,30 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   {children}
                 </AppContent>
                 
-                {/* Service Worker Registration */}
-                <ServiceWorkerRegistration />
+                {/* Lazy load PWA components */}
+                <Suspense fallback={null}>
+                  <ServiceWorkerRegistration />
+                </Suspense>
                 
-                {/* Preload Progress */}
-                <PreloadProgress />
+                <Suspense fallback={null}>
+                  <PreloadProgress />
+                </Suspense>
                 
-                {/* Cache Status */}
-                <CacheStatus />
+                <Suspense fallback={null}>
+                  <CacheStatus />
+                </Suspense>
                 
-                {/* Offline Indicator */}
-                <OfflineIndicator />
+                <Suspense fallback={null}>
+                  <OfflineIndicator />
+                </Suspense>
+                
+                <Suspense fallback={null}>
+                  <ConflictResolution />
+                </Suspense>
+                
+                <Suspense fallback={null}>
+                  <SyncManagerClient />
+                </Suspense>
               </SidebarContext.Provider>
             </ThemeProvider>
           </SyncProvider>
