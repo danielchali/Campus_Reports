@@ -13,13 +13,13 @@ export const chartToImage = async (chartElement: HTMLElement): Promise<string> =
   try {
     const canvas = await html2canvas(chartElement, {
       backgroundColor: '#ffffff',
-      scale: 2, // Higher quality
+      scale: 1, // Reduced quality to avoid large payloads
       useCORS: true,
       allowTaint: true,
       logging: false
     });
     
-    return canvas.toDataURL('image/png');
+    return canvas.toDataURL('image/png', 0.8); // Compress to 80% quality
   } catch (error) {
     console.error('Error converting chart to image:', error);
     throw new Error('Failed to convert chart to image');

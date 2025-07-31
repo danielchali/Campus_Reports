@@ -743,7 +743,25 @@ router.get('/analytics', async(req, res) => {
 router.post('/with-charts', async(req, res) => {
     try {
         console.log('DOCX export with charts requested');
+        console.log('Request body:', JSON.stringify(req.body, null, 2));
         const { charts, pageInfo, data, filters, studentId } = req.body;
+
+        // Validate required data
+        if (!charts || !Array.isArray(charts)) {
+            console.error('Invalid charts data:', charts);
+            return res.status(400).json({ error: 'Invalid charts data provided' });
+        }
+
+        console.log(`Processing ${charts.length} charts`);
+
+        // Validate each chart has required properties
+        for (let i = 0; i < charts.length; i++) {
+            const chart = charts[i];
+            if (!chart.title || !chart.imageData) {
+                console.error(`Chart ${i} missing required properties:`, chart);
+                return res.status(400).json({ error: `Chart ${i} missing required properties` });
+            }
+        }
 
         let allCases, allStudents;
 
@@ -987,7 +1005,8 @@ router.post('/with-charts', async(req, res) => {
         console.log('DOCX export with charts completed successfully');
     } catch (err) {
         console.error('DOCX export with charts error:', err);
-        res.status(500).json({ error: 'Export failed: ' + err.message });
+        console.error('Error stack:', err.stack);
+        res.status(500).json({ error: 'Export failed: ' + err.message, details: err.stack });
     }
 });
 

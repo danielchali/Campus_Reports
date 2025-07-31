@@ -129,6 +129,17 @@ export default function ReportsPage() {
       const chartExportData = await prepareChartExport();
       console.log('Chart export data:', chartExportData);
       
+      // Check payload size
+      const payloadSize = JSON.stringify(chartExportData).length;
+      console.log('Payload size:', payloadSize, 'bytes');
+      if (payloadSize > 5000000) { // 5MB limit
+        showNotification('error', 'Chart data too large. Please try again with fewer charts.');
+        return;
+      }
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
       const res = await fetch(`${API_BASE_URL}/reports/with-charts`, {
         method: 'POST',
         headers: { 
@@ -140,7 +151,10 @@ export default function ReportsPage() {
           pageInfo: chartExportData.pageInfo,
           filters: {}
         }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       if (!res.ok) {
         const errorText = await res.text();
@@ -150,9 +164,13 @@ export default function ReportsPage() {
       const blob = await res.blob();
       saveAs(blob, 'reports_with_charts.docx');
       showNotification('success', 'Export with charts completed successfully');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Export with charts error:', err);
-      showNotification('error', 'Failed to export with charts');
+      if (err.name === 'AbortError') {
+        showNotification('error', 'Export timed out. Please try again.');
+      } else {
+        showNotification('error', 'Failed to export with charts');
+      }
     } finally {
       setExportingWithCharts(false);
     }
