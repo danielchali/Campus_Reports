@@ -16,10 +16,12 @@ import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
 import { prepareChartExport } from '../../utils/chartExport';
 import { saveAs } from 'file-saver';
+import Notification, { useNotification } from '../../components/Notification';
 
 export default function ReportsPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { notification, showNotification, hideNotification } = useNotification();
   
   // Handle authentication like profile page - only on client side
   if (typeof window !== 'undefined') {
@@ -84,9 +86,10 @@ export default function ReportsPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      showNotification('success', 'Excel export completed successfully');
     } catch (err) {
       console.error('Excel export error:', err);
-      alert('Failed to export Excel');
+      showNotification('error', 'Failed to export Excel');
     } finally {
       setExportingExcel(false);
     }
@@ -109,9 +112,10 @@ export default function ReportsPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      showNotification('success', 'DOCX export completed successfully');
     } catch (err) {
       console.error('DOCX export error:', err);
-      alert('Failed to export DOCX');
+      showNotification('error', 'Failed to export DOCX');
     } finally {
       setExportingDocx(false);
     }
@@ -121,7 +125,9 @@ export default function ReportsPage() {
     setExportingWithCharts(true);
     try {
       // Prepare chart data
+      console.log('Preparing chart export...');
       const chartExportData = await prepareChartExport();
+      console.log('Chart export data:', chartExportData);
       
       const res = await fetch(`${API_BASE_URL}/reports/with-charts`, {
         method: 'POST',
@@ -136,12 +142,17 @@ export default function ReportsPage() {
         }),
       });
       
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Server error:', errorText);
+        throw new Error(errorText);
+      }
       const blob = await res.blob();
       saveAs(blob, 'reports_with_charts.docx');
+      showNotification('success', 'Export with charts completed successfully');
     } catch (err) {
       console.error('Export with charts error:', err);
-      alert('Failed to export with charts');
+      showNotification('error', 'Failed to export with charts');
     } finally {
       setExportingWithCharts(false);
     }
@@ -178,7 +189,8 @@ export default function ReportsPage() {
   ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
   return (
-    <section>
+    <>
+      <section>
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-kmuGreen">Reports & Analytics</h1>
         </div>
@@ -242,5 +254,16 @@ export default function ReportsPage() {
           </button>
         </div>
       </section>
+      
+      {/* Notification */}
+      {notification?.isVisible && (
+        <Notification
+          type={notification.type}
+          message={notification.message}
+          isVisible={notification.isVisible}
+          onClose={hideNotification}
+        />
+      )}
+    </>
   );
 }
