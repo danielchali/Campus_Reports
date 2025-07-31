@@ -23,6 +23,14 @@ export default function ReportsPage() {
   const router = useRouter();
   const { notification, showNotification, hideNotification } = useNotification();
   
+  const [offenseTrends, setOffenseTrends] = useState<{ _id: string; count: number }[]>([]);
+  const [departmentStats, setDepartmentStats] = useState<{ _id: string; count: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [exportingExcel, setExportingExcel] = useState(false);
+  const [exportingDocx, setExportingDocx] = useState(false);
+  const [exportingWithCharts, setExportingWithCharts] = useState(false);
+  
   // Handle authentication like profile page - only on client side
   if (typeof window !== 'undefined') {
     if (!authLoading && !token) {
@@ -34,16 +42,10 @@ export default function ReportsPage() {
       return <div className="text-center text-kmuGreen">Loading...</div>;
     }
     
-    if (!user || !['admin','academic_office','security_officer'].includes(user.role)) return <div className="text-red-600">Access denied.</div>;
+    if (!user || !['admin','academic_office','security_officer'].includes(user.role)) {
+      return <div className="text-red-600">Access denied.</div>;
+    }
   }
-
-  const [offenseTrends, setOffenseTrends] = useState<{ _id: string; count: number }[]>([]);
-  const [departmentStats, setDepartmentStats] = useState<{ _id: string; count: number }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [exportingExcel, setExportingExcel] = useState(false);
-  const [exportingDocx, setExportingDocx] = useState(false);
-  const [exportingWithCharts, setExportingWithCharts] = useState(false);
 
   useEffect(() => {
     async function fetchAnalytics() {
