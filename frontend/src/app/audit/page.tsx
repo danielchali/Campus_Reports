@@ -44,6 +44,7 @@ export default function AuditPage() {
   const socketRef = useRef<Socket | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [stats, setStats] = useState<{[key: string]: number}>({});
   const limit = 20;
 
   useEffect(() => {
@@ -63,9 +64,11 @@ export default function AuditPage() {
         const data = await res.json();
         setLogs(data.logs);
         setTotal(data.total);
+        setStats(data.stats || {});
       } catch (err) {
         setError('Failed to load audit logs');
         setLogs([]);
+        setStats({});
       }
       setLoading(false);
     }
@@ -101,36 +104,36 @@ export default function AuditPage() {
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            <div className="text-2xl font-bold text-kmuGreen">{safeLogs.length}</div>
+            <div className="text-2xl font-bold text-kmuGreen">{total}</div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Total Logs</div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <div className="text-2xl font-bold text-blue-600">
-              {safeLogs.filter(log => log.action === 'case_created').length}
+              {stats.case_created || 0}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Cases Created</div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <div className="text-2xl font-bold text-orange-600">
-              {safeLogs.filter(log => log.action === 'status_change').length}
+              {stats.status_change || 0}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Status Changes</div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <div className="text-2xl font-bold text-red-600">
-              {safeLogs.filter(log => log.action === 'case_deleted').length}
+              {stats.case_deleted || 0}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Cases Deleted</div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <div className="text-2xl font-bold text-purple-600">
-              {safeLogs.filter(log => log.action === 'user_login').length}
+              {stats.user_login || 0}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">User Logins</div>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <div className="text-2xl font-bold text-yellow-600">
-              {safeLogs.filter(log => log.action === 'login_failed').length}
+              {stats.login_failed || 0}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Failed Logins</div>
           </div>

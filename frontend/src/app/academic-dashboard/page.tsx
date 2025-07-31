@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from 'docx';
+
 import { saveAs } from 'file-saver';
 import { Bar } from 'react-chartjs-2';
 import {
@@ -19,6 +19,7 @@ import { authHeaders } from '../../utils/api';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Case, Student } from '../../../types/global.d';
+import { prepareChartExport } from '../../utils/chartExport';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -96,56 +97,60 @@ export default function AcademicDashboard() {
     );
   }, [search, cases, students]);
 
-  function exportCasesToWord() {
-    const rows = [
-      new TableRow({
-        children: [
-          new TableCell({ children: [new Paragraph('Offender Name')], width: { size: 15, type: WidthType.PERCENTAGE } }),
-          new TableCell({ children: [new Paragraph('Offender ID')], width: { size: 10, type: WidthType.PERCENTAGE } }),
-          new TableCell({ children: [new Paragraph('Offense')], width: { size: 12, type: WidthType.PERCENTAGE } }),
-          new TableCell({ children: [new Paragraph('Date')], width: { size: 10, type: WidthType.PERCENTAGE } }),
-          new TableCell({ children: [new Paragraph('Description')], width: { size: 18, type: WidthType.PERCENTAGE } }),
-          new TableCell({ children: [new Paragraph('Severity')], width: { size: 7, type: WidthType.PERCENTAGE } }),
-          new TableCell({ children: [new Paragraph('Status')], width: { size: 7, type: WidthType.PERCENTAGE } }),
-          new TableCell({ children: [new Paragraph('Sanctions')], width: { size: 7, type: WidthType.PERCENTAGE } }),
-          new TableCell({ children: [new Paragraph('Attachments')], width: { size: 7, type: WidthType.PERCENTAGE } }),
-          new TableCell({ children: [new Paragraph('Created By')], width: { size: 7, type: WidthType.PERCENTAGE } }),
-        ],
-      }),
-      ...filteredCases.map((c: any) =>
-        new TableRow({
-          children: [
-            new TableCell({ children: [new Paragraph(c.student?.fullName || '')] }),
-            new TableCell({ children: [new Paragraph(c.student?.studentId || '')] }),
-            new TableCell({ children: [new Paragraph(c.offenseType || '')] }),
-            new TableCell({ children: [new Paragraph(c.incidentDate || '')] }),
-            new TableCell({ children: [new Paragraph(c.description || '')] }),
-            new TableCell({ children: [new Paragraph(c.severity || '')] }),
-            new TableCell({ children: [new Paragraph(c.status || '')] }),
-            new TableCell({ children: [new Paragraph(c.sanctions || '')] }),
-            new TableCell({ children: [new Paragraph((c.attachments && c.attachments.length) ? c.attachments.join(', ') : '')] }),
-            new TableCell({ children: [new Paragraph(c.createdBy?.name || c.createdBy || '')] }),
-          ],
-        })
-      ),
-    ];
-    const doc = new Document({
-      sections: [
-        {
-          properties: {},
-          children: [
-            new Paragraph({
-              children: [new TextRun({ text: 'Disciplinary Cases', bold: true, size: 32 })],
-              spacing: { after: 300 },
-            }),
-            new Table({ rows }),
-          ],
+  async function exportCasesToWord() {
+    try {
+      // Prepare chart data
+      const chartExportData = await prepareChartExport();
+      
+      const res = await fetch(`${API_BASE_URL}/reports/dashboard-cases`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...authHeaders() 
         },
-      ],
-    });
-    Packer.toBlob(doc).then(blob => {
-      saveAs(blob, 'cases.docx');
-    });
+        body: JSON.stringify({
+          charts: chartExportData.charts,
+          pageInfo: {
+            title: 'Academic Dashboard - All Cases Report',
+            url: window.location.href
+          }
+        }),
+      });
+      
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      saveAs(blob, 'academic_all_cases_report.docx');
+    } catch (err) {
+      console.error('Export cases error:', err);
+      alert('Failed to export cases');
+    }
+  }
+
+  async function exportWithCharts() {
+    try {
+      // Prepare chart data
+      const chartExportData = await prepareChartExport();
+      
+      const res = await fetch(`${API_BASE_URL}/reports/with-charts`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...authHeaders() 
+        },
+        body: JSON.stringify({
+          charts: chartExportData.charts,
+          pageInfo: chartExportData.pageInfo,
+          filters: {}
+        }),
+      });
+      
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      saveAs(blob, 'academic_dashboard_with_charts.docx');
+    } catch (err) {
+      console.error('Export with charts error:', err);
+      alert('Failed to export with charts');
+    }
   }
 
   // Visualization data
@@ -187,11 +192,23 @@ export default function AcademicDashboard() {
             <div className="text-4xl font-bold text-kmuGreen">{totalCases}</div>
             <div className="text-gray-700 dark:text-gray-300">Total Cases</div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div 
+            id="academic-offences-chart"
+            data-chart-export="true"
+            data-chart-title="Most Common Offences"
+            data-chart-description="Top 3 most common disciplinary offenses in academic office view"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
+          >
             <h2 className="text-lg font-semibold mb-2 text-kmuOrange">Most Common Offences</h2>
             <Bar data={offenceChartData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div 
+            id="academic-offenders-chart"
+            data-chart-export="true"
+            data-chart-title="Most Common Offenders"
+            data-chart-description="Top 3 students with most disciplinary cases in academic office view"
+            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
+          >
             <h2 className="text-lg font-semibold mb-2 text-kmuOrange">Most Common Offenders</h2>
             <Bar data={offenderChartData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
           </div>
@@ -277,13 +294,22 @@ export default function AcademicDashboard() {
         {/* Export Section */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
           <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Export & Reports</h2>
-          <button
-            className="bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition"
-            onClick={exportCasesToWord}
-            type="button"
-          >
-            Export Cases to Word
-          </button>
+          <div className="flex gap-4">
+            <button
+              className="bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition"
+              onClick={exportCasesToWord}
+              type="button"
+            >
+              Export All Cases (DOCX)
+            </button>
+            <button
+              className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition"
+              onClick={exportWithCharts}
+              type="button"
+            >
+              Export with Charts (DOCX)
+            </button>
+          </div>
         </div>
       </section>
   );

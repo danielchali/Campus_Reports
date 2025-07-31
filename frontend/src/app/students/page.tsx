@@ -404,6 +404,63 @@ export default function StudentsPage() {
     await exportExcel('students');
   }
 
+  async function handleExportStudentsList() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/reports/students-docx`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          filters: {
+            department: departmentFilter,
+            year: yearFilter,
+            gender: genderFilter,
+            search: search
+          }
+        }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'students_list.docx';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      alert('Failed to export students list.');
+    }
+  }
+
+  async function handleExportCasesList() {
+    try {
+      const res = await fetch(`${API_BASE_URL}/reports/cases-docx`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'cases_list.docx';
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      alert('Failed to export cases list.');
+    }
+  }
+
   return (
       <section>
         <div className="flex items-center justify-between mb-6">
@@ -489,6 +546,8 @@ export default function StudentsPage() {
                 <button className="bg-blue-600 text-white px-2 py-1 rounded text-sm" onClick={handleBulkExportExcel}>Export Selected (Excel)</button>
               </>
             )}
+            <button className="bg-purple-600 text-white px-2 py-1 rounded text-sm" onClick={handleExportStudentsList}>Export Students List (DOCX)</button>
+            <button className="bg-indigo-600 text-white px-2 py-1 rounded text-sm" onClick={handleExportCasesList}>Export Cases List (DOCX)</button>
           </div>
           </div>
         {/* Pagination controls */}

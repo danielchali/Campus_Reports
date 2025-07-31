@@ -14,6 +14,8 @@ import {
 } from 'chart.js';
 import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
+import { prepareChartExport } from '../../utils/chartExport';
+import { saveAs } from 'file-saver';
 
 export default function ReportsPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -39,6 +41,7 @@ export default function ReportsPage() {
   const [error, setError] = useState<string | null>(null);
   const [exportingExcel, setExportingExcel] = useState(false);
   const [exportingDocx, setExportingDocx] = useState(false);
+  const [exportingWithCharts, setExportingWithCharts] = useState(false);
 
   useEffect(() => {
     async function fetchAnalytics() {
@@ -114,6 +117,36 @@ export default function ReportsPage() {
     }
   }
 
+  async function handleExportWithCharts() {
+    setExportingWithCharts(true);
+    try {
+      // Prepare chart data
+      const chartExportData = await prepareChartExport();
+      
+      const res = await fetch(`${API_BASE_URL}/reports/with-charts`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...authHeaders() 
+        },
+        body: JSON.stringify({
+          charts: chartExportData.charts,
+          pageInfo: chartExportData.pageInfo,
+          filters: {}
+        }),
+      });
+      
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      saveAs(blob, 'reports_with_charts.docx');
+    } catch (err) {
+      console.error('Export with charts error:', err);
+      alert('Failed to export with charts');
+    } finally {
+      setExportingWithCharts(false);
+    }
+  }
+
 
 
   const safeOffenseTrends = Array.isArray(offenseTrends) ? offenseTrends : [];
@@ -156,7 +189,13 @@ export default function ReportsPage() {
           ) : error ? (
             <div className="text-red-600">{error}</div>
           ) : (
-            <div style={{ height: 300 }}>
+            <div 
+              id="offense-trends-chart"
+              data-chart-export="true"
+              data-chart-title="Offense Trends"
+              data-chart-description="Distribution of disciplinary cases by offense type"
+              style={{ height: 300 }}
+            >
               <Bar data={offenseData} options={{ responsive: true, plugins: { legend: { display: false }, title: { display: false } } }} />
             </div>
           )}
@@ -168,7 +207,13 @@ export default function ReportsPage() {
           ) : error ? (
             <div className="text-red-600">{error}</div>
           ) : (
-            <div style={{ height: 300 }}>
+            <div 
+              id="department-stats-chart"
+              data-chart-export="true"
+              data-chart-title="Department Statistics"
+              data-chart-description="Distribution of disciplinary cases by department"
+              style={{ height: 300 }}
+            >
               <Bar data={deptData} options={{ responsive: true, plugins: { legend: { display: false }, title: { display: false } } }} />
             </div>
           )}
@@ -187,6 +232,13 @@ export default function ReportsPage() {
             disabled={exportingDocx}
           >
             {exportingDocx ? 'Exporting...' : 'Export to DOCX'}
+          </button>
+          <button
+            className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition disabled:opacity-50"
+            onClick={handleExportWithCharts}
+            disabled={exportingWithCharts}
+          >
+            {exportingWithCharts ? 'Exporting...' : 'Export with Charts (DOCX)'}
           </button>
         </div>
       </section>

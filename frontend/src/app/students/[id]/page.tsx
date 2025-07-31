@@ -144,7 +144,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
         }
     };
 
-    // Add export handler
+    // Add export handlers
     const handleExportRecords = async () => {
         if (!student) return;
         try {
@@ -158,6 +158,36 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
             saveAs(blob, `student_${student.studentId}_cases.docx`);
         } catch (err) {
             alert('Failed to export records.');
+        }
+    };
+
+    const handleExportStudentList = async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/reports/students-docx`, {
+                method: 'POST',
+                headers: { ...authHeaders() },
+                body: JSON.stringify({}),
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const blob = await res.blob();
+            saveAs(blob, `students_list.docx`);
+        } catch (err) {
+            alert('Failed to export students list.');
+        }
+    };
+
+    const handleExportCasesList = async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/reports/cases-docx`, {
+                method: 'POST',
+                headers: { ...authHeaders() },
+                body: JSON.stringify({}),
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const blob = await res.blob();
+            saveAs(blob, `cases_list.docx`);
+        } catch (err) {
+            alert('Failed to export cases list.');
         }
     };
     // Add view all cases handler
@@ -338,7 +368,17 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                                                 View All Cases
                                             </button>
                                             <button className="w-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition" onClick={handleExportRecords}>
-                                                Export Records
+                                                Export Student Cases
+                                            </button>
+                                        </div>
+                                        
+                                        <h4 className="text-md font-semibold text-kmuOrange mb-3 mt-6">Export Lists</h4>
+                                        <div className="space-y-2">
+                                            <button className="w-full bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition text-sm" onClick={handleExportStudentList}>
+                                                Export Students List (DOCX)
+                                            </button>
+                                            <button className="w-full bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition text-sm" onClick={handleExportCasesList}>
+                                                Export Cases List (DOCX)
                                             </button>
                                         </div>
                                     </div>

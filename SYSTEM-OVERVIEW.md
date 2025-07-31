@@ -1,1053 +1,492 @@
-# 🏛️ KMU Discipline Desk - Comprehensive System Overview
+# KMU DisciplineDesk - Comprehensive System Overview
 
-## 📋 Table of Contents
-1. [System Overview](#system-overview)
-2. [Architecture](#architecture)
-3. [Technology Stack](#technology-stack)
-4. [Core Features](#core-features)
-5. [User Roles & Permissions](#user-roles--permissions)
-6. [Database Design](#database-design)
-7. [API Architecture](#api-architecture)
-8. [Frontend Architecture](#frontend-architecture)
-9. [PWA Features](#pwa-features)
-10. [Security Features](#security-features)
-11. [Deployment Architecture](#deployment-architecture)
-12. [Data Flow](#data-flow)
-13. [Integration Points](#integration-points)
-14. [Performance Considerations](#performance-considerations)
-15. [Scalability](#scalability)
-16. [Monitoring & Logging](#monitoring--logging)
-17. [Backup & Recovery](#backup--recovery)
-18. [Development Workflow](#development-workflow)
-19. [Testing Strategy](#testing-strategy)
-20. [Future Enhancements](#future-enhancements)
+## Executive Summary
 
----
+The KMU DisciplineDesk is a comprehensive, full-stack disciplinary case management system designed specifically for Kapasa Makasa University. Built with modern web technologies and deployed as a Progressive Web Application (PWA), it provides robust offline-first capabilities, role-based access control, and comprehensive case management features for handling student disciplinary incidents.
 
-## 🎯 System Overview
+## System Architecture
 
-### **Purpose**
-The KMU Discipline Desk is a comprehensive **Progressive Web Application (PWA)** designed for managing student disciplinary cases at educational institutions. It provides a modern, responsive, and offline-capable solution for tracking, managing, and reporting on student disciplinary incidents.
+### Technology Stack
 
-### **Key Objectives**
-- ✅ **Streamline disciplinary case management**
-- ✅ **Provide real-time data access and reporting**
-- ✅ **Ensure data security and privacy**
-- ✅ **Support offline operations**
-- ✅ **Enable multi-role access control**
-- ✅ **Facilitate data import/export**
-- ✅ **Provide comprehensive audit trails**
+#### Frontend
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript for type safety
+- **Styling**: Tailwind CSS for responsive design
+- **State Management**: React Context API with custom hooks
+- **PWA Support**: Service Workers and Web App Manifest
+- **Charts**: Chart.js with React Chart.js 2 for analytics
+- **File Handling**: File-saver, XLSX, DOCX for document generation
 
-### **Target Users**
-- **Security Officers** - Primary case management and incident reporting
-- **Academic Office** - Student records and academic disciplinary actions
-- **Administrators** - System management and oversight
-- **Faculty** - Case reporting and student monitoring
+#### Backend
+- **Runtime**: Node.js with Express.js
+- **Database**: MongoDB with Mongoose ODM (with MySQL support)
+- **Authentication**: JWT tokens with bcryptjs for password hashing
+- **File Upload**: Multer for evidence file management
+- **Document Generation**: ExcelJS and DOCX for report generation
+- **Data Processing**: PapaParse for CSV handling
 
----
+#### Deployment & Distribution
+- **PWA Deployment**: Flexible hosting options (Vercel for prototyping, institution's choice for production)
+- **Backend Hosting**: Multiple hosting options (Render, Railway, institution's servers)
+- **Database**: MongoDB Atlas, local MongoDB, or institution's preferred database
 
-## 🏗️ Architecture
+### System Architecture Diagram
 
-### **High-Level Architecture**
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │   Database      │
-│   (Next.js)     │◄──►│   (Express.js)  │◄──►│   (MongoDB/     │
-│   PWA           │    │   REST API      │    │    MySQL)       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Service       │    │   File Storage  │    │   Audit Logs    │
-│   Worker        │    │   (Evidence)    │    │   (Security)    │
-│   (Offline)     │    │                 │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                    KMU DisciplineDesk                       │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌──────────────┐ │
+│  │   PWA (Web)     │  │   Mobile        │  │   Tablet      │ │
+│  │   (Browser)     │  │   (PWA)         │  │   (PWA)      │ │
+│  └─────────────────┘  └─────────────────┘  └──────────────┘ │
+├─────────────────────────────────────────────────────────────┤
+│                    Frontend (Next.js)                       │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐            │
+│  │   React     │ │  TypeScript │ │ Tailwind    │            │
+│  │ Components  │ │   Types     │ │    CSS      │            │
+│  └─────────────┘ └─────────────┘ └─────────────┘            │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐            │
+│  │ Service     │ │ IndexedDB   │ │ Offline     │            │
+│  │ Workers     │ │ Local Cache │ │ Sync        │            │
+│  └─────────────┘ └─────────────┘ └─────────────┘            │
+├─────────────────────────────────────────────────────────────┤
+│                    Backend (Express.js)                     │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐            │
+│  │   REST API  │ │ JWT Auth    │ │ File Upload │            │
+│  │   Routes    │ │ Middleware  │ │   Multer    │            │
+│  └─────────────┘ └─────────────┘ └─────────────┘            │
+│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐            │
+│  │ Controllers │ │   Models    │ │  Database   │            │
+│  │   Logic     │ │  Schemas    │ │  Migrations │            │
+│  └─────────────┘ └─────────────┘ └─────────────┘            │
+├─────────────────────────────────────────────────────────────┤
+│                    Database Layer                            │
+│  ┌─────────────────────────────────────────────────────────┐ │
+│  │              MongoDB (Primary) / MySQL                  │ │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐        │ │
+│  │  │ Users   │ │Students │ │ Cases   │ │Evidence │        │ │
+│  │  │         │ │         │ │         │ │         │        │ │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘        │ │
+│  └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-### **Component Architecture**
+## Core Features & Functionality
 
-#### **Frontend Layer**
-- **Next.js 14** - React framework with SSR/SSG capabilities
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first styling
-- **PWA Components** - Service Worker, IndexedDB, Manifest
-- **State Management** - React Context + Custom Hooks
+### 1. Authentication & Authorization
 
-#### **Backend Layer**
-- **Express.js** - Node.js web framework
-- **JWT Authentication** - Stateless authentication
-- **Role-based Authorization** - Granular access control
-- **File Upload Handling** - Evidence management
-- **Audit Logging** - Comprehensive activity tracking
+#### User Management
+- **Multi-role System**: Admin, Academic Office, Security Officer, Dean
+- **Authentication Methods**: Email/Password and Institutional login
+- **Session Management**: JWT-based authentication with secure token handling
+- **Access Control**: Role-based permissions for all system features
 
-#### **Data Layer**
-- **MongoDB/MySQL** - Flexible database options
-- **IndexedDB** - Client-side offline storage
-- **File System** - Evidence document storage
-- **Audit Database** - Security event logging
+#### Security Features
+- Password hashing with bcryptjs
+- JWT token validation and refresh
+- CORS configuration for secure cross-origin requests
+- Input validation and sanitization
 
----
+### 2. Student Management
 
-## 🛠️ Technology Stack
+#### Student Records
+- **Student Profiles**: Complete student information management
+- **Search & Filter**: Advanced search capabilities with multiple criteria
+- **Department Management**: Academic department categorization
+- **Year Classification**: Academic year tracking
+- **Gender Classification**: Demographic data management
 
-### **Frontend Technologies**
+#### Data Structure
 ```typescript
-// Core Framework
-- Next.js 14.0.0          // React framework
-- React 18.2.0            // UI library
-- TypeScript 5.0.0        // Type safety
-
-// Styling & UI
-- Tailwind CSS 3.3.0      // Utility-first CSS
-- Headless UI            // Accessible components
-- React Icons            // Icon library
-
-// PWA & Offline
-- Service Worker         // Offline functionality
-- IndexedDB             // Local data storage
-- Web App Manifest      // PWA configuration
-
-// Data Management
-- React Context         // State management
-- Custom Hooks          // Reusable logic
-- Fetch API            // HTTP requests
-
-// File Handling
-- Papa Parse           // CSV parsing
-- XLSX                // Excel handling
-- File Saver          // File downloads
-```
-
-### **Backend Technologies**
-```javascript
-// Core Framework
-- Node.js 18+           // Runtime environment
-- Express.js 4.18.0     // Web framework
-- JWT                   // Authentication
-
-// Database
-- MongoDB 6.0+          // NoSQL database
-- MySQL 8.0+            // SQL database
-- Mongoose              // MongoDB ODM
-
-// File Processing
-- Multer               // File uploads
-- ExcelJS              // Excel generation
-- Docx                 // Word document creation
-
-// Security
-- bcrypt               // Password hashing
-- CORS                 // Cross-origin handling
-- Helmet               // Security headers
-```
-
-### **Development Tools**
-```bash
-# Package Management
-- npm 9.0+              // Package manager
-- Git                   // Version control
-
-# Build Tools
-- Webpack               // Module bundling
-- Babel                 // JavaScript transpilation
-- PostCSS               // CSS processing
-
-# Code Quality
-- ESLint                // Code linting
-- TypeScript ESLint     // TypeScript linting
-- Prettier              // Code formatting
-```
-
----
-
-## ⭐ Core Features
-
-### **1. Case Management**
-- **Case Creation** - Multi-student case support
-- **Case Tracking** - Status and progress monitoring
-- **Evidence Management** - File uploads and attachments
-- **Case History** - Complete audit trail
-- **Bulk Operations** - Mass case management
-
-### **2. Student Management**
-- **Student Records** - Comprehensive student profiles
-- **Import/Export** - CSV/Excel data handling
-- **Search & Filter** - Advanced student lookup
-- **Disciplinary History** - Complete case records
-- **Recent Students** - Quick access to frequent students
-
-### **3. Reporting & Analytics**
-- **Real-time Dashboards** - Role-specific overviews
-- **Statistical Reports** - Offense trends and patterns
-- **Export Capabilities** - Word/Excel document generation
-- **Custom Filters** - Flexible report generation
-- **Visual Charts** - Data visualization
-
-### **4. User Management**
-- **Role-based Access** - Granular permissions
-- **User Profiles** - Personal information management
-- **Password Management** - Secure authentication
-- **Activity Logging** - User action tracking
-- **Session Management** - Secure login/logout
-
-### **5. PWA Features**
-- **Offline Functionality** - Full offline operation
-- **Data Synchronization** - Background sync
-- **Local Storage** - IndexedDB integration
-- **Push Notifications** - Real-time alerts
-- **App Installation** - Native app experience
-
----
-
-## 👥 User Roles & Permissions
-
-### **Administrator**
-```typescript
-Permissions: {
-  users: ['create', 'read', 'update', 'delete'],
-  students: ['create', 'read', 'update', 'delete'],
-  cases: ['create', 'read', 'update', 'delete'],
-  reports: ['read', 'export'],
-  system: ['configure', 'audit']
+interface Student {
+  studentId: string;        // Unique identifier
+  fullName: string;         // Student's full name
+  department: string;       // Academic department
+  year: string;            // Academic year
+  gender: string;          // Gender classification
+  lastSelected: Date;      // Last access timestamp
+  createdAt: Date;         // Record creation date
 }
 ```
 
-### **Security Officer**
+### 3. Case Management
+
+#### Case Creation & Tracking
+- **Single & Group Cases**: Support for individual and multiple student cases
+- **Incident Documentation**: Comprehensive incident reporting
+- **Status Tracking**: Case lifecycle management
+- **Evidence Management**: File attachment and evidence tracking
+- **Sanctions Management**: Disciplinary action tracking
+
+#### Case Data Model
 ```typescript
-Permissions: {
-  students: ['read'],
-  cases: ['create', 'read', 'update'],
-  evidence: ['upload', 'read'],
-  reports: ['read', 'export']
+interface Case {
+  student_id?: string;           // Single student (backward compatibility)
+  student_ids?: string[];        // Multiple students support
+  incident_date: string;         // Date of incident
+  description: string;           // Incident description
+  offense_type: string;          // Type of offense
+  severity: string;              // Severity level
+  status: string;                // Case status
+  sanctions: string;             // Applied sanctions
+  attachments: string[];         // File attachments
+  created_by: string;            // Case creator
+  case_type: 'single' | 'group'; // Case classification
+  createdAt: Date;               // Creation timestamp
+  updatedAt: Date;               // Last update timestamp
 }
 ```
 
-### **Academic Office**
-```typescript
-Permissions: {
-  students: ['create', 'read', 'update'],
-  cases: ['read', 'update'],
-  reports: ['read', 'export'],
-  imports: ['students']
-}
-```
-
-### **Faculty (Future)**
-```typescript
-Permissions: {
-  students: ['read'],
-  cases: ['create', 'read'],
-  reports: ['read']
-}
-```
-
----
-
-## 🗄️ Database Design
-
-### **MongoDB Schema**
-
-#### **Student Collection**
-```javascript
-{
-  _id: ObjectId,
-  studentId: String,        // Unique identifier
-  fullName: String,         // Student's full name
-  department: String,       // Academic department
-  year: String,            // Year of study (1-4)
-  gender: String,          // Gender (Male/Female/Other)
-  lastSelected: Date,      // Last accessed timestamp
-  createdAt: Date,         // Record creation date
-  updatedAt: Date          // Last modification date
-}
-```
-
-#### **Case Collection**
-```javascript
-{
-  _id: ObjectId,
-  student_id: String,      // Single student (legacy)
-  student_ids: [String],   // Multiple students (new)
-  case_type: String,       // 'single' or 'group'
-  offense_type: String,    // Type of offense
-  incident_date: Date,     // Date of incident
-  description: String,     // Detailed description
-  severity: String,        // Severity level
-  status: String,          // Case status
-  sanctions: String,       // Applied sanctions
-  attachments: [String],   // File references
-  created_by: ObjectId,    // User reference
-  created_at: Date,        // Creation timestamp
-  updated_at: Date         // Last update timestamp
-}
-```
-
-#### **User Collection**
-```javascript
-{
-  _id: ObjectId,
-  username: String,        // Unique username
-  password: String,        // Hashed password
-  name: String,           // Full name
-  role: String,           // User role
-  email: String,          // Email address
-  created_at: Date,       // Account creation
-  last_login: Date        // Last login timestamp
-}
-```
-
-#### **Audit Collection**
-```javascript
-{
-  _id: ObjectId,
-  action: String,         // Action performed
-  entity: String,         // Entity type
-  entityId: String,       // Entity identifier
-  user: String,          // Username
-  details: Object,       // Action details
-  ipAddress: String,     // IP address
-  userAgent: String,     // Browser info
-  timestamp: Date        // Action timestamp
-}
-```
-
-### **MySQL Schema**
-
-#### **Students Table**
-```sql
-CREATE TABLE students (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  studentId VARCHAR(50) UNIQUE NOT NULL,
-  fullName VARCHAR(255) NOT NULL,
-  department VARCHAR(100),
-  year VARCHAR(10),
-  gender VARCHAR(20),
-  lastSelected TIMESTAMP NULL,
-  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-```
-
-#### **Cases Table**
-```sql
-CREATE TABLE cases (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  student_id VARCHAR(50),
-  student_ids JSON,
-  case_type ENUM('single', 'group') DEFAULT 'single',
-  offense_type VARCHAR(100) NOT NULL,
-  incident_date DATE,
-  description TEXT,
-  severity VARCHAR(50),
-  status VARCHAR(50),
-  sanctions TEXT,
-  attachments JSON,
-  created_by INT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (created_by) REFERENCES users(id)
-);
-```
-
----
-
-## 🔌 API Architecture
-
-### **RESTful Endpoints**
-
-#### **Authentication**
-```typescript
-POST   /api/login              // User login
-POST   /api/register           // User registration
-GET    /api/profile            // Get user profile
-PUT    /api/profile            // Update profile
-PUT    /api/password           // Change password
-```
-
-#### **Students**
-```typescript
-GET    /api/students           // List students (paginated)
-GET    /api/students/:id       // Get student details
-POST   /api/students           // Create student
-PUT    /api/students/:id       // Update student
-DELETE /api/students/:id       // Delete student
-POST   /api/students/import    // Bulk import
-GET    /api/students/search    // Search students
-GET    /api/students/recent    // Recent students
-```
-
-#### **Cases**
-```typescript
-GET    /api/cases              // List cases (paginated)
-GET    /api/cases/:id          // Get case details
-POST   /api/cases              // Create case
-PUT    /api/cases/:id          // Update case
-DELETE /api/cases/:id          // Delete case
-GET    /api/cases/export-excel // Export to Excel
-POST   /api/cases/export-docx  // Export to Word
-```
-
-#### **Reports**
-```typescript
-GET    /api/reports/analytics  // Analytics data
-GET    /api/reports/export-excel // Export analytics
-POST   /api/reports/docx       // Generate Word report
-```
-
-#### **Users**
-```typescript
-GET    /api/users              // List users
-GET    /api/users/:id          // Get user details
-POST   /api/users              // Create user
-PUT    /api/users/:id          // Update user
-DELETE /api/users/:id          // Delete user
-GET    /api/users/export-excel // Export users
-POST   /api/users/export-docx  // Export users
-```
-
-### **Response Format**
-```typescript
-// Success Response
-{
-  success: true,
-  data: any,
-  message?: string,
-  pagination?: {
-    page: number,
-    limit: number,
-    total: number,
-    pages: number
-  }
-}
-
-// Error Response
-{
-  success: false,
-  error: string,
-  details?: string[],
-  code?: number
-}
-```
-
----
-
-## 🎨 Frontend Architecture
-
-### **Component Structure**
-```
-src/
-├── app/                    # Next.js app directory
-│   ├── (protected)/       # Protected route wrapper
-│   ├── admin/            # Admin pages
-│   ├── cases/            # Case management
-│   ├── students/         # Student management
-│   ├── reports/          # Reporting pages
-│   └── layout.tsx        # Root layout
-├── components/           # Reusable components
-│   ├── ui/              # Basic UI components
-│   ├── forms/           # Form components
-│   └── charts/          # Chart components
-├── context/             # React contexts
-├── hooks/               # Custom hooks
-├── utils/               # Utility functions
-├── config/              # Configuration
-└── types/               # TypeScript types
-```
-
-### **State Management**
-```typescript
-// Context Providers
-- AuthContext          // Authentication state
-- ThemeContext         // Dark/light mode
-- SyncContext          // Offline sync state
-
-// Custom Hooks
-- useAuth()            // Authentication utilities
-- useOfflineSync()     // Offline data management
-- useApi()             // API call utilities
-```
-
-### **Routing Structure**
-```typescript
-// Public Routes
-/                       // Landing page
-/login                  // Login page
-/help                   // Help documentation
-
-// Protected Routes
-/admin                  // Admin dashboard
-/admin/users            // User management
-/cases                  // Cases listing
-/cases/new              // New case creation
-/cases/[id]             // Case details
-/students               // Students listing
-/students/[id]          // Student details
-/reports                // Reports dashboard
-/audit                  // Audit logs
-/evidence               // Evidence management
-/profile                // User profile
-/settings               // User settings
-```
-
----
-
-## 📱 PWA Features
-
-### **Service Worker**
-```javascript
-// Caching Strategy
-- STATIC_CACHE          // App shell and static assets
-- API_CACHE            // API responses for offline use
-- CRITICAL_ASSETS      // Essential files
-
-// Offline Handling
-- Cache-first          // Static assets
-- Network-first        // API requests
-- Background sync      // Queued operations
-```
-
-### **IndexedDB Schema**
-```typescript
-// Database Stores
-- students             // Student records
-- cases               // Case records
-- evidence            // Evidence files
-- users               // User data
-- settings            // App settings
-- syncQueue           // Pending operations
-- queuedRequests      // Network requests
-```
-
-### **Offline Capabilities**
-- **Data Access** - View cached students and cases
-- **Case Creation** - Queue new cases for sync
-- **Data Updates** - Queue modifications for sync
-- **Offline Login** - Use cached credentials
-- **Background Sync** - Automatic data synchronization
-
-### **PWA Installation**
-- **Web App Manifest** - App metadata and icons
-- **Install Prompt** - Native app installation
-- **App Shortcuts** - Quick access to features
-- **Offline Indicator** - Connection status display
-
----
-
-## 🔒 Security Features
-
-### **Authentication**
-```typescript
-// JWT Implementation
-- Token-based authentication
-- Automatic token refresh
-- Secure token storage
-- Token validation on requests
-
-// Password Security
-- bcrypt hashing
-- Salt rounds: 12
-- Password complexity requirements
-- Account lockout protection
-```
-
-### **Authorization**
-```typescript
-// Role-based Access Control
-- Granular permissions
-- Route-level protection
-- API endpoint security
-- Resource-level access control
-```
-
-### **Data Protection**
-```typescript
-// Input Validation
-- Server-side validation
-- Client-side validation
-- SQL injection prevention
-- XSS protection
-
-// File Security
-- File type validation
-- File size limits
-- Secure file storage
-- Virus scanning (future)
-```
-
-### **Audit Logging**
-```typescript
-// Comprehensive Logging
-- User actions
-- Data modifications
-- Login attempts
-- System events
-- IP address tracking
-- User agent logging
-```
-
----
-
-## 🚀 Deployment Architecture
-
-### **Production Environment**
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Load Balancer │    │   Web Server    │    │   Database      │
-│   (Nginx)       │◄──►│   (Node.js)     │◄──►│   (MongoDB/     │
-│                 │    │   (Express)     │    │    MySQL)       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   CDN           │    │   File Storage  │    │   Backup        │
-│   (Static)      │    │   (Evidence)    │    │   (Automated)   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-### **Deployment Options**
-
-#### **Cloud Deployment (Render)**
-```yaml
-# Frontend (Static Site)
-Build Command: npm run build
-Publish Directory: out
-Environment: Static Site
-
-# Backend (Web Service)
-Build Command: npm install
-Start Command: npm start
-Environment: Node.js
-```
-
-#### **Self-Hosted Deployment**
-```bash
-# Server Requirements
-- Node.js 18+
-- MongoDB 6.0+ or MySQL 8.0+
-- Nginx (reverse proxy)
-- PM2 (process manager)
-- SSL certificate
-```
-
-### **Environment Configuration**
-```bash
-# Backend Environment
-NODE_ENV=production
-PORT=5000
-JWT_SECRET=your_secure_secret
-DB_TYPE=mongo
-MONGODB_URI=mongodb://localhost:27017/kmu_discipline_desk
-
-# Frontend Environment
-NEXT_PUBLIC_API_URL=https://api.example.com
-NEXT_PUBLIC_APP_NAME=KMU DisciplineDesk
-```
-
----
-
-## 🔄 Data Flow
-
-### **Online Data Flow**
-```
-1. User Action → Frontend Component
-2. API Request → Backend Controller
-3. Database Query → Data Access Layer
-4. Response → Frontend State Update
-5. UI Update → User Interface
-```
-
-### **Offline Data Flow**
-```
-1. User Action → Frontend Component
-2. Local Storage → IndexedDB
-3. Queue Operation → Sync Queue
-4. Background Sync → API Request
-5. Database Update → Server Storage
-```
-
-### **Import/Export Flow**
-```
-1. File Upload → File Validation
-2. Data Parsing → CSV/Excel Processing
-3. Data Validation → Field Validation
-4. Database Insert → Bulk Operations
-5. Result Feedback → User Notification
-```
-
----
-
-## 🔗 Integration Points
-
-### **Current Integrations**
-- **File System** - Evidence document storage
-- **Email System** - Notification delivery (future)
-- **SMS Gateway** - Alert notifications (future)
-- **LDAP/Active Directory** - User authentication (future)
-
-### **Future Integrations**
-```typescript
-// School Management System
-- Student information system
-- Academic records
-- Attendance tracking
-- Grade management
-
-// Communication Systems
-- Email notifications
-- SMS alerts
-- Push notifications
-- In-app messaging
-
-// External Services
-- Document signing
-- Payment processing
-- Calendar integration
-- Reporting tools
-```
-
----
-
-## ⚡ Performance Considerations
-
-### **Frontend Optimization**
-```typescript
-// Code Splitting
-- Dynamic imports
-- Route-based splitting
-- Component lazy loading
-
-// Caching Strategy
-- Service worker caching
-- Browser caching
-- CDN distribution
-
-// Bundle Optimization
-- Tree shaking
-- Minification
-- Compression
-```
-
-### **Backend Optimization**
-```typescript
-// Database Optimization
-- Indexed queries
-- Connection pooling
-- Query optimization
-- Caching layer
-
-// API Optimization
-- Response compression
-- Request throttling
-- Rate limiting
-- Pagination
-```
-
-### **PWA Performance**
-```typescript
-// Offline Performance
-- Local data access
-- Background processing
-- Incremental sync
-- Progressive loading
-```
-
----
-
-## 📈 Scalability
-
-### **Horizontal Scaling**
-```typescript
-// Load Balancing
-- Multiple server instances
-- Database clustering
-- CDN distribution
-- Auto-scaling groups
-
-// Database Scaling
-- Read replicas
-- Sharding strategy
-- Connection pooling
-- Query optimization
-```
-
-### **Vertical Scaling**
-```typescript
-// Resource Scaling
-- CPU optimization
-- Memory management
-- Storage expansion
-- Network bandwidth
-```
-
-### **Application Scaling**
-```typescript
-// Microservices Architecture
-- Service decomposition
-- API gateway
-- Service discovery
-- Circuit breakers
-```
-
----
-
-## 📊 Monitoring & Logging
-
-### **Application Monitoring**
-```typescript
-// Performance Metrics
-- Response times
-- Error rates
-- Throughput
-- Resource usage
-
-// User Analytics
-- Page views
-- User interactions
-- Feature usage
-- Error tracking
-```
-
-### **System Monitoring**
-```typescript
-// Infrastructure
-- Server health
-- Database performance
-- Network latency
-- Disk usage
-
-// Security Monitoring
-- Failed login attempts
-- Suspicious activities
-- Data access patterns
-- System vulnerabilities
-```
-
-### **Logging Strategy**
-```typescript
-// Log Levels
-- ERROR: System errors
-- WARN: Warning conditions
-- INFO: General information
-- DEBUG: Debug information
-
-// Log Storage
-- Centralized logging
-- Log rotation
-- Log analysis
-- Alert generation
-```
-
----
-
-## 💾 Backup & Recovery
-
-### **Data Backup Strategy**
-```typescript
-// Database Backups
-- Daily automated backups
-- Point-in-time recovery
-- Cross-region replication
-- Backup verification
-
-// File Backups
-- Evidence document backup
-- Configuration backup
-- Code repository backup
-- Disaster recovery plan
-```
-
-### **Recovery Procedures**
-```typescript
-// Data Recovery
-- Database restoration
-- File system recovery
-- Configuration recovery
-- Service restoration
-
-// Disaster Recovery
-- RTO (Recovery Time Objective)
-- RPO (Recovery Point Objective)
-- Failover procedures
-- Business continuity
-```
-
----
-
-## 🔧 Development Workflow
-
-### **Version Control**
-```bash
-# Git Workflow
-- Feature branches
-- Pull requests
-- Code review
-- Automated testing
-- Deployment pipeline
-```
-
-### **Development Environment**
-```bash
-# Local Setup
-- Node.js development
-- Database setup
-- Environment configuration
-- Hot reloading
-- Debug tools
-```
-
-### **Code Quality**
-```typescript
-// Code Standards
-- ESLint configuration
-- TypeScript strict mode
-- Prettier formatting
-- Git hooks
-
-// Testing Strategy
-- Unit tests
-- Integration tests
-- E2E tests
-- Performance tests
-```
-
----
-
-## 🧪 Testing Strategy
-
-### **Testing Pyramid**
-```typescript
-// Unit Tests (70%)
-- Component testing
-- Utility function testing
-- API endpoint testing
-- Database query testing
-
-// Integration Tests (20%)
-- API integration
-- Database integration
-- File system integration
-- Authentication testing
-
-// E2E Tests (10%)
-- User workflow testing
-- Cross-browser testing
-- Performance testing
-- Security testing
-```
-
-### **Testing Tools**
-```typescript
-// Frontend Testing
-- Jest
-- React Testing Library
-- Cypress
-- Playwright
-
-// Backend Testing
-- Jest
-- Supertest
-- MongoDB Memory Server
-- MySQL Test Database
-```
-
----
-
-## 🚀 Future Enhancements
-
-### **Short-term Goals (3-6 months)**
-- [ ] **Mobile App** - Native iOS/Android applications
-- [ ] **Advanced Analytics** - Machine learning insights
-- [ ] **Workflow Automation** - Automated case processing
-- [ ] **Document Generation** - Advanced report templates
-- [ ] **API Documentation** - Swagger/OpenAPI specs
-
-### **Medium-term Goals (6-12 months)**
-- [ ] **Multi-tenant Architecture** - Support multiple institutions
-- [ ] **Advanced Security** - Two-factor authentication
-- [ ] **Real-time Notifications** - WebSocket integration
-- [ ] **Data Visualization** - Advanced charts and dashboards
-- [ ] **Integration APIs** - Third-party system integration
-
-### **Long-term Goals (1-2 years)**
-- [ ] **AI-powered Insights** - Predictive analytics
-- [ ] **Blockchain Integration** - Immutable audit trails
-- [ ] **Voice Interface** - Voice-activated commands
-- [ ] **AR/VR Support** - Virtual case management
-- [ ] **Global Deployment** - Multi-region support
-
-### **Technology Roadmap**
-```typescript
-// Infrastructure
-- Kubernetes deployment
-- Microservices architecture
-- Event-driven architecture
-- GraphQL API
-
-// Advanced Features
-- Machine learning models
-- Natural language processing
-- Computer vision
-- Blockchain integration
-```
-
----
-
-## 📚 Documentation
-
-### **Technical Documentation**
-- [API Documentation](./API-DOCUMENTATION.md)
-- [Database Schema](./DATABASE-SCHEMA.md)
-- [Deployment Guide](./DEPLOYMENT-GUIDE.md)
-- [Security Guide](./SECURITY-GUIDE.md)
-
-### **User Documentation**
-- [User Guide](./USER-GUIDE.md)
-- [Admin Guide](./ADMIN-GUIDE.md)
-- [Troubleshooting](./TROUBLESHOOTING.md)
-- [FAQ](./FAQ.md)
-
-### **Development Documentation**
-- [Contributing Guidelines](./CONTRIBUTING.md)
-- [Code Style Guide](./CODE-STYLE.md)
-- [Testing Guide](./TESTING-GUIDE.md)
-- [Release Process](./RELEASE-PROCESS.md)
-
----
-
-## 📞 Support & Maintenance
-
-### **Support Channels**
-- **Technical Support** - Development team
-- **User Support** - Help desk system
-- **Documentation** - Comprehensive guides
-- **Community** - User forums
-
-### **Maintenance Schedule**
-- **Weekly** - Security updates
-- **Monthly** - Feature updates
-- **Quarterly** - Performance optimization
-- **Annually** - Major version releases
-
-### **Service Level Agreement (SLA)**
-- **Uptime** - 99.9% availability
-- **Response Time** - 4 hours for critical issues
-- **Resolution Time** - 24 hours for high priority
-- **Support Hours** - 24/7 monitoring
-
----
-
-## 🎯 Conclusion
-
-The KMU Discipline Desk represents a modern, scalable, and secure solution for educational institution disciplinary case management. With its PWA architecture, comprehensive feature set, and robust security measures, it provides a solid foundation for current needs while maintaining flexibility for future enhancements.
-
-The system's offline capabilities, role-based access control, and comprehensive audit trails ensure that institutions can manage disciplinary cases efficiently while maintaining data integrity and security. The modular architecture and well-documented codebase facilitate ongoing development and maintenance.
-
-As the system evolves, it will continue to incorporate emerging technologies and best practices to provide an even more powerful and user-friendly experience for all stakeholders in the disciplinary management process.
-
----
-
-*Last Updated: December 2024*
-*Version: 1.0.0*
-*Status: Production Ready* 
+### 4. Evidence Management
+
+#### File Handling
+- **Upload System**: Secure file upload with Multer
+- **File Types**: Support for various document formats
+- **Storage**: Organized file storage with evidence categorization
+- **Access Control**: Role-based file access permissions
+
+#### Evidence Tracking
+- **Metadata Management**: File information and categorization
+- **Version Control**: File version tracking
+- **Audit Trail**: Complete access and modification history
+
+### 5. Reporting & Analytics
+
+#### Statistical Reports
+- **Dashboard Analytics**: Real-time case statistics
+- **Department Reports**: Department-specific incident analysis
+- **Trend Analysis**: Temporal pattern identification
+- **Export Capabilities**: PDF, Excel, and CSV export options
+
+#### Report Types
+- **Case Summary Reports**: Comprehensive case overviews
+- **Statistical Reports**: Quantitative analysis and trends
+- **Custom Reports**: User-defined report generation
+- **Audit Reports**: System access and modification logs
+
+### 6. Audit & Compliance
+
+#### Audit Trail
+- **User Actions**: Complete tracking of user activities
+- **Data Modifications**: Change history for all records
+- **Access Logs**: System access monitoring
+- **Compliance Reporting**: Regulatory compliance documentation
+
+#### Audit Features
+- **Real-time Logging**: Immediate audit event capture
+- **Search & Filter**: Advanced audit log querying
+- **Export Capabilities**: Audit report generation
+- **Retention Policies**: Configurable log retention
+
+## Offline-First Architecture
+
+### Service Worker Implementation
+- **Caching Strategy**: Network-first for API, cache-first for static assets
+- **Background Sync**: Automatic synchronization when online
+- **Offline Detection**: Real-time connectivity monitoring
+- **Update Management**: Seamless application updates
+
+### Local Data Storage
+- **IndexedDB**: Comprehensive local database for all entities
+- **Data Synchronization**: Conflict resolution and merge strategies
+- **Offline Operations**: Full functionality without internet connection
+- **Queue Management**: Pending operation queuing and processing
+
+### Sync Management
+- **Conflict Resolution**: User-friendly conflict resolution interface
+- **Automatic Sync**: Background synchronization when online
+- **Manual Sync**: User-controlled synchronization
+- **Status Monitoring**: Real-time sync status indicators
+
+## User Interface & Experience
+
+### Design Principles
+- **Responsive Design**: Cross-device compatibility
+- **Accessibility**: WCAG compliance and inclusive design
+- **Dark Mode**: Theme switching capabilities
+- **Intuitive Navigation**: Role-based menu systems
+
+### Component Architecture
+- **Modular Components**: Reusable UI components
+- **Context Providers**: Global state management
+- **Custom Hooks**: Shared business logic
+- **Type Safety**: TypeScript throughout the application
+
+### User Workflows
+
+#### Admin Workflow
+1. **Dashboard Access**: Overview of all system activities
+2. **User Management**: Create and manage user accounts
+3. **Case Oversight**: Monitor and manage all cases
+4. **System Configuration**: Configure system settings
+5. **Reporting**: Generate comprehensive reports
+
+#### Academic Office Workflow
+1. **Student Management**: Manage student records
+2. **Case Creation**: Create and document disciplinary cases
+3. **Evidence Management**: Upload and manage case evidence
+4. **Status Updates**: Update case status and progress
+5. **Reporting**: Generate academic reports
+
+#### Security Officer Workflow
+1. **Incident Reporting**: Document security incidents
+2. **Case Creation**: Create cases for security violations
+3. **Evidence Collection**: Collect and manage evidence
+4. **Investigation Tracking**: Track investigation progress
+5. **Security Reports**: Generate security-specific reports
+
+## Deployment & Distribution
+
+### Flexible Deployment Options
+
+The KMU DisciplineDesk is designed to be deployment-agnostic, allowing institutions to choose the hosting solution that best fits their infrastructure, security requirements, and budget.
+
+#### PWA Deployment Options
+- **Cloud Hosting**: Vercel, Netlify, AWS S3, Azure Static Web Apps
+- **Institution Servers**: Internal web servers, IIS, Apache, Nginx
+- **CDN Integration**: CloudFlare, AWS CloudFront, Azure CDN
+- **Container Deployment**: Docker containers, Kubernetes clusters
+
+#### Backend Hosting Options
+- **Cloud Platforms**: Render, Railway, Heroku, AWS, Azure, Google Cloud
+- **Institution Infrastructure**: Internal servers, virtual machines, on-premises hosting
+- **Container Platforms**: Docker, Kubernetes, OpenShift
+- **Serverless**: AWS Lambda, Azure Functions, Google Cloud Functions
+
+#### Database Options
+- **Cloud Databases**: MongoDB Atlas, AWS DocumentDB, Azure Cosmos DB
+- **Institution Databases**: Local MongoDB, MySQL, PostgreSQL, SQL Server
+- **Managed Services**: Institution's existing database infrastructure
+- **Hybrid Solutions**: Combination of cloud and on-premises databases
+
+### Prototype vs Production
+
+#### Prototype Deployment (Current)
+- **Frontend**: Vercel for demonstration and testing
+- **Backend**: Render/Railway for API services
+- **Database**: MongoDB Atlas for development
+- **Purpose**: Showcase functionality and gather feedback
+
+#### Production Deployment (Institution Choice)
+- **Institution Control**: Full control over hosting infrastructure
+- **Security Compliance**: Meets institution's security requirements
+- **Data Sovereignty**: Data remains within institution's control
+- **Custom Integration**: Integration with existing institutional systems
+- **Scalability**: Infrastructure scaled to institution's needs
+
+## Performance & Scalability
+
+### Performance Optimizations
+- **Code Splitting**: Lazy loading of components
+- **Image Optimization**: Automatic image optimization
+- **Caching Strategies**: Multi-level caching implementation
+- **Bundle Optimization**: Minimized bundle sizes
+
+### Scalability Features
+- **Database Indexing**: Optimized database queries
+- **Connection Pooling**: Efficient database connections
+- **Load Balancing**: Horizontal scaling support
+- **CDN Integration**: Content delivery optimization
+
+## Security & Compliance
+
+### Security Measures
+- **Data Encryption**: Encrypted data transmission and storage
+- **Input Validation**: Comprehensive input sanitization
+- **SQL Injection Prevention**: Parameterized queries
+- **XSS Protection**: Cross-site scripting prevention
+- **CSRF Protection**: Cross-site request forgery protection
+
+### Compliance Features
+- **Data Privacy**: GDPR-compliant data handling
+- **Audit Trails**: Complete activity logging
+- **Access Controls**: Role-based access management
+- **Data Retention**: Configurable data retention policies
+
+## Monitoring & Maintenance
+
+### System Monitoring
+- **Health Checks**: Automated system health monitoring
+- **Error Tracking**: Comprehensive error logging
+- **Performance Metrics**: Real-time performance monitoring
+- **Usage Analytics**: User behavior and system usage tracking
+
+### Maintenance Procedures
+- **Backup Strategies**: Automated data backup procedures
+- **Update Management**: Seamless system updates
+- **Troubleshooting**: Comprehensive troubleshooting guides
+- **Support Documentation**: Detailed user and administrator guides
+
+## Future Enhancements
+
+### Planned Features
+- **Mobile App**: Native mobile application development
+- **Advanced Analytics**: Machine learning-powered insights
+- **Integration APIs**: Third-party system integrations
+- **Multi-language Support**: Internationalization capabilities
+- **Advanced Reporting**: Custom report builder
+
+### Technology Roadmap
+- **Database Migration**: Enhanced database schema evolution
+- **Microservices**: Service-oriented architecture migration
+- **Cloud Integration**: Enhanced cloud service integration
+- **AI Integration**: Artificial intelligence features
+
+## Emerging Trends & Innovation Opportunities
+
+### 1. Artificial Intelligence & Machine Learning
+
+#### Predictive Analytics
+- **Early Warning Systems**: AI-powered identification of students at risk of disciplinary issues
+- **Pattern Recognition**: Machine learning algorithms to detect recurring behavioral patterns
+- **Risk Assessment**: Automated risk scoring for case severity and intervention needs
+- **Why Important**: Proactive intervention can prevent escalation and improve student outcomes
+
+#### Natural Language Processing
+- **Automated Case Summaries**: AI-generated case summaries from incident reports
+- **Sentiment Analysis**: Analysis of written statements for emotional context
+- **Smart Search**: Semantic search capabilities across case documents
+- **Why Important**: Reduces administrative burden and improves case analysis accuracy
+
+#### Intelligent Recommendations
+- **Sanction Recommendations**: AI-suggested appropriate sanctions based on case history
+- **Intervention Strategies**: Personalized intervention recommendations
+- **Resource Allocation**: Optimized resource distribution for case management
+- **Why Important**: Ensures consistency and effectiveness in disciplinary decisions
+
+### 2. Blockchain & Distributed Ledger Technology
+
+#### Immutable Audit Trails
+- **Tamper-Proof Records**: Blockchain-based case records that cannot be altered
+- **Transparent Chain of Custody**: Complete traceability of evidence and decisions
+- **Decentralized Verification**: Multi-party verification of case integrity
+- **Why Important**: Enhances trust, transparency, and legal compliance
+
+#### Smart Contracts
+- **Automated Workflows**: Self-executing contracts for case processing
+- **Conditional Actions**: Automatic sanctions based on predefined conditions
+- **Multi-Stakeholder Agreements**: Transparent agreements between all parties
+- **Why Important**: Reduces human error and ensures consistent application of policies
+
+### 3. Internet of Things (IoT) Integration
+
+#### Smart Campus Integration
+- **Security Camera Integration**: Automated incident detection and recording
+- **Access Control Systems**: Integration with building access logs
+- **Environmental Sensors**: Context-aware incident reporting
+- **Why Important**: Provides objective evidence and reduces manual reporting burden
+
+#### Wearable Technology
+- **Student ID Integration**: Smart cards with location tracking capabilities
+- **Emergency Alerts**: Real-time emergency notification systems
+- **Behavioral Monitoring**: Non-intrusive behavioral pattern analysis
+- **Why Important**: Enhances campus safety and provides real-time incident data
+
+### 4. Extended Reality (XR) Technologies
+
+#### Virtual Reality (VR) Training
+- **Scenario-Based Training**: VR simulations for staff training
+- **Virtual Hearings**: Remote disciplinary hearing capabilities
+- **Immersive Case Review**: 3D visualization of incident scenes
+- **Why Important**: Improves training effectiveness and enables remote proceedings
+
+#### Augmented Reality (AR) Support
+- **AR Evidence Collection**: Enhanced evidence documentation
+- **Real-Time Guidance**: AR overlays for proper procedure following
+- **Interactive Case Files**: AR-enhanced case file review
+- **Why Important**: Improves accuracy and efficiency in case management
+
+### 5. Advanced Data Analytics & Visualization
+
+#### Real-Time Dashboards
+- **Live Analytics**: Real-time case statistics and trends
+- **Predictive Modeling**: Forecasting future incident patterns
+- **Interactive Visualizations**: Dynamic charts and graphs
+- **Why Important**: Enables data-driven decision making and proactive management
+
+#### Big Data Integration
+- **Multi-Source Data**: Integration with academic, attendance, and behavioral data
+- **Correlation Analysis**: Identifying relationships between different data points
+- **Trend Forecasting**: Long-term pattern analysis and prediction
+- **Why Important**: Provides comprehensive insights for institutional planning
+
+### 6. Voice & Conversational AI
+
+#### Voice-Activated Interfaces
+- **Hands-Free Operation**: Voice commands for case management
+- **Accessibility Enhancement**: Support for users with disabilities
+- **Mobile Voice Integration**: Voice-to-text for incident reporting
+- **Why Important**: Improves accessibility and efficiency in mobile environments
+
+#### Chatbot Support
+- **24/7 Support**: Automated responses to common queries
+- **Case Status Updates**: Automated case status notifications
+- **Procedural Guidance**: Step-by-step guidance for case processes
+- **Why Important**: Reduces administrative burden and improves user experience
+
+### 7. Edge Computing & 5G Integration
+
+#### Edge Processing
+- **Local Data Processing**: Processing sensitive data closer to the source
+- **Reduced Latency**: Faster response times for critical operations
+- **Offline Intelligence**: Advanced offline capabilities with local AI
+- **Why Important**: Improves performance and data privacy
+
+#### 5G Connectivity
+- **High-Speed Data Transfer**: Rapid upload of evidence and documents
+- **Real-Time Collaboration**: Seamless multi-user collaboration
+- **Enhanced Mobile Experience**: Superior mobile application performance
+- **Why Important**: Enables advanced mobile features and real-time collaboration
+
+### 8. Cybersecurity & Privacy Enhancements
+
+#### Zero Trust Architecture
+- **Continuous Verification**: Ongoing authentication and authorization
+- **Micro-Segmentation**: Granular access controls
+- **Behavioral Analytics**: AI-powered threat detection
+- **Why Important**: Protects sensitive student data and institutional information
+
+#### Privacy-Preserving Technologies
+- **Federated Learning**: AI training without sharing raw data
+- **Homomorphic Encryption**: Processing encrypted data without decryption
+- **Differential Privacy**: Statistical analysis with privacy guarantees
+- **Why Important**: Ensures compliance with privacy regulations while enabling analytics
+
+### 9. Sustainability & Green Computing
+
+#### Energy-Efficient Architecture
+- **Green Hosting**: Environmentally conscious hosting solutions
+- **Optimized Algorithms**: Energy-efficient data processing
+- **Carbon Footprint Tracking**: Monitoring environmental impact
+- **Why Important**: Aligns with institutional sustainability goals
+
+#### Digital Transformation
+- **Paperless Processes**: Complete digital case management
+- **Electronic Signatures**: Digital document signing capabilities
+- **Cloud-Native Architecture**: Scalable and efficient infrastructure
+- **Why Important**: Reduces environmental impact and operational costs
+
+### 10. Integration & Interoperability
+
+#### API-First Architecture
+- **Open Standards**: Industry-standard APIs for integration
+- **Third-Party Integrations**: Seamless integration with existing systems
+- **Data Portability**: Easy data export and import capabilities
+- **Why Important**: Enables integration with institutional ecosystems
+
+#### Microservices Evolution
+- **Scalable Architecture**: Independent service scaling
+- **Technology Diversity**: Best-of-breed technology selection
+- **Fault Tolerance**: Improved system reliability
+- **Why Important**: Provides flexibility and resilience for future growth
+
+## Conclusion
+
+The KMU DisciplineDesk represents a modern, comprehensive solution for educational institution disciplinary case management. With its offline-first architecture, role-based access control, and comprehensive feature set, it provides a robust platform for managing student disciplinary incidents while maintaining data security and compliance requirements.
+
+The system's deployment-agnostic design allows institutions to choose the hosting solution that best fits their infrastructure, security requirements, and budget. While the current prototype is deployed on Vercel for demonstration purposes, the production system can be hosted on institution-controlled infrastructure, ensuring data sovereignty and compliance with institutional policies.
+
+The PWA-based architecture makes it accessible across all devices and platforms through web browsers, while its modern technology stack ensures long-term maintainability and scalability. The offline-first approach ensures continuous operation even in environments with unreliable internet connectivity, making it particularly valuable for educational institutions.
+
+The comprehensive audit trail, reporting capabilities, and user-friendly interface make it an effective tool for maintaining discipline while providing transparency and accountability in the disciplinary process. The flexible deployment options ensure that institutions can maintain full control over their data and infrastructure while benefiting from modern web application capabilities. 

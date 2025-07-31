@@ -6,13 +6,22 @@ export async function listAuditLogs(req, res) {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
-        let logs, total;
+        let logs, total, stats;
+
         if (dbType === 'mongo') {
             total = await AuditModel.countDocuments();
             logs = await AuditModel.find()
                 .sort({ date: -1 })
                 .skip((page - 1) * limit)
                 .limit(limit);
+
+            // Get aggregated statistics for all logs
+            stats = await AuditModel.aggregate([{
+                $group: {
+                    _id: '$action',
+                    count: { $sum: 1 }
+                }
+            }]);
         } else if (dbType === 'mysql') {
             await createAuditTable(db);
             const [
@@ -21,8 +30,21 @@ export async function listAuditLogs(req, res) {
             total = count;
             const [rows] = await db.execute('SELECT * FROM audit ORDER BY date DESC LIMIT ? OFFSET ?', [limit, (page - 1) * limit]);
             logs = rows;
+
+            // Get aggregated statistics for all logs
+            const [statsRows] = await db.execute('SELECT action, COUNT(*) as count FROM audit GROUP BY action');
+            stats = statsRows;
         }
-        res.json({ logs, total });
+
+        // Convert stats to a more usable format
+        const statsMap = {};
+        if (stats) {
+            stats.forEach(stat => {
+                statsMap[stat._id || stat.action] = stat.count;
+            });
+        }
+
+        res.json({ logs, total, stats: statsMap });
     } catch (err) {
         console.error('Error fetching audit logs:', err);
         res.status(500).json({ error: 'Server error' });

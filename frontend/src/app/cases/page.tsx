@@ -277,6 +277,49 @@ export default function CasesPage() {
     }
   };
 
+  const handleExportCasesList = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/reports/cases-docx`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          filters: {
+            search,
+            status: statusFilter,
+            severity: severityFilter,
+            studentId: studentIdFilter
+          }
+        }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      saveAs(blob, 'cases_list.docx');
+    } catch (err) {
+      alert('Failed to export cases list.');
+    }
+  };
+
+  const handleExportStudentsList = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/reports/students-docx`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({}),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      saveAs(blob, 'students_list.docx');
+    } catch (err) {
+      alert('Failed to export students list.');
+    }
+  };
+
   return (
     <section>
         <div className="flex items-center justify-between mb-6">
@@ -420,6 +463,20 @@ export default function CasesPage() {
               className="bg-purple-700 text-white px-3 py-1 rounded hover:bg-purple-800 disabled:opacity-50 text-sm"
             >
               {exporting ? 'Exporting...' : 'Export Filtered (Excel)'}
+            </button>
+            
+            {/* List Export Buttons */}
+            <button 
+              onClick={handleExportCasesList}
+              className="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 text-sm"
+            >
+              Export Cases List (DOCX)
+            </button>
+            <button 
+              onClick={handleExportStudentsList}
+              className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-sm"
+            >
+              Export Students List (DOCX)
             </button>
           </div>
         </div>
