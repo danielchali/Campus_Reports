@@ -176,20 +176,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
         }
     };
 
-    const handleExportCasesList = async () => {
-        try {
-            const res = await fetch(`${API_BASE_URL}/reports/cases-docx`, {
-                method: 'POST',
-                headers: { ...authHeaders() },
-                body: JSON.stringify({}),
-            });
-            if (!res.ok) throw new Error(await res.text());
-            const blob = await res.blob();
-            saveAs(blob, `cases_list.docx`);
-        } catch (err) {
-            alert('Failed to export cases list.');
-        }
-    };
+
     // Add view all cases handler
     const handleViewAllCases = () => {
         if (!student) return;
@@ -376,9 +363,6 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                                         <div className="space-y-2">
                                             <button className="w-full bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition text-sm" onClick={handleExportStudentList}>
                                                 Export Students List (DOCX)
-                                            </button>
-                                            <button className="w-full bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition text-sm" onClick={handleExportCasesList}>
-                                                Export Cases List (DOCX)
                                             </button>
                                         </div>
                                     </div>

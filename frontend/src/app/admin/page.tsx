@@ -18,12 +18,14 @@ import { authHeaders } from '../../utils/api';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { prepareChartExport } from '../../utils/chartExport';
+import Notification, { useNotification } from '../../components/Notification';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export default function AdminPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { notification, showNotification, hideNotification } = useNotification();
   
   // Handle authentication like profile page - only on client side
   if (typeof window !== 'undefined') {
@@ -124,36 +126,11 @@ export default function AdminPage() {
       saveAs(blob, 'admin_all_cases_report.docx');
     } catch (err) {
       console.error('Export cases error:', err);
-      alert('Failed to export cases');
+      showNotification('error', 'Failed to export cases');
     }
   }
 
-  async function exportWithCharts() {
-    try {
-      // Prepare chart data
-      const chartExportData = await prepareChartExport();
-      
-      const res = await fetch(`${API_BASE_URL}/reports/with-charts`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...authHeaders() 
-        },
-        body: JSON.stringify({
-          charts: chartExportData.charts,
-          pageInfo: chartExportData.pageInfo,
-          filters: {}
-        }),
-      });
-      
-      if (!res.ok) throw new Error(await res.text());
-      const blob = await res.blob();
-      saveAs(blob, 'admin_dashboard_with_charts.docx');
-    } catch (err) {
-      console.error('Export with charts error:', err);
-      alert('Failed to export with charts');
-    }
-  }
+
 
   // Visualization data
   const totalCases = filteredCases.length;
@@ -307,15 +284,19 @@ export default function AdminPage() {
             >
               Export All Cases (DOCX)
             </button>
-            <button
-              className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition"
-              onClick={exportWithCharts}
-              type="button"
-            >
-              Export with Charts (DOCX)
-            </button>
+
           </div>
         </div>
       </section>
+      
+      {/* Notification */}
+      {notification?.isVisible && (
+        <Notification
+          type={notification.type}
+          message={notification.message}
+          isVisible={notification.isVisible}
+          onClose={hideNotification}
+        />
+      )}
   );
 }

@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from '../../config/constants';
 import { useSearchParams } from 'next/navigation';
 import { saveAs } from 'file-saver';
+import Notification, { useNotification } from '../../components/Notification';
 
 interface Case {
   _id: string;
@@ -62,6 +63,7 @@ export default function CasesPage() {
   const [offlineMode, setOfflineMode] = useState(false);
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const { apiCall, isLoading: apiLoading, error: apiError } = useOfflineApi();
+  const { notification, showNotification, hideNotification } = useNotification();
 
   const searchParams = useSearchParams();
   const studentIdFilter = searchParams?.get('studentId') || '';
@@ -302,23 +304,7 @@ export default function CasesPage() {
     }
   };
 
-  const handleExportStudentsList = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/reports/students-docx`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({}),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const blob = await res.blob();
-      saveAs(blob, 'students_list.docx');
-    } catch (err) {
-      alert('Failed to export students list.');
-    }
-  };
+
 
   return (
     <section>
@@ -444,6 +430,24 @@ export default function CasesPage() {
                     >
                       All Cases (List Format)
                     </button>
+                    <button
+                      onClick={async () => {
+                        setShowExportDropdown(false);
+                        setExporting(true);
+                        try {
+                          await handleExportCasesList();
+                        } catch (err) {
+                          console.error('Cases list export failed:', err);
+                          alert('Export failed');
+                        } finally {
+                          setExporting(false);
+                        }
+                      }}
+                      disabled={exporting}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Cases List (DOCX)
+                    </button>
                   </div>
                 </div>
               )}
@@ -465,19 +469,7 @@ export default function CasesPage() {
               {exporting ? 'Exporting...' : 'Export Filtered (Excel)'}
             </button>
             
-            {/* List Export Buttons */}
-            <button 
-              onClick={handleExportCasesList}
-              className="bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 text-sm"
-            >
-              Export Cases List (DOCX)
-            </button>
-            <button 
-              onClick={handleExportStudentsList}
-              className="bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 text-sm"
-            >
-              Export Students List (DOCX)
-            </button>
+
           </div>
         </div>
         {/* Pagination controls */}
@@ -600,5 +592,15 @@ export default function CasesPage() {
           </table>
         </div>
       </section>
+      
+      {/* Notification */}
+      {notification?.isVisible && (
+        <Notification
+          type={notification.type}
+          message={notification.message}
+          isVisible={notification.isVisible}
+          onClose={hideNotification}
+        />
+      )}
   );
 }

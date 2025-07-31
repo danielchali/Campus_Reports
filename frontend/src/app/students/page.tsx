@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from '../../config/constants';
-import { getAll, create, remove, exportDocx, exportExcel } from '../../utils/api';
+import { getAll, create, remove } from '../../utils/api';
 import { useOfflineApi } from '../../hooks/useOfflineSync';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
@@ -397,12 +397,7 @@ export default function StudentsPage() {
     setStudents(students => students.filter(s => !selected.includes((s as any)._id)));
     setSelected([]);
   }
-  async function handleBulkExport() {
-    await exportDocx('students');
-  }
-  async function handleBulkExportExcel() {
-    await exportExcel('students');
-  }
+
 
   async function handleExportStudentsList() {
     try {
@@ -436,30 +431,7 @@ export default function StudentsPage() {
     }
   }
 
-  async function handleExportCasesList() {
-    try {
-      const res = await fetch(`${API_BASE_URL}/reports/cases-docx`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({}),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'cases_list.docx';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      alert('Failed to export cases list.');
-    }
-  }
+
 
   return (
       <section>
@@ -542,12 +514,9 @@ export default function StudentsPage() {
                 {(user?.role === 'admin' || user?.role === 'academic_office') && (
                   <button className="bg-red-600 text-white px-2 py-1 rounded text-sm" onClick={handleBulkDelete}>Delete Selected</button>
                 )}
-                <button className="bg-kmuGreen text-white px-2 py-1 rounded text-sm" onClick={handleBulkExport}>Export Selected (Word)</button>
-                <button className="bg-blue-600 text-white px-2 py-1 rounded text-sm" onClick={handleBulkExportExcel}>Export Selected (Excel)</button>
               </>
             )}
-            <button className="bg-purple-600 text-white px-2 py-1 rounded text-sm" onClick={handleExportStudentsList}>Export Students List (DOCX)</button>
-            <button className="bg-indigo-600 text-white px-2 py-1 rounded text-sm" onClick={handleExportCasesList}>Export Cases List (DOCX)</button>
+            <button className="bg-kmuGreen text-white px-2 py-1 rounded text-sm" onClick={handleExportStudentsList}>Export Students List (DOCX)</button>
           </div>
           </div>
         {/* Pagination controls */}
