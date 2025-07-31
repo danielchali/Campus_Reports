@@ -163,7 +163,8 @@ export default function AcademicDashboard() {
   };
 
   return (
-    <section>
+    <>
+      <section>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col items-center justify-center">
             <div className="text-4xl font-bold text-kmuGreen">{totalCases}</div>
@@ -293,5 +294,6 @@ export default function AcademicDashboard() {
           onClose={hideNotification}
         />
       )}
+    </>
   );
 } 

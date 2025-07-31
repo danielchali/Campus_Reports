@@ -307,7 +307,8 @@ export default function CasesPage() {
 
 
   return (
-    <section>
+    <>
+      <section>
         <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold text-kmuGreen">Cases</h1>
@@ -602,5 +603,6 @@ export default function CasesPage() {
           onClose={hideNotification}
         />
       )}
+    </>
   );
 }
