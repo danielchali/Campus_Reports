@@ -9,7 +9,10 @@ import { getAll, register, update, remove, exportDocx, exportExcel } from '../..
 const ROLES = [
   { value: 'admin', label: 'Admin' },
   { value: 'security_officer', label: 'Security Officer' },
-  { value: 'academic_office', label: 'Academic Office' },
+  { value: 'chief_security_officer', label: 'Chief Security Officer' },
+  { value: 'dean_of_students', label: 'Dean of Students' },
+  { value: 'assistant_dean', label: 'Assistant Dean' },
+  { value: 'secretary', label: 'Secretary' },
 ];
 
 export default function UserManagementPage() {

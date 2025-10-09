@@ -11,7 +11,10 @@ export default function NotFound() {
   useEffect(() => {
     if (user) {
       if (user.role === 'admin') router.replace('/admin');
-      else if (user.role === 'academic_office') router.replace('/academic-dashboard');
+      else if (user.role === 'chief_security_officer') router.replace('/chief-security-officer-dashboard');
+      else if (user.role === 'dean_of_students') router.replace('/dean-of-students-dashboard');
+      else if (user.role === 'assistant_dean') router.replace('/assistant-dean-dashboard');
+      else if (user.role === 'secretary') router.replace('/secretary-dashboard');
       else if (user.role === 'security_officer') router.replace('/security-dashboard');
       else router.replace('/login');
     }

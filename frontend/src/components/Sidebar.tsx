@@ -23,6 +23,9 @@ const navIcons = {
   users: '👥',
   profile: '👤',
   help: '❓',
+  security: '🔒',
+  assistant: '👨‍💼',
+  secretary: '📋',
 };
 
 export default function Sidebar() {
@@ -80,14 +83,46 @@ export default function Sidebar() {
       { icon: navIcons.help, label: 'Help', path: '/help' },
       { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
     ];
-  } else if (user?.role === 'academic_office') {
+  } else if (user?.role === 'chief_security_officer') {
     navLinks = [
-      { icon: navIcons.dashboard, label: 'Home', path: '/academic-dashboard' },
+      { icon: navIcons.security, label: 'Home', path: '/chief-security-officer-dashboard' },
       { icon: navIcons.cases, label: 'Cases', path: '/cases' },
       { icon: navIcons.reports, label: 'Reports', path: '/reports' },
       { icon: navIcons.students, label: 'Students', path: '/students' },
+      { icon: navIcons.evidence, label: 'Evidence', path: '/evidence' },
       { icon: navIcons.newcase, label: 'New Case', path: '/cases/new' },
       { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
+      { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
+      { icon: navIcons.help, label: 'Help', path: '/help' },
+      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+    ];
+  } else if (user?.role === 'dean_of_students') {
+    navLinks = [
+      { icon: navIcons.dean, label: 'Home', path: '/dean-of-students-dashboard' },
+      { icon: navIcons.students, label: 'Students', path: '/students' },
+      { icon: navIcons.cases, label: 'Cases', path: '/cases' },
+      { icon: navIcons.reports, label: 'Reports', path: '/reports' },
+      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
+      { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
+      { icon: navIcons.help, label: 'Help', path: '/help' },
+      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+    ];
+  } else if (user?.role === 'assistant_dean') {
+    navLinks = [
+      { icon: navIcons.assistant, label: 'Home', path: '/assistant-dean-dashboard' },
+      { icon: navIcons.students, label: 'Students', path: '/students' },
+      { icon: navIcons.cases, label: 'Cases', path: '/cases' },
+      { icon: navIcons.reports, label: 'Reports', path: '/reports' },
+      { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
+      { icon: navIcons.help, label: 'Help', path: '/help' },
+      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+    ];
+  } else if (user?.role === 'secretary') {
+    navLinks = [
+      { icon: navIcons.secretary, label: 'Home', path: '/secretary-dashboard' },
+      { icon: navIcons.students, label: 'Students', path: '/students' },
+      { icon: navIcons.cases, label: 'Cases', path: '/cases' },
+      { icon: navIcons.reports, label: 'Reports', path: '/reports' },
       { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
       { icon: navIcons.help, label: 'Help', path: '/help' },
       { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },

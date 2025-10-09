@@ -42,7 +42,7 @@ export default function ReportsPage() {
       return <div className="text-center text-kmuGreen">Loading...</div>;
     }
     
-    if (!user || !['admin','academic_office','security_officer'].includes(user.role)) {
+    if (!user || !['admin','chief_security_officer','dean_of_students','assistant_dean','secretary','security_officer'].includes(user.role)) {
       return <div className="text-red-600">Access denied.</div>;
     }
   }

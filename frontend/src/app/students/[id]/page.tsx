@@ -291,7 +291,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                             >
                                 Case History ({totalCases})
                             </button>
-                            {(user?.role === 'admin' || user?.role === 'security_officer' || user?.role === 'academic_office') && (
+                            {(user?.role === 'admin' || user?.role === 'security_officer' || user?.role === 'chief_security_officer' || user?.role === 'dean_of_students' || user?.role === 'assistant_dean') && (
                                 <button
                                     onClick={() => setActiveTab('add-case')}
                                     className={`py-4 px-1 border-b-2 font-medium text-sm ${

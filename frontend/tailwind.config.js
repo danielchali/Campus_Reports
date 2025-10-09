@@ -8,12 +8,12 @@ module.exports = {
         extend: {
             colors: {
                 kmuGreen: {
-                    DEFAULT: '#008542', // Main green from logo
+                    DEFAULT: '#008542', // Main green
                     dark: '#005c2a',
                     light: '#33a86d'
                 },
                 kmuOrange: {
-                    DEFAULT: '#ff8200', // Main orange from logo
+                    DEFAULT: '#ff8200', // Main orange
                     dark: '#cc6900',
                     light: '#ffab40'
                 }

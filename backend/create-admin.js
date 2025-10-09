@@ -45,17 +45,56 @@ async function createAdminUser() {
         console.log('Username: security');
         console.log('Password: admin123');
 
-        // Create academic office user
-        const academicUser = new User({
-            username: 'academic',
-            password: hashedPassword, // Same password for simplicity
-            name: 'Academic Office',
-            role: 'academic_office'
+        // Create chief security officer user
+        const chiefSecurityUser = new User({
+            username: 'chief_security',
+            password: hashedPassword,
+            name: 'Chief Security Officer',
+            role: 'chief_security_officer'
         });
 
-        await academicUser.save();
-        console.log('Academic office user created successfully!');
-        console.log('Username: academic');
+        await chiefSecurityUser.save();
+        console.log('Chief security officer user created successfully!');
+        console.log('Username: chief_security');
+        console.log('Password: admin123');
+
+        // Create dean of students user
+        const deanUser = new User({
+            username: 'dean',
+            password: hashedPassword,
+            name: 'Dean of Students',
+            role: 'dean_of_students'
+        });
+
+        await deanUser.save();
+        console.log('Dean of students user created successfully!');
+        console.log('Username: dean');
+        console.log('Password: admin123');
+
+        // Create assistant dean user
+        const assistantDeanUser = new User({
+            username: 'assistant_dean',
+            password: hashedPassword,
+            name: 'Assistant Dean',
+            role: 'assistant_dean'
+        });
+
+        await assistantDeanUser.save();
+        console.log('Assistant dean user created successfully!');
+        console.log('Username: assistant_dean');
+        console.log('Password: admin123');
+
+        // Create secretary user
+        const secretaryUser = new User({
+            username: 'secretary',
+            password: hashedPassword,
+            name: 'Secretary',
+            role: 'secretary'
+        });
+
+        await secretaryUser.save();
+        console.log('Secretary user created successfully!');
+        console.log('Username: secretary');
         console.log('Password: admin123');
 
     } catch (error) {

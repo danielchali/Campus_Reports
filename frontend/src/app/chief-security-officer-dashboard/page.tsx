@@ -24,7 +24,7 @@ import Notification, { useNotification } from '../../components/Notification';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-export default function AcademicDashboard() {
+export default function ChiefSecurityOfficerDashboard() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
   const { notification, showNotification, hideNotification } = useNotification();
@@ -40,7 +40,7 @@ export default function AcademicDashboard() {
       return <div className="text-center text-kmuGreen">Loading...</div>;
     }
     
-    if (!user || user.role !== 'academic_office') return <div className="text-red-600">Access denied.</div>;
+    if (!user || user.role !== 'chief_security_officer') return <div className="text-red-600">Access denied.</div>;
   }
 
   const [search, setSearch] = useState('');
@@ -113,7 +113,7 @@ export default function AcademicDashboard() {
         body: JSON.stringify({
           charts: chartExportData.charts,
           pageInfo: {
-            title: 'Academic Dashboard - All Cases Report',
+            title: 'Chief Security Officer Dashboard - All Cases Report',
             url: window.location.href
           }
         }),
@@ -121,14 +121,12 @@ export default function AcademicDashboard() {
       
       if (!res.ok) throw new Error(await res.text());
       const blob = await res.blob();
-      saveAs(blob, 'academic_all_cases_report.docx');
+      saveAs(blob, 'chief_security_officer_all_cases_report.docx');
     } catch (err) {
       console.error('Export cases error:', err);
       showNotification('error', 'Failed to export cases');
     }
   }
-
-
 
   // Visualization data
   const totalCases = filteredCases.length;
@@ -165,32 +163,38 @@ export default function AcademicDashboard() {
   return (
     <>
       <section>
+        <div className="mb-6">
+          <h1 className="text-4xl font-bold mb-2 text-kmuGreen">Chief Security Officer Dashboard</h1>
+          <p className="text-gray-700 dark:text-gray-300">Welcome to your security dashboard. Oversee security operations, disciplinary cases, and campus safety activities.</p>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col items-center justify-center">
             <div className="text-4xl font-bold text-kmuGreen">{totalCases}</div>
             <div className="text-gray-700 dark:text-gray-300">Total Cases</div>
           </div>
           <div 
-            id="academic-offences-chart"
+            id="chief-security-offences-chart"
             data-chart-export="true"
             data-chart-title="Most Common Offences"
-            data-chart-description="Top 3 most common disciplinary offenses in academic office view"
+            data-chart-description="Top 3 most common disciplinary offenses in chief security officer view"
             className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
           >
             <h2 className="text-lg font-semibold mb-2 text-kmuOrange">Most Common Offences</h2>
             <Bar data={offenceChartData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
           </div>
           <div 
-            id="academic-offenders-chart"
+            id="chief-security-offenders-chart"
             data-chart-export="true"
             data-chart-title="Most Common Offenders"
-            data-chart-description="Top 3 students with most disciplinary cases in academic office view"
+            data-chart-description="Top 3 students with most disciplinary cases in chief security officer view"
             className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
           >
             <h2 className="text-lg font-semibold mb-2 text-kmuOrange">Most Common Offenders</h2>
             <Bar data={offenderChartData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
           </div>
         </div>
+        
         {/* Recent Cases Section */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -280,7 +284,6 @@ export default function AcademicDashboard() {
             >
               Export All Cases (DOCX)
             </button>
-
           </div>
         </div>
       </section>

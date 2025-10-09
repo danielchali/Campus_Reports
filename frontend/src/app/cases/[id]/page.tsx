@@ -398,8 +398,8 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                         </div>
                     )}
 
-                    {/* Academic Office Actions */}
-                    {user?.role === 'academic_office' && caseData.student && (
+                    {/* Chief Security Officer Actions */}
+                    {user?.role === 'chief_security_officer' && caseData.student && (
                         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                             <h2 className="text-xl font-semibold text-kmuOrange mb-4">Actions</h2>
                             <div className="space-y-3">

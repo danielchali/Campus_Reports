@@ -8,7 +8,7 @@ import { authenticate, authorize } from '../middleware/auth.js';
 const dbType = process.env.DB_TYPE || 'mongo';
 const router = express.Router();
 
-router.use(authenticate, authorize(['admin', 'academic_office', 'security_officer']));
+router.use(authenticate, authorize(['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer']));
 
 router.post('/docx', async(req, res) => {
     try {

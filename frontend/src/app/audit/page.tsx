@@ -35,7 +35,7 @@ export default function AuditPage() {
       return <div className="text-center text-kmuGreen">Loading...</div>;
     }
     
-    if (!user || (user.role !== 'admin' && user.role !== 'academic_office')) return <div className="text-red-600">Access denied.</div>;
+    if (!user || !['admin', 'chief_security_officer', 'dean_of_students'].includes(user.role)) return <div className="text-red-600">Access denied.</div>;
   }
 
   const [logs, setLogs] = useState<AuditLog[]>([]);

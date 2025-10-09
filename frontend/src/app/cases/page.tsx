@@ -318,7 +318,7 @@ export default function CasesPage() {
                 </span>
               )}
             </div>
-          {(user?.role === 'admin' || user?.role === 'security_officer' || user?.role === 'academic_office') && (
+          {(user?.role === 'admin' || user?.role === 'security_officer' || user?.role === 'chief_security_officer' || user?.role === 'dean_of_students' || user?.role === 'assistant_dean') && (
             <button
               onClick={() => router.push('/cases/new')}
               className="bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition"

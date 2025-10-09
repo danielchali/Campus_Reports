@@ -58,8 +58,14 @@ export default function LoginPage() {
       const role = user.role;
       if (role === 'admin') {
         router.push('/admin');
-      } else if (role === 'academic_office') {
-        router.push('/academic-dashboard');
+      } else if (role === 'chief_security_officer') {
+        router.push('/chief-security-officer-dashboard');
+      } else if (role === 'dean_of_students') {
+        router.push('/dean-of-students-dashboard');
+      } else if (role === 'assistant_dean') {
+        router.push('/assistant-dean-dashboard');
+      } else if (role === 'secretary') {
+        router.push('/secretary-dashboard');
       } else if (role === 'security_officer') {
         router.push('/security-dashboard');
       } else {
