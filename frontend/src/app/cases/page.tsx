@@ -224,10 +224,10 @@ export default function CasesPage() {
       const filename = `cases_${new Date().toISOString().split('T')[0]}.${format}`;
       saveAs(blob, filename);
       
-      showNotification('Export successful!', 'success');
+      showNotification('success', 'Export successful!');
     } catch (err) {
       console.error('Export failed:', err);
-      showNotification('Export failed', 'error');
+      showNotification('error', 'Export failed');
     } finally {
       setExporting(false);
       setShowExportDropdown(false);
