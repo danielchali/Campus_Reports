@@ -7,6 +7,7 @@ const CRITICAL_RESOURCES = [
     '/',
     '/login',
     '/kmu_logo.svg',
+    '/kmu_logo.png',
     '/manifest.json',
     '/static/css/globals.css',
 ];
@@ -203,87 +204,34 @@ async function handleNavigation(request) {
             return cachedResponse;
         }
 
-        // Return offline page
-        return cache.match('/');
+        // Return offline fallback page
+        return caches.match('/offline.html');
     }
 }
 
-// Check if URL is a static asset
+// Check if a URL path is for a static asset
 function isStaticAsset(pathname) {
     return STATIC_ASSETS.some(asset => pathname.startsWith(asset)) ||
-        pathname.includes('.css') ||
-        pathname.includes('.js') ||
-        pathname.includes('.png') ||
-        pathname.includes('.jpg') ||
-        pathname.includes('.jpeg') ||
-        pathname.includes('.gif') ||
-        pathname.includes('.svg') ||
-        pathname.includes('.woff') ||
-        pathname.includes('.woff2') ||
-        pathname.includes('.ttf') ||
-        pathname.includes('.eot');
+           pathname.endsWith('.css') ||
+           pathname.endsWith('.js') ||
+           pathname.endsWith('.png') ||
+           pathname.endsWith('.jpg') ||
+           pathname.endsWith('.jpeg') ||
+           pathname.endsWith('.svg') ||
+           pathname.endsWith('.ico') ||
+           pathname.endsWith('.woff') ||
+           pathname.endsWith('.woff2');
 }
 
-// Background sync for offline data
+// Handle background sync for offline data
 self.addEventListener('sync', (event) => {
-    if (event.tag === 'background-sync') {
-        event.waitUntil(doBackgroundSync());
+    if (event.tag === 'sync-cases') {
+        event.waitUntil(syncCases());
     }
 });
 
-async function doBackgroundSync() {
-    try {
-        // Sync any pending data
-        const clients = await self.clients.matchAll();
-        clients.forEach(client => {
-            client.postMessage({
-                type: 'BACKGROUND_SYNC',
-                timestamp: Date.now()
-            });
-        });
-    } catch (error) {
-        console.error('Background sync failed:', error);
-    }
+// Sync cases with server
+async function syncCases() {
+    // Implementation would go here for syncing offline data
+    console.log('Syncing cases with server');
 }
-
-// Push notifications
-self.addEventListener('push', (event) => {
-    const options = {
-        body: event.data ? event.data.text() : 'New update available',
-        icon: '/kmu_logo.svg',
-        badge: '/kmu_logo.svg',
-        vibrate: [100, 50, 100],
-        data: {
-            dateOfArrival: Date.now(),
-            primaryKey: 1
-        },
-        actions: [{
-                action: 'explore',
-                title: 'View',
-                icon: '/kmu_logo.svg'
-            },
-            {
-                action: 'close',
-                title: 'Close',
-                icon: '/kmu_logo.svg'
-            }
-        ]
-    };
-
-    event.waitUntil(
-        self.registration.showNotification('KMU Discipline Desk', options)
-    );
-});
-
-// Notification click
-self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
-
-    if (event.action === 'explore') {
-        event.waitUntil(
-            clients.openWindow('/')
-        );
-    }
-});
-
-console.log('Service Worker loaded');

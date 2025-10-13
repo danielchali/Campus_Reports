@@ -16,7 +16,7 @@ import {
 } from 'chart.js';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/constants';
-import { authHeaders } from '../../utils/api';
+import { fetchWithAuth } from '../../utils/api';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Case, Student } from '../../../types/global.d';
@@ -49,32 +49,28 @@ export default function AssistantDeanDashboard() {
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredCases, setFilteredCases] = useState<Case[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
+      setError(null);
       try {
-        const casesRes = await fetch(`${API_BASE_URL}/cases`, { headers: { ...authHeaders() } });
-        const studentsRes = await fetch(`${API_BASE_URL}/students`, { headers: { ...authHeaders() } });
+        // Fetch cases with improved error handling
+        const casesData = await fetchWithAuth(`${API_BASE_URL}/cases`);
+        setCases(Array.isArray(casesData) ? casesData : (casesData.cases || casesData || []));
         
-        if (casesRes.ok) {
-          const casesData = await casesRes.json();
-          setCases(casesData.cases || casesData || []);
-        } else {
-          console.error('Failed to fetch cases:', casesRes.status);
-          setCases([]);
-        }
-        
-        if (studentsRes.ok) {
-          const studentsData = await studentsRes.json();
-          setStudents(studentsData.students || studentsData || []);
-        } else {
-          console.error('Failed to fetch students:', studentsRes.status);
-          setStudents([]);
-        }
-      } catch (error) {
+        // Fetch students with improved error handling
+        const studentsData = await fetchWithAuth(`${API_BASE_URL}/students`);
+        setStudents(Array.isArray(studentsData) ? studentsData : (studentsData.students || studentsData || []));
+      } catch (error: any) {
         console.error('Error fetching data:', error);
+        setError(error.message || 'Failed to fetch data. Please try again.');
         setCases([]);
         setStudents([]);
+      } finally {
+        setLoading(false);
       }
     }
     fetchData();
@@ -109,7 +105,7 @@ export default function AssistantDeanDashboard() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          ...authHeaders() 
+          ...fetchWithAuth.headers || {}
         },
         body: JSON.stringify({
           charts: chartExportData.charts,
@@ -123,6 +119,7 @@ export default function AssistantDeanDashboard() {
       if (!res.ok) throw new Error(await res.text());
       const blob = await res.blob();
       saveAs(blob, 'assistant_dean_all_cases_report.docx');
+      showNotification('success', 'Report exported successfully!');
     } catch (err) {
       console.error('Export cases error:', err);
       showNotification('error', 'Failed to export cases');
@@ -169,6 +166,34 @@ export default function AssistantDeanDashboard() {
       },
     ],
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kmuGreen mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading dashboard data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+          <h3 className="font-medium mb-2">Error Loading Dashboard</h3>
+          <p>{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
