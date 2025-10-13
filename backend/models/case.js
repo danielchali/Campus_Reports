@@ -7,9 +7,11 @@ let CaseModel;
 
 if (dbType === 'mongo') {
     const caseSchema = new mongoose.Schema({
-        // Support both single student (backward compatibility) and multiple students
+        // Support both single student/staff and multiple students/staff
         student_id: { type: String, required: false }, // Keep for backward compatibility
         student_ids: [{ type: String, required: false }], // New field for multiple students
+        staff_id: { type: String, required: false }, // New field for single staff
+        staff_ids: [{ type: String, required: false }], // New field for multiple staff
         incident_date: String,
         description: String,
         offense_type: String,
@@ -18,7 +20,7 @@ if (dbType === 'mongo') {
         sanctions: String,
         attachments: [String],
         created_by: String,
-        case_type: { type: String, enum: ['single', 'group'], default: 'single' }, // New field to distinguish case types
+        case_type: { type: String, enum: ['single_student', 'group_student', 'single_staff', 'group_staff'], default: 'single_student' }, // Updated field to distinguish case types
         createdAt: { type: Date, default: Date.now },
         updatedAt: { type: Date, default: Date.now },
     });

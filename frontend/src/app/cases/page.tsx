@@ -10,15 +10,27 @@ import { useSearchParams } from 'next/navigation';
 import { saveAs } from 'file-saver';
 import Notification, { useNotification } from '../../components/Notification';
 
+interface Student {
+  _id: string;
+  studentId: string;
+  fullName: string;
+  department?: string;
+}
+
+interface Staff {
+  _id: string;
+  staffId: string;
+  fullName: string;
+  department?: string;
+  position?: string;
+}
+
 interface Case {
   _id: string;
   student_id?: string; // Raw student ID from database
-  student?: {
-    _id: string;
-    studentId: string;
-    fullName: string;
-    department?: string;
-  };
+  student?: Student;
+  staff_id?: string; // Raw staff ID from database
+  staff?: Staff;
   incidentDate: string;
   description: string;
   offenseType: string;
@@ -67,6 +79,7 @@ export default function CasesPage() {
 
   const searchParams = useSearchParams();
   const studentIdFilter = searchParams?.get('studentId') || '';
+  const staffIdFilter = searchParams?.get('staffId') || '';
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -97,6 +110,9 @@ export default function CasesPage() {
         if (studentIdFilter) {
           params.append('studentId', studentIdFilter);
         }
+        if (staffIdFilter) {
+          params.append('staffId', staffIdFilter);
+        }
         if (search) {
           params.append('search', search);
         }
@@ -121,12 +137,13 @@ export default function CasesPage() {
         const responseData = response.data as any;
         const casesArray = Array.isArray(responseData) ? responseData : (Array.isArray(responseData.cases) ? responseData.cases : []);
         
-        // Debug: Log cases with missing student data
+        // Debug: Log cases with missing person data
         casesArray.forEach((caseItem: any, index: number) => {
-          if (!caseItem.student) {
-            console.warn(`Case ${index} has no student data:`, {
+          if (!caseItem.student && !caseItem.staff) {
+            console.warn(`Case ${index} has no person data:`, {
               caseId: caseItem._id,
               studentId: caseItem.student_id,
+              staffId: caseItem.staff_id,
               caseData: caseItem
             });
           }
@@ -146,7 +163,7 @@ export default function CasesPage() {
       }
     }
     fetchCases();
-  }, [apiCall, studentIdFilter, search, statusFilter, severityFilter, page, limit]);
+  }, [apiCall, studentIdFilter, staffIdFilter, search, statusFilter, severityFilter, page, limit]);
 
   const safeCases = Array.isArray(cases) ? cases : [];
   const filteredCases = safeCases; // Backend handles all filtering now
@@ -200,82 +217,20 @@ export default function CasesPage() {
           entity: 'cases'
         }),
       });
+      
       if (!res.ok) throw new Error(await res.text());
+      
       const blob = await res.blob();
-      const filename = `selected_cases_${new Date().toISOString().split('T')[0]}.${format}`;
+      const filename = `cases_${new Date().toISOString().split('T')[0]}.${format}`;
       saveAs(blob, filename);
+      
+      showNotification('Export successful!', 'success');
     } catch (err) {
       console.error('Export failed:', err);
-      alert('Export failed');
+      showNotification('Export failed', 'error');
     } finally {
       setExporting(false);
-    }
-  };
-
-  const handleExportCurrentPage = async (format: 'docx' | 'xlsx') => {
-    setExporting(true);
-    try {
-      const endpoint = format === 'docx' ? '/reports/docx' : '/reports/export-excel';
-      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          type: 'current_page',
-          data: filteredCases,
-          entity: 'cases',
-          filters: {
-            search,
-            statusFilter,
-            severityFilter,
-            studentId: studentIdFilter
-          }
-        }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const blob = await res.blob();
-      const filename = `cases_page_${page}_${new Date().toISOString().split('T')[0]}.${format}`;
-      saveAs(blob, filename);
-    } catch (err) {
-      console.error('Export failed:', err);
-      alert('Export failed');
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  const handleExportFiltered = async (format: 'docx' | 'xlsx') => {
-    setExporting(true);
-    try {
-      const endpoint = format === 'docx' ? '/reports/docx' : '/reports/export-excel';
-      const res = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          type: 'filtered',
-          entity: 'cases',
-          filters: {
-            search,
-            statusFilter,
-            severityFilter,
-            studentId: studentIdFilter
-          }
-        }),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const blob = await res.blob();
-      const filename = `filtered_cases_${new Date().toISOString().split('T')[0]}.${format}`;
-      saveAs(blob, filename);
-    } catch (err) {
-      console.error('Export failed:', err);
-      alert('Export failed');
-    } finally {
-      setExporting(false);
+      setShowExportDropdown(false);
     }
   };
 
@@ -292,7 +247,8 @@ export default function CasesPage() {
             search,
             status: statusFilter,
             severity: severityFilter,
-            studentId: studentIdFilter
+            studentId: studentIdFilter,
+            staffId: staffIdFilter
           }
         }),
       });
@@ -304,305 +260,348 @@ export default function CasesPage() {
     }
   };
 
+  // Get person information for a case (either student or staff)
+  const getCasePerson = (caseItem: Case) => {
+    if (caseItem.student) {
+      return {
+        type: 'student',
+        id: caseItem.student.studentId,
+        name: caseItem.student.fullName,
+        department: caseItem.student.department,
+        link: `/students/${caseItem.student._id}`
+      };
+    } else if (caseItem.staff) {
+      return {
+        type: 'staff',
+        id: caseItem.staff.staffId,
+        name: caseItem.staff.fullName,
+        department: caseItem.staff.department,
+        link: `/staff/${caseItem.staff._id}`
+      };
+    }
+    return null;
+  };
 
+  // Get person ID for a case
+  const getCasePersonId = (caseItem: Case) => {
+    return caseItem.student?.studentId || caseItem.staff?.staffId || 'N/A';
+  };
+
+  // Get person name for a case
+  const getCasePersonName = (caseItem: Case) => {
+    return caseItem.student?.fullName || caseItem.staff?.fullName || 'Unknown';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-kmuGreen text-lg">Loading cases...</div>
+      </div>
+    );
+  }
 
   return (
     <>
-      <section>
+      <section className="max-w-6xl mx-auto p-4">
         <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-kmuGreen">Cases</h1>
-              {offlineMode && (
-                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded">
-                  Offline Mode
-                </span>
-              )}
-            </div>
-          {(user?.role === 'admin' || user?.role === 'security_officer' || user?.role === 'chief_security_officer' || user?.role === 'dean_of_students' || user?.role === 'assistant_dean') && (
-            <button
-              onClick={() => router.push('/cases/new')}
-              className="bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition"
-            >
-              + New Case
-            </button>
-          )}
-        </div>
-        <div className="mb-4 flex flex-col md:flex-row gap-2 md:items-center">
-          <div className="flex flex-wrap gap-2">
-            <input
-              type="text"
-              placeholder="Search by name, ID, offense, status, etc."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-            />
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-              <option value="">All Statuses</option>
-              {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <select value={severityFilter} onChange={e => setSeverityFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-              <option value="">All Severities</option>
-              {SEVERITY_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded" onClick={selectAll}>Select All</button>
-            <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded" onClick={clearSelected}>Clear</button>
-            {selected.length > 0 && (
-              <>
-                <button className="bg-red-600 text-white px-2 py-1 rounded" onClick={handleBulkDelete}>Delete Selected</button>
-                <button className="bg-kmuGreen text-white px-2 py-1 rounded" onClick={() => handleExportSelected('docx')}>Export Selected (Word)</button>
-                <button className="bg-blue-600 text-white px-2 py-1 rounded" onClick={() => handleExportSelected('xlsx')}>Export Selected (Excel)</button>
-              </>
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl font-bold text-kmuGreen">Cases</h1>
+            {offlineMode && (
+              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded">
+                Offline Mode
+              </span>
             )}
           </div>
-        </div>
-        
-        {/* Export Controls */}
-        <div className="mb-4 flex flex-col md:flex-row gap-2 md:items-center">
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Export Options:</span>
+          
+          <div className="flex gap-3">
+            <Link 
+              href="/cases/new" 
+              className="bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition flex items-center"
+            >
+              + New Case
+            </Link>
             
-            {/* Word Export Dropdown */}
             <div className="relative export-dropdown">
               <button
                 onClick={() => setShowExportDropdown(!showExportDropdown)}
                 disabled={exporting}
-                className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 disabled:opacity-50 text-sm flex items-center gap-1"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition flex items-center disabled:opacity-50"
               >
-                {exporting ? 'Exporting...' : 'Export to Word'}
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                {exporting ? 'Exporting...' : 'Export'}
               </button>
               
               {showExportDropdown && (
-                <div className="absolute top-full left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg z-50 min-w-48">
-                  <div className="py-1">
-                    <button
-                      onClick={async () => {
-                        setShowExportDropdown(false);
-                        setExporting(true);
-                        try {
-                          await handleExportCurrentPage('docx');
-                        } catch (err) {
-                          console.error('Export failed:', err);
-                          alert('Export failed');
-                        } finally {
-                          setExporting(false);
-                        }
-                      }}
-                      disabled={exporting || filteredCases.length === 0}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Current Page (Table Format)
-                    </button>
-                    <button
-                      onClick={async () => {
-                        setShowExportDropdown(false);
-                        setExporting(true);
-                        try {
-                          await handleExportFiltered('docx');
-                        } catch (err) {
-                          console.error('Export failed:', err);
-                          alert('Export failed');
-                        } finally {
-                          setExporting(false);
-                        }
-                      }}
-                      disabled={exporting}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Filtered Results (Table Format)
-                    </button>
-                    <button
-                      onClick={async () => {
-                        setShowExportDropdown(false);
-                        setExporting(true);
-                        try {
-                          await exportDocxList('cases');
-                        } catch (err) {
-                          console.error('List export failed:', err);
-                          alert('Export failed');
-                        } finally {
-                          setExporting(false);
-                        }
-                      }}
-                      disabled={exporting}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      All Cases (List Format)
-                    </button>
-                    <button
-                      onClick={async () => {
-                        setShowExportDropdown(false);
-                        setExporting(true);
-                        try {
-                          await handleExportCasesList();
-                        } catch (err) {
-                          console.error('Cases list export failed:', err);
-                          alert('Export failed');
-                        } finally {
-                          setExporting(false);
-                        }
-                      }}
-                      disabled={exporting}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Cases List (DOCX)
-                    </button>
-                  </div>
+                <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-10 border border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => handleExportSelected('docx')}
+                    className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    Export Selected (DOCX)
+                  </button>
+                  <button
+                    onClick={() => handleExportSelected('xlsx')}
+                    className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                  >
+                    Export Selected (Excel)
+                  </button>
+                  <button
+                    onClick={handleExportCasesList}
+                    className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 border-t border-gray-200 dark:border-gray-700"
+                  >
+                    Export All (DOCX)
+                  </button>
                 </div>
               )}
             </div>
-            
-            {/* Excel Export Buttons */}
-            <button
-              onClick={() => handleExportCurrentPage('xlsx')}
-              disabled={exporting || filteredCases.length === 0}
-              className="bg-green-700 text-white px-3 py-1 rounded hover:bg-green-800 disabled:opacity-50 text-sm"
-            >
-              {exporting ? 'Exporting...' : 'Export Current Page (Excel)'}
-            </button>
-            <button
-              onClick={() => handleExportFiltered('xlsx')}
-              disabled={exporting}
-              className="bg-purple-700 text-white px-3 py-1 rounded hover:bg-purple-800 disabled:opacity-50 text-sm"
-            >
-              {exporting ? 'Exporting...' : 'Export Filtered (Excel)'}
-            </button>
-            
-
           </div>
         </div>
-        {/* Pagination controls */}
-        <div className="flex flex-wrap gap-2 items-center my-4">
-          <button
-            className="px-2 py-1 rounded bg-gray-200 text-gray-700"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Prev
-          </button>
-          {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1).map(p => (
-            <button
-              key={p}
-              className={`px-2 py-1 rounded ${p === page ? 'bg-kmuGreen text-white' : 'bg-gray-100 text-gray-700'}`}
-              onClick={() => setPage(p)}
-            >
-              {p}
-            </button>
-          ))}
-          <button
-            className="px-2 py-1 rounded bg-gray-200 text-gray-700"
-            onClick={() => setPage(p => Math.min(Math.ceil(total / limit), p + 1))}
-            disabled={page === Math.ceil(total / limit) || total === 0}
-          >
-            Next
-          </button>
-          <span className="ml-2 text-sm text-gray-500">Page {page} of {Math.max(1, Math.ceil(total / limit))}</span>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
+            {error}
+          </div>
+        )}
+        
+        {notification?.isVisible && (
+          <Notification
+            type={notification.type}
+            message={notification.message}
+            isVisible={notification.isVisible}
+            onClose={hideNotification}
+          />
+        )}
+
+        {/* Filters */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div>
+              <label htmlFor="search" className="block text-sm font-medium mb-1">Search</label>
+              <input
+                id="search"
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search cases..."
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="status" className="block text-sm font-medium mb-1">Status</label>
+              <select
+                id="status"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">All Statuses</option>
+                {STATUS_OPTIONS.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label htmlFor="severity" className="block text-sm font-medium mb-1">Severity</label>
+              <select
+                id="severity"
+                value={severityFilter}
+                onChange={(e) => setSeverityFilter(e.target.value)}
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">All Severities</option>
+                {SEVERITY_OPTIONS.map(severity => (
+                  <option key={severity} value={severity}>{severity}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label htmlFor="studentId" className="block text-sm font-medium mb-1">Student ID</label>
+              <input
+                id="studentId"
+                type="text"
+                value={studentIdFilter}
+                onChange={(e) => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('studentId', e.target.value);
+                  window.history.replaceState({}, '', url);
+                }}
+                placeholder="Filter by student ID"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="staffId" className="block text-sm font-medium mb-1">Staff ID</label>
+              <input
+                id="staffId"
+                type="text"
+                value={staffIdFilter}
+                onChange={(e) => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('staffId', e.target.value);
+                  window.history.replaceState({}, '', url);
+                }}
+                placeholder="Filter by staff ID"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+          </div>
         </div>
-        {error && <div className="text-red-600 text-sm mb-2" aria-live="polite">{error}</div>}
-        {loading && <div className="text-kmuGreen text-sm mb-2">Loading...</div>}
-        <div className="overflow-x-auto -mx-3 md:mx-0">
-          <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow text-sm md:text-base">
-            <thead className="bg-kmuGreen text-white">
-              <tr>
-                <th className="py-2 px-2 md:px-4 text-left">
-                  <input type="checkbox" checked={selected.length === filteredCases.length && filteredCases.length > 0} onChange={e => e.target.checked ? selectAll() : clearSelected()} />
-                </th>
-                <th className="py-2 px-2 md:px-4 text-left">Name</th>
-                <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Department</th>
-                <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Date</th>
-                <th className="py-2 px-2 md:px-4 text-left">Offense</th>
-                <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Status</th>
-                <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Severity</th>
-                <th className="py-2 px-2 md:px-4 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCases.map(s => (
-                <tr key={s._id} className="border-b border-gray-200 dark:border-gray-600">
-                  <td className="py-2 px-2 md:px-4">
-                    <input type="checkbox" checked={selected.includes(s._id)} onChange={() => toggleSelect(s._id)} />
-                  </td>
-                  <td className="py-2 px-2 md:px-4">
-                    {s.student ? (
-                      <div>
-                        <Link href={`/students/${s.student._id || s.student.studentId}`} className="text-kmuGreen hover:underline font-medium">
-                          {s.student.fullName}
-                        </Link>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
-                          {s.student?.department || '-'} • {s.incidentDate ? new Date(s.incidentDate).toLocaleDateString() : '-'}
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="text-gray-500" title={`Student ID: ${s.student_id || 'Unknown'}`}>
-                        Student not found
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-2 px-2 md:px-4 hidden md:table-cell">{s.student?.department || '-'}</td>
-                  <td className="py-2 px-2 md:px-4 hidden md:table-cell">{s.incidentDate ? new Date(s.incidentDate).toLocaleDateString() : '-'}</td>
-                  <td className="py-2 px-2 md:px-4">
-                    <div className="font-medium">{s.offenseType || '-'}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
-                      <span className={`inline-flex px-1 py-0.5 text-xs font-semibold rounded-full ${
-                        s.status?.toLowerCase() === 'open' ? 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20' :
-                        s.status?.toLowerCase() === 'closed' ? 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20' :
-                        'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700'
-                      }`}>
-                        {s.status || '-'}
-                      </span>
-                      {' • '}
-                      <span className={`inline-flex px-1 py-0.5 text-xs font-semibold rounded-full ${
-                        s.severity?.toLowerCase() === 'high' ? 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20' :
-                        s.severity?.toLowerCase() === 'medium' ? 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20' :
-                        s.severity?.toLowerCase() === 'low' ? 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20' :
-                        'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700'
-                      }`}>
-                        {s.severity || '-'}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-2 px-2 md:px-4 hidden md:table-cell">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      s.status?.toLowerCase() === 'open' ? 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20' :
-                      s.status?.toLowerCase() === 'closed' ? 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20' :
-                      'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700'
-                    }`}>
-                      {s.status || '-'}
-                    </span>
-                  </td>
-                  <td className="py-2 px-2 md:px-4 hidden md:table-cell">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      s.severity?.toLowerCase() === 'high' ? 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/20' :
-                      s.severity?.toLowerCase() === 'medium' ? 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/20' :
-                      s.severity?.toLowerCase() === 'low' ? 'text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/20' :
-                      'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700'
-                    }`}>
-                      {s.severity || '-'}
-                    </span>
-                  </td>
-                  <td className="py-2 px-2 md:px-4">
-                    <Link href={`/cases/${s._id}`} className="text-kmuGreen hover:text-kmuOrange transition text-sm">
-                      View →
-                    </Link>
-                  </td>
+
+        {/* Bulk Actions */}
+        {selected.length > 0 && (
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6 flex items-center justify-between">
+            <div className="text-sm">
+              {selected.length} case{selected.length !== 1 ? 's' : ''} selected
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleBulkDelete}
+                className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+              >
+                Delete Selected
+              </button>
+              <button
+                onClick={clearSelected}
+                className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+              >
+                Clear Selection
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Cases Table */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="py-2 px-2 md:px-4">
+                    <input 
+                      type="checkbox" 
+                      checked={selected.length === filteredCases.length && filteredCases.length > 0}
+                      onChange={selected.length === filteredCases.length && filteredCases.length > 0 ? clearSelected : selectAll}
+                    />
+                  </th>
+                  <th className="py-2 px-2 md:px-4 text-left">Person</th>
+                  <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Department</th>
+                  <th className="py-2 px-2 md:px-4 text-left">Date</th>
+                  <th className="py-2 px-2 md:px-4 text-left">Offense</th>
+                  <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Status</th>
+                  <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Severity</th>
+                  <th className="py-2 px-2 md:px-4 text-left">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredCases.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="py-8 px-4 text-center text-gray-500 dark:text-gray-400">
+                      No cases found
+                    </td>
+                  </tr>
+                ) : (
+                  filteredCases.map(s => {
+                    const person = getCasePerson(s);
+                    return (
+                      <tr key={s._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td className="py-2 px-2 md:px-4">
+                          <input type="checkbox" checked={selected.includes(s._id)} onChange={() => toggleSelect(s._id)} />
+                        </td>
+                        <td className="py-2 px-2 md:px-4">
+                          {person ? (
+                            <div>
+                              <Link href={person.link} className="text-kmuGreen hover:underline font-medium">
+                                {person.name}
+                              </Link>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
+                                {person.department || '-'} • {s.incidentDate ? new Date(s.incidentDate).toLocaleDateString() : '-'}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                {person.type === 'student' ? 'Student' : 'Staff'} • {person.id}
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <div className="font-medium">Unknown</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                No person data
+                              </div>
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-2 px-2 md:px-4 hidden md:table-cell">
+                          {person?.department || '-'}
+                        </td>
+                        <td className="py-2 px-2 md:px-4">
+                          {s.incidentDate ? new Date(s.incidentDate).toLocaleDateString() : '-'}
+                        </td>
+                        <td className="py-2 px-2 md:px-4">
+                          {s.offenseType || '-'}
+                        </td>
+                        <td className="py-2 px-2 md:px-4 hidden md:table-cell">
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            s.status === 'Open' ? 'bg-red-100 text-red-800' :
+                            s.status === 'Closed' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {s.status || '-'}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2 md:px-4 hidden md:table-cell">
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            s.severity === 'High' ? 'bg-red-100 text-red-800' :
+                            s.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                            s.severity === 'Low' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {s.severity || '-'}
+                          </span>
+                        </td>
+                        <td className="py-2 px-2 md:px-4">
+                          <Link 
+                            href={`/cases/${s._id}`} 
+                            className="text-kmuGreen hover:underline text-sm"
+                          >
+                            View Details
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Pagination */}
+          {total > limit && (
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} cases
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={page * limit >= total}
+                  className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </section>
-      
-      {/* Notification */}
-      {notification?.isVisible && (
-        <Notification
-          type={notification.type}
-          message={notification.message}
-          isVisible={notification.isVisible}
-          onClose={hideNotification}
-        />
-      )}
     </>
   );
 }

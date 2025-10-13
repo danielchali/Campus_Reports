@@ -126,7 +126,7 @@ export default function LoginPage() {
               onLoad={() => console.log('Logo loaded successfully')}
             />
             <h2 className="text-3xl font-bold text-kmuGreen mb-2">
-              Sign in to KMU DisciplineDesk
+              Log in to KMU DisciplineDesk
             </h2>
           </div>
 

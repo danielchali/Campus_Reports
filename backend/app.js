@@ -6,6 +6,7 @@ dotenv.config();
 
 import usersRouter from './routes/users.js';
 import studentsRouter from './routes/students.js';
+import staffRouter from './routes/staff.js';
 import casesRouter from './routes/cases.js';
 import reportsRouter from './routes/reports.js';
 import authRouter from './routes/auth.js';
@@ -24,6 +25,7 @@ app.use(express.json());
 // Register API routes
 app.use('/api/users', usersRouter);
 app.use('/api/students', studentsRouter);
+app.use('/api/staff', staffRouter);
 app.use('/api/cases', casesRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api', authRouter);

@@ -23,7 +23,7 @@ export default function HelpPage() {
             <ul className="space-y-2 text-gray-600 dark:text-gray-400">
               <li>• Use the sidebar to navigate between different sections</li>
               <li>• Click "+ New Case" to report a new disciplinary case</li>
-              <li>• Search for students by name or ID to view their history</li>
+              <li>• Search for students or staff by name or ID to view their history</li>
               <li>• Use the search and filter options to find specific cases</li>
               <li>• Export data using the export buttons in dashboards</li>
             </ul>
@@ -31,7 +31,6 @@ export default function HelpPage() {
           <div>
             <h3 className="text-lg font-medium mb-3 text-kmuGreen">Navigation Tips</h3>
             <ul className="space-y-2 text-gray-600 dark:text-gray-400">
-
               <li>• Toggle dark mode using the button in the sidebar</li>
               <li>• Check audit logs for system activity</li>
               <li>• Update your profile and settings as needed</li>
@@ -64,7 +63,7 @@ export default function HelpPage() {
               <li>• <strong>Evidence Management:</strong> Upload and manage case evidence files</li>
               <li>• <strong>Audit Logging:</strong> Complete transparency and accountability</li>
               <li>• <strong>Export Options:</strong> DOCX and Excel formats</li>
-              <li>• <strong>Search & Filter:</strong> Find cases and students quickly</li>
+              <li>• <strong>Search & Filter:</strong> Find cases and people quickly</li>
               <li>• <strong>Offline Support:</strong> Work without internet connection</li>
             </ul>
           </div>
@@ -79,7 +78,8 @@ export default function HelpPage() {
             <h3 className="text-lg font-medium mb-3 text-kmuGreen">Creating a New Case</h3>
             <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-400">
               <li>Navigate to "Cases" → "New Case" or click "+ New Case" in the top bar</li>
-              <li>Search and select the student involved</li>
+              <li>Choose between Student Case or Staff Case</li>
+              <li>Search and select the person involved</li>
               <li>Enter the incident date</li>
               <li>Select the offense type from the dropdown</li>
               <li>Choose the severity level</li>
@@ -100,20 +100,62 @@ export default function HelpPage() {
             </ol>
           </div>
           <div>
-            <h3 className="text-lg font-medium mb-3 text-kmuGreen">Student Management</h3>
+            <h3 className="text-lg font-medium mb-3 text-kmuGreen">Person Management</h3>
             <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-400">
               <li>View all students in the "Students" section</li>
-              <li>Search by name or student ID</li>
-              <li>Click on a student name to view their profile</li>
+              <li>View all staff in the "Staff" section</li>
+              <li>Search by name or ID</li>
+              <li>Click on a person's name to view their profile</li>
               <li>See their complete case history</li>
-              <li>Add new cases directly from student profile</li>
-              <li>Export student records as needed</li>
+              <li>Add new cases directly from their profile</li>
+              <li>Export records as needed</li>
             </ol>
           </div>
         </div>
       </div>
 
-     
+      {/* Staff Cases Information */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+        <h2 className="text-2xl font-semibold mb-4 text-kmuOrange">👥 Staff Cases</h2>
+        <div className="space-y-4">
+          <p className="text-gray-600 dark:text-gray-400">
+            KMU DisciplineDesk now supports disciplinary cases for both students and staff members. 
+            This feature allows you to manage workplace conduct issues, policy violations, and other 
+            disciplinary matters involving university staff.
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="text-lg font-medium mb-3 text-kmuGreen">Staff Case Features</h3>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li>• Create cases for individual staff members</li>
+                <li>• Track disciplinary actions for multiple staff</li>
+                <li>• View staff member profiles and case history</li>
+                <li>• Manage staff information and details</li>
+                <li>• Export staff case reports</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-medium mb-3 text-kmuGreen">Staff Management</h3>
+              <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+                <li>• Add new staff members to the system</li>
+                <li>• Bulk import staff via CSV/Excel files</li>
+                <li>• Search and filter staff by department/position</li>
+                <li>• Track recent staff interactions</li>
+                <li>• Maintain staff directory</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-4">
+            <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Getting Started with Staff Cases</h4>
+            <p className="text-blue-700 dark:text-blue-300 text-sm">
+              To create a staff case, navigate to "Cases" → "New Case" and select "Staff Case" from the case type options. 
+              Then search for the staff member by name or ID, fill in the case details, and submit.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Footer with Developer Info */}
       <footer className="bg-gray-100 dark:bg-gray-900 rounded-lg shadow p-6 text-center">
