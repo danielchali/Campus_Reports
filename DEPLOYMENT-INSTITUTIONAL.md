@@ -193,7 +193,7 @@ NEXT_PUBLIC_API_BASE_URL=https://backend.your-institution.edu/api
 
 #### Docker Compose Setup
 Create `docker-compose.yml`:
-```yaml
+```
 version: '3.8'
 
 services:
@@ -244,7 +244,7 @@ volumes:
 
 #### Dockerfile for Backend
 Create `backend/Dockerfile`:
-```dockerfile
+```
 FROM node:18-alpine
 
 WORKDIR /app
@@ -261,7 +261,7 @@ CMD ["node", "./bin/www"]
 
 #### Dockerfile for Frontend
 Create `frontend/Dockerfile`:
-```dockerfile
+```
 FROM node:18-alpine as dependencies
 WORKDIR /app
 COPY package*.json ./
@@ -297,9 +297,11 @@ docker-compose up -d
 - `NODE_ENV` = `production`
 - `DB_TYPE` = `mongo` or `mysql`
 - `JWT_SECRET` = secure random string
-- `MONGODB_URI` or MySQL connection details
+- `MONGO_URI` or `MONGODB_URI` = MongoDB connection string (if using MongoDB)
+- `MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASS`, `MYSQL_DB` = MySQL connection details (if using MySQL)
 - `CORS_ORIGIN` = comma-separated list of allowed frontend URLs
 - `FRONTEND_URL` = primary frontend URL
+- `CREATE_DEFAULT_USERS` = `true` (to create default admin users on first run)
 
 ### Frontend Required Variables
 - `NEXT_PUBLIC_API_BASE_URL` = backend API URL
@@ -416,7 +418,7 @@ Schedule with cron:
 
 ### 1. Database Connection Issues
 - Check database service status
-- Verify connection string
+- Verify connection string (use `MONGO_URI` or `MONGODB_URI` for MongoDB)
 - Check firewall rules
 
 ### 2. CORS Errors
@@ -433,6 +435,33 @@ Schedule with cron:
 - Verify JWT_SECRET consistency
 - Check user credentials
 - Review authentication logs
+
+### 5. Default User Creation
+The application automatically creates default users on first run when `CREATE_DEFAULT_USERS=true`:
+- Admin user: `admin` / `admin123`
+- Security officer: `security` / `admin123`
+- Academic office: `academic` / `admin123`
+
+To create additional users:
+1. Log in with the admin account
+2. Navigate to the user management section
+3. Create new users with appropriate roles
+
+### 6. Password Reset Utility
+If you change the JWT_SECRET or encounter issues with existing user accounts, you can reset user passwords using the built-in utility:
+
+```bash
+# Navigate to the backend directory
+cd backend
+
+# Reset a user's password
+npm run reset-password username new_password
+```
+
+For example:
+```bash
+npm run reset-password admin myNewPassword123
+```
 
 ## Support and Maintenance
 

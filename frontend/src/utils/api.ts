@@ -31,11 +31,11 @@ export async function authFetch(url: string, options: RequestInit = {}, token?: 
 export async function login(username: string, password: string) {
   console.log('Attempting login to:', `${API_BASE_URL}/login`);
   try {
-  const res = await fetch(`${API_BASE_URL}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  });
+    const res = await fetch(`${API_BASE_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
     console.log('Login response status:', res.status);
     if (!res.ok) {
       const errorData = await res.json();

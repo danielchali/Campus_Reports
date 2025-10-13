@@ -37,7 +37,13 @@ server.on('listening', onListening);
 // Create default users if they don't exist
 async function createDefaultUsers() {
     try {
-        if (process.env.CREATE_DEFAULT_USERS === 'true') {
+        // Always create default users in non-production environments or when explicitly requested
+        // This makes first-time deployments easier
+        const shouldCreateDefaultUsers = process.env.CREATE_DEFAULT_USERS === 'true' || 
+                                        process.env.NODE_ENV !== 'production' || 
+                                        process.env.CREATE_DEFAULT_USERS === undefined;
+                                        
+        if (shouldCreateDefaultUsers) {
             console.log('Checking for default users...');
 
             // Check if admin user exists
