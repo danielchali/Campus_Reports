@@ -6,7 +6,8 @@
     "scripts": {
         "start": "node ./bin/www",
         "dev": "nodemon ./bin/www",
-        "create-admin": "node create-admin.js"
+        "create-admin": "node create-admin.js",
+        "server": "node server.js"
     },
     "dependencies": {
         "bcryptjs": "^2.4.3",

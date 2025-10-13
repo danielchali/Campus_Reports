@@ -105,7 +105,7 @@ export default function AssistantDeanDashboard() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          ...fetchWithAuth.headers || {}
+          ...authHeaders() // Use the authHeaders function instead of fetchWithAuth.headers
         },
         body: JSON.stringify({
           charts: chartExportData.charts,

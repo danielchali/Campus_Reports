@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: kmu-discipline-desk-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_TYPE
+        value: mongo
+      - key: PORT
+        value: 5000
+      - key: JWT_SECRET
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+
+  - type: web
+    name: kmu-discipline-desk-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: frontend/.next
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /api/(.*)
+        destination: https://kmu-discipline-desk-backend.onrender.com/api/$1

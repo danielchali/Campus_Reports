@@ -15,9 +15,22 @@ import auditRouter from './routes/audit.js';
 
 const app = express();
 
-// CORS configuration
+// CORS configuration - flexible for any deployment environment
+const corsOrigin = process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:3000';
+
+// Handle multiple origins if provided as comma-separated values
+let origins;
+if (Array.isArray(corsOrigin)) {
+    origins = corsOrigin;
+} else if (typeof corsOrigin === 'string') {
+    // Split by comma for multiple origins, or use as single origin
+    origins = corsOrigin.includes(',') ? corsOrigin.split(',').map(origin => origin.trim()) : corsOrigin;
+} else {
+    origins = 'http://localhost:3000';
+}
+
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' ? ['https://kmudd.onrender.com', 'http://localhost:3000'] : 'http://localhost:3000',
+    origin: origins,
     credentials: true,
 }));
 app.use(express.json());
