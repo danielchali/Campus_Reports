@@ -12,6 +12,7 @@ import reportsRouter from './routes/reports.js';
 import authRouter from './routes/auth.js';
 import evidenceRouter from './routes/evidence.js';
 import auditRouter from './routes/audit.js';
+import healthRouter from './routes/health.js';
 
 const app = express();
 
@@ -44,8 +45,9 @@ app.use('/api/reports', reportsRouter);
 app.use('/api', authRouter);
 app.use('/api/evidence', evidenceRouter);
 app.use('/api/audit', auditRouter);
+app.use('/api/health', healthRouter);
 
-// Health check endpoint
+// Health check endpoint (legacy)
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 // Root endpoint

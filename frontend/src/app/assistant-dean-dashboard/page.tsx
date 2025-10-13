@@ -16,7 +16,7 @@ import {
 } from 'chart.js';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/constants';
-import { fetchWithAuth } from '../../utils/api';
+import { fetchWithAuth, authHeaders } from '../../utils/api';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Case, Student } from '../../../types/global.d';

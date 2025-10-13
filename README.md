@@ -97,7 +97,7 @@ kmu-descipline-desk/
 1. Set environment variables:
    - `NEXT_PUBLIC_API_BASE_URL` - Your backend API URL (e.g., https://your-backend.onrender.com/api)
 
-### Backend (Render/Railway/Heroku)
+### Backend (Render/Railway/Heroku/Any Server)
 1. Create a MongoDB database (MongoDB Atlas recommended)
 2. Set environment variables in your hosting platform:
    - `MONGODB_URI` - Your MongoDB connection string
@@ -131,6 +131,9 @@ kmu-descipline-desk/
    - `FRONTEND_URL` = your frontend URL (e.g., https://your-app.vercel.app)
    - `NODE_ENV` = production
    - `PORT` = 5000
+
+### Institutional Deployment (On-Premises or Any Server)
+For detailed instructions on deploying to institutional servers, see [DEPLOYMENT-INSTITUTIONAL.md](DEPLOYMENT-INSTITUTIONAL.md).
 
 ## PWA (Progressive Web App)
 
