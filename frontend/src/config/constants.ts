@@ -2,8 +2,8 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://loca
 
 export const OFFENSE_TYPES = [
   {
-    value: 'Academic Dishonesty',
-    label: 'Academic Dishonesty',
+    value: 'Malpractice',
+    label: 'Malpractice',
     description: 'Cheating, plagiarism, unauthorized collaboration, or other academic integrity violations'
   },
   {

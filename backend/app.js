@@ -17,8 +17,7 @@ import healthRouter from './routes/health.js';
 const app = express();
 
 // CORS configuration - flexible for any deployment environment
-const corsOrigin = process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'http://localhost:3000';
-
+const corsOrigin = process.env.CORS_ORIGIN || process.env.FRONTEND_URL ;
 // Handle multiple origins if provided as comma-separated values
 let origins;
 if (Array.isArray(corsOrigin)) {

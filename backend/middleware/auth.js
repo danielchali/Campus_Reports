@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export function authenticate(req, res, next) {
     console.log('authenticate middleware called');
