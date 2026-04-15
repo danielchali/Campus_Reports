@@ -98,6 +98,6 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-# Electron build artifacts
+# Desktop packaging build artifacts
 frontend/dist/
 frontend/out/

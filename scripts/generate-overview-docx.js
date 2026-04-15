@@ -869,7 +869,7 @@ async function generateOverviewDocx() {
                     spacing: { after: 100 },
                 }),
                 new Paragraph({
-                    text: "• Desktop Application: Electron packaging for offline use",
+                    text: "• Progressive Web App: Installable offline experience in the browser",
                     spacing: { after: 100 },
                 }),
                 new Paragraph({

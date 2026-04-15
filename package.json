@@ -1,15 +1,11 @@
 {
     "name": "kmu-discipline-desk",
     "version": "1.0.0",
-    "description": "KMU Discipline Desk - Complete Desktop Application",
-    "main": "frontend/main.js",
+    "description": "KMU Discipline Desk",
     "scripts": {
         "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install",
         "dev": "cd backend && npm run dev & cd frontend && npm run dev",
-        "build": "node scripts/build-exe.js",
-        "build-exe": "node scripts/build-exe.js",
-        "package": "cd frontend && npm run package-win",
-        "electron-dev": "cd frontend && npm run electron-dev",
+        "build": "cd frontend && npm run build",
         "deploy-pwa": "node scripts/deploy-pwa.js",
         "deploy-backend": "node scripts/deploy-pwa.js --backend",
         "fix-permissions": "node scripts/fix-permissions.js",

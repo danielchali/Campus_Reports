@@ -1,72 +1,59 @@
 # KMU Discipline Desk - Project Structure
 
 ## Overview
-This is a full-stack desktop application built with Next.js (frontend) and Express.js (backend), packaged with Electron for desktop deployment.
+This is a full-stack web application built with Next.js (frontend) and Express.js (backend), with PWA support for installable offline use.
 
 ## Directory Structure
 
-```
+```text
 kmu-discipline-desk/
-├── 📁 frontend/                 # Next.js frontend application
-│   ├── 📁 src/                  # Source code
-│   │   ├── 📁 app/             # Next.js app directory
-│   │   ├── 📁 components/      # React components
-│   │   ├── 📁 hooks/           # Custom React hooks
-│   │   ├── 📁 utils/           # Utility functions
-│   │   ├── 📁 config/          # Configuration files
-│   │   ├── 📁 context/         # React context providers
-│   │   ├── 📁 electron/        # Electron-specific code
-│   │   └── globals.css         # Global styles
-│   ├── 📁 public/              # Static assets
-│   ├── 📁 types/               # TypeScript type definitions
-│   ├── main.js                 # Electron main process
-│   ├── package.json            # Frontend dependencies
-│   ├── tsconfig.json           # TypeScript configuration
-│   ├── tailwind.config.js      # Tailwind CSS configuration
-│   ├── postcss.config.js       # PostCSS configuration
-│   ├── .eslintrc.json          # ESLint configuration
-│   ├── next-env.d.ts           # Next.js TypeScript definitions
-│   ├── README.md               # Frontend documentation
-│   └── OFFLINE-FEATURES.md     # Offline functionality guide
-│
-├── 📁 backend/                  # Express.js backend application
-│   ├── 📁 bin/                 # Server startup scripts
-│   ├── 📁 controllers/         # Route controllers
-│   ├── 📁 middleware/          # Express middleware
-│   ├── 📁 migrations/          # Database migrations
-│   ├── 📁 models/              # Database models
-│   ├── 📁 routes/              # API routes
-│   ├── 📁 uploads/             # File upload directory
-│   │   └── 📁 evidence/        # Evidence file uploads
-│   ├── app.js                  # Express application setup
-│   ├── package.json            # Backend dependencies
-│   └── .gitignore              # Backend-specific gitignore
-│
-├── 📁 scripts/                  # Build and deployment scripts
-│   ├── build-exe.js            # Electron build script
-│   ├── deploy-pwa.js           # PWA deployment script
-│   └── README.md               # Scripts documentation
-│
-├── 📁 .git/                     # Git version control
-├── 📁 node_modules/             # Root dependencies
-├── package.json                 # Root package configuration
-├── package-lock.json            # Dependency lock file
-├── .gitignore                   # Git ignore rules
-├── .gitattributes               # Git attributes
-├── .eslintrc.json               # Root ESLint configuration
-├── README.md                    # Main project documentation
-├── USER-GUIDE.md                # User guide
-└── DEPLOYMENT-GUIDE.md          # Deployment instructions
+|-- frontend/                 # Next.js frontend application
+|   |-- src/                  # Source code
+|   |   |-- app/             # Next.js app directory
+|   |   |-- components/      # React components
+|   |   |-- hooks/           # Custom React hooks
+|   |   |-- utils/           # Utility functions
+|   |   |-- config/          # Configuration files
+|   |   |-- context/         # React context providers
+|   |   `-- globals.css      # Global styles
+|   |-- public/              # Static assets
+|   |-- types/               # TypeScript type definitions
+|   |-- package.json         # Frontend dependencies
+|   |-- tsconfig.json        # TypeScript configuration
+|   |-- tailwind.config.js   # Tailwind CSS configuration
+|   |-- postcss.config.js    # PostCSS configuration
+|   |-- next-env.d.ts        # Next.js TypeScript definitions
+|   |-- README.md            # Frontend documentation
+|   `-- OFFLINE-FEATURES.md  # Offline functionality guide
+|-- backend/                  # Express.js backend application
+|   |-- bin/                 # Server startup scripts
+|   |-- controllers/         # Route controllers
+|   |-- middleware/          # Express middleware
+|   |-- migrations/          # Database migrations
+|   |-- models/              # Database models
+|   |-- routes/              # API routes
+|   |-- uploads/             # File upload directory
+|   |   `-- evidence/        # Evidence file uploads
+|   |-- app.js               # Express application setup
+|   |-- package.json         # Backend dependencies
+|   `-- .gitignore           # Backend-specific gitignore
+|-- scripts/                  # Build and deployment scripts
+|   |-- deploy-pwa.js        # PWA deployment script
+|   `-- README.md            # Scripts documentation
+|-- package.json             # Root package configuration
+|-- package-lock.json        # Dependency lock file
+|-- README.md                # Main project documentation
+|-- USER-GUIDE.md            # User guide
+`-- DEPLOYMENT-GUIDE.md      # Deployment instructions
 ```
 
 ## Key Features
 
-### Frontend (Next.js + Electron)
-- **Modern React** with Next.js 13+ App Router
+### Frontend (Next.js)
+- **Modern React** with Next.js App Router
 - **TypeScript** for type safety
 - **Tailwind CSS** for styling
-- **Electron** for desktop packaging
-- **PWA Support** for web deployment
+- **PWA support** for web deployment
 - **Offline functionality** with service workers
 
 ### Backend (Express.js)
@@ -77,7 +64,7 @@ kmu-discipline-desk/
 - **Database migrations** support
 
 ### Build & Deployment
-- **Cross-platform** desktop builds
+- **Web builds** with Next.js
 - **PWA deployment** to Vercel
 - **Automated build** scripts
 - **Environment-specific** configurations
@@ -106,7 +93,7 @@ npm run dev
 
 ### Building
 ```bash
-# Build desktop executable
+# Build frontend
 npm run build
 
 # Deploy as PWA
@@ -123,19 +110,15 @@ npm run deploy-pwa
 
 ## Clean Code Practices
 
-- ✅ **No build artifacts** in version control
-- ✅ **Organized script utilities** in dedicated directory
-- ✅ **Comprehensive .gitignore** rules
-- ✅ **Clear documentation** for each component
-- ✅ **Type safety** with TypeScript
-- ✅ **Consistent code style** with ESLint
-- ✅ **Modular architecture** with clear separation
-- ✅ **Unified user interface** with merged profile/settings pages
+- Clear separation between frontend, backend, and scripts
+- Organized utilities in dedicated directories
+- Lock files committed for reproducible installs
+- Type safety with TypeScript
+- Consistent code style with ESLint
 
 ## Maintenance
 
-- Build artifacts are automatically cleaned up
-- Dependencies are properly managed with lock files
+- Build artifacts are kept out of version control
+- Dependencies are managed with lock files
 - Scripts are documented and organized
 - Configuration files are environment-aware
-- Documentation is kept up-to-date 

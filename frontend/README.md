@@ -6,7 +6,7 @@ A modern Next.js 14 frontend for the KMU Discipline Desk system.
 - Secure login (email/password) with offline authentication support
 - Dashboard, Students, Cases, Reports, Admin, Audit, Profile, Help
 - **Offline-first:** works without internet, syncs when online
-- Desktop app (.exe) and web app support
+- Web app and PWA support
 - Professional UI with KMU branding
 - **Bulk Export:** Export users, students, and cases to Word (DOCX) and Excel (XLSX) with one click
 - **Progressive Web App (PWA):** Installable with offline capabilities
@@ -33,22 +33,6 @@ npm run build
 npm run start
 ```
 - Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### 3. Frontend (Desktop App)
-- In a new terminal (after starting backend):
-```
-npm run electron-dev
-```
-- This opens the desktop app window.
-
-### 4. Package as .exe
-```
-npm run build
-npm run electron-pack
-```
-- Find your `.exe` in the `dist/` folder (e.g., `dist/KMUDisciplineDesk-win32-x64/`).
-
----
 
 ## Offline Capabilities
 

@@ -1,22 +1,8 @@
 # Scripts Directory
 
-This directory contains utility scripts for building, deploying, and managing the KMU Discipline Desk application.
+This directory contains utility scripts for deploying and managing the KMU Discipline Desk application.
 
 ## Available Scripts
-
-### `build-exe.js`
-Builds the application into a Windows executable (.exe) file.
-- Installs dependencies for both frontend and backend
-- Builds the frontend application
-- Packages the application with Electron
-- Output: `frontend/dist/KMUDisciplineDesk-win32-x64/`
-
-**Usage:**
-```bash
-npm run build
-# or
-npm run build-exe
-```
 
 ### `deploy-pwa.js`
 Deploys the application as a Progressive Web App (PWA) to Vercel.
@@ -61,7 +47,6 @@ npm run test-db
 These scripts require:
 - Node.js and npm installed
 - Vercel CLI (for PWA deployment)
-- Electron (for desktop app building)
 - Access to the project's frontend and backend directories
 
 ## Troubleshooting

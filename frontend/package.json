@@ -2,7 +2,6 @@
     "name": "kmu-discipline-desk-frontend",
     "version": "1.0.0",
     "private": true,
-    "main": "main.js",
     "scripts": {
         "dev": "next dev",
         "build": "next build --no-lint",
@@ -10,9 +9,6 @@
         "start": "next start",
         "test": "jest",
         "lint": "next lint",
-        "electron-dev": "NODE_ENV=development electron .",
-        "electron-pack": "npm run build && electron-packager . KMUDisciplineDesk --platform=win32 --arch=x64 --out=dist --overwrite --ignore=node_modules --ignore=.next --ignore=dist",
-        "electron-pack-complete": "npm run build && electron-packager . KMUDisciplineDesk --platform=win32 --arch=x64 --out=dist --overwrite --ignore=node_modules --ignore=.next --ignore=dist --extra-resource=../backend",
         "generate-pwa-icons": "node ../scripts/generate-pwa-icons.js"
     },
     "dependencies": {
@@ -22,6 +18,7 @@
         "file-saver": "^2.0.5",
         "html2canvas": "^1.4.1",
         "lowdb": "^6.0.1",
+        "lucide-react": "^0.469.0",
         "next": "14.0.0",
         "papaparse": "^5.5.3",
         "react": "18.2.0",
@@ -40,8 +37,6 @@
         "@typescript-eslint/eslint-plugin": "^8.38.0",
         "@typescript-eslint/parser": "^8.38.0",
         "autoprefixer": "10.4.14",
-        "electron": "^29.0.0",
-        "electron-packager": "^17.1.2",
         "eslint": "8.45.0",
         "eslint-config-next": "^14.0.0",
         "postcss": "8.4.24",
