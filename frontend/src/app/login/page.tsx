@@ -47,7 +47,7 @@ export default function LoginPage() {
     if (user) {
       // Check if we're already on a valid page for this user
       const currentPath = window.location.pathname;
-      const validPaths = ['/admin', '/academic-dashboard', '/security-dashboard', '/dashboard', '/cases', '/students', '/reports', '/evidence', '/audit', '/profile', '/help'];
+      const validPaths = ['/admin', '/academic-dashboard', '/security-dashboard', '/student-dashboard', '/my-reports', '/make-report', '/dashboard', '/cases', '/students', '/reports', '/evidence', '/audit', '/profile', '/help'];
 
       // If we're on a valid page, don't redirect
       if (validPaths.some(path => currentPath.startsWith(path))) {
@@ -68,6 +68,8 @@ export default function LoginPage() {
         router.push('/secretary-dashboard');
       } else if (role === 'security_officer') {
         router.push('/security-dashboard');
+      } else if (role === 'student') {
+        router.push('/student-dashboard');
       } else {
         router.push('/dashboard');
       }

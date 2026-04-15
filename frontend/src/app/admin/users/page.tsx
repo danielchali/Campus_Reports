@@ -13,6 +13,7 @@ const ROLES = [
   { value: 'dean_of_students', label: 'Dean of Students' },
   { value: 'assistant_dean', label: 'Assistant Dean' },
   { value: 'secretary', label: 'Secretary' },
+  { value: 'student', label: 'Student' },
 ];
 
 export default function UserManagementPage() {

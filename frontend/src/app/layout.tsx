@@ -42,8 +42,20 @@ const navIcons = {
 
 // Loading fallback component
 const LoadingFallback = () => (
-  <div className="flex items-center justify-center p-4">
-    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-kmuGreen"></div>
+  <div className="p-4 md:p-6 animate-pulse" aria-hidden="true">
+    <div className="space-y-4">
+      <div className="h-10 w-48 rounded-xl bg-gray-200 dark:bg-gray-700" />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="h-32 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+        <div className="h-32 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+        <div className="h-32 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+      </div>
+      <div className="h-64 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="h-40 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+        <div className="h-40 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+      </div>
+    </div>
   </div>
 );
 
