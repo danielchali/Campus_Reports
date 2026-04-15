@@ -1,32 +1,33 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import Link from 'next/link';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { usePathname } from 'next/navigation';
+import { useSidebar } from '../context/SidebarContext';
 import {
+  LayoutDashboard,
+  FileText,
+  ClipboardList,
+  Paperclip,
+  User,
+  Plus,
+  LogOut,
+  Shield,
+  GraduationCap,
+  Search,
+  Users,
+  UserCog,
+  HelpCircle,
+  Lock,
   Briefcase,
   Clipboard,
-  ClipboardList,
-  FileText,
-  GraduationCap,
-  HelpCircle,
-  LayoutDashboard,
-  Lock,
-  LogOut,
-  Moon,
-  Paperclip,
-  Plus,
-  Search,
-  Shield,
   Sun,
-  type LucideIcon,
-  User,
-  UserCog,
+  Moon,
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useSidebar } from '../context/SidebarContext';
-import { useTheme } from '../context/ThemeContext';
 
+// Nav icons using Lucide React icons
 const navIcons = {
   dashboard: LayoutDashboard,
   cases: FileText,
@@ -36,6 +37,7 @@ const navIcons = {
   newcase: Plus,
   logout: LogOut,
   admin: Shield,
+  academic: GraduationCap,
   dean: GraduationCap,
   audit: Search,
   users: UserCog,
@@ -44,14 +46,6 @@ const navIcons = {
   security: Lock,
   assistant: Briefcase,
   secretary: Clipboard,
-} as const;
-
-type NavLink = {
-  icon: LucideIcon;
-  label: string;
-  path: string;
-  danger?: boolean;
-  mobileOnly?: boolean;
 };
 
 export default function Sidebar() {
@@ -63,17 +57,18 @@ export default function Sidebar() {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
 
+  // Check if mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-
+    
     checkMobile();
     window.addEventListener('resize', checkMobile);
-
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Sidebar style classes
   const sidebarBase =
     'fixed z-40 left-0 top-0 h-full bg-gray-900 text-white shadow-lg border-r border-gray-800 transform transition-transform duration-200 ease-in-out';
   const linkBase =
@@ -81,8 +76,8 @@ export default function Sidebar() {
   const linkActive =
     'bg-kmuGreen text-white shadow dark:bg-kmuGreen dark:text-white';
 
-  let navLinks: NavLink[] = [];
-
+  // Role-based navs
+  let navLinks = [];
   if (user?.role === 'admin') {
     navLinks = [
       { icon: navIcons.admin, label: 'Admin Panel', path: '/admin' },
@@ -158,17 +153,17 @@ export default function Sidebar() {
     ];
   }
 
+  // Resize functionality
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (!isResizing) {
-      return;
-    }
-
+    if (!isResizing) return;
+    
     const newWidth = e.clientX;
+    // Limit width between 200px and 400px
     if (newWidth >= 200 && newWidth <= 400) {
       setSidebarWidth(newWidth);
     }
@@ -201,98 +196,86 @@ export default function Sidebar() {
 
   return (
     <>
-      <div
-        className={`fixed inset-0 bg-black bg-opacity-30 z-30 transition-opacity md:hidden ${open ? 'block' : 'hidden'}`}
-        onClick={() => setOpen(false)}
-      />
-      <aside
+      <div className={`fixed inset-0 bg-black bg-opacity-30 z-30 transition-opacity md:hidden ${open ? 'block' : 'hidden'}`} onClick={() => setOpen(false)} />
+      <aside 
         className={`${sidebarBase} ${open ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 dark:bg-gray-900 dark:text-white bg-white text-gray-900`}
         style={{ width: `${sidebarWidth}px` }}
       >
         <div className="flex flex-col items-center gap-2 pt-8 pb-4 border-b border-gray-800 dark:border-gray-800 border-gray-200 px-4 relative">
-          <button
+          {/* Close button for mobile */}
+          <button 
             className="absolute top-2 right-2 p-2 rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors md:hidden"
             onClick={() => setOpen(false)}
             aria-label="Close sidebar"
           >
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </button>
-          <img
-            src="/kmu_logo.svg"
-            alt="KMU Logo"
-            width={64}
-            height={64}
-            className="mb-2 h-16 w-16 object-contain"
+          <img 
+            src="/kmu_logo.svg" 
+            alt="KMU Logo" 
+            width={64} 
+            height={64} 
+            className="mb-2 h-16 w-16 object-contain" 
             onError={(e) => {
+              console.error('Logo failed to load in sidebar');
               e.currentTarget.style.display = 'none';
+              // Show fallback text
               const fallback = document.createElement('div');
               fallback.className = 'text-2xl font-bold text-white mb-2';
               fallback.textContent = 'KMU';
               e.currentTarget.parentNode?.appendChild(fallback);
             }}
+            onLoad={() => console.log('Sidebar logo loaded successfully')}
           />
           <button
             className="mt-2 px-3 py-2 rounded bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
             onClick={toggleTheme}
             aria-label="Toggle dark mode"
           >
-            <span className="inline-flex items-center gap-2">
-              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-              <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-            </span>
+            {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
           </button>
-        </div>
+      </div>
         <nav className="flex flex-col gap-0.5 mt-6 px-4 pb-6 flex-1 justify-start overflow-y-auto">
           {navLinks
-            .filter((link) => !link.mobileOnly || isMobile)
-            .map((link) => {
-              const Icon = link.icon;
-
-              return link.label === 'Logout' ? (
-                <button
-                  key={link.path}
-                  onClick={() => logout()}
-                  className={`${linkBase} ${link.danger ? 'hover:bg-red-900 hover:text-red-400 dark:hover:text-red-400' : ''} text-gray-900 dark:text-white`}
-                >
-                  <span className="flex h-5 w-5 items-center justify-center" aria-hidden="true">
-                    <Icon size={18} />
-                  </span>
-                  <span>{link.label}</span>
-                </button>
-              ) : (
-                <Link
-                  key={link.path}
-                  href={link.path}
-                  className={`${linkBase} ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-900 hover:text-red-400 dark:hover:text-red-400' : ''} text-gray-900 dark:text-white`}
-                  onClick={() => setOpen(false)}
-                >
-                  <span className="flex h-5 w-5 items-center justify-center" aria-hidden="true">
-                    <Icon size={18} />
-                  </span>
-                  <span>{link.label}</span>
-                </Link>
-              );
-            })}
+            .filter(link => !link.mobileOnly || isMobile) // Only show mobileOnly items on mobile
+            .map(link =>
+            link.label === 'Logout' ? (
+              <button
+                key={link.path}
+                onClick={() => logout()}
+                className={
+                  `${linkBase} ${link.danger ? 'hover:bg-red-900 hover:text-red-400 dark:hover:text-red-400' : ''} text-gray-900 dark:text-white`}
+              >
+                {link.icon && <link.icon className="text-xl" />}
+                <span>{link.label}</span>
+              </button>
+            ) : (
+              <Link
+                key={link.path}
+                href={link.path}
+                className={
+                  `${linkBase} ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-900 hover:text-red-400 dark:hover:text-red-400' : ''} text-gray-900 dark:text-white`}
+                onClick={() => setOpen(false)} // Close sidebar on mobile when clicking a link
+              >
+                {link.icon && <link.icon className="text-xl" />}
+                <span>{link.label}</span>
+              </Link>
+            )
+          )}
         </nav>
-        <div
+        
+        {/* Resize handle - only visible on desktop */}
+        <div 
           className="absolute right-0 top-0 bottom-0 w-1 bg-gray-600 hover:bg-gray-500 cursor-col-resize hidden md:block"
           onMouseDown={handleMouseDown}
           title="Drag to resize sidebar"
         />
-      </aside>
-      <button
-        className="absolute top-4 left-4 z-50 p-3 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-lg border border-gray-200 dark:border-gray-700 md:hidden hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-        onClick={() => setOpen(!open)}
-        aria-label="Toggle sidebar"
-      >
-        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-menu">
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
+    </aside>
+      <button className="absolute top-4 left-4 z-50 p-3 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white shadow-lg border border-gray-200 dark:border-gray-700 md:hidden hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" onClick={() => setOpen(!open)} aria-label="Toggle sidebar">
+        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-menu"><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
       </button>
     </>
   );
