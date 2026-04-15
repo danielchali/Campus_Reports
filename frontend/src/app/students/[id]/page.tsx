@@ -402,7 +402,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                                                     href={`/cases/${caseItem._id}`}
                                                     className="text-kmuGreen hover:text-kmuOrange transition text-sm font-medium"
                                                 >
-                                                    View ->
+                                                    View Details
                                                 </Link>
                                             </div>
                                         ))}
