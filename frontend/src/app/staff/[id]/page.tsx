@@ -298,7 +298,41 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
                         </Link>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
+                    <>
+                    <div className="space-y-4 md:hidden">
+                        {cases.map((c) => (
+                            <div key={c._id} className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+                                <Link href={`/cases/${c._id}`} className="text-kmuGreen hover:underline font-medium">
+                                    {c._id.substring(0, 8)}...
+                                </Link>
+                                <div className="text-sm text-gray-900 dark:text-white">{c.offenseType || 'N/A'}</div>
+                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    {c.incidentDate ? new Date(c.incidentDate).toLocaleDateString() : 'N/A'}
+                                </div>
+                                <div className="flex gap-2 flex-wrap">
+                                    <span className={`px-2 py-1 rounded text-xs ${
+                                        c.severity === 'Critical' ? 'bg-red-100 text-red-800' :
+                                        c.severity === 'High' ? 'bg-orange-100 text-orange-800' :
+                                        c.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                        'bg-green-100 text-green-800'
+                                    }`}>
+                                        {c.severity || 'N/A'}
+                                    </span>
+                                    <span className={`px-2 py-1 rounded text-xs ${
+                                        c.status === 'Open' ? 'bg-blue-100 text-blue-800' :
+                                        c.status === 'Closed' ? 'bg-green-100 text-green-800' :
+                                        'bg-gray-100 text-gray-800'
+                                    }`}>
+                                        {c.status || 'N/A'}
+                                    </span>
+                                </div>
+                                <Link href={`/cases/${c._id}`} className="text-kmuGreen hover:underline text-sm font-medium">
+                                    View Details
+                                </Link>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead className="bg-gray-50 dark:bg-gray-700">
                                 <tr>
@@ -357,6 +391,7 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
                             </tbody>
                         </table>
                     </div>
+                    </>
                 )}
             </div>
         </section>

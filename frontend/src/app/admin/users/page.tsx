@@ -283,7 +283,70 @@ export default function UserManagementPage() {
           {loading ? (
             <div className="text-gray-500 dark:text-gray-400">Loading users...</div>
           ) : (
-            <div className="overflow-x-auto -mx-3 md:mx-0">
+            <>
+            <div className="space-y-4 md:hidden">
+              {filteredUsers.map((u) => {
+                const userId = u.id || u._id;
+                const isEditing = editingUserId === userId;
+
+                return (
+                  <div key={userId} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.includes(userId)}
+                        onChange={() => toggleSelect(userId)}
+                        className="mt-1"
+                      />
+                      <div className="min-w-0 flex-1">
+                        {isEditing ? (
+                          <div className="space-y-3">
+                            <input
+                              type="text"
+                              className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                              value={editUser.username}
+                              onChange={e => setEditUser((eu: any) => ({ ...eu, username: e.target.value }))}
+                            />
+                            <input
+                              type="text"
+                              className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                              value={editUser.name}
+                              onChange={e => setEditUser((eu: any) => ({ ...eu, name: e.target.value }))}
+                            />
+                            <select
+                              className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                              value={editUser.role}
+                              onChange={e => setEditUser((eu: any) => ({ ...eu, role: e.target.value }))}
+                            >
+                              {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                            </select>
+                            <div className="flex gap-2">
+                              <button className="bg-kmuGreen text-white px-3 py-1 rounded text-xs" onClick={handleEdit}>Save</button>
+                              <button className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-1 rounded text-xs" onClick={cancelEdit}>Cancel</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="font-medium text-gray-900 dark:text-white">{u.username}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">{u.name}</div>
+                            <div className="mt-2">
+                              <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
+                                {u.role}
+                              </span>
+                            </div>
+                            <div className="flex gap-2 mt-3">
+                              <button className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition" onClick={() => startEdit(u)}>Edit</button>
+                              <button className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition" onClick={() => handleDelete(userId)}>Delete</button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="hidden md:block overflow-x-auto -mx-3 md:mx-0">
               <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow text-sm md:text-base">
                 <thead className="bg-kmuGreen text-white">
                   <tr>
@@ -394,6 +457,7 @@ export default function UserManagementPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       </div>

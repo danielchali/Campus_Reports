@@ -473,8 +473,89 @@ export default function CasesPage() {
           </div>
         )}
 
+        {/* Mobile cards */}
+        <div className="space-y-4 md:hidden">
+          {filteredCases.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center text-gray-500 dark:text-gray-400">
+              No cases found
+            </div>
+          ) : (
+            filteredCases.map((s) => {
+              const person = getCasePerson(s);
+              return (
+                <div key={s._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.includes(s._id)}
+                        onChange={() => toggleSelect(s._id)}
+                        className="mt-1"
+                      />
+                      <div>
+                        {person ? (
+                          <>
+                            <Link href={person.link} className="text-kmuGreen hover:underline font-semibold">
+                              {person.name}
+                            </Link>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {person.type === 'student' ? 'Student' : 'Staff'} • {person.id}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="font-semibold text-gray-900 dark:text-white">Unknown</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">No person data</div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <span className={`px-2 py-1 rounded text-xs ${
+                      s.status === 'Open' ? 'bg-red-100 text-red-800' :
+                      s.status === 'Closed' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {s.status || '-'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
+                      <div className="text-gray-900 dark:text-white">{person?.department || '-'}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Date</div>
+                      <div className="text-gray-900 dark:text-white">{s.incidentDate ? new Date(s.incidentDate).toLocaleDateString() : '-'}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Offense</div>
+                      <div className="text-gray-900 dark:text-white">{s.offenseType || '-'}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Severity</div>
+                      <span className={`inline-block px-2 py-1 rounded text-xs ${
+                        s.severity === 'High' ? 'bg-red-100 text-red-800' :
+                        s.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                        s.severity === 'Low' ? 'bg-green-100 text-green-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {s.severity || '-'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <Link href={`/cases/${s._id}`} className="inline-flex text-kmuGreen hover:underline text-sm font-medium">
+                    View Details
+                  </Link>
+                </div>
+              );
+            })
+          )}
+        </div>
+
         {/* Cases Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-700">

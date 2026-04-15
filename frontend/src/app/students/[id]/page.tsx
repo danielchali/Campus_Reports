@@ -379,7 +379,35 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                                         <div className="text-gray-500 dark:text-gray-400">No disciplinary cases found for this student.</div>
                                 </div>
                                 ) : (
-                                    <div className="overflow-x-auto -mx-3 md:mx-0">
+                                    <>
+                                    <div className="space-y-4 md:hidden">
+                                        {cases.map((caseItem) => (
+                                            <div key={caseItem._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-3">
+                                                <div className="font-mono text-xs text-gray-500 dark:text-gray-400">{caseItem._id}</div>
+                                                <div className="text-gray-900 dark:text-white">{caseItem.description || '-'}</div>
+                                                <div className="flex gap-2 flex-wrap">
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSeverityColor(caseItem.severity)}`}>
+                                                        {caseItem.severity}
+                                                    </span>
+                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(caseItem.status)}`}>
+                                                        {caseItem.status}
+                                                    </span>
+                                                </div>
+                                                {caseItem.sanctions && (
+                                                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                                                        Sanctions: {caseItem.sanctions}
+                                                    </div>
+                                                )}
+                                                <Link
+                                                    href={`/cases/${caseItem._id}`}
+                                                    className="text-kmuGreen hover:text-kmuOrange transition text-sm font-medium"
+                                                >
+                                                    View ->
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="hidden md:block overflow-x-auto -mx-3 md:mx-0">
                                         <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow text-sm md:text-base">
                                             <thead className="bg-kmuGreen text-white">
                                                 <tr>
@@ -435,6 +463,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                                             </tbody>
                                         </table>
                                     </div>
+                                    </>
                                 )}
                             </div>
                         )}

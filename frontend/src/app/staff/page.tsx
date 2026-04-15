@@ -577,8 +577,60 @@ export default function StaffPage() {
               </div>
             )}
             
+            {/* Mobile cards */}
+            <div className="space-y-4 md:hidden p-4">
+              {filteredStaff.length === 0 ? (
+                <div className="text-center text-gray-500 dark:text-gray-400 py-4">
+                  No staff members found
+                </div>
+              ) : (
+                filteredStaff.map((s) => (
+                  <div key={s.staffId} className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.includes(s.staffId)}
+                        onChange={() => toggleSelect(s.staffId)}
+                        className="mt-1"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <Link href={`/staff/${s.staffId}`} className="text-kmuGreen hover:underline font-semibold">
+                              {s.fullName}
+                            </Link>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">{s.staffId}</div>
+                          </div>
+                          <button
+                            onClick={() => handleDelete(s.staffId)}
+                            disabled={loading}
+                            className="text-red-600 hover:text-red-800 text-sm disabled:opacity-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                        <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
+                            <div className="text-gray-900 dark:text-white">{s.department}</div>
+                          </div>
+                          <div>
+                            <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Position</div>
+                            <div className="text-gray-900 dark:text-white">{s.position || 'N/A'}</div>
+                          </div>
+                        </div>
+                        <Link href={`/staff/${s.staffId}`} className="inline-flex mt-3 text-kmuGreen hover:underline text-sm font-medium">
+                          View Details
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
             {/* Staff Table */}
-            <div className="overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>

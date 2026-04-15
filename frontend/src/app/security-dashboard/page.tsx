@@ -328,7 +328,62 @@ export default function SecurityDashboard() {
             </div>
           </div>
           
-          <div className="overflow-x-auto">
+          <div className="space-y-4 md:hidden">
+            {filteredCases.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                No cases found
+              </div>
+            ) : (
+              filteredCases.slice(0, 10).map((c: any) => (
+                <div
+                  key={c._id}
+                  className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                  onClick={() => router.push(`/cases/${c._id}`)}
+                >
+                  <div>
+                    <div className="text-sm font-medium text-kmuGreen">
+                      {c.student ? c.student.fullName : c.staff ? c.staff.fullName : 'Unknown'}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {c.student ? `Student: ${c.student.studentId}` : c.staff ? `Staff: ${c.staff.staffId}` : 'No ID'}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
+                      <div>{c.student?.department || c.staff?.department || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Date</div>
+                      <div>{c.incidentDate ? new Date(c.incidentDate).toLocaleDateString() : 'N/A'}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Offense</div>
+                      <div>{c.offenseType || 'N/A'}</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 flex-wrap">
+                    <span className={`px-2 py-1 text-xs rounded ${
+                      c.severity === 'High' ? 'bg-red-100 text-red-800' :
+                      c.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                      c.severity === 'Low' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {c.severity || 'N/A'}
+                    </span>
+                    <span className={`px-2 py-1 text-xs rounded ${
+                      c.status === 'Open' ? 'bg-red-100 text-red-800' :
+                      c.status === 'Closed' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {c.status || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="hidden md:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>

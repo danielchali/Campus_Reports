@@ -549,7 +549,58 @@ export default function StudentsPage() {
         {error && <div className="text-red-600 text-sm mb-2" aria-live="polite">{error}</div>}
         {success && <div className="text-kmuGreen text-sm mb-2" aria-live="polite">{success}</div>}
         {loading && <div className="text-kmuGreen text-sm mb-2">Loading...</div>}
-        <div className="overflow-x-auto -mx-3 md:mx-0">
+        <div className="space-y-4 md:hidden">
+          {filteredStudents.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center text-gray-500 dark:text-gray-400">
+              No students found
+            </div>
+          ) : (
+            filteredStudents.map(s => (
+              <div key={(s as any)._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes((s as any)._id)}
+                    onChange={() => toggleSelect((s as any)._id)}
+                    className="mt-1"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <Link href={`/students/${(s as any)._id}`} className="text-kmuGreen hover:underline font-semibold">
+                          {s.fullName}
+                        </Link>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">{s.studentId}</div>
+                      </div>
+                      <div className="text-right text-xs text-gray-500 dark:text-gray-400">
+                        {s.year ? `Year ${s.year}` : ''}
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
+                        <div className="text-gray-900 dark:text-white">{s.department}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Gender</div>
+                        <div className="text-gray-900 dark:text-white">{s.gender || '-'}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-3 mt-3">
+                      <Link href={`/students/${(s as any)._id}`} className="text-kmuGreen hover:underline text-sm font-medium">
+                        View Profile
+                      </Link>
+                      <Link href={`/students/${(s as any)._id}?tab=add-case`} className="text-kmuOrange hover:underline text-sm">
+                        Add Case
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="hidden md:block overflow-x-auto -mx-3 md:mx-0">
           <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow text-sm md:text-base">
             <thead className="bg-kmuGreen text-white">
               <tr>

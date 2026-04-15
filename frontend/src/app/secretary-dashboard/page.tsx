@@ -259,7 +259,61 @@ export default function SecretaryDashboard() {
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <div className="overflow-x-auto">
+          <div className="space-y-4 md:hidden">
+            {filteredCases.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                No cases found.
+              </div>
+            ) : (
+              filteredCases
+                .sort((a: Case, b: Case) => new Date(b.createdAt || b.incidentDate || 0).getTime() - new Date(a.createdAt || a.incidentDate || 0).getTime())
+                .slice(0, 10)
+                .map((c: Case, i: number) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                    onClick={() => router.push(`/cases/${c._id}`)}
+                  >
+                    <div>
+                      <div className="font-medium text-kmuGreen">{c.student?.fullName || 'Unknown'}</div>
+                      <div className="text-xs text-gray-500">{c.student?.studentId || ''}</div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
+                        <div>{c.student?.department || 'N/A'}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Date</div>
+                        <div>{c.incidentDate || 'N/A'}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Offense</div>
+                        <div>{c.offenseType || 'N/A'}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        c.severity === 'Critical' ? 'bg-red-100 text-red-800' :
+                        c.severity === 'High' ? 'bg-orange-100 text-orange-800' :
+                        c.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {c.severity || 'N/A'}
+                      </span>
+                      <span className={`px-2 py-1 rounded text-xs ${
+                        c.status === 'Open' ? 'bg-blue-100 text-blue-800' :
+                        c.status === 'Closed' ? 'bg-gray-100 text-gray-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {c.status || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                ))
+            )}
+          </div>
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-600">
