@@ -30,7 +30,11 @@ const cases = [
 
 async function insertMockData() {
     try {
-        await mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+        const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+        if (!mongoUri) {
+            throw new Error('Missing MongoDB URI. Set MONGO_URI or MONGODB_URI in your environment.');
+        }
+        await mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
         await User.deleteMany({});
         await Student.deleteMany({});
         await Case.deleteMany({});
