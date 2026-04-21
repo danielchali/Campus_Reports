@@ -72,26 +72,26 @@ function TopNavbar() {
 
   return (
     <nav className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+      <div className="px-3 md:px-4 py-2 md:py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <h1 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white truncate">
             KMU Discipline Desk
           </h1>
         </div>
         
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-600 dark:text-gray-300">
+          <span className="text-xs md:text-sm text-gray-600 dark:text-gray-300 hidden sm:inline truncate">
             {user.name || user.username}
           </span>
           <button
             onClick={logout}
-            className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+            className="px-2 md:px-3 py-1 text-xs md:text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors whitespace-nowrap"
           >
             Logout
           </button>
         </div>
       </div>
-        </nav>
+    </nav>
   );
 }
 
@@ -126,11 +126,11 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
           marginLeft: shouldShowNav && !isMobile ? `${sidebarWidth}px` : '0px'
         }}
       >
-        {/* Hide top navbar on mobile */}
-        <div className="hidden md:block">
+        {/* Show top navbar on all screens */}
+        <div>
           {shouldShowNav && <TopNavbar />}
         </div>
-        <main className="flex-1 px-2 py-2 pb-24 md:px-6 md:py-8 md:pb-8 overflow-x-hidden">
+        <main className="flex-1 px-3 py-3 pb-24 sm:px-4 md:px-6 md:py-8 md:pb-8 overflow-x-hidden">
           <Suspense fallback={<LoadingFallback />}>
             {children}
           </Suspense>

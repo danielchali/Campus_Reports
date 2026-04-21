@@ -95,15 +95,15 @@ export default function MakeReportPage() {
   };
 
   return (
-    <section className="max-w-4xl mx-auto space-y-8">
-      <div className="rounded-3xl bg-white dark:bg-gray-800 p-8 shadow">
-        <div className="flex items-start gap-4">
-          <div className="rounded-2xl bg-kmuGreen/10 p-3 text-kmuGreen">
-            <FilePenLine size={26} />
+    <section className="max-w-4xl mx-auto space-y-6 md:space-y-8">
+      <div className="rounded-2xl md:rounded-3xl bg-white dark:bg-gray-800 p-4 md:p-8 shadow">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-3 md:gap-4">
+          <div className="rounded-lg md:rounded-2xl bg-kmuGreen/10 p-2 md:p-3 text-kmuGreen flex-shrink-0">
+            <FilePenLine size={22} />
           </div>
           <div>
-            <h1 className="text-4xl font-bold text-kmuGreen">Make a Report</h1>
-            <p className="mt-3 text-gray-600 dark:text-gray-400 text-lg">
+            <h1 className="text-2xl md:text-4xl font-bold text-kmuGreen">Make a Report</h1>
+            <p className="mt-2 md:mt-3 text-gray-600 dark:text-gray-400 text-sm md:text-lg">
               Submit a concern, choose the type of issue, and decide whether the report should be handled anonymously.
             </p>
           </div>
@@ -111,13 +111,13 @@ export default function MakeReportPage() {
       </div>
 
       {success && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 p-4 text-emerald-800 dark:text-emerald-300">
-          <div className="flex items-start gap-3">
-            <CheckCircle2 size={20} className="mt-0.5" />
+        <div className="rounded-lg md:rounded-2xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 p-3 md:p-4 text-emerald-800 dark:text-emerald-300">
+          <div className="flex items-start gap-2 md:gap-3">
+            <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-semibold">{success}</p>
+              <p className="font-semibold text-sm md:text-base">{success}</p>
               {trackingCode && (
-                <p className="text-sm mt-1">
+                <p className="text-xs md:text-sm mt-1">
                   Tracking code: <span className="font-semibold">{trackingCode}</span>
                 </p>
               )}
@@ -127,33 +127,33 @@ export default function MakeReportPage() {
       )}
 
       {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 dark:bg-red-900/20 p-4 text-red-700 dark:text-red-300">
-          <div className="flex items-start gap-3">
-            <AlertTriangle size={20} className="mt-0.5" />
-            <p>{error}</p>
+        <div className="rounded-lg md:rounded-2xl border border-red-200 bg-red-50 dark:bg-red-900/20 p-3 md:p-4 text-red-700 dark:text-red-300">
+          <div className="flex items-start gap-2 md:gap-3">
+            <AlertTriangle size={18} className="mt-0.5 flex-shrink-0" />
+            <p className="text-sm md:text-base">{error}</p>
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="rounded-3xl bg-white dark:bg-gray-800 p-8 shadow space-y-8">
+      <form onSubmit={handleSubmit} className="rounded-2xl md:rounded-3xl bg-white dark:bg-gray-800 p-4 md:p-8 shadow space-y-6 md:space-y-8">
         <div>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Reporting Form</h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <h2 className="text-lg md:text-2xl font-semibold text-gray-900 dark:text-white">Reporting Form</h2>
+          <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-2">
             Provide enough detail for follow-up and review. You can still track anonymous submissions from your account.
           </p>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
           {categoryOptions.map((option) => (
             <label
               key={option.value}
-              className={`rounded-2xl border p-5 cursor-pointer transition ${
+              className={`rounded-lg md:rounded-2xl border p-3 md:p-5 cursor-pointer transition ${
                 category === option.value
                   ? 'border-kmuGreen bg-kmuGreen/5'
                   : 'border-gray-200 dark:border-gray-700'
               }`}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-2 md:gap-3">
                 <input
                   type="radio"
                   name="reportCategory"
@@ -163,20 +163,20 @@ export default function MakeReportPage() {
                   className="mt-1"
                 />
                 <div>
-                  <div className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white">
-                    {option.value === 'disciplinary_case' ? <ShieldAlert size={18} /> : <Wrench size={18} />}
+                  <div className="flex items-center gap-2 font-semibold text-gray-900 dark:text-white text-sm md:text-base">
+                    {option.value === 'disciplinary_case' ? <ShieldAlert size={16} /> : <Wrench size={16} />}
                     {option.label}
                   </div>
-                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{option.description}</p>
+                  <p className="mt-1 md:mt-2 text-xs md:text-sm text-gray-600 dark:text-gray-400">{option.description}</p>
                 </div>
               </div>
             </label>
           ))}
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:gap-6 md:grid-cols-2">
           <div>
-            <label htmlFor="title" className="block mb-2 font-medium text-gray-900 dark:text-white">
+            <label htmlFor="title" className="block mb-2 font-medium text-gray-900 dark:text-white text-sm md:text-base">
               Report Title
             </label>
             <input
@@ -185,12 +185,12 @@ export default function MakeReportPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Briefly describe the issue"
-              className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white"
+              className="w-full rounded-lg md:rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 md:px-4 py-2 md:py-3 text-sm md:text-base text-gray-900 dark:text-white"
               required
             />
           </div>
           <div>
-            <label htmlFor="location" className="block mb-2 font-medium text-gray-900 dark:text-white">
+            <label htmlFor="location" className="block mb-2 font-medium text-gray-900 dark:text-white text-sm md:text-base">
               Location
             </label>
             <input
@@ -199,14 +199,14 @@ export default function MakeReportPage() {
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="Hostel, classroom, lab, walkway, or building"
-              className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white"
+              className="w-full rounded-lg md:rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 md:px-4 py-2 md:py-3 text-sm md:text-base text-gray-900 dark:text-white"
               required
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="incidentDate" className="block mb-2 font-medium text-gray-900 dark:text-white">
+          <label htmlFor="incidentDate" className="block mb-2 font-medium text-gray-900 dark:text-white text-sm md:text-base">
             Date of Incident or Observation
           </label>
           <input
@@ -214,13 +214,13 @@ export default function MakeReportPage() {
             type="date"
             value={incidentDate}
             onChange={(e) => setIncidentDate(e.target.value)}
-            className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white"
+            className="w-full rounded-lg md:rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 md:px-4 py-2 md:py-3 text-sm md:text-base text-gray-900 dark:text-white"
             required
           />
         </div>
 
         <div>
-          <label htmlFor="description" className="block mb-2 font-medium text-gray-900 dark:text-white">
+          <label htmlFor="description" className="block mb-2 font-medium text-gray-900 dark:text-white text-sm md:text-base">
             Full Description
           </label>
           <textarea
@@ -229,49 +229,49 @@ export default function MakeReportPage() {
             onChange={(e) => setDescription(e.target.value)}
             rows={6}
             placeholder="Explain what happened, who or what was involved, and why this needs attention."
-            className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white"
+            className="w-full rounded-lg md:rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 md:px-4 py-2 md:py-3 text-sm md:text-base text-gray-900 dark:text-white"
             required
           />
         </div>
 
-        <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-5">
-          <div className="flex items-start justify-between gap-4">
+        <div className="rounded-lg md:rounded-2xl border border-gray-200 dark:border-gray-700 p-3 md:p-5">
+          <div className="flex items-start justify-between gap-3 md:gap-4">
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white">Anonymous Report</h3>
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+              <h3 className="font-semibold text-gray-900 dark:text-white text-sm md:text-base">Anonymous Report</h3>
+              <p className="mt-1 text-xs md:text-sm text-gray-600 dark:text-gray-400">
                 Turn this on if you want the report handled as anonymous. You will still be able to track it from your account.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setAnonymous((current) => !current)}
-              className={`relative inline-flex h-8 w-14 items-center rounded-full transition ${
+              className={`relative inline-flex h-7 md:h-8 w-12 md:w-14 items-center rounded-full transition flex-shrink-0 ${
                 anonymous ? 'bg-kmuGreen' : 'bg-gray-300 dark:bg-gray-600'
               }`}
               aria-pressed={anonymous}
               aria-label="Toggle anonymous report"
             >
               <span
-                className={`inline-block h-6 w-6 transform rounded-full bg-white transition ${
-                  anonymous ? 'translate-x-7' : 'translate-x-1'
+                className={`inline-block h-5 md:h-6 w-5 md:w-6 transform rounded-full bg-white transition ${
+                  anonymous ? 'translate-x-6 md:translate-x-7' : 'translate-x-0.5 md:translate-x-1'
                 }`}
               />
             </button>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col sm:flex-row gap-2 md:gap-3">
           <button
             type="submit"
             disabled={submitting}
-            className="rounded-xl bg-kmuGreen px-6 py-3 text-white font-semibold hover:bg-kmuOrange transition disabled:opacity-60"
+            className="rounded-lg md:rounded-xl bg-kmuGreen px-4 md:px-6 py-2 md:py-3 text-sm md:text-base text-white font-semibold hover:bg-kmuOrange transition disabled:opacity-60 w-full sm:w-auto"
           >
             {submitting ? 'Submitting...' : 'Submit Report'}
           </button>
           <button
             type="button"
             onClick={() => router.push('/my-reports')}
-            className="rounded-xl bg-gray-200 dark:bg-gray-700 px-6 py-3 text-gray-900 dark:text-white font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+            className="rounded-lg md:rounded-xl bg-gray-200 dark:bg-gray-700 px-4 md:px-6 py-2 md:py-3 text-sm md:text-base text-gray-900 dark:text-white font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition w-full sm:w-auto"
           >
             Go to My Reports
           </button>
