@@ -1,13 +1,31 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-body {
-    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-}
 
-html,
-body {
-    @apply bg-white text-gray-900 transition-colors duration-200;
+@layer base {
+  :root {
+      font-size: 15px;
+  }
+
+  @media (min-width: 768px) {
+      :root {
+          font-size: 16px;
+      }
+  }
+
+  html,
+  body {
+      @apply bg-white text-gray-900 transition-colors duration-200;
+  }
+
+  body {
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      font-size: 1rem;
+  }
+
+  input, select, textarea, button {
+      font-size: inherit;
+  }
 }
 
 .dark html,
@@ -60,4 +78,16 @@ select:focus {
 
 * {
     box-sizing: border-box;
+}
+
+@media (min-width: 768px) {
+    .sidebar-scroll {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar {
+        display: none;
+        width: 0;
+    }
 }

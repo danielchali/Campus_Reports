@@ -112,8 +112,8 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
 
   return (
     <div className="flex min-h-screen">
-      {/* Desktop sidebar */}
-      {shouldShowNav && !isMobile && (
+      {/* Sidebar */}
+      {shouldShowNav && (
         <Suspense fallback={<LoadingFallback />}>
           <Sidebar />
         </Suspense>

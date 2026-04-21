@@ -514,8 +514,8 @@ export default function StaffPage() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
             {/* Search and Filters */}
             <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex flex-col md:flex-row gap-3">
-                <div className="flex-1">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1.4fr)_repeat(2,minmax(0,1fr))]">
+                <div className="w-full">
                   <input
                     type="text"
                     placeholder="Search staff..."
@@ -524,11 +524,11 @@ export default function StaffPage() {
                     className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
-                <div>
+                <div className="w-full">
                   <select
                     value={departmentFilter}
                     onChange={(e) => setDepartmentFilter(e.target.value)}
-                    className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="">All Departments</option>
                     {DEPARTMENTS.map(dept => (
@@ -536,11 +536,11 @@ export default function StaffPage() {
                     ))}
                   </select>
                 </div>
-                <div>
+                <div className="w-full">
                   <select
                     value={positionFilter}
                     onChange={(e) => setPositionFilter(e.target.value)}
-                    className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="">All Positions</option>
                     {POSITIONS.map(pos => (
@@ -554,21 +554,23 @@ export default function StaffPage() {
             {/* Bulk Actions */}
             {selected.length > 0 && (
               <div className="p-4 bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm">
+                <div className="flex flex-col gap-3">
+                  <div className="text-sm font-medium">
                     {selected.length} staff member(s) selected
                   </div>
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     <button
+                      type="button"
                       onClick={handleBulkDelete}
                       disabled={loading}
-                      className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 disabled:opacity-50"
+                      className="w-full px-4 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700 disabled:opacity-50"
                     >
                       Delete Selected
                     </button>
                     <button
+                      type="button"
                       onClick={() => setSelected([])}
-                      className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+                      className="w-full px-4 py-2 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
                     >
                       Clear Selection
                     </button>

@@ -142,3 +142,35 @@ export function getNavLinksForRole(role?: string): NavLink[] {
 
   return [{ icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true }];
 }
+
+export function splitNavLinksForMobile(navLinks: NavLink[]) {
+  const bottomNav: NavLink[] = [];
+  const sidebarNav: NavLink[] = [];
+
+  const settingsLabels = [
+    'Profile & Settings',
+    'My Profile',
+    'Manage Users',
+    'Audit/Logs',
+    'Help',
+    'Admin Panel',
+    'Logout',
+  ];
+
+  for (const link of navLinks) {
+    if (settingsLabels.includes(link.label)) {
+      sidebarNav.push(link);
+    } else {
+      if (bottomNav.length < 4) {
+        bottomNav.push(link);
+      } else {
+        sidebarNav.push(link);
+      }
+    }
+  }
+
+  // Ensure logout is always in sidebarNav if it's in navLinks
+  // But our settingsLabels already includes 'Logout'
+
+  return { bottomNav, sidebarNav };
+}

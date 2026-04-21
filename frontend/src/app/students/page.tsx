@@ -434,222 +434,363 @@ export default function StudentsPage() {
 
 
   return (
-      <section>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-kmuGreen">Students</h1>
-            {offlineMode && (
-              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded">
-                Offline Mode
-              </span>
-            )}
-          </div>
+    <section className="max-w-6xl mx-auto">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-kmuGreen">Students</h1>
+          {offlineMode && (
+            <span className="rounded bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">
+              Offline Mode
+            </span>
+          )}
         </div>
-        {user && (user.role === 'admin' || user.role === 'academic_office') && (
-          <form className="mb-4 flex gap-2 flex-wrap" onSubmit={handleAdd} aria-label="Add student form">
-            <label htmlFor="studentId" className="sr-only">Student ID</label>
-            <input id="studentId" type="text" placeholder="Student ID" value={studentId} onChange={e => setStudentId(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" required aria-label="Student ID" />
-            <label htmlFor="fullName" className="sr-only">Full Name</label>
-            <input id="fullName" type="text" placeholder="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" required aria-label="Full Name" />
-            <label htmlFor="department" className="sr-only">Department</label>
-            <input id="department" type="text" placeholder="Department" value={department} onChange={e => setDepartment(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" required aria-label="Department" />
-            <label htmlFor="year" className="sr-only">Year</label>
-            <input id="year" type="text" placeholder="Year" value={year} onChange={e => setYear(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400" aria-label="Year" />
-            <label htmlFor="gender" className="sr-only">Gender</label>
-            <select id="gender" value={gender} onChange={e => setGender(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" aria-label="Gender">
-              <option value="">Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-            <button type="submit" className="bg-kmuGreen text-white px-4 py-1 rounded" disabled={loading} aria-label="Add student">Add</button>
-          </form>
-        )}
-        <div className="mb-4 flex flex-col sm:flex-row gap-2 md:items-center">
-          <div className="flex flex-wrap gap-2">
-          <label className="bg-kmuOrange text-white px-4 py-2 rounded cursor-pointer hover:bg-kmuGreen transition text-sm">
-            Import Students (CSV/Excel)
-            <input type="file" accept=".csv,.xls,.xlsx" onChange={handleImport} className="hidden" />
-          </label>
-          <button 
-            onClick={() => {
-              const link = document.createElement('a');
-              link.href = '/students_import_template.csv';
-              link.download = 'students_import_template.csv';
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            }}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition text-sm"
-          >
-            📥 Download Template
-          </button>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <input
-              type="text"
-              placeholder="Search by name or ID"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm"
-            />
-            <select value={departmentFilter} onChange={e => setDepartmentFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-              <option value="">All Departments</option>
-              {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-            <select value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-              <option value="">All Years</option>
-              {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-            <select value={genderFilter} onChange={e => setGenderFilter(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-              <option value="">All Genders</option>
-              {GENDERS.map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm" onClick={selectAll}>Select All</button>
-            <button className="bg-gray-200 text-gray-700 px-2 py-1 rounded text-sm" onClick={clearSelected}>Clear</button>
-            {selected.length > 0 && (
-              <>
-                {(user?.role === 'admin' || user?.role === 'academic_office') && (
-                  <button className="bg-red-600 text-white px-2 py-1 rounded text-sm" onClick={handleBulkDelete}>Delete Selected</button>
-                )}
-              </>
-            )}
-            <button className="bg-kmuGreen text-white px-2 py-1 rounded text-sm" onClick={handleExportStudentsList}>Export Students List (DOCX)</button>
-          </div>
-          </div>
-        {/* Pagination controls */}
-        <div className="flex flex-wrap gap-2 items-center my-4">
-          <button
-            className="px-2 py-1 rounded bg-gray-200 text-gray-700"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            disabled={page === 1}
-          >
-            Prev
-          </button>
-          {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1).map(p => (
-            <button
-              key={p}
-              className={`px-2 py-1 rounded ${p === page ? 'bg-kmuGreen text-white' : 'bg-gray-100 text-gray-700'}`}
-              onClick={() => setPage(p)}
-            >
-              {p}
-            </button>
-          ))}
-          <button
-            className="px-2 py-1 rounded bg-gray-200 text-gray-700"
-            onClick={() => setPage(p => Math.min(Math.ceil(total / limit), p + 1))}
-            disabled={page === Math.ceil(total / limit) || total === 0}
-          >
-            Next
-          </button>
-          <span className="ml-2 text-sm text-gray-500">Page {page} of {Math.max(1, Math.ceil(total / limit))}</span>
+        <button
+          type="button"
+          onClick={handleExportStudentsList}
+          className="w-full rounded bg-kmuGreen px-4 py-2 text-white transition hover:bg-kmuOrange sm:w-auto"
+        >
+          Export Students List
+        </button>
+      </div>
+
+      {error && (
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" aria-live="polite">
+          {error}
         </div>
-        {error && <div className="text-red-600 text-sm mb-2" aria-live="polite">{error}</div>}
-        {success && <div className="text-kmuGreen text-sm mb-2" aria-live="polite">{success}</div>}
-        {loading && <div className="text-kmuGreen text-sm mb-2">Loading...</div>}
-        <div className="space-y-4 md:hidden">
-          {filteredStudents.length === 0 ? (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center text-gray-500 dark:text-gray-400">
-              No students found
-            </div>
-          ) : (
-            filteredStudents.map(s => (
-              <div key={(s as any)._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-3">
-                <div className="flex items-start gap-3">
+      )}
+      {success && (
+        <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700" aria-live="polite">
+          {success}
+        </div>
+      )}
+      {loading && <div className="mb-4 text-sm text-kmuGreen">Loading...</div>}
+
+      <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+            <h2 className="mb-4 text-lg font-semibold text-kmuOrange">Add New Student</h2>
+            <form onSubmit={handleAdd} className="space-y-4">
+              <div>
+                <label htmlFor="studentId" className="mb-1 block text-sm font-medium">Student ID *</label>
+                <input
+                  id="studentId"
+                  type="text"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="fullName" className="mb-1 block text-sm font-medium">Full Name *</label>
+                <input
+                  id="fullName"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="department" className="mb-1 block text-sm font-medium">Department *</label>
+                <select
+                  id="department"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  required
+                >
+                  <option value="">Select Department</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="year" className="mb-1 block text-sm font-medium">Year</label>
+                  <select
+                    id="year"
+                    value={year}
+                    onChange={(e) => setYear(e.target.value)}
+                    className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="">Select Year</option>
+                    {YEARS.map((item) => (
+                      <option key={item} value={item}>{item}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="gender" className="mb-1 block text-sm font-medium">Gender</label>
+                  <select
+                    id="gender"
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="">Select Gender</option>
+                    {GENDERS.map((item) => (
+                      <option key={item} value={item}>{item}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded bg-kmuGreen px-4 py-2 text-white transition hover:bg-kmuOrange disabled:opacity-50"
+              >
+                {loading ? 'Adding...' : 'Add Student'}
+              </button>
+            </form>
+
+            <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
+              <h3 className="mb-3 font-medium">Bulk Import</h3>
+              <div className="space-y-3">
+                <label className="block">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Upload CSV or Excel file:</span>
                   <input
-                    type="checkbox"
-                    checked={selected.includes((s as any)._id)}
-                    onChange={() => toggleSelect((s as any)._id)}
-                    className="mt-1"
+                    type="file"
+                    accept=".csv,.xls,.xlsx"
+                    onChange={handleImport}
+                    disabled={loading}
+                    className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded file:border-0 file:bg-kmuGreen file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-kmuOrange"
                   />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <Link href={`/students/${(s as any)._id}`} className="text-kmuGreen hover:underline font-semibold">
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  CSV/Excel files should include columns: studentId, fullName, department (required)
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2">
+          <div className="rounded-lg bg-white shadow dark:bg-gray-800">
+            <div className="border-b border-gray-200 p-4 dark:border-gray-700 md:p-6">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
+                <input
+                  type="text"
+                  placeholder="Search students..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+                <select
+                  value={departmentFilter}
+                  onChange={(e) => setDepartmentFilter(e.target.value)}
+                  className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="">All Departments</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+                <select
+                  value={yearFilter}
+                  onChange={(e) => setYearFilter(e.target.value)}
+                  className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="">All Years</option>
+                  {YEARS.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+                <select
+                  value={genderFilter}
+                  onChange={(e) => setGenderFilter(e.target.value)}
+                  className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="">All Genders</option>
+                  {GENDERS.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="border-b border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                <button
+                  type="button"
+                  className="rounded bg-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                  onClick={selectAll}
+                >
+                  Select All
+                </button>
+                <button
+                  type="button"
+                  className="rounded bg-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                  onClick={clearSelected}
+                >
+                  Clear
+                </button>
+                {selected.length > 0 && (
+                  <button
+                    type="button"
+                    className="rounded bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-700"
+                    onClick={handleBulkDelete}
+                  >
+                    Delete Selected
+                  </button>
+                )}
+                <div className="flex items-center justify-center rounded border border-dashed border-gray-300 px-3 py-2 text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                  {selected.length} selected
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 p-4 md:hidden">
+              {filteredStudents.length === 0 ? (
+                <div className="rounded-lg bg-white p-6 text-center text-gray-500 shadow dark:bg-gray-800 dark:text-gray-400">
+                  No students found
+                </div>
+              ) : (
+                filteredStudents.map((s) => (
+                  <div key={(s as any)._id} className="space-y-3 rounded-lg border border-gray-200 p-4 dark:border-gray-700">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selected.includes((s as any)._id)}
+                        onChange={() => toggleSelect((s as any)._id)}
+                        className="mt-1"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <Link href={`/students/${(s as any)._id}`} className="font-semibold text-kmuGreen hover:underline">
+                              {s.fullName}
+                            </Link>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">{s.studentId}</div>
+                          </div>
+                          <div className="text-right text-xs text-gray-500 dark:text-gray-400">
+                            {s.year ? `Year ${s.year}` : ''}
+                          </div>
+                        </div>
+                        <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
+                            <div className="text-gray-900 dark:text-white">{s.department}</div>
+                          </div>
+                          <div>
+                            <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Gender</div>
+                            <div className="text-gray-900 dark:text-white">{s.gender || '-'}</div>
+                          </div>
+                        </div>
+                        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                          <Link href={`/students/${(s as any)._id}`} className="text-sm font-medium text-kmuGreen hover:underline">
+                            View Profile
+                          </Link>
+                          <Link href={`/students/${(s as any)._id}?tab=add-case`} className="text-sm text-kmuOrange hover:underline">
+                            Add Case
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="hidden overflow-x-auto md:block">
+              <table className="min-w-full bg-white text-sm dark:bg-gray-800 md:text-base">
+                <thead className="bg-kmuGreen text-white">
+                  <tr>
+                    <th className="py-2 px-2 text-left md:px-4">
+                      <input
+                        type="checkbox"
+                        checked={selected.length === filteredStudents.length && filteredStudents.length > 0}
+                        onChange={(e) => (e.target.checked ? selectAll() : clearSelected())}
+                      />
+                    </th>
+                    <th className="py-2 px-2 text-left md:px-4">ID</th>
+                    <th className="py-2 px-2 text-left md:px-4">Name</th>
+                    <th className="hidden py-2 px-2 text-left sm:table-cell md:px-4">Department</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredStudents.map((s) => (
+                    <tr key={(s as any)._id} className="border-b border-gray-200 dark:border-gray-600">
+                      <td className="py-2 px-2 md:px-4">
+                        <input
+                          type="checkbox"
+                          checked={selected.includes((s as any)._id)}
+                          onChange={() => toggleSelect((s as any)._id)}
+                        />
+                      </td>
+                      <td className="py-2 px-2 md:px-4">
+                        <div className="font-medium">{s.studentId}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 sm:hidden">{s.department}</div>
+                      </td>
+                      <td className="py-2 px-2 md:px-4">
+                        <Link href={`/students/${(s as any)._id}`} className="font-medium text-kmuGreen hover:underline">
                           {s.fullName}
                         </Link>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">{s.studentId}</div>
-                      </div>
-                      <div className="text-right text-xs text-gray-500 dark:text-gray-400">
-                        {s.year ? `Year ${s.year}` : ''}
-                      </div>
-                    </div>
-                    <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
-                        <div className="text-gray-900 dark:text-white">{s.department}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Gender</div>
-                        <div className="text-gray-900 dark:text-white">{s.gender || '-'}</div>
-                      </div>
-                    </div>
-                    <div className="flex gap-3 mt-3">
-                      <Link href={`/students/${(s as any)._id}`} className="text-kmuGreen hover:underline text-sm font-medium">
-                        View Profile
-                      </Link>
-                      <Link href={`/students/${(s as any)._id}?tab=add-case`} className="text-kmuOrange hover:underline text-sm">
-                        Add Case
-                      </Link>
-                    </div>
+                        <div className="mt-1 flex flex-col gap-1 sm:flex-row">
+                          <Link href={`/students/${(s as any)._id}?tab=add-case`} className="text-xs text-kmuOrange hover:underline">
+                            Add Case
+                          </Link>
+                          {s.year && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400 sm:ml-2">
+                              Year: {s.year}
+                            </span>
+                          )}
+                          {s.gender && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400 sm:ml-2">
+                              {s.gender}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="hidden py-2 px-2 sm:table-cell md:px-4">{s.department}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {total > 0 && (
+              <div className="border-t border-gray-200 p-4 dark:border-gray-700">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Page {page} of {Math.max(1, Math.ceil(total / limit))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                    <button
+                      type="button"
+                      className="rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    >
+                      Prev
+                    </button>
+                    {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1).slice(0, 5).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        className={`rounded px-3 py-2 text-sm ${p === page ? 'bg-kmuGreen text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200'}`}
+                        onClick={() => setPage(p)}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className="rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300"
+                      onClick={() => setPage((p) => Math.min(Math.ceil(total / limit), p + 1))}
+                      disabled={page === Math.ceil(total / limit) || total === 0}
+                    >
+                      Next
+                    </button>
                   </div>
                 </div>
               </div>
-            ))
-          )}
+            )}
+          </div>
         </div>
-        <div className="hidden md:block overflow-x-auto -mx-3 md:mx-0">
-          <table className="min-w-full bg-white dark:bg-gray-800 rounded-lg shadow text-sm md:text-base">
-            <thead className="bg-kmuGreen text-white">
-              <tr>
-                <th className="py-2 px-2 md:px-4 text-left">
-                  <input type="checkbox" checked={selected.length === filteredStudents.length && filteredStudents.length > 0} onChange={e => e.target.checked ? selectAll() : clearSelected()} />
-                </th>
-                <th className="py-2 px-2 md:px-4 text-left">ID</th>
-                <th className="py-2 px-2 md:px-4 text-left">Name</th>
-                <th className="py-2 px-2 md:px-4 text-left hidden sm:table-cell">Department</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredStudents.map(s => (
-                <tr key={(s as any)._id} className="border-b border-gray-200 dark:border-gray-600">
-                  <td className="py-2 px-2 md:px-4">
-                    <input type="checkbox" checked={selected.includes((s as any)._id)} onChange={() => toggleSelect((s as any)._id)} />
-                  </td>
-                  <td className="py-2 px-2 md:px-4">
-                    <div className="font-medium">{s.studentId}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 sm:hidden">{s.department}</div>
-                  </td>
-                  <td className="py-2 px-2 md:px-4">
-                    <div>
-                      <Link href={`/students/${(s as any)._id}`} className="text-kmuGreen hover:underline font-medium">
-                        {s.fullName}
-                      </Link>
-                      <div className="flex flex-col sm:flex-row gap-1 mt-1">
-                        <Link href={`/students/${(s as any)._id}?tab=add-case`} className="text-kmuOrange hover:underline text-xs">
-                          Add Case
-                        </Link>
-                        {s.year && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400 sm:ml-2">
-                            Year: {s.year}
-                          </span>
-                        )}
-                        {s.gender && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400 sm:ml-2">
-                            {s.gender}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-2 px-2 md:px-4 hidden sm:table-cell">{s.department}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      </div>
+    </section>
   );
 }

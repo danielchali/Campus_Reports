@@ -238,40 +238,40 @@ export default function UserManagementPage() {
 
         {/* Filters and Actions */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6 mb-6">
-          <div className="mb-4 flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <div className="mb-4 grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <input
                 type="text"
                 placeholder="Search by username or name"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               />
               <select 
                 value={roleFilter} 
                 onChange={e => setRoleFilter(e.target.value)} 
-                className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
               >
                 <option value="">All Roles</option>
                 {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
               </select>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <button className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600" onClick={selectAll}>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              <button type="button" className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600" onClick={selectAll}>
                 Select All
               </button>
-              <button className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600" onClick={clearSelected}>
+              <button type="button" className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600" onClick={clearSelected}>
                 Clear
               </button>
               {selected.length > 0 && (
                 <>
-                  <button className="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700" onClick={handleBulkDelete}>
+                  <button type="button" className="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700" onClick={handleBulkDelete}>
                     Delete Selected
                   </button>
-                  <button className="bg-kmuGreen text-white px-2 py-1 rounded text-sm hover:bg-kmuOrange" onClick={handleBulkExport}>
+                  <button type="button" className="bg-kmuGreen text-white px-3 py-2 rounded text-sm hover:bg-kmuOrange" onClick={handleBulkExport}>
                     Export Selected (Word)
                   </button>
-                  <button className="bg-blue-600 text-white px-2 py-1 rounded text-sm hover:bg-blue-700" onClick={handleBulkExportExcel}>
+                  <button type="button" className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700" onClick={handleBulkExportExcel}>
                     Export Selected (Excel)
                   </button>
                 </>
@@ -320,9 +320,9 @@ export default function UserManagementPage() {
                             >
                               {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                             </select>
-                            <div className="flex gap-2">
-                              <button className="bg-kmuGreen text-white px-3 py-1 rounded text-xs" onClick={handleEdit}>Save</button>
-                              <button className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-1 rounded text-xs" onClick={cancelEdit}>Cancel</button>
+                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                              <button type="button" className="bg-kmuGreen text-white px-3 py-2 rounded text-xs" onClick={handleEdit}>Save</button>
+                              <button type="button" className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-xs" onClick={cancelEdit}>Cancel</button>
                             </div>
                           </div>
                         ) : (
@@ -334,9 +334,9 @@ export default function UserManagementPage() {
                                 {u.role}
                               </span>
                             </div>
-                            <div className="flex gap-2 mt-3">
-                              <button className="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition" onClick={() => startEdit(u)}>Edit</button>
-                              <button className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition" onClick={() => handleDelete(userId)}>Delete</button>
+                            <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                              <button type="button" className="bg-blue-500 text-white px-3 py-2 rounded text-xs hover:bg-blue-600 transition" onClick={() => startEdit(u)}>Edit</button>
+                              <button type="button" className="bg-red-600 text-white px-3 py-2 rounded text-xs hover:bg-red-700 transition" onClick={() => handleDelete(userId)}>Delete</button>
                             </div>
                           </>
                         )}

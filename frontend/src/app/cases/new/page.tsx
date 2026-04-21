@@ -296,11 +296,11 @@ export default function NewCasePage() {
               {/* Case Type Toggle */}
               <div className="mb-6">
                 <h2 className="text-lg font-semibold mb-3 text-kmuOrange">Case Type</h2>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div>
                     <label className="block text-sm font-medium mb-2">Student Cases</label>
-                    <div className="flex gap-2">
-                      <label className="flex items-center">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <label className="flex items-center rounded border border-gray-200 px-3 py-2 dark:border-gray-700">
                         <input
                           type="radio"
                           name="caseType"
@@ -316,7 +316,7 @@ export default function NewCasePage() {
                         />
                         Single Student
                       </label>
-                      <label className="flex items-center">
+                      <label className="flex items-center rounded border border-gray-200 px-3 py-2 dark:border-gray-700">
                         <input
                           type="radio"
                           name="caseType"
@@ -338,8 +338,8 @@ export default function NewCasePage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-2">Staff Cases</label>
-                    <div className="flex gap-2">
-                      <label className="flex items-center">
+                    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                      <label className="flex items-center rounded border border-gray-200 px-3 py-2 dark:border-gray-700">
                         <input
                           type="radio"
                           name="caseType"
@@ -355,7 +355,7 @@ export default function NewCasePage() {
                         />
                         Single Staff
                       </label>
-                      <label className="flex items-center">
+                      <label className="flex items-center rounded border border-gray-200 px-3 py-2 dark:border-gray-700">
                         <input
                           type="radio"
                           name="caseType"
@@ -505,7 +505,7 @@ export default function NewCasePage() {
                 </div>
 
                 {/* Common Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label htmlFor="incidentDate" className="block text-sm font-medium mb-1">Incident Date</label>
                     <input
@@ -583,18 +583,18 @@ export default function NewCasePage() {
                 {error && <div className="text-red-600 text-sm">{error}</div>}
                 {success && <div className="text-kmuGreen text-sm">{success}</div>}
 
-                <div className="flex gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <button
                     type="submit"
                     disabled={loading}
-                    className="bg-kmuGreen text-white px-6 py-2 rounded hover:bg-kmuOrange transition disabled:opacity-50"
+                    className="w-full rounded bg-kmuGreen px-6 py-2 text-white transition hover:bg-kmuOrange disabled:opacity-50"
                   >
                     {loading ? 'Creating...' : 'Create Case'}
                   </button>
                   <button
                     type="button"
                     onClick={() => router.back()}
-                    className="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600 transition"
+                    className="w-full rounded bg-gray-500 px-6 py-2 text-white transition hover:bg-gray-600"
                   >
                     Cancel
                   </button>
