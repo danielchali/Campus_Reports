@@ -84,7 +84,7 @@ export default function ProfilePage() {
       </div>
 
       {loading ? (
-        <div className="text-center text-kmuGreen">Loading...</div>
+        <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>
       ) : error ? (
         <div className="text-center text-red-600 dark:text-red-400">{error}</div>
       ) : (

@@ -17,7 +17,7 @@ interface Student {
   _id: string;
   studentId: string;
   fullName: string;
-  department?: string;
+  program?: string;
   year?: string;
   gender?: string;
 }
@@ -398,7 +398,7 @@ export default function NewCasePage() {
                                 {selectedStudent.fullName}
                               </div>
                               <div className="text-sm text-green-600 dark:text-green-300">
-                                ID: {selectedStudent.studentId} • {selectedStudent.department} • Year {selectedStudent.year}
+                                ID: {selectedStudent.studentId} • {selectedStudent.program} • Year {selectedStudent.year}
                               </div>
                             </div>
                             <button

@@ -35,7 +35,7 @@ export default function StaffPage() {
     }
     
     if (authLoading) {
-      return <div className="text-center text-kmuGreen">Loading...</div>;
+      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
     }
   }
 

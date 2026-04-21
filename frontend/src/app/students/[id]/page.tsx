@@ -31,7 +31,7 @@ interface Student {
     _id: string;
     studentId: string;
     fullName: string;
-    department?: string;
+    program?: string;
     year?: string;
     gender?: string;
     disciplinaryHistory?: Case[];
@@ -186,8 +186,10 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
     if (loading) {
         return (
             <ProtectedRoute>
-                <div className="flex items-center justify-center min-h-screen">
-                    <div className="text-kmuGreen text-lg">Loading student details...</div>
+                <div className="max-w-4xl mx-auto p-6 space-y-4 animate-pulse">
+                    <div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded" />
+                    <div className="h-44 bg-gray-200 dark:bg-gray-700 rounded" />
+                    <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded" />
                 </div>
             </ProtectedRoute>
         );
@@ -322,10 +324,10 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                                                 <span className="text-gray-600 dark:text-gray-400 text-sm">Student ID</span>
                                                 <p className="font-medium text-gray-900 dark:text-white">{student.studentId}</p>
                                             </div>
-                                            {student.department && (
+                                            {student.program && (
                                                 <div>
-                                                    <span className="text-gray-600 dark:text-gray-400 text-sm">Department</span>
-                                                    <p className="font-medium text-gray-900 dark:text-white">{student.department}</p>
+                                                    <span className="text-gray-600 dark:text-gray-400 text-sm">Program</span>
+                                                    <p className="font-medium text-gray-900 dark:text-white">{student.program}</p>
                                 </div>
                                             )}
                                             {student.year && (

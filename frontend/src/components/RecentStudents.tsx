@@ -7,7 +7,7 @@ interface Student {
   _id: string;
   studentId: string;
   fullName: string;
-  department: string;
+  program: string;
   year?: string;
   gender?: string;
   lastSelected?: string;
@@ -110,7 +110,7 @@ export default function RecentStudents({
                   {student.fullName}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {student.studentId} • {student.department}
+                  {student.studentId} • {student.program}
                 </div>
               </div>
               <div className="text-xs text-gray-400 dark:text-gray-500 ml-2">

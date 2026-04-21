@@ -216,7 +216,7 @@ router.post('/students-docx', async(req, res) => {
         // Get students based on filters
         if (filters && Object.keys(filters).length > 0) {
             let query = {};
-            if (filters.department) query.department = { $regex: filters.department, $options: 'i' };
+            if (filters.program) query.program = { $regex: filters.program, $options: 'i' };
             if (filters.year) query.year = filters.year;
             if (filters.gender) query.gender = filters.gender;
             if (filters.search) {
@@ -231,9 +231,9 @@ router.post('/students-docx', async(req, res) => {
             } else if (dbType === 'mysql') {
                 let sql = 'SELECT * FROM students WHERE 1=1';
                 const params = [];
-                if (filters.department) {
+                if (filters.program) {
                     sql += ' AND department LIKE ?';
-                    params.push(`%${filters.department}%`);
+                    params.push(`%${filters.program}%`);
                 }
                 if (filters.year) {
                     sql += ' AND year = ?';
@@ -274,7 +274,7 @@ router.post('/students-docx', async(req, res) => {
                         width: { size: 30, type: WidthType.PERCENTAGE }
                     }),
                     new TableCell({
-                        children: [new Paragraph('Department')],
+                        children: [new Paragraph('Program')],
                         width: { size: 25, type: WidthType.PERCENTAGE }
                     }),
                     new TableCell({
@@ -299,7 +299,7 @@ router.post('/students-docx', async(req, res) => {
                             width: { size: 30, type: WidthType.PERCENTAGE }
                         }),
                         new TableCell({
-                            children: [new Paragraph(s.department || '')],
+                            children: [new Paragraph(s.program || '')],
                             width: { size: 25, type: WidthType.PERCENTAGE }
                         }),
                         new TableCell({

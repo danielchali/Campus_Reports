@@ -7,6 +7,7 @@ let CaseModel;
 
 if (dbType === 'mongo') {
     const caseSchema = new mongoose.Schema({
+        case_id: { type: String, unique: true, index: true },
         // Support both single student/staff and multiple students/staff
         student_id: { type: String, required: false }, // Keep for backward compatibility
         student_ids: [{ type: String, required: false }], // New field for multiple students

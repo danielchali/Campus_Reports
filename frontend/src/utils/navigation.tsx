@@ -50,7 +50,7 @@ const navIcons = {
 export function getNavLinksForRole(role?: string): NavLink[] {
   if (role === 'admin') {
     return [
-      { icon: navIcons.admin, label: 'Admin Panel', path: '/admin' },
+      { icon: navIcons.admin, label: 'Dashboard', path: '/admin' },
       { icon: navIcons.users, label: 'Manage Users', path: '/admin/users' },
       { icon: navIcons.cases, label: 'Cases', path: '/cases' },
       { icon: navIcons.reports, label: 'Reports', path: '/reports' },
@@ -66,11 +66,12 @@ export function getNavLinksForRole(role?: string): NavLink[] {
 
   if (role === 'security_officer') {
     return [
-      { icon: navIcons.dashboard, label: 'Home', path: '/security-dashboard' },
+      { icon: navIcons.dashboard, label: 'Dashboard', path: '/security-dashboard' },
       { icon: navIcons.cases, label: 'Cases', path: '/cases' },
       { icon: navIcons.evidence, label: 'Evidence', path: '/evidence' },
       { icon: navIcons.students, label: 'Students', path: '/students' },
       { icon: navIcons.newcase, label: 'New Case', path: '/cases/new' },
+      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
       { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
       { icon: navIcons.help, label: 'Help', path: '/help' },
       { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
@@ -79,7 +80,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
 
   if (role === 'chief_security_officer') {
     return [
-      { icon: navIcons.security, label: 'Home', path: '/chief-security-officer-dashboard' },
+      { icon: navIcons.security, label: 'Dashboard', path: '/chief-security-officer-dashboard' },
       { icon: navIcons.cases, label: 'Cases', path: '/cases' },
       { icon: navIcons.reports, label: 'Reports', path: '/reports' },
       { icon: navIcons.students, label: 'Students', path: '/students' },
@@ -94,7 +95,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
 
   if (role === 'dean_of_students') {
     return [
-      { icon: navIcons.dean, label: 'Home', path: '/dean-of-students-dashboard' },
+      { icon: navIcons.dean, label: 'Dashboard', path: '/dean-of-students-dashboard' },
       { icon: navIcons.students, label: 'Students', path: '/students' },
       { icon: navIcons.cases, label: 'Cases', path: '/cases' },
       { icon: navIcons.reports, label: 'Reports', path: '/reports' },
@@ -107,10 +108,11 @@ export function getNavLinksForRole(role?: string): NavLink[] {
 
   if (role === 'assistant_dean') {
     return [
-      { icon: navIcons.assistant, label: 'Home', path: '/assistant-dean-dashboard' },
+      { icon: navIcons.assistant, label: 'Dashboard', path: '/assistant-dean-dashboard' },
       { icon: navIcons.students, label: 'Students', path: '/students' },
       { icon: navIcons.cases, label: 'Cases', path: '/cases' },
       { icon: navIcons.reports, label: 'Reports', path: '/reports' },
+      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
       { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
       { icon: navIcons.help, label: 'Help', path: '/help' },
       { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
@@ -119,10 +121,11 @@ export function getNavLinksForRole(role?: string): NavLink[] {
 
   if (role === 'secretary') {
     return [
-      { icon: navIcons.secretary, label: 'Home', path: '/secretary-dashboard' },
+      { icon: navIcons.secretary, label: 'Dashboard', path: '/secretary-dashboard' },
       { icon: navIcons.students, label: 'Students', path: '/students' },
       { icon: navIcons.cases, label: 'Cases', path: '/cases' },
       { icon: navIcons.reports, label: 'Reports', path: '/reports' },
+      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
       { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
       { icon: navIcons.help, label: 'Help', path: '/help' },
       { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
@@ -131,7 +134,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
 
   if (role === 'student') {
     return [
-      { icon: navIcons.dashboard, label: 'Home', path: '/student-dashboard' },
+      { icon: navIcons.dashboard, label: 'Dashboard', path: '/student-dashboard' },
       { icon: navIcons.myReports, label: 'My Reports', path: '/my-reports' },
       { icon: navIcons.makeReport, label: 'Make a Report', path: '/make-report' },
       { icon: navIcons.profile, label: 'My Profile', path: '/profile' },

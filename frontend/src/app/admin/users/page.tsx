@@ -28,7 +28,7 @@ export default function UserManagementPage() {
     }
     
     if (authLoading) {
-      return <div className="text-center text-kmuGreen">Loading...</div>;
+      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
     }
     
     if (!user || user.role !== 'admin') {
@@ -281,7 +281,11 @@ export default function UserManagementPage() {
 
           {/* Users Table */}
           {loading ? (
-            <div className="text-gray-500 dark:text-gray-400">Loading users...</div>
+            <div className="space-y-3 animate-pulse">
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded" />
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded" />
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded" />
+            </div>
           ) : (
             <>
             <div className="space-y-4 md:hidden">

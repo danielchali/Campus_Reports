@@ -48,7 +48,7 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
         }
         
         if (authLoading) {
-            return <div className="text-center text-kmuGreen">Loading...</div>;
+            return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
         }
     }
     
@@ -109,8 +109,10 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-kmuGreen text-lg">Loading staff details...</div>
+            <div className="max-w-4xl mx-auto p-6 space-y-4 animate-pulse">
+                <div className="h-8 w-48 bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="h-44 bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
             </div>
         );
     }

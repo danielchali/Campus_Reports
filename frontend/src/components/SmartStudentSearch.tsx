@@ -7,7 +7,7 @@ interface Student {
   _id: string;
   studentId: string;
   fullName: string;
-  department: string;
+  program: string;
   year: string;
   gender: string;
 }
@@ -157,7 +157,7 @@ export default function SmartStudentSearch({
                   <div className={`text-sm ${
                     index === selectedIndex ? 'text-white' : 'text-gray-500 dark:text-gray-400'
                   }`}>
-                    ID: {student.studentId} • {student.department} • Year {student.year}
+                    ID: {student.studentId} • {student.program} • Year {student.year}
                   </div>
                 </div>
                 <div className={`text-xs px-2 py-1 rounded ${

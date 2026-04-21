@@ -23,6 +23,7 @@ interface AuditLog {
 export default function AuditPage() {
   const router = useRouter();
   const { user, token, loading: authLoading } = useAuth();
+  const allowedRoles = ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer'];
   
   // Handle authentication like profile page - only on client side
   if (typeof window !== 'undefined') {
@@ -32,10 +33,10 @@ export default function AuditPage() {
     }
     
     if (authLoading) {
-      return <div className="text-center text-kmuGreen">Loading...</div>;
+      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
     }
     
-    if (!user || !['admin', 'chief_security_officer', 'dean_of_students'].includes(user.role)) return <div className="text-red-600">Access denied.</div>;
+    if (!user || !allowedRoles.includes(user.role)) return <div className="text-red-600">Access denied.</div>;
   }
 
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -45,6 +46,12 @@ export default function AuditPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [stats, setStats] = useState<{[key: string]: number}>({});
+  const [search, setSearch] = useState('');
+  const [actionFilter, setActionFilter] = useState('');
+  const [entityFilter, setEntityFilter] = useState('');
+  const [userFilter, setUserFilter] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const limit = 20;
 
   useEffect(() => {
@@ -57,7 +64,18 @@ export default function AuditPage() {
           setLoading(false);
           return;
         }
-        const res = await fetch(`${API_BASE_URL}/audit?page=${page}&limit=${limit}`, {
+        const params = new URLSearchParams({
+          page: String(page),
+          limit: String(limit),
+        });
+        if (search) params.set('search', search);
+        if (actionFilter) params.set('action', actionFilter);
+        if (entityFilter) params.set('entity', entityFilter);
+        if (userFilter) params.set('user', userFilter);
+        if (dateFrom) params.set('dateFrom', dateFrom);
+        if (dateTo) params.set('dateTo', dateTo);
+
+        const res = await fetch(`${API_BASE_URL}/audit?${params.toString()}`, {
           headers: { ...authHeaders() },
         });
         if (!res.ok) throw new Error(await res.text());
@@ -72,11 +90,11 @@ export default function AuditPage() {
       }
       setLoading(false);
     }
-    if (user && (user.role === 'admin' || user.role === 'academic_office')) fetchLogs();
-  }, [token, user, API_BASE_URL, page]);
+    if (user && allowedRoles.includes(user.role)) fetchLogs();
+  }, [token, user, API_BASE_URL, page, search, actionFilter, entityFilter, userFilter, dateFrom, dateTo]);
 
   useEffect(() => {
-    if (!user || (user.role !== 'admin' && user.role !== 'academic_office')) return;
+    if (!user || !allowedRoles.includes(user.role)) return;
     if (!socketRef.current) {
       const socket = io(API_BASE_URL.replace('/api', ''), { transports: ['websocket'] });
       socketRef.current = socket;
@@ -99,7 +117,7 @@ export default function AuditPage() {
   return (
       <section>
         <h1 className="text-4xl font-bold mb-4 text-kmuGreen">Audit Logs</h1>
-        <p className="mb-4 text-gray-700 dark:text-gray-300">This page shows a comprehensive record of all actions taken in the system. Only admins and academic office users can view audit logs. Audit logs help ensure transparency and accountability.</p>
+        <p className="mb-4 text-gray-700 dark:text-gray-300">This page shows a comprehensive record of all actions taken in the system. Use search and filters to narrow audit results.</p>
         
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
@@ -139,9 +157,96 @@ export default function AuditPage() {
           </div>
         </div>
 
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Search"
+              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+            <input
+              type="text"
+              value={actionFilter}
+              onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
+              placeholder="Action"
+              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+            <input
+              type="text"
+              value={entityFilter}
+              onChange={(e) => { setEntityFilter(e.target.value); setPage(1); }}
+              placeholder="Entity"
+              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+            <input
+              type="text"
+              value={userFilter}
+              onChange={(e) => { setUserFilter(e.target.value); setPage(1); }}
+              placeholder="User"
+              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => { setDateFrom(e.target.value); setPage(1); }}
+              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => { setDateTo(e.target.value); setPage(1); }}
+              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            />
+          </div>
+          <div className="mt-3">
+            <button
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded"
+              onClick={() => {
+                setSearch('');
+                setActionFilter('');
+                setEntityFilter('');
+                setUserFilter('');
+                setDateFrom('');
+                setDateTo('');
+                setPage(1);
+              }}
+            >
+              Clear Filters
+            </button>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="text-gray-500 dark:text-gray-400">Loading...</div>
+            <div className="space-y-4">
+              {[...Array(6)].map((_, idx) => (
+                <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 animate-pulse">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-6 w-28 rounded-full bg-gray-200 dark:bg-gray-700" />
+                      <div className="h-4 w-40 rounded bg-gray-200 dark:bg-gray-700" />
+                    </div>
+                    <div className="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700" />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <div className="h-4 w-28 rounded bg-gray-200 dark:bg-gray-700" />
+                      <div className="h-4 w-full rounded bg-gray-200 dark:bg-gray-700" />
+                      <div className="h-4 w-5/6 rounded bg-gray-200 dark:bg-gray-700" />
+                      <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 w-28 rounded bg-gray-200 dark:bg-gray-700" />
+                      <div className="h-4 w-full rounded bg-gray-200 dark:bg-gray-700" />
+                      <div className="h-4 w-4/5 rounded bg-gray-200 dark:bg-gray-700" />
+                      <div className="h-4 w-2/3 rounded bg-gray-200 dark:bg-gray-700" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : error ? (
             <div className="text-red-600 dark:text-red-400">{error}</div>
           ) : safeLogs.length === 0 ? (
@@ -257,7 +362,7 @@ export default function AuditPage() {
                             <div className="space-y-1 text-sm">
                               <div><span className="text-gray-600 dark:text-gray-400">Name:</span> {log.details.studentData?.fullName}</div>
                               <div><span className="text-gray-600 dark:text-gray-400">ID:</span> {log.details.studentData?.studentId}</div>
-                              <div><span className="text-gray-600 dark:text-gray-400">Department:</span> {log.details.studentData?.department}</div>
+                              <div><span className="text-gray-600 dark:text-gray-400">Program:</span> {log.details.studentData?.program}</div>
                             </div>
                           ) : log.action === 'students_imported' && log.details ? (
                             <div className="space-y-1 text-sm">

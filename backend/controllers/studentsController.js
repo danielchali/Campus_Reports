@@ -4,12 +4,47 @@ import db from '../models/db.js';
 import { logAudit } from './auditController.js';
 const dbType = process.env.DB_TYPE || 'mongo';
 
+function normalizeStudentPayload(payload = {}) {
+    const firstName = payload.personalInfo?.firstName || payload.firstName || '';
+    const surName = payload.personalInfo?.surName || payload.surName || '';
+    const fullName = payload.fullName || [firstName, surName].filter(Boolean).join(' ').trim();
+
+    return {
+        studentId: payload.studentId,
+        program: payload.program || '',
+        year: payload.year || '',
+        yearOfStudy: payload.yearOfStudy || '',
+        status: payload.status || '',
+        deliveryMode: payload.deliveryMode || '',
+        personalInfo: {
+            firstName: firstName || (fullName ? fullName.split(' ')[0] : ''),
+            surName: surName || (fullName ? fullName.split(' ').slice(1).join(' ') : ''),
+            nrc: payload.personalInfo?.nrc || payload.nrc || '',
+            passport: payload.personalInfo?.passport || payload.passport || '',
+            maritalStatus: payload.personalInfo?.maritalStatus || payload.maritalStatus || '',
+            nationality: payload.personalInfo?.nationality || payload.nationality || '',
+            gender: payload.personalInfo?.gender || payload.gender || '',
+            dateOfBirth: payload.personalInfo?.dateOfBirth || payload.dateOfBirth || ''
+        },
+        accommodation: {
+            roomNumber: payload.accommodation?.roomNumber || payload.roomNumber || ''
+        },
+        addressInfo: {
+            province: payload.addressInfo?.province || payload.province || '',
+            town: payload.addressInfo?.town || payload.town || '',
+            address: payload.addressInfo?.address || payload.address || '',
+            phone: payload.addressInfo?.phone || payload.phone || '',
+            email: payload.addressInfo?.email || payload.email || ''
+        }
+    };
+}
+
 export async function listStudents(req, res) {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
         const search = req.query.search;
-        const department = req.query.department;
+        const program = req.query.program;
         const year = req.query.year;
         const gender = req.query.gender;
         let students, total;
@@ -18,13 +53,15 @@ export async function listStudents(req, res) {
             const query = {};
             if (search) {
                 query.$or = [
-                    { fullName: { $regex: search, $options: 'i' } },
-                    { studentId: { $regex: search, $options: 'i' } }
+                    { 'personalInfo.firstName': { $regex: search, $options: 'i' } },
+                    { 'personalInfo.surName': { $regex: search, $options: 'i' } },
+                    { studentId: { $regex: search, $options: 'i' } },
+                    { program: { $regex: search, $options: 'i' } }
                 ];
             }
-            if (department) query.department = department;
+            if (program) query.program = program;
             if (year) query.year = year;
-            if (gender) query.gender = gender;
+            if (gender) query['personalInfo.gender'] = gender;
 
             total = await StudentModel.countDocuments(query);
             students = await StudentModel.find(query)
@@ -42,9 +79,9 @@ export async function listStudents(req, res) {
                 const searchTerm = `%${search}%`;
                 queryParams.push(searchTerm, searchTerm);
             }
-            if (department) {
+            if (program) {
                 whereConditions.push('department = ?');
-                queryParams.push(department);
+                queryParams.push(program);
             }
             if (year) {
                 whereConditions.push('year = ?');
@@ -125,10 +162,10 @@ export async function createStudent(req, res) {
     try {
         let student;
         if (dbType === 'mongo') {
-            student = await StudentModel.create(req.body);
+            student = await StudentModel.create(normalizeStudentPayload(req.body));
         } else if (dbType === 'mysql') {
-            const { studentId, fullName, department, year, gender } = req.body;
-            await db.execute('INSERT INTO students (studentId, fullName, department, year, gender) VALUES (?, ?, ?, ?, ?)', [studentId, fullName, department, year, gender]);
+            const { studentId, fullName, program, year, gender } = req.body;
+            await db.execute('INSERT INTO students (studentId, fullName, department, year, gender) VALUES (?, ?, ?, ?, ?)', [studentId, fullName, program, year, gender]);
             const [rows] = await db.execute('SELECT * FROM students WHERE studentId = ?', [studentId]);
             student = rows[0];
         }
@@ -141,7 +178,7 @@ export async function createStudent(req, res) {
                 studentData: {
                     studentId: student.studentId,
                     fullName: student.fullName,
-                    department: student.department,
+                    program: student.program,
                     year: student.year,
                     gender: student.gender
                 },
@@ -160,7 +197,7 @@ export async function updateStudent(req, res) {
     try {
         let student;
         if (dbType === 'mongo') {
-            student = await StudentModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+            student = await StudentModel.findByIdAndUpdate(req.params.id, normalizeStudentPayload(req.body), { new: true });
         } else if (dbType === 'mysql') {
             const fields = Object.keys(req.body).map(k => `${k} = ?`).join(', ');
             const values = Object.values(req.body);
@@ -230,18 +267,23 @@ export async function importStudents(req, res) {
             }
 
             if (!student.fullName || typeof student.fullName !== 'string' || student.fullName.trim().length < 2) {
-                validationErrors.push(`Row ${rowNumber}: Invalid Full Name (minimum 2 characters)`);
+                const firstName = student.firstName || student.personalInfo?.firstName;
+                const surName = student.surName || student.personalInfo?.surName;
+                if (!firstName || !surName) {
+                    validationErrors.push(`Row ${rowNumber}: Invalid Name (provide fullName or firstName + surName)`);
+                }
             }
 
-            if (!student.department || typeof student.department !== 'string' || student.department.trim().length === 0) {
-                validationErrors.push(`Row ${rowNumber}: Missing Department`);
+            if (!student.program || typeof student.program !== 'string' || student.program.trim().length === 0) {
+                validationErrors.push(`Row ${rowNumber}: Missing Program`);
             }
 
             if (student.year && !['1', '2', '3', '4'].includes(student.year.toString())) {
                 validationErrors.push(`Row ${rowNumber}: Invalid Year (must be 1, 2, 3, or 4)`);
             }
 
-            if (student.gender && !['Male', 'Female', 'Other'].includes(student.gender.toString())) {
+            const normalizedGender = student.gender || student.personalInfo?.gender;
+            if (normalizedGender && !['Male', 'Female', 'Other', 'MALE', 'FEMALE', 'OTHER'].includes(normalizedGender.toString())) {
                 validationErrors.push(`Row ${rowNumber}: Invalid Gender (must be Male, Female, or Other)`);
             }
         }
@@ -287,10 +329,13 @@ export async function importStudents(req, res) {
                     // Clean and validate data
                     const cleanStudent = {
                         studentId: s.studentId.trim(),
-                        fullName: s.fullName.trim(),
-                        department: s.department.trim(),
+                        ...normalizeStudentPayload({
+                            ...s,
+                            fullName: s.fullName,
+                            program: s.program,
+                            gender: s.gender || s.personalInfo?.gender
+                        }),
                         year: s.year ? s.year.toString().trim() : undefined,
-                        gender: s.gender ? s.gender.toString().trim() : undefined
                     };
 
                     await StudentModel.create(cleanStudent);
@@ -310,7 +355,7 @@ export async function importStudents(req, res) {
                     const cleanStudent = {
                         studentId: s.studentId.trim(),
                         fullName: s.fullName.trim(),
-                        department: s.department.trim(),
+                        department: s.program.trim(),
                         year: s.year ? s.year.toString().trim() : undefined,
                         gender: s.gender ? s.gender.toString().trim() : undefined
                     };
@@ -376,9 +421,10 @@ export async function searchStudents(req, res) {
         if (dbType === 'mongo') {
             students = await StudentModel.find({
                 $or: [
-                    { fullName: { $regex: q, $options: 'i' } },
+                    { 'personalInfo.firstName': { $regex: q, $options: 'i' } },
+                    { 'personalInfo.surName': { $regex: q, $options: 'i' } },
                     { studentId: { $regex: q, $options: 'i' } },
-                    { department: { $regex: q, $options: 'i' } }
+                    { program: { $regex: q, $options: 'i' } }
                 ]
             }).limit(10);
         } else if (dbType === 'mysql') {

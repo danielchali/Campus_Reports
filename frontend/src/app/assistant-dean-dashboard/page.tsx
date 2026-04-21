@@ -38,7 +38,7 @@ export default function AssistantDeanDashboard() {
     }
     
     if (authLoading) {
-      return <div className="text-center text-kmuGreen">Loading...</div>;
+      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
     }
     
     if (!user || user.role !== 'assistant_dean') return <div className="text-red-600">Access denied.</div>;
@@ -169,11 +169,14 @@ export default function AssistantDeanDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kmuGreen mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading dashboard data...</p>
+      <div className="max-w-6xl mx-auto p-6 space-y-4 animate-pulse">
+        <div className="h-10 w-72 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" />
         </div>
+        <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded" />
       </div>
     );
   }

@@ -12,7 +12,7 @@ interface Student {
     _id: string;
     studentId: string;
     fullName: string;
-    department?: string;
+    program?: string;
 }
 
 interface Staff {
@@ -25,6 +25,7 @@ interface Staff {
 
 interface Case {
     _id: string;
+    caseId?: string;
     student?: Student;
     students?: Student[];
     student_ids?: string[];
@@ -60,7 +61,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
         }
         
         if (authLoading) {
-            return <div className="text-center text-kmuGreen">Loading...</div>;
+            return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
         }
     }
 
@@ -70,6 +71,19 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
     const [actionLoading, setActionLoading] = useState(false);
     const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editForm, setEditForm] = useState({
+        incidentDate: '',
+        offenseType: '',
+        severity: '',
+        status: '',
+        description: '',
+        sanctions: ''
+    });
+
+    const OFFENSE_TYPE_OPTIONS = ['Academic Dishonesty', 'Misconduct', 'Harassment', 'Substance Abuse', 'Property Damage', 'Other'];
+    const SEVERITY_OPTIONS = ['Low', 'Medium', 'High'];
+    const STATUS_OPTIONS = ['Open', 'Pending', 'Closed'];
 
     useEffect(() => {
         async function fetchCase() {
@@ -82,6 +96,14 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
                 setCaseData(data);
+                setEditForm({
+                    incidentDate: data.incidentDate ? data.incidentDate.split('T')[0] : '',
+                    offenseType: data.offenseType || '',
+                    severity: data.severity || '',
+                    status: data.status || 'Open',
+                    description: data.description || '',
+                    sanctions: data.sanctions || ''
+                });
             } catch (err: any) {
                 setError(err.message || "Failed to load case");
                 setCaseData(null);
@@ -126,6 +148,38 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
         }
     };
 
+    const handleSaveEdit = async () => {
+        setActionLoading(true);
+        setActionMessage(null);
+        try {
+            const payload = {
+                incident_date: editForm.incidentDate,
+                offense_type: editForm.offenseType,
+                severity: editForm.severity,
+                status: editForm.status,
+                description: editForm.description,
+                sanctions: editForm.sanctions
+            };
+            const res = await fetch(`${API_BASE_URL}/cases/${params.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                },
+                body: JSON.stringify(payload),
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const updatedCase = await res.json();
+            setCaseData(updatedCase);
+            setIsEditing(false);
+            setActionMessage({ type: 'success', text: 'Case updated successfully!' });
+        } catch (err: any) {
+            setActionMessage({ type: 'error', text: err.message || 'Failed to update case' });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     const handleDeleteCase = async () => {
         setActionLoading(true);
         setActionMessage(null);
@@ -152,8 +206,10 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-kmuGreen text-lg">Loading case details...</div>
+            <div className="max-w-4xl mx-auto p-6 space-y-4 animate-pulse">
+                <div className="h-8 w-52 bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded" />
+                <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded" />
             </div>
         );
     }
@@ -203,7 +259,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
     const personType = isStudentCase ? 'Student' : 'Staff';
     const personId = isStudentCase ? caseData.student?.studentId : caseData.staff?.staffId;
     const personName = isStudentCase ? caseData.student?.fullName : caseData.staff?.fullName;
-    const personDepartment = isStudentCase ? caseData.student?.department : caseData.staff?.department;
+    const personDepartment = isStudentCase ? caseData.student?.program : caseData.staff?.department;
     const personPosition = isStaffCase ? caseData.staff?.position : undefined;
     const personYear = isStudentCase ? (caseData.student as any)?.year : undefined;
 
@@ -229,52 +285,156 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">Case ID</label>
-                                <div className="mt-1 font-medium">{caseData._id}</div>
+                                <div className="mt-1 font-medium">{caseData.caseId || caseData._id}</div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">Incident Date</label>
-                                <div className="mt-1">{caseData.incidentDate ? new Date(caseData.incidentDate).toLocaleDateString() : 'N/A'}</div>
+                                {isEditing ? (
+                                    <input
+                                        type="date"
+                                        value={editForm.incidentDate}
+                                        onChange={(e) => setEditForm(prev => ({ ...prev, incidentDate: e.target.value }))}
+                                        className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700"
+                                    />
+                                ) : (
+                                    <div className="mt-1">{caseData.incidentDate ? new Date(caseData.incidentDate).toLocaleDateString() : 'N/A'}</div>
+                                )}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">Offense Type</label>
-                                <div className="mt-1">{caseData.offenseType || 'N/A'}</div>
+                                {isEditing ? (
+                                    <select
+                                        value={editForm.offenseType}
+                                        onChange={(e) => setEditForm(prev => ({ ...prev, offenseType: e.target.value }))}
+                                        className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700"
+                                    >
+                                        <option value="">Select offense type</option>
+                                        {OFFENSE_TYPE_OPTIONS.map((option) => (
+                                            <option key={option} value={option}>{option}</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <div className="mt-1">{caseData.offenseType || 'N/A'}</div>
+                                )}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">Severity</label>
-                                <span className={`inline-block mt-1 px-2 py-1 rounded text-xs font-medium ${getSeverityColor(caseData.severity)}`}>
-                                    {caseData.severity || 'N/A'}
-                                </span>
+                                {isEditing ? (
+                                    <select
+                                        value={editForm.severity}
+                                        onChange={(e) => setEditForm(prev => ({ ...prev, severity: e.target.value }))}
+                                        className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700"
+                                    >
+                                        <option value="">Select severity</option>
+                                        {SEVERITY_OPTIONS.map((option) => (
+                                            <option key={option} value={option}>{option}</option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <span className={`inline-block mt-1 px-2 py-1 rounded text-xs font-medium ${getSeverityColor(caseData.severity)}`}>
+                                        {caseData.severity || 'N/A'}
+                                    </span>
+                                )}
                             </div>
                         </div>
                         
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">Description</label>
-                            <div className="mt-1 bg-gray-50 dark:bg-gray-700 p-3 rounded whitespace-pre-wrap">
-                                {caseData.description || 'N/A'}
-                            </div>
+                            {isEditing ? (
+                                <textarea
+                                    value={editForm.description}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                                    rows={4}
+                                    className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700"
+                                />
+                            ) : (
+                                <div className="mt-1 bg-gray-50 dark:bg-gray-700 p-3 rounded whitespace-pre-wrap">
+                                    {caseData.description || 'N/A'}
+                                </div>
+                            )}
                         </div>
                         
-                        {caseData.sanctions && (
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">Sanctions</label>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">Sanctions</label>
+                            {isEditing ? (
+                                <input
+                                    type="text"
+                                    value={editForm.sanctions}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, sanctions: e.target.value }))}
+                                    className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700"
+                                />
+                            ) : (
                                 <div className="mt-1 bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                                    {caseData.sanctions}
+                                    {caseData.sanctions || 'N/A'}
                                 </div>
+                            )}
+                        </div>
+
+                        {isEditing && (
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-600 dark:text-gray-400">Status</label>
+                                <select
+                                    value={editForm.status}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, status: e.target.value }))}
+                                    className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700"
+                                >
+                                    {STATUS_OPTIONS.map((option) => (
+                                        <option key={option} value={option}>{option}</option>
+                                    ))}
+                                </select>
                             </div>
                         )}
                         
                         <div className="flex flex-wrap gap-2">
-                            <button
-                                onClick={() => handleStatusUpdate(caseData.status === 'Open' ? 'Closed' : 'Open')}
-                                disabled={actionLoading}
-                                className={`px-4 py-2 rounded ${
-                                    caseData.status === 'Open' 
-                                        ? 'bg-green-600 hover:bg-green-700 text-white' 
-                                        : 'bg-red-600 hover:bg-red-700 text-white'
-                                } transition disabled:opacity-50`}
-                            >
-                                {actionLoading ? 'Updating...' : (caseData.status === 'Open' ? 'Close Case' : 'Reopen Case')}
-                            </button>
+                            {isEditing ? (
+                                <>
+                                    <button
+                                        onClick={handleSaveEdit}
+                                        disabled={actionLoading}
+                                        className="px-4 py-2 rounded bg-kmuGreen hover:bg-kmuOrange text-white transition disabled:opacity-50"
+                                    >
+                                        {actionLoading ? 'Saving...' : 'Save Changes'}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setIsEditing(false);
+                                            setEditForm({
+                                                incidentDate: caseData.incidentDate ? caseData.incidentDate.split('T')[0] : '',
+                                                offenseType: caseData.offenseType || '',
+                                                severity: caseData.severity || '',
+                                                status: caseData.status || 'Open',
+                                                description: caseData.description || '',
+                                                sanctions: caseData.sanctions || ''
+                                            });
+                                        }}
+                                        disabled={actionLoading}
+                                        className="px-4 py-2 rounded bg-gray-500 hover:bg-gray-600 text-white transition disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={() => setIsEditing(true)}
+                                        disabled={actionLoading}
+                                        className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white transition disabled:opacity-50"
+                                    >
+                                        Edit Case
+                                    </button>
+                                    <button
+                                        onClick={() => handleStatusUpdate(caseData.status === 'Open' ? 'Closed' : 'Open')}
+                                        disabled={actionLoading}
+                                        className={`px-4 py-2 rounded ${
+                                            caseData.status === 'Open'
+                                                ? 'bg-green-600 hover:bg-green-700 text-white'
+                                                : 'bg-red-600 hover:bg-red-700 text-white'
+                                        } transition disabled:opacity-50`}
+                                    >
+                                        {actionLoading ? 'Updating...' : (caseData.status === 'Open' ? 'Close Case' : 'Reopen Case')}
+                                    </button>
+                                </>
+                            )}
                             
                             <button
                                 onClick={() => setShowDeleteConfirm(true)}

@@ -1,11 +1,51 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import UserModel from '../models/user.js';
+import StudentModel from '../models/student.js';
 import db from '../models/db.js';
 import { logAudit } from './auditController.js';
 
 const dbType = process.env.DB_TYPE || 'mongo';
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
+
+async function ensureStudentProfileForUser({ username, name, role }) {
+    if (role !== 'student') {
+        return;
+    }
+
+    const studentId = String(username || '').trim();
+    if (!studentId) {
+        return;
+    }
+
+    const fullName = (name && String(name).trim()) || studentId;
+    const [firstName, ...rest] = fullName.split(' ');
+    const surName = rest.join(' ');
+
+    if (dbType === 'mongo') {
+        await StudentModel.findOneAndUpdate(
+            { studentId },
+            {
+                $set: {
+                    personalInfo: {
+                        firstName: firstName || studentId,
+                        surName: surName || ''
+                    }
+                }
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+    } else if (dbType === 'mysql') {
+        const [existingRows] = await db.execute('SELECT id FROM students WHERE studentId = ?', [studentId]);
+        if (existingRows.length > 0) {
+            await db.execute('UPDATE students SET fullName = ? WHERE studentId = ?', [fullName, studentId]);
+        } else {
+            await db.execute(
+                'INSERT INTO students (studentId, fullName, department, year, gender) VALUES (?, ?, ?, ?, ?)', [studentId, fullName, '', '', '']
+            );
+        }
+    }
+}
 
 export async function login(req, res) {
     const { username, password } = req.body;
@@ -126,6 +166,12 @@ export async function register(req, res) {
             await db.execute('INSERT INTO users (username, password, name, role) VALUES (?, ?, ?, ?)', [username, hashed, name, role || 'user']);
             user = { username, name, role: role || 'user' };
         }
+
+        await ensureStudentProfileForUser({
+            username,
+            name,
+            role: role || 'user'
+        });
 
         // Audit log for user registration
         await logAudit({

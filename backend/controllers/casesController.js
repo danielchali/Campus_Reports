@@ -1,7 +1,33 @@
 import CaseModel from '../models/case.js';
+import CounterModel from '../models/counter.js';
 import db from '../models/db.js';
 import { logAudit } from './auditController.js';
 const dbType = process.env.DB_TYPE || 'mongo';
+
+function formatCaseId(value) {
+    return String(value).padStart(4, '0');
+}
+
+async function getNextMongoCaseId() {
+    const counter = await CounterModel.findOneAndUpdate(
+        { key: 'case_id' },
+        { $inc: { value: 1 } },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    return formatCaseId(counter.value);
+}
+
+function normalizeCaseForFrontend(caseItem) {
+    return {
+        ...caseItem,
+        caseId: caseItem.case_id || caseItem.caseId || (caseItem.id ? formatCaseId(caseItem.id) : undefined),
+        incidentDate: caseItem.incident_date,
+        offenseType: caseItem.offense_type,
+        createdBy: caseItem.created_by,
+        createdAt: caseItem.createdAt,
+        updatedAt: caseItem.updatedAt
+    };
+}
 
 export async function listCases(req, res) {
     try {
@@ -82,14 +108,7 @@ export async function listCases(req, res) {
                 }
 
                 // Transform field names to camelCase for frontend
-                cases[i] = {
-                    ...cases[i],
-                    incidentDate: cases[i].incident_date,
-                    offenseType: cases[i].offense_type,
-                    createdBy: cases[i].created_by,
-                    createdAt: cases[i].createdAt,
-                    updatedAt: cases[i].updatedAt
-                };
+                cases[i] = normalizeCaseForFrontend(cases[i]);
             }
         } else if (dbType === 'mysql') {
             // Build query with filters
@@ -140,10 +159,7 @@ export async function listCases(req, res) {
 
             // Transform the data to match the expected format
             cases = rows.map(row => ({
-                ...row,
-                incidentDate: row.incident_date,
-                offenseType: row.offense_type,
-                createdBy: row.created_by,
+                ...normalizeCaseForFrontend(row),
                 student: row.studentId ? {
                     studentId: row.studentId,
                     fullName: row.studentFullName,
@@ -220,14 +236,7 @@ export async function getCase(req, res) {
                 }
 
                 // Transform field names to camelCase for frontend
-                caseItem = {
-                    ...caseItem,
-                    incidentDate: caseItem.incident_date,
-                    offenseType: caseItem.offense_type,
-                    createdBy: caseItem.created_by,
-                    createdAt: caseItem.createdAt,
-                    updatedAt: caseItem.updatedAt
-                };
+                caseItem = normalizeCaseForFrontend(caseItem);
             }
         } else if (dbType === 'mysql') {
             const [rows] = await db.execute(`
@@ -243,10 +252,7 @@ export async function getCase(req, res) {
             if (caseItem) {
                 // Transform the data to match the expected format
                 caseItem = {
-                    ...caseItem,
-                    incidentDate: caseItem.incident_date,
-                    offenseType: caseItem.offense_type,
-                    createdBy: caseItem.created_by,
+                    ...normalizeCaseForFrontend(caseItem),
                     student: caseItem.studentId ? {
                         studentId: caseItem.studentId,
                         fullName: caseItem.studentFullName,
@@ -336,6 +342,7 @@ export async function createCase(req, res) {
 
         let caseItem;
         if (dbType === 'mongo') {
+            caseData.case_id = await getNextMongoCaseId();
             caseItem = await CaseModel.create(caseData);
             // Populate student or staff information
             const StudentModel = (await import('../models/student.js')).default;
@@ -376,14 +383,7 @@ export async function createCase(req, res) {
             }
 
             // Transform field names to camelCase for frontend
-            caseItem = {
-                ...caseItem,
-                incidentDate: caseItem.incident_date,
-                offenseType: caseItem.offense_type,
-                createdBy: caseItem.created_by,
-                createdAt: caseItem.createdAt,
-                updatedAt: caseItem.updatedAt
-            };
+            caseItem = normalizeCaseForFrontend(caseItem);
         } else if (dbType === 'mysql') {
             // For MySQL, we'll need to handle multiple students/staff differently
             // For now, we'll create separate cases for each student/staff in a group case
@@ -454,10 +454,7 @@ export async function createCase(req, res) {
             if (caseItem) {
                 // Transform the data to match the expected format
                 caseItem = {
-                    ...caseItem,
-                    incidentDate: caseItem.incident_date,
-                    offenseType: caseItem.offense_type,
-                    createdBy: caseItem.created_by,
+                    ...normalizeCaseForFrontend(caseItem),
                     student: caseItem.studentId ? {
                         studentId: caseItem.studentId,
                         fullName: caseItem.fullName,
@@ -525,7 +522,13 @@ export async function updateCase(req, res) {
             // Fetch old case for status comparison
             const oldCase = await CaseModel.findById(req.params.id);
             oldStatus = oldCase ? oldCase.status : undefined;
-            caseItem = await CaseModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+            const updatePayload = {
+                ...req.body,
+                updatedAt: new Date()
+            };
+            delete updatePayload.case_id;
+            delete updatePayload.caseId;
+            caseItem = await CaseModel.findByIdAndUpdate(req.params.id, updatePayload, { new: true });
             if (caseItem) {
                 // Populate student information
                 const StudentModel = (await
@@ -537,6 +540,7 @@ export async function updateCase(req, res) {
                 } else {
                     caseItem.student = null; // Set to null if student not found
                 }
+                caseItem = normalizeCaseForFrontend(caseItem);
             }
         } else if (dbType === 'mysql') {
             // Fetch old case for status comparison
@@ -556,10 +560,7 @@ export async function updateCase(req, res) {
             if (caseItem) {
                 // Transform the data to match the expected format
                 caseItem = {
-                    ...caseItem,
-                    incidentDate: caseItem.incident_date,
-                    offenseType: caseItem.offense_type,
-                    createdBy: caseItem.created_by,
+                    ...normalizeCaseForFrontend(caseItem),
                     student: caseItem.studentId ? {
                         studentId: caseItem.studentId,
                         fullName: caseItem.fullName,

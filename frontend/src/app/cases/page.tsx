@@ -14,7 +14,7 @@ interface Student {
   _id: string;
   studentId: string;
   fullName: string;
-  department?: string;
+  program?: string;
 }
 
 interface Staff {
@@ -57,7 +57,7 @@ export default function CasesPage() {
     }
     
     if (authLoading) {
-      return <div className="text-center text-kmuGreen">Loading...</div>;
+      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
     }
   }
 
@@ -267,7 +267,7 @@ export default function CasesPage() {
         type: 'student',
         id: caseItem.student.studentId,
         name: caseItem.student.fullName,
-        department: caseItem.student.department,
+        department: caseItem.student.program,
         link: `/students/${caseItem.student._id}`
       };
     } else if (caseItem.staff) {
@@ -294,8 +294,10 @@ export default function CasesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-kmuGreen text-lg">Loading cases...</div>
+      <div className="max-w-6xl mx-auto p-4 space-y-4 animate-pulse">
+        <div className="h-10 w-64 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
+        <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded" />
       </div>
     );
   }
@@ -483,12 +485,17 @@ export default function CasesPage() {
             filteredCases.map((s) => {
               const person = getCasePerson(s);
               return (
-                <div key={s._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-3">
+                <div
+                  key={s._id}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition"
+                  onClick={() => router.push(`/cases/${s._id}`)}
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
                       <input
                         type="checkbox"
                         checked={selected.includes(s._id)}
+                        onClick={(e) => e.stopPropagation()}
                         onChange={() => toggleSelect(s._id)}
                         className="mt-1"
                       />
@@ -545,9 +552,7 @@ export default function CasesPage() {
                     </div>
                   </div>
 
-                  <Link href={`/cases/${s._id}`} className="inline-flex text-kmuGreen hover:underline text-sm font-medium">
-                    View Details
-                  </Link>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Tap to view details</div>
                 </div>
               );
             })
@@ -573,13 +578,12 @@ export default function CasesPage() {
                   <th className="py-2 px-2 md:px-4 text-left">Offense</th>
                   <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Status</th>
                   <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Severity</th>
-                  <th className="py-2 px-2 md:px-4 text-left">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredCases.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-8 px-4 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={7} className="py-8 px-4 text-center text-gray-500 dark:text-gray-400">
                       No cases found
                     </td>
                   </tr>
@@ -587,9 +591,18 @@ export default function CasesPage() {
                   filteredCases.map(s => {
                     const person = getCasePerson(s);
                     return (
-                      <tr key={s._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <tr
+                        key={s._id}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                        onClick={() => router.push(`/cases/${s._id}`)}
+                      >
                         <td className="py-2 px-2 md:px-4">
-                          <input type="checkbox" checked={selected.includes(s._id)} onChange={() => toggleSelect(s._id)} />
+                          <input
+                            type="checkbox"
+                            checked={selected.includes(s._id)}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={() => toggleSelect(s._id)}
+                          />
                         </td>
                         <td className="py-2 px-2 md:px-4">
                           {person ? (
@@ -640,14 +653,6 @@ export default function CasesPage() {
                           }`}>
                             {s.severity || '-'}
                           </span>
-                        </td>
-                        <td className="py-2 px-2 md:px-4">
-                          <Link 
-                            href={`/cases/${s._id}`} 
-                            className="text-kmuGreen hover:underline text-sm"
-                          >
-                            View Details
-                          </Link>
                         </td>
                       </tr>
                     );

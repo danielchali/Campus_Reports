@@ -70,7 +70,7 @@ export default function ReportsPage() {
     }
 
     if (authLoading) {
-      return <div className="text-center text-kmuGreen">Loading...</div>;
+      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
     }
 
     if (!user || !allowedRoles.includes(user.role)) {
@@ -333,8 +333,10 @@ export default function ReportsPage() {
 
         <div className="space-y-4">
           {loading ? (
-            <div className="rounded-2xl bg-white dark:bg-gray-800 p-6 shadow text-gray-500 dark:text-gray-400">
-              Loading student reports...
+            <div className="space-y-3 animate-pulse">
+              <div className="rounded-2xl bg-gray-200 dark:bg-gray-700 h-24" />
+              <div className="rounded-2xl bg-gray-200 dark:bg-gray-700 h-24" />
+              <div className="rounded-2xl bg-gray-200 dark:bg-gray-700 h-24" />
             </div>
           ) : filteredReports.length === 0 ? (
             <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 shadow text-center text-gray-500 dark:text-gray-400">

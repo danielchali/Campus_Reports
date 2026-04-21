@@ -13,12 +13,12 @@ import * as XLSX from 'xlsx';
 interface Student {
   studentId: string;
   fullName: string;
-  department: string;
+  program: string;
   year?: string;
   gender?: string;
 }
 
-const DEPARTMENTS = ['Computer Science', 'Biology', 'Mathematics'];
+const PROGRAMS = ['Bachelor of Science in Information and Communication Technology Education'];
 const YEARS = ['1', '2', '3', '4'];
 const GENDERS = ['Male', 'Female', 'Other'];
 
@@ -34,14 +34,14 @@ export default function StudentsPage() {
     }
     
     if (authLoading) {
-      return <div className="text-center text-kmuGreen">Loading...</div>;
+      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
     }
   }
 
   const [students, setStudents] = useState<Student[]>([]);
   const [studentId, setStudentId] = useState('');
   const [fullName, setFullName] = useState('');
-  const [department, setDepartment] = useState('');
+  const [program, setProgram] = useState('');
   const [year, setYear] = useState('');
   const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,7 +49,7 @@ export default function StudentsPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
-  const [departmentFilter, setDepartmentFilter] = useState('');
+  const [programFilter, setProgramFilter] = useState('');
   const [yearFilter, setYearFilter] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
   const [page, setPage] = useState(1);
@@ -69,8 +69,8 @@ export default function StudentsPage() {
       if (search) {
         params.append('search', search);
       }
-      if (departmentFilter) {
-        params.append('department', departmentFilter);
+      if (programFilter) {
+        params.append('program', programFilter);
       }
       if (yearFilter) {
         params.append('year', yearFilter);
@@ -94,7 +94,7 @@ export default function StudentsPage() {
   useEffect(() => {
     loadStudents(page);
     // eslint-disable-next-line
-  }, [apiCall, page, limit, search, departmentFilter, yearFilter, genderFilter]);
+  }, [apiCall, page, limit, search, programFilter, yearFilter, genderFilter]);
 
   // Auto-clear success message
   useEffect(() => {
@@ -110,9 +110,9 @@ export default function StudentsPage() {
     setError(null);
     setSuccess(null);
     try {
-      const student: Student = { studentId, fullName, department, year, gender };
+      const student: Student = { studentId, fullName, program, year, gender };
       await create('students', student);
-      setStudentId(''); setFullName(''); setDepartment(''); setYear(''); setGender('');
+      setStudentId(''); setFullName(''); setProgram(''); setYear(''); setGender('');
       setSuccess('Student added successfully!');
       loadStudents();
     } catch (err: any) {
@@ -164,7 +164,7 @@ export default function StudentsPage() {
         
         // Validate headers
         const headers = Object.keys(parsed.data[0] || {});
-        const requiredHeaders = ['studentId', 'fullName', 'department'];
+        const requiredHeaders = ['studentId', 'fullName', 'program'];
         const missingHeaders = requiredHeaders.filter(h => 
           !headers.some(header => 
             header.toLowerCase().includes(h.toLowerCase())
@@ -172,7 +172,7 @@ export default function StudentsPage() {
         );
         
         if (missingHeaders.length > 0) {
-          setError(`Missing required columns: ${missingHeaders.join(', ')}. Please include: studentId, fullName, department`);
+          setError(`Missing required columns: ${missingHeaders.join(', ')}. Please include: studentId, fullName, program`);
           setLoading(false);
           return;
         }
@@ -183,7 +183,7 @@ export default function StudentsPage() {
           const student = {
             studentId: (row.studentId || row.StudentId || row.ID || row.id || '').toString().trim(),
             fullName: (row.fullName || row.FullName || row.Name || row.name || '').toString().trim(),
-            department: (row.department || row.Department || '').toString().trim(),
+            program: (row.program || row.Program || '').toString().trim(),
             year: (row.year || row.Year || '').toString().trim(),
             gender: (row.gender || row.Gender || '').toString().trim(),
           };
@@ -201,8 +201,8 @@ export default function StudentsPage() {
             validationErrors.push(`Row ${rowNumber}: Full Name too short (minimum 2 characters)`);
           }
           
-          if (!student.department) {
-            validationErrors.push(`Row ${rowNumber}: Missing Department`);
+          if (!student.program) {
+            validationErrors.push(`Row ${rowNumber}: Missing Program`);
           }
           
           // Validate optional fields
@@ -231,7 +231,7 @@ export default function StudentsPage() {
         
         // Validate headers
         const headers = Object.keys(rows[0] || {});
-        const requiredHeaders = ['studentId', 'fullName', 'department'];
+        const requiredHeaders = ['studentId', 'fullName', 'program'];
         const missingHeaders = requiredHeaders.filter(h => 
           !headers.some(header => 
             header.toLowerCase().includes(h.toLowerCase())
@@ -239,7 +239,7 @@ export default function StudentsPage() {
         );
         
         if (missingHeaders.length > 0) {
-          setError(`Missing required columns: ${missingHeaders.join(', ')}. Please include: studentId, fullName, department`);
+          setError(`Missing required columns: ${missingHeaders.join(', ')}. Please include: studentId, fullName, program`);
           setLoading(false);
           return;
         }
@@ -250,7 +250,7 @@ export default function StudentsPage() {
           const student = {
             studentId: (row.studentId || row.StudentId || row.ID || row.id || '').toString().trim(),
             fullName: (row.fullName || row.FullName || row.Name || row.name || '').toString().trim(),
-            department: (row.department || row.Department || '').toString().trim(),
+            program: (row.program || row.Program || '').toString().trim(),
             year: (row.year || row.Year || '').toString().trim(),
             gender: (row.gender || row.Gender || '').toString().trim(),
           };
@@ -268,8 +268,8 @@ export default function StudentsPage() {
             validationErrors.push(`Row ${rowNumber}: Full Name too short (minimum 2 characters)`);
           }
           
-          if (!student.department) {
-            validationErrors.push(`Row ${rowNumber}: Missing Department`);
+          if (!student.program) {
+            validationErrors.push(`Row ${rowNumber}: Missing Program`);
           }
           
           // Validate optional fields
@@ -294,10 +294,10 @@ export default function StudentsPage() {
       }
       
       // Filter out invalid records
-      const validStudents = studentsToImport.filter(s => s.studentId && s.fullName && s.department);
+      const validStudents = studentsToImport.filter(s => s.studentId && s.fullName && s.program);
       
       if (validStudents.length === 0) {
-        setError('No valid students found in the file. Please ensure all required fields (Student ID, Full Name, Department) are filled.');
+        setError('No valid students found in the file. Please ensure all required fields (Student ID, Full Name, Program) are filled.');
         setLoading(false);
         return;
       }
@@ -409,7 +409,7 @@ export default function StudentsPage() {
         },
         body: JSON.stringify({
           filters: {
-            department: departmentFilter,
+            program: programFilter,
             year: yearFilter,
             gender: genderFilter,
             search: search
@@ -493,17 +493,17 @@ export default function StudentsPage() {
                 />
               </div>
               <div>
-                <label htmlFor="department" className="mb-1 block text-sm font-medium">Department *</label>
+                <label htmlFor="program" className="mb-1 block text-sm font-medium">Program *</label>
                 <select
-                  id="department"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
+                  id="program"
+                  value={program}
+                  onChange={(e) => setProgram(e.target.value)}
                   className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   required
                 >
-                  <option value="">Select Department</option>
-                  {DEPARTMENTS.map((dept) => (
-                    <option key={dept} value={dept}>{dept}</option>
+                  <option value="">Select Program</option>
+                  {PROGRAMS.map((item) => (
+                    <option key={item} value={item}>{item}</option>
                   ))}
                 </select>
               </div>
@@ -560,7 +560,7 @@ export default function StudentsPage() {
                   />
                 </label>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  CSV/Excel files should include columns: studentId, fullName, department (required)
+                  CSV/Excel files should include columns: studentId, fullName, program (required)
                 </p>
               </div>
             </div>
@@ -579,13 +579,13 @@ export default function StudentsPage() {
                   className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 />
                 <select
-                  value={departmentFilter}
-                  onChange={(e) => setDepartmentFilter(e.target.value)}
+                  value={programFilter}
+                  onChange={(e) => setProgramFilter(e.target.value)}
                   className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 >
-                  <option value="">All Departments</option>
-                  {DEPARTMENTS.map((dept) => (
-                    <option key={dept} value={dept}>{dept}</option>
+                  <option value="">All Programs</option>
+                  {PROGRAMS.map((item) => (
+                    <option key={item} value={item}>{item}</option>
                   ))}
                 </select>
                 <select
@@ -671,8 +671,8 @@ export default function StudentsPage() {
                         </div>
                         <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
                           <div>
-                            <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
-                            <div className="text-gray-900 dark:text-white">{s.department}</div>
+                            <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Program</div>
+                            <div className="text-gray-900 dark:text-white">{s.program}</div>
                           </div>
                           <div>
                             <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Gender</div>
@@ -707,7 +707,7 @@ export default function StudentsPage() {
                     </th>
                     <th className="py-2 px-2 text-left md:px-4">ID</th>
                     <th className="py-2 px-2 text-left md:px-4">Name</th>
-                    <th className="hidden py-2 px-2 text-left sm:table-cell md:px-4">Department</th>
+                    <th className="hidden py-2 px-2 text-left sm:table-cell md:px-4">Program</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -722,7 +722,7 @@ export default function StudentsPage() {
                       </td>
                       <td className="py-2 px-2 md:px-4">
                         <div className="font-medium">{s.studentId}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 sm:hidden">{s.department}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 sm:hidden">{s.program}</div>
                       </td>
                       <td className="py-2 px-2 md:px-4">
                         <Link href={`/students/${(s as any)._id}`} className="font-medium text-kmuGreen hover:underline">
@@ -744,7 +744,7 @@ export default function StudentsPage() {
                           )}
                         </div>
                       </td>
-                      <td className="hidden py-2 px-2 sm:table-cell md:px-4">{s.department}</td>
+                      <td className="hidden py-2 px-2 sm:table-cell md:px-4">{s.program}</td>
                     </tr>
                   ))}
                 </tbody>

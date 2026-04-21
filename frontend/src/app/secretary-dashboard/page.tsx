@@ -39,7 +39,7 @@ export default function SecretaryDashboard() {
     }
     
     if (authLoading) {
-      return <div className="text-center text-kmuGreen">Loading...</div>;
+      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
     }
     
     if (!user || user.role !== 'secretary') return <div className="text-red-600">Access denied.</div>;
@@ -173,17 +173,17 @@ export default function SecretaryDashboard() {
     ],
   };
 
-  const departmentCounts: Record<string, number> = {};
+  const programCounts: Record<string, number> = {};
   filteredCases.forEach((c: Case) => {
-    if (c.student?.department) departmentCounts[c.student.department] = (departmentCounts[c.student.department] || 0) + 1;
+    if (c.student?.program) programCounts[c.student.program] = (programCounts[c.student.program] || 0) + 1;
   });
 
   const departmentChartData = {
-    labels: Object.keys(departmentCounts),
+    labels: Object.keys(programCounts),
     datasets: [
       {
-        label: 'Cases by Department',
-        data: Object.values(departmentCounts),
+        label: 'Cases by Program',
+        data: Object.values(programCounts),
         backgroundColor: 'rgba(251, 191, 36, 0.7)',
       },
     ],
@@ -230,11 +230,11 @@ export default function SecretaryDashboard() {
           <div 
             id="secretary-department-chart"
             data-chart-export="true"
-            data-chart-title="Cases by Department"
+            data-chart-title="Cases by Program"
             data-chart-description="Distribution of disciplinary cases across academic departments"
             className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
           >
-            <h2 className="text-lg font-semibold mb-2 text-kmuOrange">Cases by Department</h2>
+            <h2 className="text-lg font-semibold mb-2 text-kmuOrange">Cases by Program</h2>
             <Bar data={departmentChartData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
           </div>
         </div>
@@ -280,7 +280,7 @@ export default function SecretaryDashboard() {
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
-                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
+                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Program</div>
                         <div>{c.student?.department || 'N/A'}</div>
                       </div>
                       <div>
@@ -318,7 +318,7 @@ export default function SecretaryDashboard() {
               <thead>
                 <tr className="border-b border-gray-200 dark:border-gray-600">
                   <th className="text-left py-2 px-2">Student</th>
-                  <th className="text-left py-2 px-2">Department</th>
+                  <th className="text-left py-2 px-2">Program</th>
                   <th className="text-left py-2 px-2">Offense</th>
                   <th className="text-left py-2 px-2">Date</th>
                   <th className="text-left py-2 px-2">Severity</th>
