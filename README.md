@@ -1,11 +1,11 @@
-# KMU Discipline Desk
+# Campus Reports
 
-A comprehensive disciplinary case management system for KMU.
+A comprehensive disciplinary case management system for educational institutions.
 
 ## Project Structure
 
 ```
-kmu-descipline-desk/
+campus-reports/
 ├── frontend/                 # Next.js frontend application
 │   ├── src/
 │   │   ├── app/             # App router pages

@@ -1,4 +1,4 @@
-# KMU Discipline Desk - User Distribution Guide
+# Campus Reports - User Distribution Guide
 
 ## Quick Start
 
@@ -68,7 +68,7 @@ NEXT_PUBLIC_API_BASE_URL=https://your-backend-url.com/api
 Share this with users:
 
 ```text
-KMU Discipline Desk is now available.
+Campus Reports is now available.
 
 Web App:
 - Visit: [YOUR_URL]

@@ -1,7 +1,7 @@
 {
-    "name": "kmu-discipline-desk",
+    "name": "campus-reports",
     "version": "1.0.0",
-    "description": "KMU Discipline Desk",
+    "description": "Campus Reports",
     "scripts": {
         "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install",
         "dev": "cd backend && npm run dev & cd frontend && npm run dev",

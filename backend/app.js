@@ -52,7 +52,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 // Root endpoint
 app.get('/', (req, res) => {
     res.json({
-        message: 'KMU Discipline Desk Backend API',
+        message: 'Campus Reports Backend API',
         status: 'running',
         timestamp: new Date().toISOString()
     });

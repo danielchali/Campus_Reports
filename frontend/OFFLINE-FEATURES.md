@@ -1,6 +1,6 @@
-# KMU Discipline Desk - Offline-First Features
+# Campus Reports - Offline-First Features
 
-This document describes the comprehensive offline-first functionality implemented in the KMU Discipline Desk application.
+This document describes the comprehensive offline-first functionality implemented in the Campus Reports application.
 
 ## 🚀 Features Implemented
 

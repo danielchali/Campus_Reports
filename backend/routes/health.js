@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
         res.json({
             status: 'ok',
             timestamp: new Date().toISOString(),
-            service: 'KMU Discipline Desk Backend',
+            service: 'Campus Reports Backend',
             version: '1.0.0',
             uptime: `${Math.floor(uptime / 60)} minutes`,
             database: {

@@ -1,6 +1,6 @@
 # Scripts Directory
 
-This directory contains utility scripts for deploying and managing the KMU Discipline Desk application.
+This directory contains utility scripts for deploying and managing the Campus Reports application.
 
 ## Available Scripts
 

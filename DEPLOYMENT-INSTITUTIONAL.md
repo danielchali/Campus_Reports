@@ -1,6 +1,6 @@
 # Institutional Deployment Guide
 
-This guide provides comprehensive instructions for deploying the KMU Discipline Desk application in any institutional environment, whether on-premises servers, cloud platforms, or hybrid environments.
+This guide provides comprehensive instructions for deploying the Campus Reports application in any institutional environment, whether on-premises servers, cloud platforms, or hybrid environments.
 
 ## Deployment Architecture Options
 
@@ -147,7 +147,7 @@ sudo nano /etc/systemd/system/discipline-desk-backend.service
 
 ```ini
 [Unit]
-Description=KMU Discipline Desk Backend
+Description=Campus Reports Backend
 After=network.target
 
 [Service]

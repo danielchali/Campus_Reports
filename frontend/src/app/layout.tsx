@@ -71,11 +71,11 @@ function TopNavbar() {
   if (!user) return null;
 
   return (
-    <nav className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm md:sticky md:top-0">
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center">
-          <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-            KMU Discipline Desk
+          <h1 className="text-lg font-semibold text-kmuGreen dark:text-kmuGreen">
+            Campus Reports
           </h1>
         </div>
         
@@ -131,7 +131,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
         <div>
           {shouldShowNav && <TopNavbar />}
         </div>
-        <main className="flex-1 px-3 py-3 pb-24 sm:px-4 md:px-6 md:py-8 md:pb-8 overflow-x-hidden">
+        <main className="flex-1 px-3 pt-16 pb-24 sm:px-4 md:px-6 md:pt-3 md:pb-8 md:py-8 overflow-x-hidden">
           <Suspense fallback={<LoadingFallback />}>
             {children}
           </Suspense>
@@ -167,7 +167,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="KMU Discipline Desk - Student Discipline Management System" />
+        <meta name="description" content="Campus Reports - Student Discipline Management System" />
         <meta name="theme-color" content="#10B981" />
         
         {/* Preload critical resources */}
@@ -180,7 +180,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Preconnect to API */}
         <link rel="preconnect" href="https://kmu-disciplinedesk.onrender.com" />
         
-        <title>KMU Discipline Desk</title>
+        <title>Campus Reports</title>
       </head>
       <body className="min-h-screen">
         {syncError && (

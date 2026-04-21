@@ -1,6 +1,6 @@
-# Deploying KMU Discipline Desk to Render
+# Deploying Campus Reports to Render
 
-This guide will help you deploy the KMU Discipline Desk application to Render with minimal configuration.
+This guide will help you deploy the Campus Reports application to Render with minimal configuration.
 
 ## Prerequisites
 

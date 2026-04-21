@@ -1,4 +1,4 @@
-# KMU Discipline Desk - Project Structure
+# Campus Reports - Project Structure
 
 ## Overview
 This is a full-stack web application built with Next.js (frontend) and Express.js (backend), with PWA support for installable offline use.

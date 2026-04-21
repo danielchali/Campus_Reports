@@ -1,6 +1,6 @@
 {
-    "name": "KMU Discipline Desk",
-    "short_name": "KMU Desk",
+    "name": "Campus Reports",
+    "short_name": "Campus",
     "description": "Student Discipline Management System - Fast, Secure, and Offline-Capable",
     "start_url": "/",
     "display": "standalone",
@@ -70,14 +70,14 @@
             "sizes": "1280x720",
             "type": "image/png",
             "form_factor": "wide",
-            "label": "KMU Discipline Desk Dashboard"
+            "label": "Campus Reports Dashboard"
         },
         {
             "src": "/kmu_logo.png",
             "sizes": "750x1334",
             "type": "image/png",
             "form_factor": "narrow",
-            "label": "KMU Discipline Desk Mobile View"
+            "label": "Campus Reports Mobile View"
         }
     ],
     "prefer_related_applications": false,
