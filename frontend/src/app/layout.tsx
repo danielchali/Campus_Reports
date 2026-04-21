@@ -72,20 +72,21 @@ function TopNavbar() {
 
   return (
     <nav className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-      <div className="px-3 md:px-4 py-2 md:py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-2 md:space-x-4">
-          <h1 className="text-base md:text-lg font-semibold text-gray-900 dark:text-white truncate">
+      <div className="px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center">
+          <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
             KMU Discipline Desk
           </h1>
         </div>
         
-        <div className="flex items-center space-x-2">
-          <span className="text-xs md:text-sm text-gray-600 dark:text-gray-300 hidden sm:inline truncate">
+        {/* Desktop-only user info and logout */}
+        <div className="hidden md:flex items-center space-x-4">
+          <span className="text-sm text-gray-600 dark:text-gray-300">
             {user.name || user.username}
           </span>
           <button
             onClick={logout}
-            className="px-2 md:px-3 py-1 text-xs md:text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors whitespace-nowrap"
+            className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
           >
             Logout
           </button>
