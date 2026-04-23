@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
+import { getAvailableYearsForProgram, PROGRAM_OPTIONS } from '../../config/constants';
 import { registerStudent } from '../../utils/api';
 
 type SignupFormState = {
@@ -72,13 +73,9 @@ const STEP_TITLES = [
   'Review & Submit',
 ];
 
-const YEARS = ['1', '2', '3', '4', '5'];
 const DELIVERY_MODES = ['Full Time', 'Part Time', 'Distance'];
 const MARITAL_STATUSES = ['Single', 'Married', 'Divorced', 'Widowed'];
 const GENDERS = ['Male', 'Female', 'Other'];
-const PROGRAMS = [
-  'Bachelor of Science in Information and Communication Technology Education',
-];
 export default function StudentSignupPage() {
   const router = useRouter();
   const { theme } = useTheme();
@@ -99,6 +96,17 @@ export default function StudentSignupPage() {
     () => [form.personalInfo.firstName, form.personalInfo.surName].filter(Boolean).join(' ').trim(),
     [form.personalInfo.firstName, form.personalInfo.surName]
   );
+
+  const availableYears = useMemo(
+    () => getAvailableYearsForProgram(form.program),
+    [form.program]
+  );
+
+  useEffect(() => {
+    if (form.year && !availableYears.includes(form.year)) {
+      setForm(prev => ({ ...prev, year: '' }));
+    }
+  }, [availableYears, form.year]);
 
   const inputClassName = `w-full rounded-lg border px-3 py-2 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent ${
     theme === 'dark'
@@ -232,7 +240,7 @@ export default function StudentSignupPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-kmuOrange">Student Signup</p>
             <h1 className="mt-2 text-3xl font-bold text-kmuGreen md:text-4xl">Create your Campus Reports account</h1>
             <p className={`mt-2 max-w-2xl text-sm md:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-              Complete all four steps so your student account and profile are ready in one go.
+              Complete your details so your student account and profile are ready in one go.
             </p>
           </div>
           <Link
@@ -241,30 +249,6 @@ export default function StudentSignupPage() {
           >
             Back to Login
           </Link>
-        </div>
-
-        <div className="mb-6 grid gap-3 md:grid-cols-4">
-          {STEP_TITLES.map((title, index) => {
-            const isActive = index === step;
-            const isCompleted = index < step;
-            return (
-              <div
-                key={title}
-                className={`rounded-2xl border px-4 py-3 transition ${
-                  isActive
-                    ? 'border-kmuGreen bg-kmuGreen text-white shadow-lg'
-                    : isCompleted
-                      ? 'border-kmuOrange bg-kmuOrange/10 text-kmuOrange'
-                      : theme === 'dark'
-                        ? 'border-gray-700 bg-gray-800 text-gray-300'
-                        : 'border-gray-200 bg-white text-gray-500'
-                }`}
-              >
-                <div className="text-xs font-semibold uppercase tracking-[0.2em]">Step {index + 1}</div>
-                <div className="mt-1 text-sm font-semibold">{title}</div>
-              </div>
-            );
-          })}
         </div>
 
         <form onSubmit={handleSubmit} className={`${cardClassName} overflow-hidden`}>
@@ -280,7 +264,7 @@ export default function StudentSignupPage() {
                       <label className="mb-2 block text-sm font-medium">Program</label>
                       <select className={inputClassName} value={form.program} onChange={(e) => updateField('program', e.target.value)}>
                         <option value="">Select program</option>
-                        {PROGRAMS.map((program) => <option key={program} value={program}>{program}</option>)}
+                        {PROGRAM_OPTIONS.map((program) => <option key={program} value={program}>{program}</option>)}
                       </select>
                     </div>
                   </div>
@@ -294,12 +278,12 @@ export default function StudentSignupPage() {
                       <input type="password" className={inputClassName} value={form.confirmPassword} onChange={(e) => updateField('confirmPassword', e.target.value)} placeholder="Repeat password" />
                     </div>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label className="mb-2 block text-sm font-medium">Year</label>
                       <select className={inputClassName} value={form.year} onChange={(e) => updateField('year', e.target.value)}>
                         <option value="">Select year</option>
-                        {YEARS.map((value) => <option key={value} value={value}>{value}</option>)}
+                        {availableYears.map((value) => <option key={value} value={value}>{value}</option>)}
                       </select>
                     </div>
                     <div>
@@ -444,7 +428,7 @@ export default function StudentSignupPage() {
                 </div>
               )}
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-between">
+              <div className="mt-8 flex items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={handleBack}

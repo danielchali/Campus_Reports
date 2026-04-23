@@ -1,5 +1,28 @@
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
+export const PROGRAM_OPTIONS = [
+  'Bsc. Software Engineering',
+  'Bsc. Network Engineering',
+  'Bsc. Health Informatics',
+  'Bsc. Information & Communication Technologies',
+  'Bsc. Data Science',
+  'Bsc. Cyber Security',
+  'Bsc. Information Systems & Business Analytics',
+  'Bsc. Animal Science',
+  'Bsc. Sustainable Agriculture',
+  'Bsc. Fisheries & Aquaculture',
+  'Bsc. Fisheries Management',
+  'Bsc. Aquaculture',
+] as const;
+
+export const YEAR_OPTIONS = ['1', '2', '3', '4', '5'] as const;
+
+export function getAvailableYearsForProgram(program: string) {
+  return program === 'Bsc. Sustainable Agriculture'
+    ? [...YEAR_OPTIONS]
+    : YEAR_OPTIONS.slice(0, 4);
+}
+
 export const OFFENSE_TYPES = [
   {
     value: 'Malpractice',

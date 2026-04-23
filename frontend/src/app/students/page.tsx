@@ -1,9 +1,9 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { API_BASE_URL } from '../../config/constants';
+import { API_BASE_URL, getAvailableYearsForProgram, PROGRAM_OPTIONS, YEAR_OPTIONS } from '../../config/constants';
 import { getAll, create, remove } from '../../utils/api';
 import { useOfflineApi } from '../../hooks/useOfflineSync';
 import Papa from 'papaparse';
@@ -19,8 +19,6 @@ interface Student {
   gender?: string;
 }
 
-const PROGRAMS = ['Bachelor of Science in Information and Communication Technology Education'];
-const YEARS = ['1', '2', '3', '4', '5'];
 const GENDERS = ['Male', 'Female', 'Other'];
 
 export default function StudentsPage() {
@@ -58,6 +56,7 @@ export default function StudentsPage() {
   const [total, setTotal] = useState(0);
   const [offlineMode, setOfflineMode] = useState(false);
   const { apiCall, isLoading: apiLoading, error: apiError } = useOfflineApi();
+  const availableYears = useMemo(() => getAvailableYearsForProgram(program), [program]);
 
   async function loadStudents(pageNum = page) {
     setLoading(true);
@@ -104,6 +103,12 @@ export default function StudentsPage() {
       return () => clearTimeout(timer);
     }
   }, [success]);
+
+  useEffect(() => {
+    if (year && !availableYears.includes(year)) {
+      setYear('');
+    }
+  }, [availableYears, year]);
 
   async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -503,7 +508,7 @@ export default function StudentsPage() {
                   required
                 >
                   <option value="">Select Program</option>
-                  {PROGRAMS.map((item) => (
+                  {PROGRAM_OPTIONS.map((item) => (
                     <option key={item} value={item}>{item}</option>
                   ))}
                 </select>
@@ -518,7 +523,7 @@ export default function StudentsPage() {
                     className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="">Select Year</option>
-                    {YEARS.map((item) => (
+                    {availableYears.map((item) => (
                       <option key={item} value={item}>{item}</option>
                     ))}
                   </select>
@@ -585,7 +590,7 @@ export default function StudentsPage() {
                   className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 >
                   <option value="">All Programs</option>
-                  {PROGRAMS.map((item) => (
+                  {PROGRAM_OPTIONS.map((item) => (
                     <option key={item} value={item}>{item}</option>
                   ))}
                 </select>
@@ -595,7 +600,7 @@ export default function StudentsPage() {
                   className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 >
                   <option value="">All Years</option>
-                  {YEARS.map((item) => (
+                  {YEAR_OPTIONS.map((item) => (
                     <option key={item} value={item}>{item}</option>
                   ))}
                 </select>
