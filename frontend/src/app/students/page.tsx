@@ -20,7 +20,7 @@ interface Student {
 }
 
 const PROGRAMS = ['Bachelor of Science in Information and Communication Technology Education'];
-const YEARS = ['1', '2', '3', '4'];
+const YEARS = ['1', '2', '3', '4', '5'];
 const GENDERS = ['Male', 'Female', 'Other'];
 
 export default function StudentsPage() {
@@ -207,7 +207,7 @@ export default function StudentsPage() {
           }
           
           // Validate optional fields
-          if (student.year && !['1', '2', '3', '4'].includes(student.year)) {
+          if (student.year && !['1', '2', '3', '4', '5'].includes(student.year)) {
             validationErrors.push(`Row ${rowNumber}: Invalid Year (must be 1, 2, 3, or 4)`);
           }
           
@@ -274,7 +274,7 @@ export default function StudentsPage() {
           }
           
           // Validate optional fields
-          if (student.year && !['1', '2', '3', '4'].includes(student.year)) {
+          if (student.year && !['1', '2', '3', '4', '5'].includes(student.year)) {
             validationErrors.push(`Row ${rowNumber}: Invalid Year (must be 1, 2, 3, or 4)`);
           }
           

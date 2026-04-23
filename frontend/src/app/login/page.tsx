@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { performanceMonitor, addResourceHints } from '../../utils/performance';
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const { user, login, loginOffline, isOnline: authIsOnline } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Performance monitoring
   useEffect(() => {
@@ -76,6 +78,8 @@ export default function LoginPage() {
     }
   }, [user, router]);
 
+  const signupSuccess = searchParams.get('registered') === '1';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -128,11 +132,16 @@ export default function LoginPage() {
               onLoad={() => console.log('Logo loaded successfully')}
             />
             <h2 className="text-xl md:text-3xl font-bold text-kmuGreen mb-2">
-              Log in to KMU DisciplineDesk
+              Log in to Campus Reports
             </h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6" autoComplete="off">
+            {signupSuccess && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-md text-xs md:text-sm">
+                Student account created successfully. Sign in with your Student ID and password.
+              </div>
+            )}
             {/* Username Field */}
             <div>
               <label htmlFor="username" className={`block text-xs md:text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1.5 md:mb-2`}>
@@ -217,6 +226,12 @@ export default function LoginPage() {
               )}
             </button>
           </form>
+          <div className="mt-5 text-center text-sm">
+            <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>New student? </span>
+            <Link href="/signup" className="font-semibold text-kmuGreen underline">
+              Create your account
+            </Link>
+          </div>
         </div>
       </div>
     </div>

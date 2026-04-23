@@ -76,7 +76,7 @@ export default function HelpPage() {
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-4 text-kmuGreen">Help & Documentation</h1>
         <p className="text-gray-700 dark:text-gray-300 text-lg">
-          Welcome to KMU DisciplineDesk. Use this guide to navigate the system and complete your daily work.
+          Welcome to Campus Reports. Use this guide to navigate the system and complete your daily work.
         </p>
       </div>
 

@@ -149,7 +149,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { theme } = useTheme();
-  const isLogin = pathname === "/login" || pathname === "/";
+  const isLogin = pathname === "/login" || pathname === "/" || pathname === "/signup";
   const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {

@@ -61,6 +61,16 @@ export async function register(username: string, password: string, name?: string
   return res.json();
 }
 
+export async function registerStudent(studentData: any) {
+  const res = await fetch(`${API_BASE_URL}/student-signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(studentData)
+  });
+  if (!res.ok) throw new Error((await res.json()).error || 'Student signup failed');
+  return res.json();
+}
+
 // Generic CRUD helpers
 export async function getAll(resource: string) {
   const res = await fetch(`${API_BASE_URL}/${resource}`, {

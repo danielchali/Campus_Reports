@@ -4,8 +4,7 @@ const studentSchema = new mongoose.Schema({
     studentId: { type: String, required: true, unique: true },
     program: String,
     year: String,
-    yearOfStudy: String,
-    status: String,
+    status: { type: String, enum: ['Active', 'Suspended', 'Expelled'], default: 'Active' },
     deliveryMode: String,
     personalInfo: {
         firstName: String,

@@ -2,6 +2,13 @@ import StudentModel from '../models/student.js';
 import CaseModel from '../models/case.js';
 import { logAudit } from './auditController.js';
 
+function normalizeStudentStatus(status) {
+    const normalized = String(status || '').trim().toLowerCase();
+    if (normalized === 'suspended') return 'Suspended';
+    if (normalized === 'expelled') return 'Expelled';
+    return 'Active';
+}
+
 function normalizeStudentPayload(payload = {}) {
     const firstName = payload.personalInfo?.firstName || payload.firstName || '';
     const surName = payload.personalInfo?.surName || payload.surName || '';
@@ -11,8 +18,7 @@ function normalizeStudentPayload(payload = {}) {
         studentId: payload.studentId,
         program: payload.program || '',
         year: payload.year || '',
-        yearOfStudy: payload.yearOfStudy || '',
-        status: payload.status || '',
+        status: normalizeStudentStatus(payload.status),
         deliveryMode: payload.deliveryMode || '',
         personalInfo: {
             firstName: firstName || (fullName ? fullName.split(' ')[0] : ''),
@@ -192,8 +198,8 @@ export async function importStudents(req, res) {
                 validationErrors.push(`Row ${rowNumber}: Missing Program`);
             }
 
-            if (student.year && !['1', '2', '3', '4'].includes(student.year.toString())) {
-                validationErrors.push(`Row ${rowNumber}: Invalid Year (must be 1, 2, 3, or 4)`);
+            if (student.year && !['1', '2', '3', '4', '5'].includes(student.year.toString())) {
+                validationErrors.push(`Row ${rowNumber}: Invalid Year (must be 1, 2, 3, 4, or 5)`);
             }
 
             const normalizedGender = student.gender || student.personalInfo?.gender;
