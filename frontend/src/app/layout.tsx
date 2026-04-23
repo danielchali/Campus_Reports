@@ -17,6 +17,7 @@ const ServiceWorkerRegistration = lazy(() => import('../components/ServiceWorker
 const PreloadProgress = lazy(() => import('../components/PreloadProgress'));
 const CacheStatus = lazy(() => import('../components/CacheStatus'));
 const OfflineIndicator = lazy(() => import('../components/OfflineIndicator'));
+const Breadcrumbs = lazy(() => import('../components/Breadcrumbs'));
 
 import clsx from 'clsx';
 import { API_BASE_URL } from '../config/constants';
@@ -132,6 +133,11 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
           {shouldShowNav && <TopNavbar />}
         </div>
         <main className="flex-1 px-3 pt-16 pb-24 sm:px-4 md:px-6 md:pt-3 md:pb-8 md:py-8 overflow-x-hidden">
+          {shouldShowNav && (
+            <Suspense fallback={null}>
+              <Breadcrumbs />
+            </Suspense>
+          )}
           <Suspense fallback={<LoadingFallback />}>
             {children}
           </Suspense>
