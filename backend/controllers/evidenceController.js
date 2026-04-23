@@ -5,7 +5,12 @@ import { logAudit } from './auditController.js';
 
 export async function listEvidence(req, res) {
     try {
-        const evidence = await EvidenceModel.find();
+        const query = {};
+        if (req.query.caseId) {
+            query.caseId = req.query.caseId;
+        }
+
+        const evidence = await EvidenceModel.find(query).sort({ date: -1 });
         res.json(evidence);
     } catch (err) {
         res.status(500).json({ error: 'Server error' });

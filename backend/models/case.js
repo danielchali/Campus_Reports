@@ -12,6 +12,7 @@ const caseSchema = new mongoose.Schema({
     severity: String,
     status: String,
     sanctions: String,
+    student_case_process: mongoose.Schema.Types.Mixed,
     attachments: [String],
     created_by: String,
     case_type: { type: String, enum: ['single_student', 'group_student', 'single_staff', 'group_staff'], default: 'single_student' },

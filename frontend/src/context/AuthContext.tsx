@@ -27,6 +27,28 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function decodeJwtPayload(token: string) {
+  try {
+    const [, payload] = token.split('.');
+    if (!payload) return null;
+
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
+    return JSON.parse(atob(padded));
+  } catch {
+    return null;
+  }
+}
+
+function isTokenExpired(token: string) {
+  const payload = decodeJwtPayload(token);
+  if (!payload?.exp) {
+    return false;
+  }
+
+  return payload.exp * 1000 <= Date.now();
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -54,28 +76,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const loadStoredAuth = async () => {
       const storedToken = localStorage.getItem('auth_token');
       const storedUser = localStorage.getItem('auth_user');
-      const storedOfflineData = localStorage.getItem('offline_auth_data');
       
       if (storedToken && storedUser) {
         try {
-          // Validate token if it's not an offline token
-          if (storedToken !== 'offline_token') {
-            try {
-              // Test token by making a simple API call
-              const response = await fetch(`${API_BASE_URL}/cases?limit=1`, {
-                headers: { 'Authorization': `Bearer ${storedToken}` }
-              });
-              
-              if (!response.ok) {
-                throw new Error('Token validation failed');
-              }
-            } catch (error) {
-              console.warn('Token validation failed, clearing stored auth:', error);
-              localStorage.removeItem('auth_token');
-              localStorage.removeItem('auth_user');
-              setLoading(false);
-              return;
-            }
+          if (storedToken !== 'offline_token' && isTokenExpired(storedToken)) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+            setLoading(false);
+            return;
           }
           
           setToken(storedToken);
@@ -181,6 +189,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error('Offline data expired');
         }
         
+        localStorage.setItem('auth_token', 'offline_token');
+        localStorage.setItem('auth_user', JSON.stringify(offlineData.user));
         setUser(offlineData.user);
         setToken('offline_token'); // Special token for offline mode
         return true;
