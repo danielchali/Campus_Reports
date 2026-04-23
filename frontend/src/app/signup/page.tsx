@@ -268,8 +268,7 @@ export default function StudentSignupPage() {
         </div>
 
         <form onSubmit={handleSubmit} className={`${cardClassName} overflow-hidden`}>
-          <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="p-6 md:p-8">
+          <div className="p-6 md:p-8">
               {step === 0 && (
                 <div className="space-y-5">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -474,14 +473,14 @@ export default function StudentSignupPage() {
                   )}
                 </div>
               </div>
-            </div>
 
-            <aside className={`border-t p-6 lg:border-l lg:border-t-0 md:p-8 ${theme === 'dark' ? 'border-gray-700 bg-gray-900/60' : 'border-gray-100 bg-gradient-to-b from-green-50 to-white'} flex items-end`}>
-              <Link href="/login" className="inline-flex text-sm font-medium text-kmuGreen underline">
-                Already have an account? Sign in
-              </Link>
-            </aside>
-          </div>
+              <div className="mt-5 text-center text-sm">
+                <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>Already have an account? </span>
+                <Link href="/login" className="font-semibold text-kmuGreen underline">
+                  Sign in
+                </Link>
+              </div>
+            </div>
         </form>
       </div>
     </div>
