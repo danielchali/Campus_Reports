@@ -82,32 +82,18 @@ router.post('/export-docx', async(req, res) => {
 
 // Helpers
 async function listStaffRaw() {
-    const dbType = process.env.DB_TYPE || 'mongo';
-    if (dbType === 'mongo') {
-        const StaffModel = (await import('../models/staff.js')).default;
-        return StaffModel.find();
-    } else {
-        const db = (await import('../models/db.js')).default;
-        const [rows] = await db.execute('SELECT * FROM staff');
-        return rows;
-    }
+    const StaffModel = (await import('../models/staff.js')).default;
+    return StaffModel.find();
 }
 
 async function getStaffCases(staffId) {
-    const dbType = process.env.DB_TYPE || 'mongo';
-    if (dbType === 'mongo') {
-        const CaseModel = (await import('../models/case.js')).default;
-        return CaseModel.find({ 
-            $or: [
-                { staff_id: staffId },
-                { staff_ids: staffId }
-            ]
-        });
-    } else {
-        const db = (await import('../models/db.js')).default;
-        const [rows] = await db.execute('SELECT * FROM cases WHERE staff_id = ?', [staffId]);
-        return rows;
-    }
+    const CaseModel = (await import('../models/case.js')).default;
+    return CaseModel.find({
+        $or: [
+            { staff_id: staffId },
+            { staff_ids: staffId }
+        ]
+    });
 }
 
 export default router;

@@ -10,9 +10,11 @@ import SmartStudentSearch from '../../components/SmartStudentSearch';
 import SmartStaffSearch from '../../components/SmartStaffSearch';
 
 interface Student {
+  _id?: string;
   studentId: string;
   fullName: string;
-  department: string;
+  department?: string;
+  program?: string;
   year?: string;
   gender?: string;
 }
@@ -262,7 +264,7 @@ export default function SecurityDashboard() {
               )}
               {selectedStudent && (
                 <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                  Selected: <strong>{selectedStudent.fullName}</strong> ({selectedStudent.studentId}) - {selectedStudent.department}, Year {selectedStudent.year}
+                  Selected: <strong>{selectedStudent.fullName}</strong> ({selectedStudent.studentId}) - {selectedStudent.program || selectedStudent.department || 'N/A'}, Year {selectedStudent.year}
                 </div>
               )}
               {selectedStaff && (
@@ -351,7 +353,7 @@ export default function SecurityDashboard() {
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
                       <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
-                      <div>{c.student?.department || c.staff?.department || 'N/A'}</div>
+                      <div>{c.student?.program || c.student?.department || c.staff?.department || 'N/A'}</div>
                     </div>
                     <div>
                       <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Date</div>
@@ -407,7 +409,7 @@ export default function SecurityDashboard() {
                       </div>
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap text-sm">
-                      {c.student?.department || c.staff?.department || 'N/A'}
+                      {c.student?.program || c.student?.department || c.staff?.department || 'N/A'}
                     </td>
                     <td className="px-4 py-2 whitespace-nowrap text-sm">
                       {c.offenseType || 'N/A'}

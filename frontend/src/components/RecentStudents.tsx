@@ -7,7 +7,7 @@ interface Student {
   _id: string;
   studentId: string;
   fullName: string;
-  program: string;
+  program?: string;
   year?: string;
   gender?: string;
   lastSelected?: string;

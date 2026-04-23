@@ -80,17 +80,8 @@ router.post('/export-docx', async(req, res) => {
 
 // Helper to get all users (raw, no pagination)
 async function listUsersRaw() {
-    const dbType = process.env.DB_TYPE || 'mongo';
-    if (dbType === 'mongo') {
-        const UserModel = (await
-            import ('../models/user.js')).default;
-        return UserModel.find({}, '-password');
-    } else {
-        const db = (await
-            import ('../models/db.js')).default;
-        const [rows] = await db.execute('SELECT id, username, name, role FROM users');
-        return rows;
-    }
+    const UserModel = (await import('../models/user.js')).default;
+    return UserModel.find({}, '-password');
 }
 
 export default [router];

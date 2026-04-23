@@ -81,30 +81,13 @@ router.post('/export-docx', async(req, res) => {
 
 // Helpers
 async function listStudentsRaw() {
-    const dbType = process.env.DB_TYPE || 'mongo';
-    if (dbType === 'mongo') {
-        const StudentModel = (await
-            import ('../models/student.js')).default;
-        return StudentModel.find();
-    } else {
-        const db = (await
-            import ('../models/db.js')).default;
-        const [rows] = await db.execute('SELECT * FROM students');
-        return rows;
-    }
+    const StudentModel = (await import('../models/student.js')).default;
+    return StudentModel.find();
 }
+
 async function getStudentCases(studentId) {
-    const dbType = process.env.DB_TYPE || 'mongo';
-    if (dbType === 'mongo') {
-        const CaseModel = (await
-            import ('../models/case.js')).default;
-        return CaseModel.find({ student_id: studentId });
-    } else {
-        const db = (await
-            import ('../models/db.js')).default;
-        const [rows] = await db.execute('SELECT * FROM cases WHERE student_id = ?', [studentId]);
-        return rows;
-    }
+    const CaseModel = (await import('../models/case.js')).default;
+    return CaseModel.find({ student_id: studentId });
 }
 
 export default router;

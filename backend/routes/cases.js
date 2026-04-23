@@ -46,19 +46,8 @@ router.post('/export-docx', async(req, res) => {
     try {
         const cases = await listCasesRaw();
 
-        // Get students for reference to include names
-        const dbType = process.env.DB_TYPE || 'mongo';
-        let allStudents = [];
-        if (dbType === 'mongo') {
-            const StudentModel = (await
-                import ('../models/student.js')).default;
-            allStudents = await StudentModel.find();
-        } else {
-            const db = (await
-                import ('../models/db.js')).default;
-            const [studentsRows] = await db.execute('SELECT * FROM students');
-            allStudents = studentsRows;
-        }
+        const StudentModel = (await import('../models/student.js')).default;
+        const allStudents = await StudentModel.find();
 
         // Create a more compact table with essential columns only
         const tableRows = [
@@ -91,15 +80,8 @@ router.post('/export-docx', async(req, res) => {
                 ],
             }),
             ...cases.map(c => {
-                // Find student name
-                let studentName = '';
-                if (dbType === 'mongo') {
-                    const student = allStudents.find(s => s.studentId === (c.student_id || c.studentId));
-                    studentName = student ? student.fullName : '';
-                } else {
-                    const student = allStudents.find(s => s.studentId === (c.student_id || c.studentId));
-                    studentName = student ? student.fullName : '';
-                }
+                const student = allStudents.find(s => s.studentId === (c.student_id || c.studentId));
+                const studentName = student ? student.fullName : '';
 
                 return new TableRow({
                     children: [
@@ -166,19 +148,8 @@ router.post('/export-docx-list', async(req, res) => {
     try {
         const cases = await listCasesRaw();
 
-        // Get students for reference to include names
-        const dbType = process.env.DB_TYPE || 'mongo';
-        let allStudents = [];
-        if (dbType === 'mongo') {
-            const StudentModel = (await
-                import ('../models/student.js')).default;
-            allStudents = await StudentModel.find();
-        } else {
-            const db = (await
-                import ('../models/db.js')).default;
-            const [studentsRows] = await db.execute('SELECT * FROM students');
-            allStudents = studentsRows;
-        }
+        const StudentModel = (await import('../models/student.js')).default;
+        const allStudents = await StudentModel.find();
 
         // Create list-based content instead of table
         const content = [
@@ -196,15 +167,8 @@ router.post('/export-docx-list', async(req, res) => {
 
         // Add each case as a formatted list item
         cases.forEach((c, index) => {
-            // Find student name
-            let studentName = '';
-            if (dbType === 'mongo') {
-                const student = allStudents.find(s => s.studentId === (c.student_id || c.studentId));
-                studentName = student ? student.fullName : '';
-            } else {
-                const student = allStudents.find(s => s.studentId === (c.student_id || c.studentId));
-                studentName = student ? student.fullName : '';
-            }
+            const student = allStudents.find(s => s.studentId === (c.student_id || c.studentId));
+            const studentName = student ? student.fullName : '';
 
             content.push(
                 new Paragraph({
@@ -257,17 +221,8 @@ router.post('/export-docx-list', async(req, res) => {
 
 // Helper to get all cases (raw, no pagination)
 async function listCasesRaw() {
-    const dbType = process.env.DB_TYPE || 'mongo';
-    if (dbType === 'mongo') {
-        const CaseModel = (await
-            import ('../models/case.js')).default;
-        return CaseModel.find();
-    } else {
-        const db = (await
-            import ('../models/db.js')).default;
-        const [rows] = await db.execute('SELECT * FROM cases');
-        return rows;
-    }
+    const CaseModel = (await import('../models/case.js')).default;
+    return CaseModel.find();
 }
 
 export default router;

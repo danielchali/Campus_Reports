@@ -5,27 +5,10 @@ const router = express.Router();
 // Health check endpoint for monitoring
 router.get('/', async (req, res) => {
     try {
-        // Check database connection
-        let dbStatus = 'disconnected';
-        let dbType = process.env.DB_TYPE || 'mongo';
-        
-        if (dbType === 'mongo') {
-            if (db.connection && db.connection.readyState === 1) {
-                dbStatus = 'connected';
-            }
-        } else if (dbType === 'mysql') {
-            try {
-                await db.execute('SELECT 1');
-                dbStatus = 'connected';
-            } catch (err) {
-                console.error('MySQL health check failed:', err);
-            }
-        }
-        
-        // Check system resources (basic)
+        const dbStatus = db.connection && db.connection.readyState === 1 ? 'connected' : 'disconnected';
         const uptime = process.uptime();
         const memoryUsage = process.memoryUsage();
-        
+
         res.json({
             status: 'ok',
             timestamp: new Date().toISOString(),
@@ -33,7 +16,7 @@ router.get('/', async (req, res) => {
             version: '1.0.0',
             uptime: `${Math.floor(uptime / 60)} minutes`,
             database: {
-                type: dbType,
+                type: 'mongo',
                 status: dbStatus
             },
             system: {

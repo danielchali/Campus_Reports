@@ -11,9 +11,10 @@ import * as XLSX from 'xlsx';
 
 // Type for a student
 interface Student {
+  _id?: string;
   studentId: string;
   fullName: string;
-  program: string;
+  program?: string;
   year?: string;
   gender?: string;
 }

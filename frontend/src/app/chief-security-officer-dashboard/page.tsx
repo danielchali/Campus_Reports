@@ -237,8 +237,8 @@ export default function ChiefSecurityOfficerDashboard() {
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
-                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
-                        <div>{c.student?.department || 'N/A'}</div>
+                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Program</div>
+                        <div>{c.student?.program || 'N/A'}</div>
                       </div>
                       <div>
                         <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Date</div>

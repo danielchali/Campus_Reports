@@ -20,10 +20,10 @@ export interface User {
 }
 
 export interface Student {
-  _id: string;
+  _id?: string;
   studentId: string;
   fullName: string;
-  department?: string;
+  program?: string;
   year?: string;
   gender?: string;
   disciplinaryHistory?: Case[];

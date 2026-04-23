@@ -7,9 +7,9 @@ interface Student {
   _id: string;
   studentId: string;
   fullName: string;
-  program: string;
-  year: string;
-  gender: string;
+  program?: string;
+  year?: string;
+  gender?: string;
 }
 
 interface SmartStudentSearchProps {

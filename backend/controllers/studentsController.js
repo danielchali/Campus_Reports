@@ -1,8 +1,6 @@
 import StudentModel from '../models/student.js';
 import CaseModel from '../models/case.js';
-import db from '../models/db.js';
 import { logAudit } from './auditController.js';
-const dbType = process.env.DB_TYPE || 'mongo';
 
 function normalizeStudentPayload(payload = {}) {
     const firstName = payload.personalInfo?.firstName || payload.firstName || '';
@@ -47,67 +45,25 @@ export async function listStudents(req, res) {
         const program = req.query.program;
         const year = req.query.year;
         const gender = req.query.gender;
-        let students, total;
-        if (dbType === 'mongo') {
-            // Build query with filters
-            const query = {};
-            if (search) {
-                query.$or = [
-                    { 'personalInfo.firstName': { $regex: search, $options: 'i' } },
-                    { 'personalInfo.surName': { $regex: search, $options: 'i' } },
-                    { studentId: { $regex: search, $options: 'i' } },
-                    { program: { $regex: search, $options: 'i' } }
-                ];
-            }
-            if (program) query.program = program;
-            if (year) query.year = year;
-            if (gender) query['personalInfo.gender'] = gender;
 
-            total = await StudentModel.countDocuments(query);
-            students = await StudentModel.find(query)
-                .skip((page - 1) * limit)
-                .limit(limit);
-        } else if (dbType === 'mysql') {
-            // Build query with filters
-            let countQuery = 'SELECT COUNT(*) as count FROM students';
-            let selectQuery = 'SELECT * FROM students';
-            let whereConditions = [];
-            let queryParams = [];
-
-            if (search) {
-                whereConditions.push('(fullName LIKE ? OR studentId LIKE ?)');
-                const searchTerm = `%${search}%`;
-                queryParams.push(searchTerm, searchTerm);
-            }
-            if (program) {
-                whereConditions.push('department = ?');
-                queryParams.push(program);
-            }
-            if (year) {
-                whereConditions.push('year = ?');
-                queryParams.push(year);
-            }
-            if (gender) {
-                whereConditions.push('gender = ?');
-                queryParams.push(gender);
-            }
-
-            if (whereConditions.length > 0) {
-                const whereClause = ' WHERE ' + whereConditions.join(' AND ');
-                countQuery += whereClause;
-                selectQuery += whereClause;
-            }
-
-            selectQuery += ' LIMIT ? OFFSET ?';
-            queryParams.push(limit, (page - 1) * limit);
-
-            const [
-                [{ count }]
-            ] = await db.execute(countQuery, queryParams.slice(0, -2));
-            total = count;
-            const [rows] = await db.execute(selectQuery, queryParams);
-            students = rows;
+        const query = {};
+        if (search) {
+            query.$or = [
+                { 'personalInfo.firstName': { $regex: search, $options: 'i' } },
+                { 'personalInfo.surName': { $regex: search, $options: 'i' } },
+                { studentId: { $regex: search, $options: 'i' } },
+                { program: { $regex: search, $options: 'i' } }
+            ];
         }
+        if (program) query.program = program;
+        if (year) query.year = year;
+        if (gender) query['personalInfo.gender'] = gender;
+
+        const total = await StudentModel.countDocuments(query);
+        const students = await StudentModel.find(query)
+            .skip((page - 1) * limit)
+            .limit(limit);
+
         res.json({ students, total });
     } catch (err) {
         res.status(500).json({ error: 'Server error' });
@@ -116,40 +72,21 @@ export async function listStudents(req, res) {
 
 export async function getStudent(req, res) {
     try {
-        let student;
-        if (dbType === 'mongo') {
-            student = await StudentModel.findById(req.params.id);
-            if (student) {
-                const cases = await CaseModel.find({ student_id: student.studentId });
-                student = student.toObject();
-                // Transform case field names to camelCase for frontend
-                student.disciplinaryHistory = cases.map(caseItem => {
-                    const caseObj = caseItem.toObject();
-                    return {
-                        ...caseObj,
-                        incidentDate: caseObj.incident_date,
-                        offenseType: caseObj.offense_type,
-                        createdBy: caseObj.created_by,
-                        createdAt: caseObj.createdAt,
-                        updatedAt: caseObj.updatedAt
-                    };
-                });
-            }
-        } else if (dbType === 'mysql') {
-            const [rows] = await db.execute('SELECT * FROM students WHERE id = ?', [req.params.id]);
-            student = rows[0];
-            if (student) {
-                const [cases] = await db.execute('SELECT * FROM cases WHERE student_id = ?', [student.studentId]);
-                // Transform case field names to camelCase for frontend
-                student.disciplinaryHistory = cases.map(caseItem => ({
-                    ...caseItem,
-                    incidentDate: caseItem.incident_date,
-                    offenseType: caseItem.offense_type,
-                    createdBy: caseItem.created_by,
-                    createdAt: caseItem.createdAt,
-                    updatedAt: caseItem.updatedAt
-                }));
-            }
+        let student = await StudentModel.findById(req.params.id);
+        if (student) {
+            const cases = await CaseModel.find({ student_id: student.studentId });
+            student = student.toObject();
+            student.disciplinaryHistory = cases.map(caseItem => {
+                const caseObj = caseItem.toObject();
+                return {
+                    ...caseObj,
+                    incidentDate: caseObj.incident_date,
+                    offenseType: caseObj.offense_type,
+                    createdBy: caseObj.created_by,
+                    createdAt: caseObj.createdAt,
+                    updatedAt: caseObj.updatedAt
+                };
+            });
         }
         if (!student) return res.status(404).json({ error: 'Student not found' });
         res.json(student);
@@ -160,19 +97,11 @@ export async function getStudent(req, res) {
 
 export async function createStudent(req, res) {
     try {
-        let student;
-        if (dbType === 'mongo') {
-            student = await StudentModel.create(normalizeStudentPayload(req.body));
-        } else if (dbType === 'mysql') {
-            const { studentId, fullName, program, year, gender } = req.body;
-            await db.execute('INSERT INTO students (studentId, fullName, department, year, gender) VALUES (?, ?, ?, ?, ?)', [studentId, fullName, program, year, gender]);
-            const [rows] = await db.execute('SELECT * FROM students WHERE studentId = ?', [studentId]);
-            student = rows[0];
-        }
+        const student = await StudentModel.create(normalizeStudentPayload(req.body));
         await logAudit({
             action: 'student_created',
             entity: 'student',
-            entityId: (student && (student._id || student.id || student.studentId)),
+            entityId: student._id || student.id || student.studentId,
             user: req.user && req.user.username,
             details: {
                 studentData: {
@@ -195,17 +124,7 @@ export async function createStudent(req, res) {
 
 export async function updateStudent(req, res) {
     try {
-        let student;
-        if (dbType === 'mongo') {
-            student = await StudentModel.findByIdAndUpdate(req.params.id, normalizeStudentPayload(req.body), { new: true });
-        } else if (dbType === 'mysql') {
-            const fields = Object.keys(req.body).map(k => `${k} = ?`).join(', ');
-            const values = Object.values(req.body);
-            values.push(req.params.id);
-            await db.execute(`UPDATE students SET ${fields} WHERE id = ?`, values);
-            const [rows] = await db.execute('SELECT * FROM students WHERE id = ?', [req.params.id]);
-            student = rows[0];
-        }
+        const student = await StudentModel.findByIdAndUpdate(req.params.id, normalizeStudentPayload(req.body), { new: true });
         await logAudit({
             action: 'student_updated',
             entity: 'student',
@@ -226,11 +145,7 @@ export async function updateStudent(req, res) {
 
 export async function deleteStudent(req, res) {
     try {
-        if (dbType === 'mongo') {
-            await StudentModel.findByIdAndDelete(req.params.id);
-        } else if (dbType === 'mysql') {
-            await db.execute('DELETE FROM students WHERE id = ?', [req.params.id]);
-        }
+        await StudentModel.findByIdAndDelete(req.params.id);
         await logAudit({
             action: 'student_deleted',
             entity: 'student',
@@ -256,7 +171,6 @@ export async function importStudents(req, res) {
             return res.status(400).json({ error: 'No students provided' });
         }
 
-        // Validate input data
         const validationErrors = [];
         for (let i = 0; i < students.length; i++) {
             const student = students[i];
@@ -291,28 +205,18 @@ export async function importStudents(req, res) {
         if (validationErrors.length > 0) {
             return res.status(400).json({
                 error: 'Validation failed',
-                details: validationErrors.slice(0, 10) // Limit to first 10 errors
+                details: validationErrors.slice(0, 10)
             });
         }
 
         let inserted = 0;
-        let errors = [];
-        let existingStudents = [];
+        const errors = [];
 
-        // Check for existing students first
-        if (dbType === 'mongo') {
-            const existingStudentIds = await StudentModel.find({
-                studentId: { $in: students.map(s => s.studentId) }
-            }).select('studentId');
-            existingStudents = existingStudentIds.map(s => s.studentId);
-        } else if (dbType === 'mysql') {
-            const studentIds = students.map(s => s.studentId);
-            const placeholders = studentIds.map(() => '?').join(',');
-            const [rows] = await db.execute(`SELECT studentId FROM students WHERE studentId IN (${placeholders})`, studentIds);
-            existingStudents = rows.map(row => row.studentId);
-        }
+        const existingStudentIds = await StudentModel.find({
+            studentId: { $in: students.map(s => s.studentId) }
+        }).select('studentId');
+        const existingStudents = existingStudentIds.map(s => s.studentId);
 
-        // Filter out existing students
         const newStudents = students.filter(s => !existingStudents.includes(s.studentId));
 
         if (newStudents.length === 0) {
@@ -322,59 +226,30 @@ export async function importStudents(req, res) {
             });
         }
 
-        // Insert new students
-        if (dbType === 'mongo') {
-            for (const s of newStudents) {
-                try {
-                    // Clean and validate data
-                    const cleanStudent = {
-                        studentId: s.studentId.trim(),
-                        ...normalizeStudentPayload({
-                            ...s,
-                            fullName: s.fullName,
-                            program: s.program,
-                            gender: s.gender || s.personalInfo?.gender
-                        }),
-                        year: s.year ? s.year.toString().trim() : undefined,
-                    };
+        for (const s of newStudents) {
+            try {
+                const cleanStudent = {
+                    studentId: s.studentId.trim(),
+                    ...normalizeStudentPayload({
+                        ...s,
+                        fullName: s.fullName,
+                        program: s.program,
+                        gender: s.gender || s.personalInfo?.gender
+                    }),
+                    year: s.year ? s.year.toString().trim() : undefined,
+                };
 
-                    await StudentModel.create(cleanStudent);
-                    inserted++;
-                } catch (err) {
-                    console.error('MongoDB insert error:', err);
-                    errors.push({
-                        student: s,
-                        error: err.code === 11000 ? 'Student ID already exists' : err.message
-                    });
-                }
-            }
-        } else if (dbType === 'mysql') {
-            for (const s of newStudents) {
-                try {
-                    // Clean and validate data
-                    const cleanStudent = {
-                        studentId: s.studentId.trim(),
-                        fullName: s.fullName.trim(),
-                        department: s.program.trim(),
-                        year: s.year ? s.year.toString().trim() : undefined,
-                        gender: s.gender ? s.gender.toString().trim() : undefined
-                    };
-
-                    await db.execute(
-                        'INSERT INTO students (studentId, fullName, department, year, gender) VALUES (?, ?, ?, ?, ?)', [cleanStudent.studentId, cleanStudent.fullName, cleanStudent.department, cleanStudent.year, cleanStudent.gender]
-                    );
-                    inserted++;
-                } catch (err) {
-                    console.error('MySQL insert error:', err);
-                    errors.push({
-                        student: s,
-                        error: err.code === 'ER_DUP_ENTRY' ? 'Student ID already exists' : err.message
-                    });
-                }
+                await StudentModel.create(cleanStudent);
+                inserted++;
+            } catch (err) {
+                console.error('MongoDB insert error:', err);
+                errors.push({
+                    student: s,
+                    error: err.code === 11000 ? 'Student ID already exists' : err.message
+                });
             }
         }
 
-        // Log audit
         await logAudit({
             action: 'students_imported',
             entity: 'student',
@@ -390,7 +265,6 @@ export async function importStudents(req, res) {
             userAgent: req.get('User-Agent')
         });
 
-        // Return detailed results
         res.json({
             success: true,
             inserted,
@@ -417,24 +291,14 @@ export async function searchStudents(req, res) {
             return res.json([]);
         }
 
-        let students;
-        if (dbType === 'mongo') {
-            students = await StudentModel.find({
-                $or: [
-                    { 'personalInfo.firstName': { $regex: q, $options: 'i' } },
-                    { 'personalInfo.surName': { $regex: q, $options: 'i' } },
-                    { studentId: { $regex: q, $options: 'i' } },
-                    { program: { $regex: q, $options: 'i' } }
-                ]
-            }).limit(10);
-        } else if (dbType === 'mysql') {
-            const [rows] = await db.execute(`
-                SELECT * FROM students 
-                WHERE fullName LIKE ? OR studentId LIKE ? OR department LIKE ?
-                LIMIT 10
-            `, [`%${q}%`, `%${q}%`, `%${q}%`]);
-            students = rows;
-        }
+        const students = await StudentModel.find({
+            $or: [
+                { 'personalInfo.firstName': { $regex: q, $options: 'i' } },
+                { 'personalInfo.surName': { $regex: q, $options: 'i' } },
+                { studentId: { $regex: q, $options: 'i' } },
+                { program: { $regex: q, $options: 'i' } }
+            ]
+        }).limit(10);
 
         res.json(students);
     } catch (err) {
@@ -446,21 +310,9 @@ export async function searchStudents(req, res) {
 export async function getRecentStudents(req, res) {
     try {
         const { limit = 10 } = req.query;
-
-        let students;
-        if (dbType === 'mongo') {
-            students = await StudentModel.find({ lastSelected: { $exists: true } })
-                .sort({ lastSelected: -1 })
-                .limit(parseInt(limit));
-        } else if (dbType === 'mysql') {
-            const [rows] = await db.execute(`
-                SELECT * FROM students 
-                WHERE lastSelected IS NOT NULL
-                ORDER BY lastSelected DESC
-                LIMIT ?
-            `, [parseInt(limit)]);
-            students = rows;
-        }
+        const students = await StudentModel.find({ lastSelected: { $exists: true } })
+            .sort({ lastSelected: -1 })
+            .limit(parseInt(limit));
 
         res.json(students);
     } catch (err) {
@@ -472,18 +324,9 @@ export async function getRecentStudents(req, res) {
 export async function updateLastSelected(req, res) {
     try {
         const { id } = req.params;
-
-        if (dbType === 'mongo') {
-            await StudentModel.findByIdAndUpdate(id, {
-                lastSelected: new Date().toISOString()
-            });
-        } else if (dbType === 'mysql') {
-            await db.execute(`
-                UPDATE students 
-                SET lastSelected = NOW() 
-                WHERE id = ?
-            `, [id]);
-        }
+        await StudentModel.findByIdAndUpdate(id, {
+            lastSelected: new Date().toISOString()
+        });
 
         res.json({ success: true });
     } catch (err) {

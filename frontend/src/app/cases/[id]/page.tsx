@@ -12,6 +12,7 @@ interface Student {
     _id: string;
     studentId: string;
     fullName: string;
+    department?: string;
     program?: string;
 }
 

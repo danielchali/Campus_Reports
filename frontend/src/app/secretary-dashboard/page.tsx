@@ -281,7 +281,7 @@ export default function SecretaryDashboard() {
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
                         <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Program</div>
-                        <div>{c.student?.department || 'N/A'}</div>
+                        <div>{c.student?.program || 'N/A'}</div>
                       </div>
                       <div>
                         <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Date</div>
@@ -339,7 +339,7 @@ export default function SecretaryDashboard() {
                       <div className="font-medium text-kmuGreen hover:text-kmuOrange transition">{c.student?.fullName || 'Unknown'}</div>
                       <div className="text-xs text-gray-500">{c.student?.studentId || ''}</div>
                     </td>
-                    <td className="py-2 px-2">{c.student?.department || 'N/A'}</td>
+                    <td className="py-2 px-2">{c.student?.program || 'N/A'}</td>
                     <td className="py-2 px-2">{c.offenseType || 'N/A'}</td>
                     <td className="py-2 px-2">{c.incidentDate || 'N/A'}</td>
                     <td className="py-2 px-2">
