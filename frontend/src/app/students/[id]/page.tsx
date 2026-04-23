@@ -37,6 +37,16 @@ interface Student {
     disciplinaryHistory?: Case[];
 }
 
+interface StatementRequest {
+    _id: string;
+    title: string;
+    prompt: string;
+    status: 'pending' | 'submitted' | 'expired' | 'cancelled';
+    dueAt?: string;
+    createdAt: string;
+    submittedAt?: string;
+}
+
 export default function StudentDetailsPage({ params }: { params: { id: string } }) {
     const { token, user } = useAuth();
     const router = useRouter();
@@ -61,6 +71,12 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
     const [offenseTypeDescription, setOffenseTypeDescription] = useState('');
+    const [statementTitle, setStatementTitle] = useState('');
+    const [statementPrompt, setStatementPrompt] = useState('');
+    const [statementDueAt, setStatementDueAt] = useState('');
+    const [statementRequests, setStatementRequests] = useState<StatementRequest[]>([]);
+    const [statementSubmitting, setStatementSubmitting] = useState(false);
+    const [statementMessage, setStatementMessage] = useState<string | null>(null);
 
     // Function to get description for selected offense type
     const getOffenseTypeDescription = (offenseType: string) => {
@@ -85,6 +101,9 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                 if (!res.ok) throw new Error(await res.text());
                 const data = await res.json();
                 setStudent(data);
+                if (data?.studentId) {
+                    fetchStatementRequests(data.studentId);
+                }
             } catch (err: any) {
                 setError(err.message || "Failed to load student");
                 setStudent(null);
@@ -94,6 +113,21 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
         }
         fetchStudent();
     }, [params.id, token]);
+
+    const fetchStatementRequests = async (studentId: string) => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/statement-requests/staff?studentId=${encodeURIComponent(studentId)}`, {
+                headers: { ...authHeaders() },
+            });
+            if (!res.ok) {
+                return;
+            }
+            const data = await res.json();
+            setStatementRequests(Array.isArray(data) ? data : []);
+        } catch {
+            // Keep the rest of the page functional even if this endpoint fails.
+        }
+    };
 
     const handleNewCaseSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -136,11 +170,51 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
             if (studentRes.ok) {
                 const updatedStudent = await studentRes.json();
                 setStudent(updatedStudent);
+                if (updatedStudent?.studentId) {
+                    fetchStatementRequests(updatedStudent.studentId);
+                }
             }
         } catch (err: any) {
             setSubmitError(err.message || 'Failed to create case');
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleCreateStatementRequest = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!student?.studentId) return;
+
+        setStatementSubmitting(true);
+        setStatementMessage(null);
+        try {
+            const res = await fetch(`${API_BASE_URL}/statement-requests`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders(),
+                },
+                body: JSON.stringify({
+                    studentId: student.studentId,
+                    title: statementTitle,
+                    prompt: statementPrompt,
+                    dueAt: statementDueAt || undefined
+                }),
+            });
+            if (!res.ok) {
+                const payload = await res.json().catch(() => ({}));
+                throw new Error(payload.error || 'Failed to send statement request');
+            }
+
+            setStatementTitle('');
+            setStatementPrompt('');
+            setStatementDueAt('');
+            setStatementMessage('Statement request sent to student dashboard.');
+            fetchStatementRequests(student.studentId);
+        } catch (err: any) {
+            setStatementMessage(err.message || 'Failed to send statement request');
+        } finally {
+            setStatementSubmitting(false);
         }
     };
 
@@ -220,6 +294,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
     const openCases = cases.filter(c => c.status?.toLowerCase() === 'open').length;
     const closedCases = cases.filter(c => c.status?.toLowerCase() === 'closed').length;
     const highSeverityCases = cases.filter(c => c.severity?.toLowerCase() === 'high').length;
+    const canRequestStatement = user?.role === 'admin' || user?.role === 'security_officer' || user?.role === 'chief_security_officer' || user?.role === 'dean_of_students' || user?.role === 'assistant_dean' || user?.role === 'academic_office' || user?.role === 'secretary';
 
     const getStatusColor = (status: string) => {
         if (!status) return 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700';
@@ -367,6 +442,60 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                                                 Export Students List (DOCX)
                                             </button>
                                         </div>
+
+                                        {canRequestStatement && (
+                                            <div className="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4">
+                                                <h4 className="text-md font-semibold text-kmuOrange mb-3">Request Signed Statement</h4>
+                                                <form onSubmit={handleCreateStatementRequest} className="space-y-3">
+                                                    <input
+                                                        type="text"
+                                                        value={statementTitle}
+                                                        onChange={(e) => setStatementTitle(e.target.value)}
+                                                        placeholder="Title (e.g. Incident Clarification)"
+                                                        className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                                        required
+                                                    />
+                                                    <textarea
+                                                        value={statementPrompt}
+                                                        onChange={(e) => setStatementPrompt(e.target.value)}
+                                                        placeholder="Instructions for the student statement..."
+                                                        className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                                        rows={4}
+                                                        required
+                                                    />
+                                                    <input
+                                                        type="date"
+                                                        value={statementDueAt}
+                                                        onChange={(e) => setStatementDueAt(e.target.value)}
+                                                        className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                                    />
+                                                    <button
+                                                        type="submit"
+                                                        disabled={statementSubmitting}
+                                                        className="w-full bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition disabled:opacity-60 text-sm"
+                                                    >
+                                                        {statementSubmitting ? 'Sending...' : 'Send Statement Request'}
+                                                    </button>
+                                                </form>
+                                                {statementMessage && (
+                                                    <p className={`mt-2 text-xs ${statementMessage.includes('sent') ? 'text-green-600' : 'text-red-600'}`}>
+                                                        {statementMessage}
+                                                    </p>
+                                                )}
+                                                {statementRequests.length > 0 && (
+                                                    <div className="mt-3 space-y-2">
+                                                        {statementRequests.slice(0, 4).map((request) => (
+                                                            <div key={request._id} className="rounded border border-gray-200 dark:border-gray-700 px-2 py-2">
+                                                                <p className="text-xs font-semibold text-gray-900 dark:text-white">{request.title}</p>
+                                                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                                    {request.status} • {new Date(request.createdAt).toLocaleDateString()}
+                                                                </p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>

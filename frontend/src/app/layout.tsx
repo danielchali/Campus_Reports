@@ -178,7 +178,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         
         {/* Preload critical resources */}
         <link rel="preload" href="/kmu_logo.svg" as="image" type="image/svg+xml" />
-        <link rel="preload" href="/api/health" as="fetch" crossOrigin="anonymous" />
         
         {/* DNS prefetch for external domains */}
         <link rel="dns-prefetch" href="//kmu-disciplinedesk.onrender.com" />

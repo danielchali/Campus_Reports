@@ -7,9 +7,8 @@ const CRITICAL_RESOURCES = [
     '/',
     '/login',
     '/kmu_logo.svg',
-    '/kmu_logo.png',
     '/manifest.json',
-    '/static/css/globals.css',
+    '/offline.html',
 ];
 
 // Static assets to cache
@@ -36,7 +35,21 @@ self.addEventListener('install', (event) => {
         caches.open(CACHE_NAME)
         .then((cache) => {
             console.log('Caching critical resources');
-            return cache.addAll(CRITICAL_RESOURCES);
+            return Promise.allSettled(
+                CRITICAL_RESOURCES.map(async(resource) => {
+                    try {
+                        const request = new Request(resource, { cache: 'reload' });
+                        const response = await fetch(request);
+                        if (response.ok) {
+                            await cache.put(request, response);
+                        } else {
+                            console.warn('Skipping cache for non-200 resource:', resource, response.status);
+                        }
+                    } catch (error) {
+                        console.warn('Skipping cache for failed resource:', resource, error);
+                    }
+                })
+            );
         })
         .then(() => {
             console.log('Service Worker installed');

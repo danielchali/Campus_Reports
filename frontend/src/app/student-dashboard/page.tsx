@@ -2,10 +2,13 @@
 
 import Link from 'next/link';
 import { AlertCircle, ArrowRight, ClipboardList, FilePenLine, ShieldCheck, Wrench } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { getStudentReportMetrics } from '../../utils/studentReports';
+import { API_BASE_URL } from '../../config/constants';
+import { authHeaders } from '../../utils/api';
+import SignatureField from '../../components/SignatureField';
 
 const categoryLabels = {
   disciplinary_case: 'Disciplinary Case',
@@ -15,6 +18,14 @@ const categoryLabels = {
 export default function StudentDashboardPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
+  const [statementRequests, setStatementRequests] = useState<any[]>([]);
+  const [statementLoading, setStatementLoading] = useState(false);
+  const [statementError, setStatementError] = useState('');
+  const [activeRequestId, setActiveRequestId] = useState('');
+  const [statementText, setStatementText] = useState('');
+  const [signatureValue, setSignatureValue] = useState('');
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
 
   if (typeof window !== 'undefined') {
     if (!authLoading && !token) {
@@ -42,6 +53,71 @@ export default function StudentDashboardPage() {
       name: user.name,
     });
   }, [user]);
+
+  const fetchStatementRequests = async () => {
+    setStatementLoading(true);
+    setStatementError('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/statement-requests/student`, {
+        headers: { ...authHeaders() }
+      });
+      if (!res.ok) {
+        throw new Error('Failed to load statement requests');
+      }
+      const data = await res.json();
+      setStatementRequests(Array.isArray(data) ? data : []);
+    } catch (error: any) {
+      setStatementError(error?.message || 'Failed to load statement requests');
+    } finally {
+      setStatementLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (token && user?.role === 'student') {
+      fetchStatementRequests();
+    }
+  }, [token, user?.role]);
+
+  const activeRequest = statementRequests.find((item) => item._id === activeRequestId);
+
+  const handleSubmitStatement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeRequestId) {
+      setSubmitMessage('Please select a request first.');
+      return;
+    }
+
+    setSubmitMessage('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/statement-requests/${activeRequestId}/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders()
+        },
+        body: JSON.stringify({
+          statement: statementText,
+          signature: signatureValue,
+          consentAccepted
+        })
+      });
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload.error || 'Failed to submit statement');
+      }
+
+      setSubmitMessage('Statement submitted successfully.');
+      setStatementText('');
+      setSignatureValue('');
+      setConsentAccepted(false);
+      setActiveRequestId('');
+      fetchStatementRequests();
+    } catch (error: any) {
+      setSubmitMessage(error?.message || 'Failed to submit statement');
+    }
+  };
 
   return (
     <section className="max-w-6xl mx-auto space-y-6 md:space-y-8">
@@ -149,6 +225,94 @@ export default function StudentDashboardPage() {
         </div>
 
         <div className="space-y-4 md:space-y-6">
+          <div className="rounded-lg md:rounded-2xl bg-white dark:bg-gray-800 p-4 md:p-6 shadow">
+            <h2 className="text-base md:text-xl font-semibold text-gray-900 dark:text-white mb-3 md:mb-4">Statement Requests</h2>
+            {statementLoading ? (
+              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">Loading requests...</p>
+            ) : statementRequests.length === 0 ? (
+              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
+                No pending or recent statement requests from staff.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {statementRequests.slice(0, 5).map((item) => (
+                  <button
+                    key={item._id}
+                    type="button"
+                    onClick={() => {
+                      setActiveRequestId(item._id);
+                      setSubmitMessage('');
+                    }}
+                    className={`w-full rounded-lg border px-3 py-2 text-left ${
+                      activeRequestId === item._id
+                        ? 'border-kmuGreen bg-emerald-50 dark:bg-emerald-900/20'
+                        : 'border-gray-200 dark:border-gray-700'
+                    }`}
+                  >
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{item.title}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Status: {item.status} {item.dueAt ? `• Due ${new Date(item.dueAt).toLocaleDateString()}` : ''}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {statementError && (
+              <p className="mt-3 text-xs md:text-sm text-red-600">{statementError}</p>
+            )}
+
+            {activeRequest && activeRequest.status === 'pending' && (
+              <form className="mt-4 space-y-3" onSubmit={handleSubmitStatement}>
+                <div className="rounded-md border border-gray-200 dark:border-gray-700 p-3">
+                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                    {activeRequest.prompt}
+                  </p>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs md:text-sm font-medium text-gray-900 dark:text-white">
+                    Your statement
+                  </label>
+                  <textarea
+                    value={statementText}
+                    onChange={(e) => setStatementText(e.target.value)}
+                    required
+                    rows={5}
+                    className="w-full rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white"
+                    placeholder="Write your statement here..."
+                  />
+                </div>
+                <SignatureField
+                  label="Your signature"
+                  value={signatureValue}
+                  onChange={setSignatureValue}
+                  helperText="Sign to confirm this statement is accurate."
+                />
+                <label className="flex items-start gap-2 text-xs md:text-sm text-gray-700 dark:text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={consentAccepted}
+                    onChange={(e) => setConsentAccepted(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  I confirm this statement is true and submitted by me.
+                </label>
+                <button
+                  type="submit"
+                  className="rounded bg-kmuGreen px-4 py-2 text-sm font-semibold text-white hover:bg-kmuOrange transition"
+                >
+                  Submit Statement
+                </button>
+              </form>
+            )}
+
+            {submitMessage && (
+              <p className={`mt-3 text-xs md:text-sm ${submitMessage.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>
+                {submitMessage}
+              </p>
+            )}
+          </div>
+
           <div className="rounded-lg md:rounded-2xl bg-white dark:bg-gray-800 p-4 md:p-6 shadow">
             <h2 className="text-base md:text-xl font-semibold text-gray-900 dark:text-white mb-3 md:mb-4">Report Types</h2>
             <div className="space-y-3 md:space-y-4">

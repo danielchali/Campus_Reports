@@ -26,26 +26,30 @@ export default function AdminPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
   const { notification, showNotification, hideNotification } = useNotification();
-  
-  // Handle authentication like profile page - only on client side
-  if (typeof window !== 'undefined') {
-    if (!authLoading && !token) {
-      router.replace('/login');
-      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
-    }
-    
-    if (authLoading) {
-      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
-    }
-    
-    if (!user || user.role !== 'admin') return <div className="text-red-600">Access denied.</div>;
-  }
 
   const [search, setSearch] = useState('');
   const [cases, setCases] = useState([]);
   const [students, setStudents] = useState([]);
   const [filteredCases, setFilteredCases] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
+
+  useEffect(() => {
+    if (!authLoading && !token) {
+      router.replace('/login');
+    }
+  }, [authLoading, token, router]);
+
+  if (authLoading) {
+    return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
+  }
+
+  if (!token) {
+    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+  }
+
+  if (!user || user.role !== 'admin') {
+    return <div className="text-red-600">Access denied.</div>;
+  }
 
   useEffect(() => {
     async function fetchData() {
