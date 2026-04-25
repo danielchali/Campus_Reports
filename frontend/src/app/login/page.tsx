@@ -6,32 +6,62 @@ import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { performanceMonitor, addResourceHints } from '../../utils/performance';
+import {
+  User,
+  Lock,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  Users,
+  Zap,
+  TrendingUp,
+  Megaphone,
+  Wrench,
+  Ghost,
+  MessageCircle,
+  Moon,
+  Sun,
+  Globe,
+  Heart,
+  ChevronDown
+} from 'lucide-react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isOnline, setIsOnline] = useState(true);
+  const [hasLoginHistory, setHasLoginHistory] = useState(false);
   const [featureIndex, setFeatureIndex] = useState(0);
   const [typedFeatureText, setTypedFeatureText] = useState('');
   const [isDeletingFeatureText, setIsDeletingFeatureText] = useState(false);
+
   const { user, login, loginOffline, isOnline: authIsOnline } = useAuth();
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
+
   const featureTexts = [
+    'Report issues. Request maintenance. Improve campus life.',
     'Track student and staff discipline cases in one place.',
     'Create KMU four-step case records with draft support.',
-    'Generate printable callouts and structured statements quickly.',
     'Keep evidence, reports, and audit logs organized and secure.',
   ];
+
+  useEffect(() => {
+    // Check if user has logged in before for conditional "Welcome Back"
+    const history = localStorage.getItem('hasLoginHistory');
+    if (history === 'true') {
+      setHasLoginHistory(true);
+    }
+  }, []);
 
   // Performance monitoring
   useEffect(() => {
     performanceMonitor.startTimer('login-page-load');
     addResourceHints();
-    
     return () => {
       performanceMonitor.endTimer('login-page-load');
     };
@@ -40,28 +70,23 @@ export default function LoginPage() {
   // Check online status
   useEffect(() => {
     setIsOnline(navigator.onLine);
-    
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
-    
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
+  // Typing animation
   useEffect(() => {
     const currentFeature = featureTexts[featureIndex];
-
-    if (!currentFeature) {
-      return;
-    }
+    if (!currentFeature) return;
 
     const typingDelay = isDeletingFeatureText ? 35 : 65;
-    const pauseDelay = 900;
+    const pauseDelay = 1500;
 
     const timer = setTimeout(() => {
       if (!isDeletingFeatureText) {
@@ -90,34 +115,27 @@ export default function LoginPage() {
   // Redirect if user is already logged in
   useEffect(() => {
     if (user) {
-      // Check if we're already on a valid page for this user
       const currentPath = window.location.pathname;
-      const validPaths = ['/admin', '/academic-dashboard', '/security-dashboard', '/student-dashboard', '/my-reports', '/make-report', '/dashboard', '/cases', '/students', '/reports', '/evidence', '/audit', '/profile', '/help'];
+      const validPaths = [
+        '/admin', '/academic-dashboard', '/security-dashboard', 
+        '/student-dashboard', '/my-reports', '/make-report', 
+        '/dashboard', '/cases', '/students', '/reports', 
+        '/evidence', '/audit', '/profile', '/help'
+      ];
 
-      // If we're on a valid page, don't redirect
       if (validPaths.some(path => currentPath.startsWith(path))) {
         return;
       }
 
-      // Otherwise, redirect based on role
       const role = user.role;
-      if (role === 'admin') {
-        router.push('/admin');
-      } else if (role === 'chief_security_officer') {
-        router.push('/chief-security-officer-dashboard');
-      } else if (role === 'dean_of_students') {
-        router.push('/dean-of-students-dashboard');
-      } else if (role === 'assistant_dean') {
-        router.push('/assistant-dean-dashboard');
-      } else if (role === 'secretary') {
-        router.push('/secretary-dashboard');
-      } else if (role === 'security_officer') {
-        router.push('/security-dashboard');
-      } else if (role === 'student') {
-        router.push('/student-dashboard');
-      } else {
-        router.push('/dashboard');
-      }
+      if (role === 'admin') router.push('/admin');
+      else if (role === 'chief_security_officer') router.push('/chief-security-officer-dashboard');
+      else if (role === 'dean_of_students') router.push('/dean-of-students-dashboard');
+      else if (role === 'assistant_dean') router.push('/assistant-dean-dashboard');
+      else if (role === 'secretary') router.push('/secretary-dashboard');
+      else if (role === 'security_officer') router.push('/security-dashboard');
+      else if (role === 'student') router.push('/student-dashboard');
+      else router.push('/dashboard');
     }
   }, [user, router]);
 
@@ -132,14 +150,15 @@ export default function LoginPage() {
 
     try {
       let success = false;
-      
       if (isOnline && authIsOnline) {
         success = await login(username, password);
       } else {
         success = await loginOffline(username, password);
       }
 
-      if (!success) {
+      if (success) {
+        localStorage.setItem('hasLoginHistory', 'true');
+      } else {
         setError('Invalid credentials. Please try again.');
       }
     } catch (err) {
@@ -151,148 +170,293 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`min-h-screen px-3 py-6 sm:px-4 md:px-8 ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
-      <div className="mx-auto block min-h-[88vh] w-full max-w-6xl items-center gap-6 md:grid md:grid-cols-2">
-        <div className="hidden rounded-2xl border border-kmuGreen/20 bg-kmuGreen/5 p-6 text-left dark:border-kmuGreen/30 dark:bg-kmuGreen/10 md:block">
-          <img
-            src="/kmu_logo.svg"
-            alt="KMU Logo"
-            width={130}
-            height={130}
-            className="mx-auto mb-4 h-20 w-20 object-contain md:mx-0 md:h-28 md:w-28"
-            onError={(e) => {
-              console.error('Logo failed to load');
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-          <h1 className="text-3xl font-bold text-kmuGreen md:text-4xl">Campus Reports</h1>
-          <p className={`mt-2 text-sm md:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-            KMU Discipline Management System
-          </p>
-          <div className="mt-4 h-8 overflow-hidden text-sm font-medium text-kmuOrange md:text-base">
-            <span className="inline-block">
-              {typedFeatureText}
-              <span className="ml-0.5 inline-block h-4 w-[2px] animate-pulse bg-current align-middle" />
-            </span>
+    <div className={`min-h-screen relative overflow-hidden flex flex-col md:flex-row ${theme === 'dark' ? 'bg-slate-950 text-slate-200' : 'bg-slate-50 text-slate-800'}`}>
+
+      {/* Left Column - Desktop only */}
+      <div className="hidden md:flex md:relative md:w-[55%] lg:w-[60%] flex-col justify-between p-10 lg:p-16 min-h-screen overflow-hidden">
+        {/* Content sits above the background */}
+        <div className="relative z-10 flex flex-col h-full justify-between">
+        <div>
+          <div className="flex items-center gap-3 mb-6">
+            <img
+              src="/kmu_logo.svg"
+              alt="KMU Logo"
+              width={140}
+              height={140}
+              className="h-24 w-24 object-contain"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
+          </div>
+          
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-white">
+            Campus Reports
+          </h1>
+          
+          <div className="h-16 md:h-20 mb-8 md:mb-12">
+            <p className="text-lg md:text-xl font-medium text-slate-600 dark:text-slate-300">
+              <span className="inline-block">
+                {typedFeatureText}
+                <span className="ml-0.5 inline-block h-5 w-[2px] animate-pulse bg-current align-middle" />
+              </span>
+            </p>
+          </div>
+
+          {/* Node Diagram representing system flow */}
+          <div className="hidden md:flex flex-wrap items-center gap-6 md:gap-8 lg:gap-12 mt-12 mb-16 relative">
+            <svg className="absolute inset-0 w-full h-full -z-10 text-slate-200 dark:text-slate-800 opacity-80" preserveAspectRatio="none">
+              <path d="M 60,40 C 120,40 120,80 180,80" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="6,6" />
+              <path d="M 220,80 C 280,80 280,20 340,20" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="6,6" />
+            </svg>
+            
+            <div className="flex flex-col items-center z-10">
+              <div className="w-20 h-20 rounded-3xl bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-3 shadow-sm border border-slate-200 dark:border-slate-700">
+                <Ghost className="w-10 h-10" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center max-w-[100px]">Anonymous Reporting</span>
+            </div>
+
+            <div className="flex flex-col items-center mt-16 z-10">
+              <div className="w-20 h-20 rounded-3xl bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3 shadow-sm border border-slate-200 dark:border-slate-700">
+                <Megaphone className="w-10 h-10" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center max-w-[100px]">Report an Issue</span>
+            </div>
+
+            <div className="flex flex-col items-center -mt-10 z-10">
+              <div className="w-20 h-20 rounded-3xl bg-white dark:bg-slate-800 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-3 shadow-sm border border-slate-200 dark:border-slate-700">
+                <Wrench className="w-10 h-10" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center max-w-[100px]">Maintenance Request</span>
+            </div>
           </div>
         </div>
 
-        <div className="w-full md:order-2">
-          <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 md:p-8 min-h-[500px] flex flex-col justify-center`}>
-            <div className="text-center mb-6 md:mb-8">
-              <img
-                src="/kmu_logo.svg"
-                alt="KMU Logo"
-                width={80}
-                height={80}
-                className="mx-auto mb-3 h-16 w-16 object-contain md:hidden"
-                onError={(e) => {
-                  console.error('Logo failed to load');
-                  e.currentTarget.style.display = 'none';
-                }}
+        {/* Bottom Feature Bar */}
+        <div className="mt-8 relative z-10">
+          <div className="hidden md:grid grid-cols-4 gap-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 shadow-sm">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="w-8 h-8 text-kmuGreen flex-shrink-0" />
+              <div>
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Secure & Confidential</h4>
+                <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-tight">Your data is protected and kept confidential.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Users className="w-8 h-8 text-blue-500 flex-shrink-0" />
+              <div>
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">For Students & Staff</h4>
+                <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-tight">A platform for everyone to make a difference.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Zap className="w-8 h-8 text-amber-500 flex-shrink-0" />
+              <div>
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Quick Response</h4>
+                <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-tight">We ensure timely action on every report.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <TrendingUp className="w-8 h-8 text-purple-500 flex-shrink-0" />
+              <div>
+                <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">Track Progress</h4>
+                <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-tight">Stay updated on the status of your reports.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="hidden md:flex items-center justify-center gap-8 mt-6 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+            <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> Secure Platform</span>
+            <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
+            <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Your Voice Matters</span>
+            <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
+            <span className="flex items-center gap-1.5"><Heart className="w-3.5 h-3.5" /> Better Campus, Together</span>
+          </div>
+        </div>{/* end feature bar */}
+        </div>{/* end z-10 content wrapper */}
+      </div>{/* end left column */}
+
+      {/* Right Column - Login Area */}
+      <div className="relative z-20 w-full md:w-[45%] lg:w-[40%] flex flex-col min-h-screen">
+        {/* Top Controls */}
+        <div className="absolute top-4 right-4 md:top-8 md:right-8 flex items-center gap-3 z-30">
+          {/* Dark Mode Slider Toggle */}
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-md transition-colors ${theme === 'dark' ? 'bg-slate-800/80 border-slate-700 text-slate-300' : 'bg-white/80 border-slate-200 text-slate-600'}`}
+          >
+            {/* Icon */}
+            {theme === 'dark'
+              ? <Moon className="w-3.5 h-3.5 text-indigo-400" />
+              : <Sun className="w-3.5 h-3.5 text-amber-500" />
+            }
+            <span className="hidden sm:inline">{theme === 'dark' ? 'Dark Mode' : 'Dark Mode'}</span>
+            {/* Slider knob */}
+            <div
+              className={`relative inline-flex items-center w-9 h-5 rounded-full transition-colors duration-200 ${theme === 'dark' ? 'bg-indigo-500' : 'bg-slate-300'}`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`}
               />
-              <h2 className="text-xl md:text-3xl font-bold text-kmuGreen mb-2">
-                Log in to Campus Reports
+            </div>
+          </button>
+
+          {/* Language selector */}
+          <button className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-md transition-colors ${theme === 'dark' ? 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700' : 'bg-white/80 border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+            <Globe className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">English</span>
+            <ChevronDown className="w-3 h-3" />
+          </button>
+        </div>
+
+        {/* Login Card Container */}
+        <div className="flex-1 flex flex-col justify-center px-4 py-12 md:px-12 relative h-full">
+          <div className={`w-full max-w-md mx-auto rounded-3xl shadow-2xl p-8 border ${theme === 'dark' ? 'bg-slate-900 border-slate-800 shadow-black/40' : 'bg-white border-white shadow-slate-200/60'}`}>
+            
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold mb-2">
+                {hasLoginHistory ? 'Welcome Back!' : 'Welcome!'}
               </h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Login to your Campus Reports account
+              </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6" autoComplete="off">
             {signupSuccess && (
-              <div className="bg-green-50 border border-green-200 text-green-700 px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-md text-xs md:text-sm">
+              <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm dark:bg-emerald-900/30 dark:border-emerald-800 dark:text-emerald-400">
                 Student account created successfully. Sign in with your Student ID and password.
               </div>
             )}
-            {/* Username Field */}
-            <div>
-              <label htmlFor="username" className={`block text-xs md:text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1.5 md:mb-2`}>
-                Username
-              </label>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                className={`w-full px-3 py-2 md:py-2.5 border rounded-lg md:rounded-md text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent ${
-                  theme === 'dark' 
-                    ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400' 
-                    : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-                }`}
-                placeholder="Enter your username"
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck="false"
-              />
-            </div>
 
-            {/* Password Field */}
-            <div>
-              <label htmlFor="password" className={`block text-xs md:text-sm font-medium ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} mb-1.5 md:mb-2`}>
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className={`w-full px-3 py-2 md:py-2.5 border rounded-lg md:rounded-md text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent ${
-                  theme === 'dark' 
-                    ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400' 
-                    : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-                }`}
-                placeholder="Enter your password"
-                autoComplete="new-password"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck="false"
-              />
-            </div>
-
-            {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-md text-xs md:text-sm">
+              <div className="mb-6 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-sm dark:bg-rose-900/30 dark:border-rose-800 dark:text-rose-400">
                 {error}
               </div>
             )}
 
-            {/* Connection Status */}
-            <div className="flex items-center justify-between text-xs md:text-sm">
-              <span className={`flex items-center ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
-                <div className={`w-2 h-2 rounded-full mr-2 ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                {isOnline ? 'Online' : 'Offline'}
-              </span>
-              {!isOnline && (
-                <span className="text-orange-600 text-[10px] md:text-xs">
-                  Offline mode available
+            <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
+              {/* Username Field */}
+              <div>
+                <div className={`relative flex items-center rounded-xl border transition-colors ${theme === 'dark' ? 'bg-slate-800 border-slate-700 focus-within:border-kmuGreen' : 'bg-slate-50 border-slate-200 focus-within:border-kmuGreen focus-within:bg-white'}`}>
+                  <div className="pl-4 pr-3 text-slate-400">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    className="w-full py-3.5 pr-4 bg-transparent focus:outline-none text-sm placeholder:text-slate-400"
+                    placeholder="Email address or Student ID"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                  />
+                </div>
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <div className={`relative flex items-center rounded-xl border transition-colors ${theme === 'dark' ? 'bg-slate-800 border-slate-700 focus-within:border-kmuGreen' : 'bg-slate-50 border-slate-200 focus-within:border-kmuGreen focus-within:bg-white'}`}>
+                  <div className="pl-4 pr-3 text-slate-400">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="w-full py-3.5 pr-12 bg-transparent focus:outline-none text-sm placeholder:text-slate-400"
+                    placeholder="Password"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Form Options */}
+              <div className="flex items-center justify-between text-sm">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className="relative flex items-center justify-center w-4 h-4 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 group-hover:border-kmuGreen transition-colors">
+                    <input type="checkbox" className="peer sr-only" />
+                    <div className="hidden peer-checked:block w-2.5 h-2.5 bg-kmuGreen rounded-sm"></div>
+                  </div>
+                  <span className="text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors">Remember me</span>
+                </label>
+                <Link href="#" className="text-kmuGreen hover:underline font-medium">
+                  Forgot Password?
+                </Link>
+              </div>
+
+              {/* Connection Status Indicator */}
+              <div className="flex items-center justify-end text-[10px] md:text-xs">
+                <span className={`flex items-center ${isOnline ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isOnline ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`}></div>
+                  {isOnline ? 'Online' : 'Offline Mode Available'}
                 </span>
-              )}
+              </div>
+
+              {/* Primary Action Button */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-kmuGreen hover:bg-kmuGreen-dark text-white py-3.5 px-4 rounded-xl font-bold shadow-lg shadow-kmuGreen/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                    Signing in...
+                  </>
+                ) : (
+                  'Log In'
+                )}
+              </button>
+            </form>
+
+            <div className="mt-8 relative flex items-center py-2">
+              <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+              <span className="flex-shrink-0 mx-4 text-xs text-slate-400">or report without login</span>
+              <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
             </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-kmuGreen text-white py-2 md:py-2.5 px-4 rounded-lg md:rounded-md text-sm md:text-base font-medium hover:bg-kmuGreen/90 focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 md:h-5 w-4 md:w-5 border-b-2 border-white mr-2"></div>
-                  <span className="text-sm md:text-base">Signing in...</span>
-                </div>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-            </form>
-            <div className="mt-5 text-center text-sm">
-              <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>New student? </span>
-              <Link href="/signup" className="font-semibold text-kmuGreen underline">
-                Create your account
+            <div className="mt-6">
+              <Link 
+                href="/anonymous-report"
+                className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Ghost className="w-4 h-4 text-purple-500" />
+                <span className="text-purple-600 dark:text-purple-400">Report Anonymously</span>
+              </Link>
+            </div>
+
+            <div className="mt-8 text-center text-sm">
+              <span className="text-slate-500 dark:text-slate-400">New to Campus Reports? </span>
+              <Link href="/signup" className="text-kmuGreen font-semibold hover:underline">
+                Learn more
               </Link>
             </div>
           </div>
+        </div>
+
+        {/* Floating Chat Bubble */}
+        <div className="absolute bottom-6 right-6 z-50 group">
+          <div className="absolute bottom-full right-4 mb-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-2xl rounded-br-none shadow-lg border border-slate-100 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            <p className="text-xs font-medium text-slate-700 dark:text-slate-300">Need help?<br/>We're here!</p>
+          </div>
+          <button className="w-14 h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-xl shadow-blue-500/20 transition-transform hover:scale-105 active:scale-95 relative">
+            <MessageCircle className="w-6 h-6" />
+            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
+          </button>
         </div>
       </div>
     </div>

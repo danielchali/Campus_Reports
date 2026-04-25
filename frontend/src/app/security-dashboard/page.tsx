@@ -1,11 +1,21 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock3,
+  FileStack,
+  PlusCircle,
+  Shield,
+  UserRound,
+  Users,
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL, OFFENSE_TYPES, SEVERITY_LEVELS } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import SmartStudentSearch from '../../components/SmartStudentSearch';
 import SmartStaffSearch from '../../components/SmartStaffSearch';
 
@@ -16,7 +26,6 @@ interface Student {
   department?: string;
   program?: string;
   year?: string;
-  gender?: string;
 }
 
 interface Staff {
@@ -26,26 +35,47 @@ interface Staff {
   position?: string;
 }
 
+interface CaseRecord {
+  _id?: string;
+  student?: {
+    fullName?: string;
+    studentId?: string;
+    program?: string;
+    department?: string;
+  } | null;
+  staff?: {
+    fullName?: string;
+    staffId?: string;
+    department?: string;
+  } | null;
+  offenseType?: string;
+  severity?: string;
+  status?: string;
+  incidentDate?: string;
+  createdAt?: string;
+}
+
+const toneClasses = {
+  green: 'border-kmuGreen/20 bg-white dark:bg-slate-900',
+  amber: 'border-amber-200 bg-white dark:border-amber-900/30 dark:bg-slate-900',
+  orange: 'border-orange-200 bg-white dark:border-orange-900/30 dark:bg-slate-900',
+  slate: 'border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900',
+};
+
+function formatDate(value?: string) {
+  if (!value) return 'N/A';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 export default function SecurityDashboard() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
-  
-  // Handle authentication like profile page - only on client side
-  if (typeof window !== 'undefined') {
-    if (!authLoading && !token) {
-      router.replace('/login');
-      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
-    }
-    
-    if (authLoading) {
-      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
-    }
-    
-    if (!user || user.role !== 'security_officer') return <div className="text-red-600">Access denied.</div>;
-  }
 
   const [students, setStudents] = useState<Student[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
+  const [cases, setCases] = useState<CaseRecord[]>([]);
   const [caseType, setCaseType] = useState<'student' | 'staff'>('student');
   const [studentId, setStudentId] = useState('');
   const [staffId, setStaffId] = useState('');
@@ -56,193 +86,268 @@ export default function SecurityDashboard() {
   const [severity, setSeverity] = useState('');
   const [description, setDescription] = useState('');
   const [sanctions, setSanctions] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  const [search, setSearch] = useState('');
-  const [cases, setCases] = useState<any[]>([]);
-  const [filteredCases, setFilteredCases] = useState<any[]>([]);
-  const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
-  const [filteredStaff, setFilteredStaff] = useState<Staff[]>([]);
-  const [offenseTypeDescription, setOffenseTypeDescription] = useState('');
-
-  // Function to get description for selected offense type
-  const getOffenseTypeDescription = (offenseType: string) => {
-    const offense = OFFENSE_TYPES.find(ot => ot.value === offenseType);
-    return offense ? offense.description : '';
-  };
-
-  // Function to handle offense type change
-  const handleOffenseTypeChange = (offenseType: string) => {
-    setOffenseType(offenseType);
-    setOffenseTypeDescription(getOffenseTypeDescription(offenseType));
-  };
 
   useEffect(() => {
-    async function fetchStudents() {
+    if (!authLoading && !token) {
+      router.replace('/login');
+    }
+  }, [authLoading, token, router]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    let active = true;
+
+    async function load() {
+      setLoading(true);
+      setError('');
+
       try {
-        const res = await fetch(`${API_BASE_URL}/students`, { headers: { ...authHeaders() } });
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        setStudents(Array.isArray(data) ? data : (data.students || data || []));
-      } catch (err: any) {
-        setError(err?.message || 'Network error, please try again');
+        const [studentsRes, staffRes, casesRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/students`, { headers: { ...authHeaders() } }),
+          fetch(`${API_BASE_URL}/staff`, { headers: { ...authHeaders() } }),
+          fetch(`${API_BASE_URL}/cases`, { headers: { ...authHeaders() } }),
+        ]);
+
+        if (!active) return;
+
+        const studentsData = studentsRes.ok ? await studentsRes.json() : { students: [] };
+        const staffData = staffRes.ok ? await staffRes.json() : { staff: [] };
+        const casesData = casesRes.ok ? await casesRes.json() : { cases: [] };
+
+        setStudents(Array.isArray(studentsData) ? studentsData : studentsData.students || []);
+        setStaff(Array.isArray(staffData) ? staffData : staffData.staff || []);
+        setCases(Array.isArray(casesData) ? casesData : casesData.cases || []);
+      } catch (loadError: any) {
+        if (!active) return;
+        setError(loadError?.message || 'Failed to load dashboard data.');
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
       }
     }
-    
-    async function fetchStaff() {
-      try {
-        const res = await fetch(`${API_BASE_URL}/staff`, { headers: { ...authHeaders() } });
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        setStaff(Array.isArray(data) ? data : (data.staff || data || []));
-      } catch (err: any) {
-        setError(err?.message || 'Network error, please try again');
-      }
-    }
-    
-    async function fetchCases() {
-      try {
-        const res = await fetch(`${API_BASE_URL}/cases`, { headers: { ...authHeaders() } });
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        setCases(Array.isArray(data) ? data : (data.cases || data || []));
-      } catch (err: any) {
-        setError(err?.message || 'Network error, please try again');
-      }
-    }
-    fetchStudents();
-    fetchStaff();
-    fetchCases();
+
+    load();
+
+    return () => {
+      active = false;
+    };
   }, [token]);
 
   useEffect(() => {
-    if (success) {
-      const timer = setTimeout(() => setSuccess(''), 4000);
-      return () => clearTimeout(timer);
-    }
+    if (!success) return;
+    const timer = setTimeout(() => setSuccess(''), 4000);
+    return () => clearTimeout(timer);
   }, [success]);
 
-  // Filter students and cases for search
-  useEffect(() => {
-    const safeStudents = Array.isArray(students) ? students : [];
-    const safeStaff = Array.isArray(staff) ? staff : [];
-    const safeCases = Array.isArray(cases) ? cases : [];
-    setFilteredCases(
-      search ? safeCases.filter((c: any) =>
-        (c.student?.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-        c.student?.studentId?.toLowerCase().includes(search.toLowerCase()) ||
-        c.staff?.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-        c.staff?.staffId?.toLowerCase().includes(search.toLowerCase()) ||
-        c.offenseType?.toLowerCase().includes(search.toLowerCase()) ||
-        c.status?.toLowerCase().includes(search.toLowerCase()))
-      ) : safeCases
-    );
-    setFilteredStudents(
-      search ? safeStudents.filter((s: any) =>
-        s.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-        s.studentId?.toLowerCase().includes(search.toLowerCase())
-      ) : safeStudents
-    );
-    setFilteredStaff(
-      search ? safeStaff.filter((s: any) =>
-        s.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-        s.staffId?.toLowerCase().includes(search.toLowerCase())
-      ) : safeStaff
-    );
-  }, [search, cases, students, staff]);
+  if (!authLoading && !token) {
+    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+  }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setLoading(true);
-    setSuccess('');
+  if (!authLoading && user && user.role !== 'security_officer') {
+    return <div className="text-red-600">Access denied.</div>;
+  }
+
+  const offenseTypeDescription = OFFENSE_TYPES.find((item) => item.value === offenseType)?.description || '';
+
+  const filteredCases = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return cases;
+
+    return cases.filter((item) =>
+      [
+        item.student?.fullName,
+        item.student?.studentId,
+        item.staff?.fullName,
+        item.staff?.staffId,
+        item.offenseType,
+        item.severity,
+        item.status,
+      ].some((value) => value?.toLowerCase().includes(query)),
+    );
+  }, [cases, search]);
+
+  const metrics = useMemo(() => {
+    const openCases = cases.filter((item) => item.status === 'Open').length;
+    const highPriorityCases = cases.filter((item) => item.severity === 'High' || item.severity === 'Critical').length;
+    const resolvedCases = cases.filter((item) => item.status === 'Closed').length;
+
+    return {
+      totalCases: cases.length,
+      openCases,
+      highPriorityCases,
+      resolvedCases,
+      totalStudents: students.length,
+      totalStaff: staff.length,
+    };
+  }, [cases, staff.length, students.length]);
+
+  async function refreshCases() {
+    const res = await fetch(`${API_BASE_URL}/cases`, { headers: { ...authHeaders() } });
+    if (!res.ok) return;
+    const data = await res.json();
+    setCases(Array.isArray(data) ? data : data.cases || []);
+  }
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setSubmitting(true);
     setError('');
+    setSuccess('');
+
     try {
-      const requestBody: any = { 
-        incident_date: incidentDate, 
-        offense_type: offenseType, 
-        severity, 
-        description, 
-        sanctions 
+      const requestBody: Record<string, string> = {
+        incident_date: incidentDate,
+        offense_type: offenseType,
+        severity,
+        description,
+        sanctions,
       };
-      
+
       if (caseType === 'student') {
         requestBody.student_id = studentId;
       } else {
         requestBody.staff_id = staffId;
       }
-      
+
       const res = await fetch(`${API_BASE_URL}/cases`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify(requestBody),
       });
-      if (!res.ok) throw new Error(await res.text());
-      setSuccess('Case submitted successfully!');
-      setStudentId(''); 
-      setStaffId('');
-      setIncidentDate(''); 
-      setOffenseType(''); 
-      setSeverity(''); 
-      setDescription(''); 
+
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+
+      setIncidentDate('');
+      setOffenseType('');
+      setSeverity('');
+      setDescription('');
       setSanctions('');
+      setStudentId('');
+      setStaffId('');
       setSelectedStudent(null);
       setSelectedStaff(null);
-      // Refresh cases list
-      const casesRes = await fetch(`${API_BASE_URL}/cases`, { headers: { ...authHeaders() } });
-      if (casesRes.ok) {
-        const casesData = await casesRes.json();
-        setCases(Array.isArray(casesData) ? casesData : (casesData.cases || casesData || []));
-      }
-    } catch (err: any) {
-      setError(err?.message || 'Network error, please try again');
+      setSuccess('Case submitted successfully.');
+      await refreshCases();
+    } catch (submitError: any) {
+      setError(submitError?.message || 'Failed to submit case.');
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   }
 
+  const summaryCards = [
+    { label: 'Total Cases', value: metrics.totalCases, helper: 'Fetched from case records', icon: FileStack, tone: 'green' },
+    { label: 'Open Cases', value: metrics.openCases, helper: 'Awaiting action', icon: Clock3, tone: 'amber' },
+    { label: 'High Priority', value: metrics.highPriorityCases, helper: 'High or critical severity', icon: AlertTriangle, tone: 'orange' },
+    { label: 'Resolved', value: metrics.resolvedCases, helper: 'Closed cases', icon: CheckCircle2, tone: 'slate' },
+    { label: 'Students Loaded', value: metrics.totalStudents, helper: 'Available for case entry', icon: Users, tone: 'green' },
+    { label: 'Staff Loaded', value: metrics.totalStaff, helper: 'Available for case entry', icon: Shield, tone: 'slate' },
+  ];
+
+  if (authLoading || loading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-12 w-80 rounded-2xl bg-slate-200 dark:bg-slate-800" />
+        <div className="grid gap-4 md:grid-cols-3">
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="h-32 rounded-3xl bg-slate-200 dark:bg-slate-800" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <section>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Add New Case</h2>
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Case Type</label>
-            <div className="flex gap-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="caseType"
-                  value="student"
-                  checked={caseType === 'student'}
-                  onChange={() => {
-                    setCaseType('student');
-                    setStaffId('');
-                    setSelectedStaff(null);
-                  }}
-                  className="mr-2"
-                />
-                Student Case
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="caseType"
-                  value="staff"
-                  checked={caseType === 'staff'}
-                  onChange={() => {
-                    setCaseType('staff');
-                    setStudentId('');
-                    setSelectedStudent(null);
-                  }}
-                  className="mr-2"
-                />
-                Staff Case
-              </label>
-            </div>
+    <div className="mx-auto max-w-[1600px] space-y-6">
+      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-7">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-kmuGreen">Dashboard</p>
+            <h1 className="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">Security Officer Dashboard</h1>
+            <p className="mt-2 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+              Record new cases quickly, keep active investigations visible, and work from the same dashboard pattern as the other roles.
+            </p>
           </div>
-          <form className="mb-6 flex gap-2 flex-wrap" onSubmit={handleSubmit} aria-label="Add case form">
-            <label htmlFor="personId" className="sr-only">{caseType === 'student' ? 'Student' : 'Staff'}</label>
-            <div className="space-y-2 w-full">
+          <div className="flex min-w-[260px] items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950 xl:max-w-md">
+            <UserRound size={18} className="text-kmuGreen" />
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search cases, students, staff..."
+              className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-200"
+            />
+          </div>
+        </div>
+      </section>
+
+      {(error || success) && (
+        <div className={`rounded-2xl px-4 py-3 text-sm ${error ? 'border border-red-200 bg-red-50 text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-200' : 'border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-200'}`}>
+          {error || success}
+        </div>
+      )}
+
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        {summaryCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <article key={card.label} className={`rounded-[28px] border p-5 shadow-sm ${toneClasses[card.tone as keyof typeof toneClasses]}`}>
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-kmuGreen/10 text-kmuGreen dark:bg-kmuGreen/20">
+                <Icon size={22} />
+              </div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{card.label}</p>
+              <p className="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">{card.value}</p>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{card.helper}</p>
+            </article>
+          );
+        })}
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.9fr)]">
+        <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Create Case</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Submit a student or staff case directly to the backend.</p>
+            </div>
+            <PlusCircle size={18} className="text-kmuGreen" />
+          </div>
+
+          <div className="mb-4 inline-flex rounded-2xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950">
+            <button
+              type="button"
+              onClick={() => {
+                setCaseType('student');
+                setStaffId('');
+                setSelectedStaff(null);
+              }}
+              className={`rounded-xl px-4 py-2 text-sm font-medium ${caseType === 'student' ? 'bg-kmuGreen text-white' : 'text-slate-600 dark:text-slate-300'}`}
+            >
+              Student Case
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setCaseType('staff');
+                setStudentId('');
+                setSelectedStudent(null);
+              }}
+              className={`rounded-xl px-4 py-2 text-sm font-medium ${caseType === 'staff' ? 'bg-kmuGreen text-white' : 'text-slate-600 dark:text-slate-300'}`}
+            >
+              Staff Case
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
               {caseType === 'student' ? (
                 <SmartStudentSearch
                   onStudentSelect={(student) => {
@@ -254,201 +359,181 @@ export default function SecurityDashboard() {
                 />
               ) : (
                 <SmartStaffSearch
-                  onStaffSelect={(staff) => {
-                    setSelectedStaff(staff);
-                    setStaffId(staff.staffId);
+                  onStaffSelect={(member) => {
+                    setSelectedStaff(member);
+                    setStaffId(member.staffId);
                   }}
                   placeholder="Search for staff by name or ID..."
                   className="w-full"
                 />
               )}
+
               {selectedStudent && (
-                <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                  Selected: <strong>{selectedStudent.fullName}</strong> ({selectedStudent.studentId}) - {selectedStudent.program || selectedStudent.department || 'N/A'}, Year {selectedStudent.year}
+                <div className="rounded-2xl bg-slate-50 px-3 py-3 text-sm text-slate-600 dark:bg-slate-950 dark:text-slate-300">
+                  {selectedStudent.fullName} ({selectedStudent.studentId}) • {selectedStudent.program || selectedStudent.department || 'N/A'}
                 </div>
               )}
+
               {selectedStaff && (
-                <div className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-2 rounded">
-                  Selected: <strong>{selectedStaff.fullName}</strong> ({selectedStaff.staffId}) - {selectedStaff.department}, {selectedStaff.position}
+                <div className="rounded-2xl bg-slate-50 px-3 py-3 text-sm text-slate-600 dark:bg-slate-950 dark:text-slate-300">
+                  {selectedStaff.fullName} ({selectedStaff.staffId}) • {selectedStaff.department}
                 </div>
               )}
             </div>
-            <label htmlFor="incidentDate" className="sr-only">Incident Date</label>
-            <input id="incidentDate" type="date" placeholder="Incident Date" value={incidentDate} onChange={e => setIncidentDate(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required aria-label="Incident Date" />
-            <label htmlFor="offenseType" className="sr-only">Offense Type</label>
-            <select
-              id="offenseType"
-              className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              value={offenseType}
-              onChange={e => handleOffenseTypeChange(e.target.value)}
-              required
-              aria-label="Offense Type"
-            >
-              <option value="">Select Offense Type...</option>
-              {OFFENSE_TYPES.map(ot => (
-                <option key={ot.value} value={ot.value}>
-                  {ot.label}
-                </option>
-              ))}
-            </select>
-            <label htmlFor="severity" className="sr-only">Severity</label>
-            <select id="severity" value={severity} onChange={e => setSeverity(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required aria-label="Severity">
-              <option value="">Select Severity...</option>
-              {SEVERITY_LEVELS.map(level => (
-                <option key={level.value} value={level.value}>
-                  {level.label}
-                </option>
-              ))}
-            </select>
-            <label htmlFor="description" className="sr-only">Description</label>
-            <input id="description" type="text" placeholder={offenseTypeDescription || "Description"} value={description} onChange={e => setDescription(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-1 min-w-[200px]" required aria-label="Description" />
-            <label htmlFor="sanctions" className="sr-only">Sanctions</label>
-            <input id="sanctions" type="text" placeholder="Sanctions (optional)" value={sanctions} onChange={e => setSanctions(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white flex-1 min-w-[200px]" aria-label="Sanctions" />
-            <button type="submit" disabled={loading} className="bg-kmuGreen text-white px-4 py-1 rounded hover:bg-kmuOrange transition disabled:opacity-50" aria-label="Submit case">
-              {loading ? 'Submitting...' : 'Submit Case'}
-            </button>
-          </form>
-          {error && <div className="text-red-600 text-sm mb-4">{error}</div>}
-          {success && <div className="text-kmuGreen text-sm mb-4">{success}</div>}
-        </div>
 
-        {/* Cases List */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-kmuOrange">Recent Cases</h2>
-            <div className="flex gap-2">
+            <div className="grid gap-4 md:grid-cols-3">
               <input
-                type="text"
-                placeholder="Search cases..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="border border-gray-300 dark:border-gray-600 rounded px-3 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                type="date"
+                value={incidentDate}
+                onChange={(event) => setIncidentDate(event.target.value)}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                required
               />
-              <Link href="/cases" className="bg-gray-500 text-white px-3 py-1 rounded text-sm hover:bg-gray-600 transition">
-                View All
+              <select
+                value={offenseType}
+                onChange={(event) => setOffenseType(event.target.value)}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                required
+              >
+                <option value="">Select offense type</option>
+                {OFFENSE_TYPES.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={severity}
+                onChange={(event) => setSeverity(event.target.value)}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                required
+              >
+                <option value="">Select severity</option>
+                {SEVERITY_LEVELS.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <input
+              type="text"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              placeholder={offenseTypeDescription || 'Case description'}
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+              required
+            />
+
+            <input
+              type="text"
+              value={sanctions}
+              onChange={(event) => setSanctions(event.target.value)}
+              placeholder="Sanctions (optional)"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+            />
+
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm text-slate-500 dark:text-slate-400">
+                Cases are submitted directly to the existing `/cases` backend endpoint.
+              </div>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="rounded-2xl bg-kmuGreen px-5 py-3 text-sm font-medium text-white transition hover:bg-kmuGreen-dark disabled:opacity-60"
+              >
+                {submitting ? 'Submitting...' : 'Submit Case'}
+              </button>
+            </div>
+          </form>
+        </article>
+
+        <div className="space-y-6">
+          <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Quick Actions</h2>
+            <div className="mt-4 grid gap-3">
+              <Link href="/cases" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+                Open full case list
+              </Link>
+              <Link href="/students" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+                Browse students
+              </Link>
+              <Link href="/evidence" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+                Review evidence
               </Link>
             </div>
-          </div>
-          
-          <div className="space-y-4 md:hidden">
-            {filteredCases.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                No cases found
+          </article>
+
+          <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Current Load</h2>
+            <div className="mt-4 space-y-3 text-sm">
+              <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
+                <span className="text-slate-500 dark:text-slate-400">Filtered cases</span>
+                <span className="font-semibold text-slate-900 dark:text-white">{filteredCases.length}</span>
               </div>
-            ) : (
-              filteredCases.slice(0, 10).map((c: any) => (
-                <div
-                  key={c._id}
-                  className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                  onClick={() => router.push(`/cases/${c._id}`)}
-                >
-                  <div>
-                    <div className="text-sm font-medium text-kmuGreen">
-                      {c.student ? c.student.fullName : c.staff ? c.staff.fullName : 'Unknown'}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {c.student ? `Student: ${c.student.studentId}` : c.staff ? `Staff: ${c.staff.staffId}` : 'No ID'}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
-                      <div>{c.student?.program || c.student?.department || c.staff?.department || 'N/A'}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Date</div>
-                      <div>{c.incidentDate ? new Date(c.incidentDate).toLocaleDateString() : 'N/A'}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Offense</div>
-                      <div>{c.offenseType || 'N/A'}</div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 flex-wrap">
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      c.severity === 'High' ? 'bg-red-100 text-red-800' :
-                      c.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                      c.severity === 'Low' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {c.severity || 'N/A'}
-                    </span>
-                    <span className={`px-2 py-1 text-xs rounded ${
-                      c.status === 'Open' ? 'bg-red-100 text-red-800' :
-                      c.status === 'Closed' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {c.status || 'N/A'}
-                    </span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-          <div className="hidden md:block overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">Person</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">Department</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">Offense</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">Date</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">Severity</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredCases.slice(0, 10).map((c: any) => (
-                  <tr key={c._id} className="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onClick={() => router.push(`/cases/${c._id}`)}>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      <div className="text-sm font-medium text-kmuGreen">
-                        {c.student ? c.student.fullName : c.staff ? c.staff.fullName : 'Unknown'}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {c.student ? `Student: ${c.student.studentId}` : c.staff ? `Staff: ${c.staff.staffId}` : 'No ID'}
-                      </div>
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm">
-                      {c.student?.program || c.student?.department || c.staff?.department || 'N/A'}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm">
-                      {c.offenseType || 'N/A'}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap text-sm">
-                      {c.incidentDate ? new Date(c.incidentDate).toLocaleDateString() : 'N/A'}
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs rounded ${
-                        c.severity === 'High' ? 'bg-red-100 text-red-800' :
-                        c.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                        c.severity === 'Low' ? 'bg-green-100 text-green-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {c.severity || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs rounded ${
-                        c.status === 'Open' ? 'bg-red-100 text-red-800' :
-                        c.status === 'Closed' ? 'bg-green-100 text-green-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {c.status || 'N/A'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-                {filteredCases.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-4 text-center text-gray-500 dark:text-gray-400">
-                      No cases found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
+                <span className="text-slate-500 dark:text-slate-400">Students ready</span>
+                <span className="font-semibold text-slate-900 dark:text-white">{students.length}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
+                <span className="text-slate-500 dark:text-slate-400">Staff ready</span>
+                <span className="font-semibold text-slate-900 dark:text-white">{staff.length}</span>
+              </div>
+            </div>
+          </article>
         </div>
-    </section>
+      </section>
+
+      <section className="rounded-[28px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-800 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent Cases</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">Live results from the existing backend case feed.</p>
+          </div>
+          <Link href="/cases" className="text-sm font-medium text-kmuGreen hover:underline">
+            View all
+          </Link>
+        </div>
+
+        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          {filteredCases.slice(0, 10).map((item) => {
+            const name = item.student?.fullName || item.staff?.fullName || 'Unknown';
+            const meta = item.student?.studentId || item.staff?.staffId || 'No ID';
+            const unit = item.student?.program || item.student?.department || item.staff?.department || 'N/A';
+
+            return (
+              <button
+                key={item._id}
+                type="button"
+                onClick={() => item._id && router.push(`/cases/${item._id}`)}
+                className="flex w-full flex-col gap-3 px-5 py-4 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{name}</p>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {meta} • {unit}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{item.offenseType || 'No offense type'}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                    {item.severity || 'No severity'}
+                  </span>
+                  <span className="rounded-full bg-kmuGreen/10 px-2.5 py-1 text-[11px] font-semibold text-kmuGreen dark:bg-kmuGreen/20 dark:text-emerald-300">
+                    {item.status || 'No status'}
+                  </span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{formatDate(item.incidentDate || item.createdAt)}</span>
+                </div>
+              </button>
+            );
+          })}
+
+          {filteredCases.length === 0 && (
+            <div className="px-5 py-10 text-sm text-slate-500 dark:text-slate-400">No cases match the current search.</div>
+          )}
+        </div>
+      </section>
+    </div>
   );
 }

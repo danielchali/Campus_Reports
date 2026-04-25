@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Moon, Sun } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
 import { useTheme } from '../context/ThemeContext';
@@ -21,14 +20,14 @@ export default function Sidebar() {
   const allNavLinks = getNavLinksForRole(user?.role);
   const { bottomNav, sidebarNav } = splitNavLinksForMobile(allNavLinks);
 
-  const sidebarBase = `fixed z-50 left-0 top-0 h-full bg-white text-gray-900 shadow-lg border-r border-gray-200 dark:bg-gray-900 dark:text-white dark:border-gray-800 transition-all duration-300 ease-in-out flex flex-col ${
-    isOpenMobile ? 'translate-x-0 w-[280px]' : '-translate-x-full'
+  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-emerald-800/40 bg-gradient-to-b from-kmuGreen to-kmuGreen-dark text-white shadow-2xl transition-transform duration-300 ease-in-out md:translate-x-0 ${
+    isOpenMobile ? 'translate-x-0 w-[280px]' : '-translate-x-full md:w-auto'
   }`;
 
   const linkBase =
-    'flex items-center gap-2 md:gap-3 py-2 px-3 md:px-4 rounded-lg transition-all font-medium hover:bg-gray-200 dark:hover:bg-gray-800 text-xs sm:text-sm md:text-base';
+    'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/86 transition hover:bg-white/10 hover:text-white';
   const linkActive =
-    'bg-kmuGreen text-white shadow dark:bg-kmuGreen dark:text-white';
+    'bg-white/16 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]';
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -93,36 +92,44 @@ export default function Sidebar() {
         />
       )}
       <aside className={sidebarBase} style={{ width: isDesktop ? `${sidebarWidth}px` : undefined }}>
-        <div className="relative flex flex-col items-center gap-2 border-b border-gray-200 px-4 pb-4 pt-8 dark:border-gray-800">
-          <img
-            src="/kmu_logo.svg"
-            alt="KMU Logo"
-            width={64}
-            height={64}
-            className="mb-2 h-12 md:h-16 w-12 md:w-16 object-contain"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              const fallback = document.createElement('div');
-              fallback.className = 'mb-2 text-lg md:text-2xl font-bold text-gray-900 dark:text-white';
-              fallback.textContent = 'KMU';
-              e.currentTarget.parentNode?.appendChild(fallback);
-            }}
-          />
-          <div className="mt-4 flex flex-col items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Dark Mode</span>
+        <div className="border-b border-white/10 px-5 pb-5 pt-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/95 p-2 shadow-sm">
+              <img
+                src="/kmu_logo.svg"
+                alt="KMU Logo"
+                width={40}
+                height={40}
+                className="h-10 w-10 object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const fallback = document.createElement('div');
+                  fallback.className = 'text-lg font-bold text-kmuGreen';
+                  fallback.textContent = 'KMU';
+                  e.currentTarget.parentNode?.appendChild(fallback);
+                }}
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/65">Campus</p>
+              <p className="text-2xl font-semibold leading-none text-white">Reports</p>
+            </div>
+          </div>
+          <div className="mt-5 flex items-center justify-between rounded-2xl bg-white/8 px-3 py-2">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-white/70">Dark Mode</span>
             <button 
               onClick={toggleTheme}
-              className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 flex items-center ${theme === 'dark' ? 'bg-kmuGreen' : 'bg-slate-300'}`}
+              className={`flex h-6 w-12 items-center rounded-full p-1 transition-colors duration-300 ${theme === 'dark' ? 'bg-white/25' : 'bg-white/40'}`}
             >
               <motion.div 
                 layout
-                className="w-4 h-4 bg-white rounded-full shadow-sm"
+                className="h-4 w-4 rounded-full bg-white shadow-sm"
                 animate={{ x: theme === 'dark' ? 24 : 0 }}
               />
             </button>
           </div>
         </div>
-        <nav className="sidebar-scroll flex flex-col gap-0.5 mt-4 md:mt-6 px-3 md:px-4 pb-6 flex-1 justify-start overflow-y-auto">
+        <nav className="sidebar-scroll mt-4 flex flex-1 flex-col gap-1 overflow-y-auto px-3 pb-6">
           {bottomNav.filter((link) => !link.mobileOnly).map((link) => {
             const Icon = link.icon;
             return (
@@ -130,9 +137,9 @@ export default function Sidebar() {
                 key={link.path}
                 href={link.path}
                 onClick={() => setIsOpenMobile(false)}
-                className={`${linkBase} hidden md:flex ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900 dark:hover:text-red-400' : ''} text-gray-900 dark:text-white`}
+                className={`${linkBase} hidden md:flex ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
               >
-                <span className="flex h-5 w-5 items-center justify-center" aria-hidden="true">
+                <span className="flex h-5 w-5 items-center justify-center text-white/80" aria-hidden="true">
                   <Icon size={16} />
                 </span>
                 <span>{link.label}</span>
@@ -149,9 +156,9 @@ export default function Sidebar() {
                   setIsOpenMobile(false);
                   logout();
                 }}
-                className={`${linkBase} md:hidden ${link.danger ? 'hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900 dark:hover:text-red-400' : ''} text-gray-900 dark:text-white`}
+                className={`${linkBase} md:hidden ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
               >
-                <span className="flex h-5 w-5 items-center justify-center" aria-hidden="true">
+                <span className="flex h-5 w-5 items-center justify-center text-white/80" aria-hidden="true">
                   <Icon size={18} />
                 </span>
                 <span>{link.label}</span>
@@ -161,9 +168,9 @@ export default function Sidebar() {
                 key={link.path}
                 href={link.path}
                 onClick={() => setIsOpenMobile(false)}
-                className={`${linkBase} ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-100 hover:text-red-700 dark:hover:bg-red-900 dark:hover:text-red-400' : ''} text-gray-900 dark:text-white`}
+                className={`${linkBase} ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
               >
-                <span className="flex h-5 w-5 items-center justify-center" aria-hidden="true">
+                <span className="flex h-5 w-5 items-center justify-center text-white/80" aria-hidden="true">
                   <Icon size={16} />
                 </span>
                 <span>{link.label}</span>
@@ -172,7 +179,7 @@ export default function Sidebar() {
           })}
         </nav>
         <div
-          className="absolute right-0 top-0 bottom-0 w-1 bg-gray-600 hover:bg-gray-500 cursor-col-resize hidden md:block"
+          className="absolute bottom-0 right-0 top-0 hidden w-1 cursor-col-resize bg-white/5 hover:bg-white/20 md:block"
           onMouseDown={handleMouseDown}
           title="Drag to resize sidebar"
         />

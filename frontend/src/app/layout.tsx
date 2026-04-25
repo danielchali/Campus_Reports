@@ -1,47 +1,29 @@
 "use client";
 
 import '../globals.css';
-import { AuthProvider, useAuth } from '../context/AuthContext';
-import { useState, useEffect, createContext, useContext, Suspense, lazy } from 'react';
+import { useEffect, useState, Suspense, lazy } from 'react';
 import { usePathname } from 'next/navigation';
+import clsx from 'clsx';
+import { Bell, ChevronDown, Menu, Moon, Search, Sun } from 'lucide-react';
+import { AuthProvider, useAuth } from '../context/AuthContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
-import { useRouter } from 'next/navigation';
-import { SyncProvider, useSync } from '../context/SyncContext';
-import { useSyncManager } from '../hooks/useSyncManager';
-import { useOfflineSync } from '../hooks/useOfflineSync';
+import { SyncProvider } from '../context/SyncContext';
 import { SidebarProvider, useSidebar } from '../context/SidebarContext';
+import { onSyncError, offSyncError } from '../hooks/useSyncManager';
 
-// Lazy load heavy components
+import GlobalSearch from '../components/GlobalSearch';
+import NotificationBell from '../components/NotificationBell';
+import UserProfileMenu from '../components/UserProfileMenu';
+
 const SyncManagerClient = lazy(() => import('../components/SyncManagerClient'));
 const ServiceWorkerRegistration = lazy(() => import('../components/ServiceWorkerRegistration'));
 const PreloadProgress = lazy(() => import('../components/PreloadProgress'));
 const CacheStatus = lazy(() => import('../components/CacheStatus'));
 const OfflineIndicator = lazy(() => import('../components/OfflineIndicator'));
 const Breadcrumbs = lazy(() => import('../components/Breadcrumbs'));
+const Sidebar = lazy(() => import('../components/Sidebar'));
+const BottomNav = lazy(() => import('../components/BottomNav'));
 
-import clsx from 'clsx';
-import { API_BASE_URL } from '../config/constants';
-import { onSyncError, offSyncError } from '../hooks/useSyncManager';
-
-// Optimized nav icons - using simple emojis for faster loading
-const navIcons = {
-  dashboard: '🏠',
-  cases: '📄',
-  reports: '🧾',
-  evidence: '📎',
-  students: '👤',
-  newcase: '➕',
-  logout: '🚪',
-  admin: '🛡️',
-  academic: '🎓',
-  dean: '👨‍🎓',
-  audit: '🔍',
-  users: '👥',
-  profile: '👤',
-  help: '❓',
-};
-
-// Loading fallback component
 const LoadingFallback = () => (
   <div className="p-4 md:p-6 animate-pulse" aria-hidden="true">
     <div className="space-y-4">
@@ -60,37 +42,44 @@ const LoadingFallback = () => (
   </div>
 );
 
-// Lazy load Sidebar component
-const Sidebar = lazy(() => import('../components/Sidebar'));
-const BottomNav = lazy(() => import('../components/BottomNav'));
-
 function TopNavbar() {
   const { user, logout } = useAuth();
-  const pathname = usePathname();
-  const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
+  const { setIsOpenMobile } = useSidebar();
 
   if (!user) return null;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm md:sticky md:top-0">
-      <div className="px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center">
-          <h1 className="text-lg font-semibold text-kmuGreen dark:text-kmuGreen">
-            Campus Reports
-          </h1>
-        </div>
-        
-        {/* Desktop-only user info and logout */}
-        <div className="hidden md:flex items-center space-x-4">
-          <span className="text-sm text-gray-600 dark:text-gray-300">
-            {user.name || user.username}
-          </span>
+    <nav className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
+      <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6">
+        <div className="flex min-w-0 items-center gap-3">
           <button
-            onClick={logout}
-            className="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+            type="button"
+            onClick={() => setIsOpenMobile(true)}
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-700 md:hidden dark:border-slate-800 dark:text-slate-200"
+            aria-label="Open navigation"
           >
-            Logout
+            <Menu size={18} />
           </button>
+          <GlobalSearch />
+          <h1 className="truncate text-lg font-semibold text-slate-900 dark:text-white md:hidden">Campus Reports</h1>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <NotificationBell />
+
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            {theme === 'dark' ? <Moon className="h-3.5 w-3.5 text-indigo-400" /> : <Sun className="h-3.5 w-3.5 text-amber-500" />}
+            <div className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors duration-200 ${theme === 'dark' ? 'bg-indigo-500' : 'bg-slate-300'}`}>
+              <span className={`absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-white shadow-sm transition-transform duration-200 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`} />
+            </div>
+          </button>
+
+          <UserProfileMenu />
         </div>
       </div>
     </nav>
@@ -104,9 +93,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
   const shouldShowNav = !isLogin && user;
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -114,28 +101,25 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
 
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar */}
       {shouldShowNav && (
         <Suspense fallback={<LoadingFallback />}>
           <Sidebar />
         </Suspense>
       )}
-      
-      {/* Main content */}
-      <div className="flex-1 flex flex-col relative">
-        {/* Show top navbar on all screens */}
-        <div>
-          {shouldShowNav && <TopNavbar />}
-        </div>
-        <main className="flex-1 px-3 pt-16 pb-24 sm:px-4 md:px-6 md:pt-3 md:pb-8 md:py-8 overflow-x-hidden">
+
+      <div className="relative flex flex-1 flex-col" style={shouldShowNav && !isMobile ? { marginLeft: `${sidebarWidth}px` } : undefined}>
+        {shouldShowNav && <TopNavbar />}
+        <main
+          className={clsx('flex-1 overflow-x-hidden', {
+            'bg-slate-50 px-3 pb-24 pt-4 sm:px-4 md:px-6 md:pb-8 md:pt-6 dark:bg-slate-950': !isLogin,
+          })}
+        >
           {shouldShowNav && (
             <Suspense fallback={null}>
               <Breadcrumbs />
             </Suspense>
           )}
-          <Suspense fallback={<LoadingFallback />}>
-            {children}
-          </Suspense>
+          <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
         </main>
         {shouldShowNav && isMobile && (
           <Suspense fallback={null}>
@@ -144,13 +128,18 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
         )}
       </div>
     </div>
-    );
-  }
+  );
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { theme } = useTheme();
-  const isLogin = pathname === "/login" || pathname === "/" || pathname === "/signup";
+  const isLogin =
+    pathname === '/login' ||
+    pathname === '/' ||
+    pathname === '/signup' ||
+    pathname === '/test-login' ||
+    pathname === '/anonymous-report';
   const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -158,8 +147,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     return () => offSyncError(handleSyncError);
   }, []);
 
-  function handleSyncError(msg: string) {
-    setSyncError(msg);
+  function handleSyncError(message: string) {
+    setSyncError(message);
     setTimeout(() => setSyncError(null), 5000);
   }
 
@@ -170,50 +159,32 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="Campus Reports - Kapasa Makasa University Student Discipline Management System" />
         <meta name="theme-color" content="#10B981" />
-        
-        {/* Preload critical resources */}
         <link rel="preload" href="/kmu_logo.svg" as="image" type="image/svg+xml" />
-        
-        {/* DNS prefetch for external domains */}
         <link rel="dns-prefetch" href="//kmu-disciplinedesk.onrender.com" />
-        
-        {/* Preconnect to API */}
         <link rel="preconnect" href="https://kmu-disciplinedesk.onrender.com" />
-        
         <title>Campus Reports</title>
       </head>
       <body className="min-h-screen">
-        {syncError && (
-          <div className="fixed top-0 left-0 right-0 bg-red-600 text-white p-3 text-center z-50">
-            {syncError}
-          </div>
-        )}
-        
+        {syncError && <div className="fixed left-0 right-0 top-0 z-50 bg-red-600 p-3 text-center text-white">{syncError}</div>}
+
         <AuthProvider>
           <SyncProvider>
             <ThemeProvider>
               <SidebarProvider>
-                <AppContent isLogin={isLogin}>
-                    {children}
-                </AppContent>
-              
-                {/* Lazy load PWA components */}
+                <AppContent isLogin={isLogin}>{children}</AppContent>
+
                 <Suspense fallback={null}>
-              <ServiceWorkerRegistration />
+                  <ServiceWorkerRegistration />
                 </Suspense>
-                
                 <Suspense fallback={null}>
                   <PreloadProgress />
                 </Suspense>
-                
                 <Suspense fallback={null}>
                   <CacheStatus />
                 </Suspense>
-                
                 <Suspense fallback={null}>
                   <OfflineIndicator />
                 </Suspense>
-                
                 <Suspense fallback={null}>
                   <SyncManagerClient />
                 </Suspense>

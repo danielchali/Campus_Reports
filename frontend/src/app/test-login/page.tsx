@@ -28,7 +28,7 @@ export default function TestLoginPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-8 min-h-screen">
       <h1 className="text-2xl font-bold mb-4">Login Test Page</h1>
       
       <div className="mb-4">
