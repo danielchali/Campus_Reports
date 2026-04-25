@@ -6,6 +6,7 @@ import { useAuth } from "../../../context/AuthContext";
 import Link from "next/link";
 import { API_BASE_URL } from '../../../config/constants';
 import { authHeaders } from '../../../utils/api';
+import { canAccessPage } from '../../../utils/access';
 
 interface Staff {
     staffId: string;
@@ -49,6 +50,9 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
         
         if (authLoading) {
             return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
+        }
+        if (user && !canAccessPage(user.role, 'staff')) {
+            return <div className="text-red-600">Access denied.</div>;
         }
     }
     

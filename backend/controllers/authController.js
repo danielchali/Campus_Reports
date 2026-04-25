@@ -250,3 +250,114 @@ export async function registerStudent(req, res) {
         res.status(500).json({ error: 'Server error' });
     }
 }
+
+import crypto from 'crypto';
+import nodemailer from 'nodemailer';
+import StaffModel from '../models/staff.js';
+
+// Setup mock email transport for development
+// In production, configure this with real SMTP credentials
+const transporter = nodemailer.createTransport({
+    host: 'smtp.ethereal.email',
+    port: 587,
+    auth: {
+        user: 'mock_user@ethereal.email', // Replace with real auth in prod
+        pass: 'mock_pass'
+    }
+});
+
+export async function forgotPassword(req, res) {
+    const { username } = req.body; // username is typically studentId or staffId
+    if (!username) return res.status(400).json({ error: 'Username/ID is required' });
+
+    try {
+        const user = await UserModel.findOne({ username });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Find email based on role
+        let email = null;
+        if (user.role === 'student') {
+            const student = await StudentModel.findOne({ studentId: username });
+            email = student?.addressInfo?.email;
+        } else {
+            const staff = await StaffModel.findOne({ staffId: username });
+            email = staff?.email;
+        }
+
+        if (!email) {
+            return res.status(400).json({ error: 'No email address associated with this account. Please contact administration.' });
+        }
+
+        // Generate token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        await user.save();
+
+        const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+
+        const mailOptions = {
+            from: '"Campus Reports" <noreply@campusreports.com>',
+            to: email,
+            subject: 'Password Reset Request',
+            text: `You requested a password reset. Please click the following link to reset your password: \n\n ${resetUrl} \n\n If you did not request this, please ignore this email.`,
+            html: `<p>You requested a password reset.</p><p>Please click the following link to reset your password:</p><a href="${resetUrl}">${resetUrl}</a><p>If you did not request this, please ignore this email.</p>`
+        };
+
+        // Attempt to send email
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log(`[Mock Email] Sent reset link to ${email}: ${resetUrl}`);
+            res.json({ message: 'Password reset link sent to your email.' });
+        } catch (emailErr) {
+            console.error('Email send error (Mocking fallback):', emailErr);
+            // Fallback for development if ethereal fails to connect
+            console.log(`[Dev Fallback] Reset Link for ${username}: ${resetUrl}`);
+            res.json({ message: 'Password reset link generated. (Check console in development)' });
+        }
+
+    } catch (err) {
+        console.error('Forgot password error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+export async function resetPassword(req, res) {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) return res.status(400).json({ error: 'Token and new password are required' });
+
+    try {
+        const user = await UserModel.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            return res.status(400).json({ error: 'Password reset token is invalid or has expired.' });
+        }
+
+        const hashed = await bcrypt.hash(newPassword, 10);
+        user.password = hashed;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        await logAudit({
+            action: 'password_reset',
+            entity: 'user',
+            entityId: user._id || user.id,
+            user: user.username,
+            details: { timestamp: new Date().toISOString() },
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
+
+        res.json({ message: 'Password has been successfully reset. You may now log in.' });
+    } catch (err) {
+        console.error('Reset password error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+

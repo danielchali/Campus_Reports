@@ -9,6 +9,7 @@ import { API_BASE_URL } from '../../../config/constants';
 import { OFFENSE_TYPES, SEVERITY_LEVELS } from '../../../config/constants';
 import { authHeaders } from '../../../utils/api';
 import { saveAs } from 'file-saver';
+import { canAccessPage } from '../../../utils/access';
 
 
 
@@ -48,8 +49,20 @@ interface StatementRequest {
 }
 
 export default function StudentDetailsPage({ params }: { params: { id: string } }) {
-    const { token, user } = useAuth();
+    const { token, user, loading: authLoading } = useAuth();
     const router = useRouter();
+    if (typeof window !== 'undefined') {
+        if (!authLoading && !token) {
+            router.replace('/login');
+            return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+        }
+        if (authLoading) {
+            return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
+        }
+        if (user && !canAccessPage(user.role, 'students')) {
+            return <div className="text-red-600">Access denied.</div>;
+        }
+    }
     const searchParams = useSearchParams();
     const initialActiveTab = searchParams.get('tab') || 'overview';
     const [student, setStudent] = useState<Student | null>(null);

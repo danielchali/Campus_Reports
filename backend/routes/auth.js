@@ -12,4 +12,8 @@ router.post('/refresh-token', (req, res) => {
     res.status(401).json({ error: 'Refresh token not implemented' });
 });
 
+import { forgotPassword, resetPassword } from '../controllers/authController.js';
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
+
 export default router;

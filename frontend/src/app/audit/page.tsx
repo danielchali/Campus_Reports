@@ -6,6 +6,7 @@ import { io, Socket } from 'socket.io-client';
 import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
 import { useRouter } from "next/navigation";
+import { canAccessPage } from '../../utils/access';
 
 interface AuditLog {
   _id?: string;
@@ -23,7 +24,6 @@ interface AuditLog {
 export default function AuditPage() {
   const router = useRouter();
   const { user, token, loading: authLoading } = useAuth();
-  const allowedRoles = ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer'];
   
   // Handle authentication like profile page - only on client side
   if (typeof window !== 'undefined') {
@@ -36,7 +36,7 @@ export default function AuditPage() {
       return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
     }
     
-    if (!user || !allowedRoles.includes(user.role)) return <div className="text-red-600">Access denied.</div>;
+    if (!user || !canAccessPage(user.role, 'audit')) return <div className="text-red-600">Access denied.</div>;
   }
 
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -90,11 +90,11 @@ export default function AuditPage() {
       }
       setLoading(false);
     }
-    if (user && allowedRoles.includes(user.role)) fetchLogs();
+    if (user && canAccessPage(user.role, 'audit')) fetchLogs();
   }, [token, user, API_BASE_URL, page, search, actionFilter, entityFilter, userFilter, dateFrom, dateTo]);
 
   useEffect(() => {
-    if (!user || !allowedRoles.includes(user.role)) return;
+    if (!user || !canAccessPage(user.role, 'audit')) return;
     if (!socketRef.current) {
       const socket = io(API_BASE_URL.replace('/api', ''), { transports: ['websocket'] });
       socketRef.current = socket;

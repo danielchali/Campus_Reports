@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
 import { useOfflineApi } from '../../hooks/useOfflineSync';
+import { canAccessPage } from '../../utils/access';
 
 
 interface Evidence {
@@ -39,7 +40,7 @@ export default function EvidencePage() {
       return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
     }
     
-    if (!user || (user.role !== 'admin' && user.role !== 'security_officer')) {
+    if (!user || !canAccessPage(user.role, 'evidence')) {
       return <div className="text-red-600">Access denied.</div>;
     }
   }
@@ -85,7 +86,7 @@ export default function EvidencePage() {
       }
     }
 
-    if (user && (user.role === 'admin' || user.role === 'security_officer')) {
+    if (user && canAccessPage(user.role, 'evidence')) {
       fetchEvidence();
       fetchCases();
     } else {

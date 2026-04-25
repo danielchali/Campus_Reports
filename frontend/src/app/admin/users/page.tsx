@@ -4,6 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from '../../../config/constants';
 import { getAll, register, update, remove, exportDocx, exportExcel } from '../../../utils/api';
+import { canAccessPage } from '../../../utils/access';
 
 
 const ROLES = [
@@ -31,7 +32,7 @@ export default function UserManagementPage() {
       return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
     }
     
-    if (!user || user.role !== 'admin') {
+    if (!user || !canAccessPage(user.role, 'adminUsers')) {
       return <div className="text-red-600">Access denied. Admin privileges required.</div>;
     }
   }
@@ -64,7 +65,7 @@ export default function UserManagementPage() {
   }
 
   useEffect(() => { 
-    if (user && user.role === 'admin') {
+    if (user && canAccessPage(user.role, 'adminUsers')) {
       fetchUsers(); 
     }
   }, [token, user]);

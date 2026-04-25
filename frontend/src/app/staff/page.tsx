@@ -8,6 +8,7 @@ import { getAll, create, remove } from '../../utils/api';
 import { useOfflineApi } from '../../hooks/useOfflineSync';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import { canAccessPage } from '../../utils/access';
 
 // Type for a staff member
 interface Staff {
@@ -36,6 +37,10 @@ export default function StaffPage() {
     
     if (authLoading) {
       return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
+    }
+
+    if (!user || !canAccessPage(user.role, 'staff')) {
+      return <div className="text-red-600">Access denied.</div>;
     }
   }
 

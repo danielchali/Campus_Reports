@@ -151,8 +151,6 @@ export function splitNavLinksForMobile(navLinks: NavLink[]) {
   const sidebarNav: NavLink[] = [];
 
   const settingsLabels = [
-    'Profile & Settings',
-    'My Profile',
     'Manage Users',
     'Audit/Logs',
     'Help',
@@ -161,6 +159,11 @@ export function splitNavLinksForMobile(navLinks: NavLink[]) {
   ];
 
   for (const link of navLinks) {
+    // Skip profile links entirely (they are in the top navbar)
+    if (link.label === 'Profile & Settings' || link.label === 'My Profile') {
+      continue;
+    }
+
     if (settingsLabels.includes(link.label)) {
       sidebarNav.push(link);
     } else {

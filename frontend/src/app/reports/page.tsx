@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Notification, { useNotification } from '../../components/Notification';
+import { canAccessPage } from '../../utils/access';
 import {
   getAllStudentReports,
   getUnreadStudentReportsCount,
@@ -24,15 +25,6 @@ import {
   type StudentReport,
   type StudentReportStatus,
 } from '../../utils/studentReports';
-
-const allowedRoles = [
-  'admin',
-  'chief_security_officer',
-  'dean_of_students',
-  'assistant_dean',
-  'secretary',
-  'security_officer',
-];
 
 const categoryLabels = {
   disciplinary_case: 'Disciplinary Case',
@@ -73,7 +65,7 @@ export default function ReportsPage() {
       return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
     }
 
-    if (!user || !allowedRoles.includes(user.role)) {
+    if (!user || !canAccessPage(user.role, 'reports')) {
       return <div className="text-red-600">Access denied.</div>;
     }
   }
