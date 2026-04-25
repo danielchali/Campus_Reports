@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { Moon, Sun } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
@@ -21,7 +22,7 @@ export default function Sidebar() {
   const { bottomNav, sidebarNav } = splitNavLinksForMobile(allNavLinks);
 
   const sidebarBase = `fixed z-50 left-0 top-0 h-full bg-white text-gray-900 shadow-lg border-r border-gray-200 dark:bg-gray-900 dark:text-white dark:border-gray-800 transition-all duration-300 ease-in-out flex flex-col ${
-    isOpenMobile ? 'translate-x-0 w-[280px]' : '-translate-x-full md:translate-x-0'
+    isOpenMobile ? 'translate-x-0 w-[280px]' : '-translate-x-full'
   }`;
 
   const linkBase =
@@ -107,16 +108,19 @@ export default function Sidebar() {
               e.currentTarget.parentNode?.appendChild(fallback);
             }}
           />
-          <button
-            className="mt-2 px-2 md:px-3 py-1 md:py-2 rounded bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-xs md:text-sm hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
-            onClick={toggleTheme}
-            aria-label="Toggle dark mode"
-          >
-            <span className="inline-flex items-center gap-1 md:gap-2">
-              {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
-              <span className="hidden md:inline">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
-            </span>
-          </button>
+          <div className="mt-4 flex flex-col items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Dark Mode</span>
+            <button 
+              onClick={toggleTheme}
+              className={`w-12 h-6 rounded-full p-1 transition-colors duration-300 flex items-center ${theme === 'dark' ? 'bg-kmuGreen' : 'bg-slate-300'}`}
+            >
+              <motion.div 
+                layout
+                className="w-4 h-4 bg-white rounded-full shadow-sm"
+                animate={{ x: theme === 'dark' ? 24 : 0 }}
+              />
+            </button>
+          </div>
         </div>
         <nav className="sidebar-scroll flex flex-col gap-0.5 mt-4 md:mt-6 px-3 md:px-4 pb-6 flex-1 justify-start overflow-y-auto">
           {bottomNav.filter((link) => !link.mobileOnly).map((link) => {

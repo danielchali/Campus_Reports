@@ -122,12 +122,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
       )}
       
       {/* Main content */}
-      <div
-        className="flex-1 flex flex-col relative"
-        style={{
-          marginLeft: shouldShowNav && !isMobile ? `${sidebarWidth}px` : '0px'
-        }}
-      >
+      <div className="flex-1 flex flex-col relative">
         {/* Show top navbar on all screens */}
         <div>
           {shouldShowNav && <TopNavbar />}
@@ -173,7 +168,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="Campus Reports - Student Discipline Management System" />
+        <meta name="description" content="Campus Reports - Kapasa Makasa University Student Discipline Management System" />
         <meta name="theme-color" content="#10B981" />
         
         {/* Preload critical resources */}
