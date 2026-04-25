@@ -21,7 +21,7 @@ export default function Sidebar() {
   const { bottomNav, sidebarNav } = splitNavLinksForMobile(allNavLinks);
 
   const sidebarBase = `fixed z-50 left-0 top-0 h-full bg-white text-gray-900 shadow-lg border-r border-gray-200 dark:bg-gray-900 dark:text-white dark:border-gray-800 transition-all duration-300 ease-in-out flex flex-col ${
-    isOpenMobile ? 'translate-x-0 w-[280px]' : '-translate-x-full md:translate-x-0'
+    isOpenMobile ? 'translate-x-0 w-[280px]' : '-translate-x-full'
   }`;
 
   const linkBase =

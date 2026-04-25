@@ -122,12 +122,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
       )}
       
       {/* Main content */}
-      <div
-        className="flex-1 flex flex-col relative"
-        style={{
-          marginLeft: shouldShowNav && !isMobile ? `${sidebarWidth}px` : '0px'
-        }}
-      >
+      <div className="flex-1 flex flex-col relative">
         {/* Show top navbar on all screens */}
         <div>
           {shouldShowNav && <TopNavbar />}
