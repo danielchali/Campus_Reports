@@ -64,7 +64,7 @@ export default function TestLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
+            className="bg-kmuGreen text-white px-4 py-2 rounded disabled:opacity-50"
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
@@ -96,12 +96,12 @@ export default function TestLoginPage() {
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">Dashboard Links:</h2>
         <ul className="list-disc list-inside">
-          <li><a href="/admin" className="text-blue-500 hover:underline">Admin Dashboard</a></li>
-          <li><a href="/chief-security-officer-dashboard" className="text-blue-500 hover:underline">Chief Security Officer Dashboard</a></li>
-          <li><a href="/dean-of-students-dashboard" className="text-blue-500 hover:underline">Dean of Students Dashboard</a></li>
-          <li><a href="/assistant-dean-dashboard" className="text-blue-500 hover:underline">Assistant Dean Dashboard</a></li>
-          <li><a href="/secretary-dashboard" className="text-blue-500 hover:underline">Secretary Dashboard</a></li>
-          <li><a href="/security-dashboard" className="text-blue-500 hover:underline">Security Dashboard</a></li>
+          <li><a href="/admin" className="text-kmuGreen hover:underline">Admin Dashboard</a></li>
+          <li><a href="/chief-security-officer-dashboard" className="text-kmuGreen hover:underline">Chief Security Officer Dashboard</a></li>
+          <li><a href="/dean-of-students-dashboard" className="text-kmuGreen hover:underline">Dean of Students Dashboard</a></li>
+          <li><a href="/assistant-dean-dashboard" className="text-kmuGreen hover:underline">Assistant Dean Dashboard</a></li>
+          <li><a href="/secretary-dashboard" className="text-kmuGreen hover:underline">Secretary Dashboard</a></li>
+          <li><a href="/security-dashboard" className="text-kmuGreen hover:underline">Security Dashboard</a></li>
         </ul>
       </div>
     </div>
