@@ -139,6 +139,8 @@ export async function getCase(req, res) {
 
 export async function createCase(req, res) {
     try {
+        const requestedStatus = (req.body.status || '').toString().trim().toLowerCase();
+        const isDraft = requestedStatus === 'draft';
         const isMultipleStudents = req.body.student_ids && Array.isArray(req.body.student_ids) && req.body.student_ids.length > 0;
         const isSingleStudent = req.body.student_id && req.body.student_id.trim() !== '';
         const isMultipleStaff = req.body.staff_ids && Array.isArray(req.body.staff_ids) && req.body.staff_ids.length > 0;
@@ -154,10 +156,12 @@ export async function createCase(req, res) {
             return res.status(400).json({ error: 'Cannot create a case for both student and staff simultaneously' });
         }
 
-        const requiredFields = ['incident_date', 'offense_type', 'severity', 'description'];
-        for (const field of requiredFields) {
-            if (!req.body[field]) {
-                return res.status(400).json({ error: `Missing required field: ${field}` });
+        if (!isDraft) {
+            const requiredFields = ['incident_date', 'offense_type', 'severity', 'description'];
+            for (const field of requiredFields) {
+                if (!req.body[field]) {
+                    return res.status(400).json({ error: `Missing required field: ${field}` });
+                }
             }
         }
 
@@ -182,6 +186,9 @@ export async function createCase(req, res) {
         };
 
         caseData.case_id = await getNextMongoCaseId();
+        if (caseData.student_case_process?.occurrenceCover) {
+            caseData.student_case_process.occurrenceCover.occurrenceBookNumber = caseData.case_id;
+        }
         let caseItem = await CaseModel.create(caseData);
 
         const StudentModel = (await import('../models/student.js')).default;

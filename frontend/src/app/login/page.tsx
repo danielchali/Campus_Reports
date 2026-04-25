@@ -13,10 +13,19 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isOnline, setIsOnline] = useState(true);
+  const [featureIndex, setFeatureIndex] = useState(0);
+  const [typedFeatureText, setTypedFeatureText] = useState('');
+  const [isDeletingFeatureText, setIsDeletingFeatureText] = useState(false);
   const { user, login, loginOffline, isOnline: authIsOnline } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const featureTexts = [
+    'Track student and staff discipline cases in one place.',
+    'Create KMU four-step case records with draft support.',
+    'Generate printable callouts and structured statements quickly.',
+    'Keep evidence, reports, and audit logs organized and secure.',
+  ];
 
   // Performance monitoring
   useEffect(() => {
@@ -43,6 +52,40 @@ export default function LoginPage() {
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
+
+  useEffect(() => {
+    const currentFeature = featureTexts[featureIndex];
+
+    if (!currentFeature) {
+      return;
+    }
+
+    const typingDelay = isDeletingFeatureText ? 35 : 65;
+    const pauseDelay = 900;
+
+    const timer = setTimeout(() => {
+      if (!isDeletingFeatureText) {
+        const nextText = currentFeature.slice(0, typedFeatureText.length + 1);
+        setTypedFeatureText(nextText);
+
+        if (nextText === currentFeature) {
+          setTimeout(() => {
+            setIsDeletingFeatureText(true);
+          }, pauseDelay);
+        }
+      } else {
+        const nextText = currentFeature.slice(0, Math.max(typedFeatureText.length - 1, 0));
+        setTypedFeatureText(nextText);
+
+        if (nextText.length === 0) {
+          setIsDeletingFeatureText(false);
+          setFeatureIndex((prev) => (prev + 1) % featureTexts.length);
+        }
+      }
+    }, typingDelay);
+
+    return () => clearTimeout(timer);
+  }, [featureIndex, featureTexts, isDeletingFeatureText, typedFeatureText]);
 
   // Redirect if user is already logged in
   useEffect(() => {
@@ -108,35 +151,52 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center px-3 sm:px-4 ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
-      <div className="max-w-md w-full">
-        {/* Login Form Card */}
-        <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 md:p-8 min-h-[500px] flex flex-col justify-center`}>
-          {/* Logo and Title */}
-          <div className="text-center mb-6 md:mb-8">
-            <img
-              src="/kmu_logo.svg"
-              alt="KMU Logo"
-              width={80}
-              height={80}
-              className="mx-auto mb-3 md:mb-4 h-16 md:h-20 w-16 md:w-20 object-contain"
-              onError={(e) => {
-                console.error('Logo failed to load');
-                e.currentTarget.style.display = 'none';
-                // Show fallback text
-                const fallback = document.createElement('div');
-                fallback.className = 'text-2xl md:text-4xl font-bold text-kmuGreen mb-3 md:mb-4';
-                fallback.textContent = 'KMU';
-                e.currentTarget.parentNode?.appendChild(fallback);
-              }}
-              onLoad={() => console.log('Logo loaded successfully')}
-            />
-            <h2 className="text-xl md:text-3xl font-bold text-kmuGreen mb-2">
-              Log in to Campus Reports
-            </h2>
+    <div className={`min-h-screen px-3 py-6 sm:px-4 md:px-8 ${theme === 'dark' ? 'bg-gray-900' : 'bg-white'}`}>
+      <div className="mx-auto block min-h-[88vh] w-full max-w-6xl items-center gap-6 md:grid md:grid-cols-2">
+        <div className="hidden rounded-2xl border border-kmuGreen/20 bg-kmuGreen/5 p-6 text-left dark:border-kmuGreen/30 dark:bg-kmuGreen/10 md:block">
+          <img
+            src="/kmu_logo.svg"
+            alt="KMU Logo"
+            width={130}
+            height={130}
+            className="mx-auto mb-4 h-20 w-20 object-contain md:mx-0 md:h-28 md:w-28"
+            onError={(e) => {
+              console.error('Logo failed to load');
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+          <h1 className="text-3xl font-bold text-kmuGreen md:text-4xl">Campus Reports</h1>
+          <p className={`mt-2 text-sm md:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+            KMU Discipline Management System
+          </p>
+          <div className="mt-4 h-8 overflow-hidden text-sm font-medium text-kmuOrange md:text-base">
+            <span className="inline-block">
+              {typedFeatureText}
+              <span className="ml-0.5 inline-block h-4 w-[2px] animate-pulse bg-current align-middle" />
+            </span>
           </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6" autoComplete="off">
+        <div className="w-full md:order-2">
+          <div className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl p-4 md:p-8 min-h-[500px] flex flex-col justify-center`}>
+            <div className="text-center mb-6 md:mb-8">
+              <img
+                src="/kmu_logo.svg"
+                alt="KMU Logo"
+                width={80}
+                height={80}
+                className="mx-auto mb-3 h-16 w-16 object-contain md:hidden"
+                onError={(e) => {
+                  console.error('Logo failed to load');
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+              <h2 className="text-xl md:text-3xl font-bold text-kmuGreen mb-2">
+                Log in to Campus Reports
+              </h2>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6" autoComplete="off">
             {signupSuccess && (
               <div className="bg-green-50 border border-green-200 text-green-700 px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-md text-xs md:text-sm">
                 Student account created successfully. Sign in with your Student ID and password.
@@ -225,12 +285,13 @@ export default function LoginPage() {
                 'Sign In'
               )}
             </button>
-          </form>
-          <div className="mt-5 text-center text-sm">
-            <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>New student? </span>
-            <Link href="/signup" className="font-semibold text-kmuGreen underline">
-              Create your account
-            </Link>
+            </form>
+            <div className="mt-5 text-center text-sm">
+              <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}>New student? </span>
+              <Link href="/signup" className="font-semibold text-kmuGreen underline">
+                Create your account
+              </Link>
+            </div>
           </div>
         </div>
       </div>
