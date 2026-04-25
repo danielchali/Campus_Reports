@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Mail, 
   Lock, 
   Eye, 
   EyeOff, 
@@ -18,8 +17,6 @@ import {
   HelpCircle,
   MessageCircle,
   Globe,
-  Moon,
-  Sun,
   ChevronDown,
   ArrowRight,
   Fingerprint
@@ -379,22 +376,6 @@ export default function LoginPage() {
 
               <div className="relative py-4">
                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-slate-800"></div></div>
-                <div className="relative flex justify-center text-xs uppercase"><span className="bg-white dark:bg-slate-900 px-4 text-slate-400 font-medium">or continue as</span></div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <button type="button" className="flex items-center justify-center gap-2 py-3.5 px-4 bg-[#10b981] hover:bg-emerald-600 text-white rounded-2xl font-bold transition-all active:scale-[0.98]">
-                  <GraduationCap className="w-5 h-5" />
-                  <span className="text-sm">Login as Student</span>
-                </button>
-                <button type="button" className="flex items-center justify-center gap-2 py-3.5 px-4 bg-[#f59e0b] hover:bg-amber-600 text-white rounded-2xl font-bold transition-all active:scale-[0.98]">
-                  <Briefcase className="w-5 h-5" />
-                  <span className="text-sm">Login as Staff</span>
-                </button>
-              </div>
-
-              <div className="relative py-4">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200 dark:border-slate-800"></div></div>
                 <div className="relative flex justify-center text-xs uppercase"><span className="bg-white dark:bg-slate-900 px-4 text-slate-400 font-medium">or report without login</span></div>
               </div>
 
@@ -453,6 +434,4 @@ export default function LoginPage() {
   );
 }
 
-// Re-export Lucide icons for use in other components if needed
-const GraduationCap = (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-graduation-cap"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>;
-const Briefcase = (props: any) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-briefcase"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>;
+
