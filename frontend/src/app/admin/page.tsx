@@ -1,37 +1,65 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { saveAs } from 'file-saver';
-import { Bar } from 'react-chartjs-2';
+import { useState, useEffect, useMemo } from 'react';
+import { Line, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
+  ArcElement,
+  Filler
 } from 'chart.js';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { prepareChartExport } from '../../utils/chartExport';
+import { 
+  ClipboardList, 
+  CheckCircle2, 
+  Clock, 
+  AlertCircle, 
+  Wrench, 
+  ChevronRight, 
+  PlusCircle, 
+  Users, 
+  BarChart3, 
+  Settings, 
+  Layers, 
+  Activity,
+  Search,
+  Bell,
+  MoreVertical,
+  ArrowUpRight,
+  ArrowDownRight
+} from 'lucide-react';
 import Notification, { useNotification } from '../../components/Notification';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 export default function AdminPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
   const { notification, showNotification, hideNotification } = useNotification();
 
-  const [search, setSearch] = useState('');
   const [cases, setCases] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [filteredCases, setFilteredCases] = useState([]);
-  const [filteredStudents, setFilteredStudents] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !token) {
@@ -39,311 +67,364 @@ export default function AdminPage() {
     }
   }, [authLoading, token, router]);
 
-  if (authLoading) {
-    return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
-  }
-
-  if (!token) {
-    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
-  }
-
-  if (!user || user.role !== 'admin') {
-    return <div className="text-red-600">Access denied.</div>;
-  }
-
   useEffect(() => {
     async function fetchData() {
-      if (!API_BASE_URL) {
-        console.error('API base URL is not defined.');
-        return;
-      }
+      if (!token) return;
+      setLoading(true);
       try {
-        const casesRes = await fetch(`${API_BASE_URL}/cases`, { headers: { ...authHeaders() } });
-        const studentsRes = await fetch(`${API_BASE_URL}/students`, { headers: { ...authHeaders() } });
+        const [casesRes, reportsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/cases`, { headers: { ...authHeaders() } }),
+          // Assuming there's a reports endpoint or we use the cases for metrics
+          fetch(`${API_BASE_URL}/cases`, { headers: { ...authHeaders() } }) 
+        ]);
         
         if (casesRes.ok) {
           const casesData = await casesRes.json();
-          setCases(casesData.cases || casesData || []);
-        } else {
-          console.error('Failed to fetch cases:', casesRes.status);
-          setCases([]);
-        }
-        
-        if (studentsRes.ok) {
-          const studentsData = await studentsRes.json();
-          setStudents(studentsData.students || studentsData || []);
-        } else {
-          console.error('Failed to fetch students:', studentsRes.status);
-          setStudents([]);
+          setCases(Array.isArray(casesData) ? casesData : casesData.cases || []);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
-        setCases([]);
-        setStudents([]);
+      } finally {
+        setLoading(false);
       }
     }
     fetchData();
-  }, [token, API_BASE_URL]);
+  }, [token]);
 
-  const safeCases = Array.isArray(cases) ? cases : [];
-  const safeStudents = Array.isArray(students) ? students : [];
+  // Mock data for the line chart (Reports Overview)
+  const lineChartData = {
+    labels: ['May 19', 'May 20', 'May 21', 'May 22', 'May 23', 'May 24', 'May 25'],
+    datasets: [
+      {
+        label: 'Total Reports',
+        data: [32, 38, 36, 42, 40, 44, 48],
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+        fill: true,
+        tension: 0.4,
+      },
+      {
+        label: 'Resolved',
+        data: [20, 24, 22, 28, 26, 30, 34],
+        borderColor: '#10b981',
+        backgroundColor: 'transparent',
+        tension: 0.4,
+      },
+      {
+        label: 'In Progress',
+        data: [8, 10, 9, 11, 10, 12, 11],
+        borderColor: '#f59e0b',
+        backgroundColor: 'transparent',
+        tension: 0.4,
+      }
+    ],
+  };
 
-  useEffect(() => {
-    setFilteredCases(
-      search ? safeCases.filter((c: any) =>
-        c.student?.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-        c.student?.studentId?.toLowerCase().includes(search.toLowerCase()) ||
-        c.offenseType?.toLowerCase().includes(search.toLowerCase()) ||
-        c.status?.toLowerCase().includes(search.toLowerCase())
-      ) : safeCases
+  // Mock data for the doughnut chart (Reports by Category)
+  const doughnutData = {
+    labels: ['Infrastructure', 'Cleanliness', 'Maintenance', 'IT / Internet', 'Safety & Security', 'Other'],
+    datasets: [
+      {
+        data: [45, 26, 23, 15, 10, 9],
+        backgroundColor: [
+          '#2563eb',
+          '#10b981',
+          '#f59e0b',
+          '#8b5cf6',
+          '#f43f5e',
+          '#94a3b8'
+        ],
+        borderWidth: 0,
+        cutout: '75%',
+      },
+    ],
+  };
+
+  if (authLoading || loading) {
+    return (
+      <div className="p-8 space-y-8 animate-pulse">
+        <div className="h-10 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-32 bg-slate-200 dark:bg-slate-800 rounded-2xl" />)}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 h-96 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+          <div className="h-96 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+        </div>
+      </div>
     );
-    setFilteredStudents(
-      search ? safeStudents.filter((s: any) =>
-        s.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-        s.studentId?.toLowerCase().includes(search.toLowerCase())
-      ) : safeStudents
-    );
-  }, [search, cases, students]);
-
-  async function exportCasesToWord() {
-    try {
-      // Prepare chart data
-      const chartExportData = await prepareChartExport();
-      
-      const res = await fetch(`${API_BASE_URL}/reports/dashboard-cases`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...authHeaders() 
-        },
-        body: JSON.stringify({
-          charts: chartExportData.charts,
-          pageInfo: {
-            title: 'Admin Dashboard - All Cases Report',
-            url: window.location.href
-          }
-        }),
-      });
-      
-      if (!res.ok) throw new Error(await res.text());
-      const blob = await res.blob();
-      saveAs(blob, 'admin_all_cases_report.docx');
-    } catch (err) {
-      console.error('Export cases error:', err);
-      showNotification('error', 'Failed to export cases');
-    }
   }
 
-
-
-  // Visualization data
-  const totalCases = filteredCases.length;
-  const offenceCounts: Record<string, number> = {};
-  const offenderCounts: Record<string, number> = {};
-  filteredCases.forEach((c: any) => {
-    if (c.offenseType) offenceCounts[c.offenseType] = (offenceCounts[c.offenseType] || 0) + 1;
-    if (c.student?.fullName) offenderCounts[c.student.fullName] = (offenderCounts[c.student.fullName] || 0) + 1;
-  });
-  const topOffences = Object.entries(offenceCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
-  const topOffenders = Object.entries(offenderCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
-
-  const offenceChartData = {
-    labels: topOffences.map(([offence]) => offence),
-    datasets: [
-      {
-        label: 'Cases',
-        data: topOffences.map(([, count]) => count),
-        backgroundColor: 'rgba(16, 185, 129, 0.7)',
-      },
-    ],
-  };
-  const offenderChartData = {
-    labels: topOffenders.map(([name]) => name),
-    datasets: [
-      {
-        label: 'Cases',
-        data: topOffenders.map(([, count]) => count),
-        backgroundColor: 'rgba(251, 191, 36, 0.7)',
-      },
-    ],
-  };
-
   return (
-    <>
-      <section>
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-kmuGreen">Admin Panel</h1>
+    <div className="max-w-[1600px] mx-auto space-y-8 p-4 md:p-8 bg-[#f8fafc] dark:bg-slate-950 min-h-screen">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+            Welcome back, Admin! 👋
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
+            Here's what's happening on campus today.
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col items-center justify-center">
-            <div className="text-4xl font-bold text-kmuGreen">{totalCases}</div>
-            <div className="text-gray-700 dark:text-gray-300">Total Cases</div>
-          </div>
-          <div 
-            id="offences-chart"
-            data-chart-export="true"
-            data-chart-title="Most Common Offences"
-            data-chart-description="Top 3 most common disciplinary offenses"
-            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
-          >
-            <h2 className="text-lg font-semibold mb-2 text-kmuOrange">Most Common Offences</h2>
-            <Bar data={offenceChartData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
-          </div>
-          <div 
-            id="offenders-chart"
-            data-chart-export="true"
-            data-chart-title="Most Common Offenders"
-            data-chart-description="Top 3 students with most disciplinary cases"
-            className="bg-white dark:bg-gray-800 rounded-lg shadow p-6"
-          >
-            <h2 className="text-lg font-semibold mb-2 text-kmuOrange">Most Common Offenders</h2>
-            <Bar data={offenderChartData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
-          </div>
-        </div>
-        {/* Recent Cases Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <h2 className="text-lg font-semibold text-kmuOrange">Recent Cases</h2>
-              <Link 
-                href="/cases" 
-                className="text-sm text-kmuGreen hover:text-kmuOrange transition underline"
-              >
-                View All Cases →
-              </Link>
-            </div>
-            <input
-              type="text"
-              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-              placeholder="Search cases..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
+        <div className="flex items-center gap-4">
+          <div className="relative hidden md:block">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+            <input 
+              type="text" 
+              placeholder="Search reports, users, etc..." 
+              className="pl-10 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-kmuGreen/20 w-64"
             />
           </div>
-          <div className="space-y-4 md:hidden">
-            {filteredCases.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                No cases found.
+          <button className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 hover:text-kmuGreen transition-colors relative">
+            <Bell size={20} />
+            <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-900" />
+          </button>
+          <div className="flex items-center gap-3 pl-2 border-l border-slate-200 dark:border-slate-800">
+            <div className="w-10 h-10 rounded-xl bg-[#002d62] text-white flex items-center justify-center font-bold">
+              A
+            </div>
+            <div className="hidden sm:block">
+              <p className="text-sm font-bold text-slate-900 dark:text-white">Admin</p>
+              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Super Administrator</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {[
+          { label: 'Total Reports', value: '128', trend: '+18%', up: true, icon: ClipboardList, color: 'blue' },
+          { label: 'Resolved Reports', value: '82', trend: '+22%', up: true, icon: CheckCircle2, color: 'emerald' },
+          { label: 'In Progress', value: '34', trend: '-5%', up: false, icon: Clock, color: 'amber' },
+          { label: 'Open / Unassigned', value: '28', trend: '-12%', up: false, icon: AlertCircle, color: 'indigo' },
+          { label: 'Maintenance Requests', value: '42', trend: '+15%', up: true, icon: Wrench, color: 'rose' },
+        ].map((m, i) => (
+          <div key={i} className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div className={`w-10 h-10 rounded-xl bg-${m.color}-50 dark:bg-${m.color}-900/20 text-${m.color}-600 flex items-center justify-center`}>
+                <m.icon size={20} />
               </div>
-            ) : (
-              filteredCases
-                .sort((a: any, b: any) => new Date(b.createdAt || b.incidentDate || 0).getTime() - new Date(a.createdAt || a.incidentDate || 0).getTime())
-                .slice(0, 10)
-                .map((c: any, i: number) => (
-                  <div
-                    key={i}
-                    className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                    onClick={() => router.push(`/cases/${c._id || c.id}`)}
-                  >
-                    <div>
-                      <div className="font-medium text-kmuGreen">{c.student?.fullName || 'Unknown'}</div>
-                      <div className="text-xs text-gray-500">{c.student?.studentId || ''}</div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div>
-                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Offense</div>
-                        <div>{c.offenseType || 'N/A'}</div>
-                      </div>
-                      <div>
-                        <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Date</div>
-                        <div>{c.incidentDate || 'N/A'}</div>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        c.severity === 'Critical' ? 'bg-red-100 text-red-800' :
-                        c.severity === 'High' ? 'bg-orange-100 text-orange-800' :
-                        c.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {c.severity || 'N/A'}
-                      </span>
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        c.status === 'Open' ? 'bg-blue-100 text-blue-800' :
-                        c.status === 'Closed' ? 'bg-gray-100 text-gray-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {c.status || 'N/A'}
-                      </span>
-                    </div>
+              <div className={`flex items-center gap-1 text-[10px] font-bold ${m.up ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {m.up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                {m.trend} from last week
+              </div>
+            </div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{m.label}</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{m.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Reports Overview</h2>
+            <select className="text-xs font-bold bg-slate-50 dark:bg-slate-800 border-none rounded-lg px-3 py-1.5 focus:ring-0">
+              <option>Last 7 Days</option>
+              <option>Last 30 Days</option>
+            </select>
+          </div>
+          <div className="h-[300px]">
+            <Line 
+              data={lineChartData} 
+              options={{ 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  y: { beginAtZero: true, grid: { display: false } },
+                  x: { grid: { display: false } }
+                }
+              }} 
+            />
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Reports by Category</h2>
+            <button className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-kmuGreen transition-colors">View All</button>
+          </div>
+          <div className="relative h-[200px] flex items-center justify-center">
+            <Doughnut data={doughnutData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
+            <div className="absolute flex flex-col items-center">
+              <span className="text-2xl font-bold text-slate-900 dark:text-white">128</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total</span>
+            </div>
+          </div>
+          <div className="mt-8 space-y-3">
+            {doughnutData.labels.slice(0, 4).map((label, i) => (
+              <div key={i} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: doughnutData.datasets[0].backgroundColor[i] }} />
+                  <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{label}</span>
+                </div>
+                <span className="text-xs font-bold text-slate-900 dark:text-white">{doughnutData.datasets[0].data[i]}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Activity Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Recent Reports */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Recent Reports</h2>
+            <button className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-kmuGreen transition-colors">View All</button>
+          </div>
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {[
+              { title: 'Broken street light near Hostel Block A', category: 'Infrastructure', reporter: 'Student', status: 'In Progress', time: '2h ago', color: 'blue' },
+              { title: 'Water leakage in Science Block washroom', category: 'Maintenance', reporter: 'Staff', status: 'Resolved', time: '5h ago', color: 'emerald' },
+              { title: 'Wi-Fi not working in Library', category: 'IT / Internet', reporter: 'Student', status: 'In Progress', time: '1d ago', color: 'purple' },
+            ].map((r, i) => (
+              <div key={i} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer">
+                <div className="flex gap-4">
+                  <div className={`w-10 h-10 rounded-lg bg-${r.color}-50 dark:bg-${r.color}-900/20 text-${r.color}-600 flex items-center justify-center flex-shrink-0`}>
+                    <ClipboardList size={18} />
                   </div>
-                ))
-            )}
-          </div>
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-600">
-                  <th className="text-left py-2 px-2">Student</th>
-                  <th className="text-left py-2 px-2">Offense</th>
-                  <th className="text-left py-2 px-2">Date</th>
-                  <th className="text-left py-2 px-2">Severity</th>
-                  <th className="text-left py-2 px-2">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCases
-                  .sort((a: any, b: any) => new Date(b.createdAt || b.incidentDate || 0).getTime() - new Date(a.createdAt || a.incidentDate || 0).getTime())
-                  .slice(0, 10)
-                  .map((c: any, i: number) => (
-                  <tr 
-                    key={i} 
-                    className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
-                    onClick={() => router.push(`/cases/${c._id || c.id}`)}
-                  >
-                    <td className="py-2 px-2">
-                      <div className="font-medium text-kmuGreen hover:text-kmuOrange transition">{c.student?.fullName || 'Unknown'}</div>
-                      <div className="text-xs text-gray-500">{c.student?.studentId || ''}</div>
-                    </td>
-                    <td className="py-2 px-2">{c.offenseType || 'N/A'}</td>
-                    <td className="py-2 px-2">{c.incidentDate || 'N/A'}</td>
-                    <td className="py-2 px-2">
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        c.severity === 'Critical' ? 'bg-red-100 text-red-800' :
-                        c.severity === 'High' ? 'bg-orange-100 text-orange-800' :
-                        c.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {c.severity || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="py-2 px-2">
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        c.status === 'Open' ? 'bg-blue-100 text-blue-800' :
-                        c.status === 'Closed' ? 'bg-gray-100 text-gray-800' :
-                        'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {c.status || 'N/A'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {filteredCases.length === 0 && (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                No cases found.
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">{r.title}</h3>
+                    <p className="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-wider">
+                      {r.category} • Reported by {r.reporter}
+                    </p>
+                  </div>
+                  <div className="text-right flex flex-col items-end gap-2">
+                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider ${
+                      r.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {r.status}
+                    </span>
+                    <span className="text-[10px] text-slate-400">{r.time}</span>
+                  </div>
+                </div>
               </div>
-            )}
+            ))}
           </div>
+          <button className="w-full py-3 text-xs font-bold text-kmuGreen hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-t border-slate-100 dark:border-slate-800">
+            View all reports →
+          </button>
         </div>
 
-        {/* Export Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Export & Reports</h2>
-          <div className="flex gap-4">
-            <button
-              className="bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition"
-              onClick={exportCasesToWord}
-              type="button"
-            >
-              Export All Cases (DOCX)
-            </button>
+        {/* Maintenance Requests */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Maintenance Requests</h2>
+            <button className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-kmuGreen transition-colors">View All</button>
+          </div>
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            {[
+              { title: 'Fan not working in Room 204', category: 'Electrical', location: 'Admin Block', status: 'New', time: '1h ago', color: 'indigo' },
+              { title: 'Tap leakage in Hostel Block B', category: 'Plumbing', location: 'Hostel Block B', status: 'Assigned', time: '3h ago', color: 'amber' },
+              { title: 'Door lock broken - Main Gate', category: 'Carpentry', location: 'Main Gate', status: 'In Progress', time: '6h ago', color: 'emerald' },
+            ].map((r, i) => (
+              <div key={i} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer">
+                <div className="flex gap-4">
+                  <div className={`w-10 h-10 rounded-lg bg-${r.color}-50 dark:bg-${r.color}-900/20 text-${r.color}-600 flex items-center justify-center flex-shrink-0`}>
+                    <Wrench size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">{r.title}</h3>
+                    <p className="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-wider">
+                      {r.category} • {r.location}
+                    </p>
+                  </div>
+                  <div className="text-right flex flex-col items-end gap-2">
+                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider ${
+                      r.status === 'New' ? 'bg-indigo-100 text-indigo-700' : 
+                      r.status === 'Assigned' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                    }`}>
+                      {r.status}
+                    </span>
+                    <span className="text-[10px] text-slate-400">{r.time}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button className="w-full py-3 text-xs font-bold text-kmuGreen hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-t border-slate-100 dark:border-slate-800">
+            View all maintenance requests →
+          </button>
+        </div>
 
+        {/* Sidebar Panel */}
+        <div className="space-y-8">
+          {/* Quick Actions */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Quick Actions</h2>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Add New Report', icon: PlusCircle, color: 'blue' },
+                { label: 'Add Maintenance', icon: Wrench, color: 'emerald' },
+                { label: 'Manage Users', icon: Users, color: 'indigo' },
+                { label: 'Manage Categories', icon: Layers, color: 'amber' },
+                { label: 'View Analytics', icon: BarChart3, color: 'indigo' },
+                { label: 'System Settings', icon: Settings, color: 'slate' },
+              ].map((a, i) => (
+                <button key={i} className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-${a.color}-50/50 dark:bg-${a.color}-900/10 border border-${a.color}-100 dark:border-${a.color}-900/20 text-${a.color}-700 dark:text-${a.color}-400 hover:bg-${a.color}-100 transition-all text-center`}>
+                  <a.icon size={20} />
+                  <span className="text-[9px] font-bold uppercase tracking-wider">{a.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* System Overview */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-6">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-6">System Overview</h2>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-500 flex items-center justify-center">
+                  <Users size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Users</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">386</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 flex items-center justify-center">
+                  <Activity size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Users</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">142</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-500 flex items-center justify-center">
+                  <Layers size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Departments</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-white">24</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 flex items-center justify-center">
+                  <CheckCircle2 size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">System Status</p>
+                  <p className="text-sm font-bold text-emerald-600">Operational</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
-      
+      </div>
+
+      {/* Footer */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-200 dark:border-slate-800 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+        <p>© 2025 KMU Campus Reports. All rights reserved.</p>
+        <p>Version 1.0.0</p>
+      </div>
+
       {/* Notification */}
       {notification?.isVisible && (
         <Notification
@@ -353,6 +434,6 @@ export default function AdminPage() {
           onClose={hideNotification}
         />
       )}
-    </>
+    </div>
   );
 }

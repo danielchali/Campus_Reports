@@ -112,6 +112,8 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  const isAdmin = user?.role === 'admin';
+
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
@@ -122,7 +124,12 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
       )}
       
       {/* Main content */}
-      <div className="flex-1 flex flex-col relative">
+      <div 
+        className="flex-1 flex flex-col relative"
+        style={{
+          marginLeft: shouldShowNav && !isMobile && isAdmin ? `${sidebarWidth}px` : '0px'
+        }}
+      >
         {/* Show top navbar on all screens */}
         <div>
           {shouldShowNav && <TopNavbar />}
