@@ -197,7 +197,7 @@ export default function LoginPage() {
           >
             <img src="/kmu_logo.svg" alt="KMU Logo" className="h-20 md:h-24 object-contain mb-4" />
             <div className="flex flex-col">
-              <span className="text-xs font-bold tracking-[0.2em] text-slate-500 uppercase">Khyber Medical University</span>
+              <span className="text-xs font-bold tracking-[0.2em] text-slate-500 uppercase">Kapasa Makasa University</span>
             </div>
           </motion.div>
 

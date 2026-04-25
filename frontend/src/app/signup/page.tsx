@@ -238,7 +238,7 @@ export default function StudentSignupPage() {
         <div className="mb-6 flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.25em] text-kmuOrange">Student Signup</p>
-            <h1 className="mt-2 text-3xl font-bold text-kmuGreen md:text-4xl">Create your Campus Reports account</h1>
+            <h1 className="mt-2 text-3xl font-bold text-kmuGreen md:text-4xl">Create your Kapasa Makasa University account</h1>
             <p className={`mt-2 max-w-2xl text-sm md:text-base ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
               Complete your details so your student account and profile are ready in one go.
             </p>
