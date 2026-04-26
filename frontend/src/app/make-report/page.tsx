@@ -143,7 +143,24 @@ export default function MakeReportPage() {
           </p>
         </div>
 
-        <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
+        {/* Mobile dropdown */}
+        <div className="md:hidden">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value as StudentReportCategory)}
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-kmuGreen"
+          >
+            {categoryOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+          <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+            {categoryOptions.find(o => o.value === category)?.description}
+          </p>
+        </div>
+
+        {/* Desktop cards */}
+        <div className="hidden md:grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
           {categoryOptions.map((option) => (
             <label
               key={option.value}

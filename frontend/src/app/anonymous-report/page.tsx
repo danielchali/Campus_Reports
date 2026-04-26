@@ -19,6 +19,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { API_BASE_URL } from '../../config/constants';
+import FloatingAIChatbot from '../../components/FloatingAIChatbot';
 
 type Category = 'disciplinary_case' | 'maintenance_issue' | 'other';
 
@@ -236,7 +237,25 @@ export default function AnonymousReportPage() {
                     <div className="w-1 h-6 bg-kmuGreen rounded-full"></div>
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white">Select Category</h2>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-3">
+
+                  {/* Mobile dropdown */}
+                  <div className="md:hidden">
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value as Category)}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-kmuGreen"
+                    >
+                      {CATEGORIES.map((cat) => (
+                        <option key={cat.value} value={cat.value}>{cat.label}</option>
+                      ))}
+                    </select>
+                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                      {CATEGORIES.find(c => c.value === category)?.description}
+                    </p>
+                  </div>
+
+                  {/* Desktop cards */}
+                  <div className="hidden md:grid gap-4 md:grid-cols-3">
                     {CATEGORIES.map((cat) => {
                       const Icon = cat.icon;
                       const isSelected = category === cat.value;
@@ -518,6 +537,7 @@ export default function AnonymousReportPage() {
           </div>
         )}
       </div>
+      <FloatingAIChatbot />
     </div>
   );
 }

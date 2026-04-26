@@ -111,10 +111,7 @@ const nextConfig = {
 
     // PWA optimizations
     async rewrites() {
-        return [{
-            source: '/sw.js',
-            destination: '/_next/static/sw.js',
-        }, ];
+        return [];
     },
 }
 

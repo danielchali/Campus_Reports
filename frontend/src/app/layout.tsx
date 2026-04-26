@@ -108,7 +108,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
         {shouldShowNav && <TopNavbar />}
         <main
           className={clsx('flex-1', {
-            'bg-slate-50 px-3 pb-24 pt-4 sm:px-4 md:px-6 md:pb-8 md:pt-6 dark:bg-slate-950': !isLogin,
+            'bg-slate-100 px-3 pb-24 pt-4 sm:px-4 md:px-6 md:pb-8 md:pt-6 dark:bg-slate-950': !isLogin,
           })}
         >
           {shouldShowNav && (
@@ -166,6 +166,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/kmu_logo.ico" sizes="any" />
         <link rel="icon" href="/kmu_logo.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/kmu_logo.png" />
+        <link rel="manifest" href="/manifest.json" />
         <link rel="preload" href="/kmu_logo.svg" as="image" type="image/svg+xml" />
         <link rel="dns-prefetch" href="//kmu-disciplinedesk.onrender.com" />
         <link rel="preconnect" href="https://kmu-disciplinedesk.onrender.com" />

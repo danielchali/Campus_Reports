@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { performanceMonitor, addResourceHints } from '../../utils/performance';
+import FloatingAIChatbot from '../../components/FloatingAIChatbot';
 import {
   User,
   Lock,
@@ -18,7 +19,6 @@ import {
   Megaphone,
   Wrench,
   Ghost,
-  MessageCircle,
   Moon,
   Sun,
   Globe,
@@ -448,24 +448,16 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-6 text-center text-sm">
-              <span className="text-slate-500 dark:text-slate-400">New to Campus Reports? </span>
+              <span className="text-slate-500 dark:text-slate-400">New to the system? </span>
               <Link href="/signup" className="text-kmuGreen font-semibold hover:underline">
-                Learn more
+                Register
               </Link>
             </div>
           </div>
         </div>
 
-        {/* Floating Chat Bubble */}
-        <div className="absolute bottom-6 right-6 z-50 group">
-          <div className="absolute bottom-full right-4 mb-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-2xl rounded-br-none shadow-lg border border-slate-100 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-            <p className="text-xs font-medium text-slate-700 dark:text-slate-300">Need help?<br/>We're here!</p>
-          </div>
-          <button className="w-14 h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center shadow-xl shadow-blue-500/20 transition-transform hover:scale-105 active:scale-95 relative">
-            <MessageCircle className="w-6 h-6" />
-            <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></span>
-          </button>
-        </div>
+        {/* Floating AI Chatbot */}
+        <FloatingAIChatbot />
       </div>
     </div>
   );
