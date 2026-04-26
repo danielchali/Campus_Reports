@@ -20,14 +20,14 @@ export default function Sidebar() {
   const allNavLinks = getNavLinksForRole(user?.role);
   const { bottomNav, sidebarNav } = splitNavLinksForMobile(allNavLinks);
 
-  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-emerald-800/40 bg-gradient-to-b from-kmuGreen to-kmuGreen-dark text-white shadow-2xl transition-transform duration-300 ease-in-out md:translate-x-0 ${
+  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl transition-transform duration-300 ease-in-out md:translate-x-0 ${
     isOpenMobile ? 'translate-x-0 w-[280px]' : '-translate-x-full md:w-auto'
   }`;
 
   const linkBase =
-    'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/86 transition hover:bg-white/10 hover:text-white';
+    'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100';
   const linkActive =
-    'bg-white/16 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]';
+    'bg-slate-100 dark:bg-slate-800 text-kmuGreen dark:text-emerald-400 shadow-sm';
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -92,9 +92,9 @@ export default function Sidebar() {
         />
       )}
       <aside className={sidebarBase} style={{ width: isDesktop ? `${sidebarWidth}px` : undefined }}>
-        <div className="border-b border-white/10 px-5 pb-5 pt-6">
+        <div className="border-b border-slate-100 dark:border-slate-800 px-5 pb-5 pt-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/95 p-2 shadow-sm">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 dark:bg-slate-800 p-2 shadow-sm border border-slate-100 dark:border-slate-700">
               <img
                 src="/kmu_logo.svg"
                 alt="KMU Logo"
@@ -111,22 +111,9 @@ export default function Sidebar() {
               />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/65">Campus</p>
-              <p className="text-2xl font-semibold leading-none text-white">Reports</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Campus</p>
+              <p className="text-2xl font-semibold leading-none text-slate-900 dark:text-white">Reports</p>
             </div>
-          </div>
-          <div className="mt-5 flex items-center justify-between rounded-2xl bg-white/8 px-3 py-2">
-            <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-white/70">Dark Mode</span>
-            <button 
-              onClick={toggleTheme}
-              className={`flex h-6 w-12 items-center rounded-full p-1 transition-colors duration-300 ${theme === 'dark' ? 'bg-white/25' : 'bg-white/40'}`}
-            >
-              <motion.div 
-                layout
-                className="h-4 w-4 rounded-full bg-white shadow-sm"
-                animate={{ x: theme === 'dark' ? 24 : 0 }}
-              />
-            </button>
           </div>
         </div>
         <nav className="sidebar-scroll mt-4 flex flex-1 flex-col gap-1 overflow-y-auto px-3 pb-6">
@@ -139,7 +126,7 @@ export default function Sidebar() {
                 onClick={() => setIsOpenMobile(false)}
                 className={`${linkBase} hidden md:flex ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
               >
-                <span className="flex h-5 w-5 items-center justify-center text-white/80" aria-hidden="true">
+                <span className={`flex h-5 w-5 items-center justify-center ${pathname === link.path ? 'text-kmuGreen dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} aria-hidden="true">
                   <Icon size={16} />
                 </span>
                 <span>{link.label}</span>
@@ -158,7 +145,7 @@ export default function Sidebar() {
                 }}
                 className={`${linkBase} md:hidden ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
               >
-                <span className="flex h-5 w-5 items-center justify-center text-white/80" aria-hidden="true">
+                <span className="flex h-5 w-5 items-center justify-center text-slate-400 dark:text-slate-500" aria-hidden="true">
                   <Icon size={18} />
                 </span>
                 <span>{link.label}</span>
@@ -170,7 +157,7 @@ export default function Sidebar() {
                 onClick={() => setIsOpenMobile(false)}
                 className={`${linkBase} ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
               >
-                <span className="flex h-5 w-5 items-center justify-center text-white/80" aria-hidden="true">
+                <span className={`flex h-5 w-5 items-center justify-center ${pathname === link.path ? 'text-kmuGreen dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} aria-hidden="true">
                   <Icon size={16} />
                 </span>
                 <span>{link.label}</span>
@@ -179,7 +166,7 @@ export default function Sidebar() {
           })}
         </nav>
         <div
-          className="absolute bottom-0 right-0 top-0 hidden w-1 cursor-col-resize bg-white/5 hover:bg-white/20 md:block"
+          className="absolute bottom-0 right-0 top-0 hidden w-1 cursor-col-resize bg-slate-200/50 dark:bg-slate-800/50 hover:bg-kmuGreen/30 md:block"
           onMouseDown={handleMouseDown}
           title="Drag to resize sidebar"
         />

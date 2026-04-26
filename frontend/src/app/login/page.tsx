@@ -172,8 +172,8 @@ export default function LoginPage() {
   return (
     <div className={`min-h-screen relative overflow-hidden flex flex-col md:flex-row ${theme === 'dark' ? 'bg-slate-950 text-slate-200' : 'bg-slate-50 text-slate-800'}`}>
 
-      {/* Left Column - Desktop only */}
-      <div className="hidden md:flex md:relative md:w-[55%] lg:w-[60%] flex-col justify-between p-10 lg:p-16 min-h-screen overflow-hidden">
+      {/* Left Column - Desktop & Tablet (hidden on small mobile) */}
+      <div className="hidden sm:flex md:relative md:w-[55%] lg:w-[60%] flex-col justify-between p-10 lg:p-16 min-h-screen overflow-hidden">
         {/* Content sits above the background */}
         <div className="relative z-10 flex flex-col h-full justify-between">
         <div>
@@ -276,7 +276,7 @@ export default function LoginPage() {
       </div>{/* end left column */}
 
       {/* Right Column - Login Area */}
-      <div className="relative z-20 w-full md:w-[45%] lg:w-[40%] flex flex-col min-h-screen">
+      <div className="relative z-20 w-full sm:w-[45%] md:w-[45%] lg:w-[40%] flex flex-col min-h-screen">
         {/* Top Controls */}
         <div className="absolute top-4 right-4 md:top-8 md:right-8 flex items-center gap-3 z-30">
           {/* Dark Mode Slider Toggle */}
@@ -310,14 +310,25 @@ export default function LoginPage() {
         </div>
 
         {/* Login Card Container */}
-        <div className="flex-1 flex flex-col justify-center px-4 py-12 md:px-12 relative h-full">
-          <div className={`w-full max-w-md mx-auto rounded-3xl shadow-2xl p-8 border ${theme === 'dark' ? 'bg-slate-900 border-slate-800 shadow-black/40' : 'bg-white border-white shadow-slate-200/60'}`}>
+        <div className="flex-1 flex flex-col justify-center px-4 py-8 sm:py-12 md:px-12 relative h-full">
+          <div className={`w-full max-w-md mx-auto rounded-3xl shadow-2xl p-6 sm:p-8 border ${theme === 'dark' ? 'bg-slate-900 border-slate-800 shadow-black/40' : 'bg-white border-white shadow-slate-200/60'}`}>
             
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold mb-2">
+            <div className="text-center mb-6 sm:mb-8">
+              {/* Mobile Logo */}
+              <div className="flex justify-center mb-4 sm:hidden">
+                <img
+                  src="/kmu_logo.svg"
+                  alt="KMU Logo"
+                  width={60}
+                  height={60}
+                  className="h-16 w-16 object-contain"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold mb-2">
                 {hasLoginHistory ? 'Welcome Back!' : 'Welcome!'}
               </h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                 Login to your Campus Reports account
               </p>
             </div>
@@ -410,7 +421,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-kmuGreen hover:bg-kmuGreen-dark text-white py-3.5 px-4 rounded-xl font-bold shadow-lg shadow-kmuGreen/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center"
+                className="w-full bg-kmuGreen hover:bg-kmuGreen-dark text-white py-3 sm:py-3.5 px-4 rounded-xl font-bold shadow-lg shadow-kmuGreen/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center"
               >
                 {loading ? (
                   <>
