@@ -14,6 +14,7 @@ import { onSyncError, offSyncError } from '../hooks/useSyncManager';
 import GlobalSearch from '../components/GlobalSearch';
 import NotificationBell from '../components/NotificationBell';
 import UserProfileMenu from '../components/UserProfileMenu';
+import { PageSkeleton } from '../components/PageSkeleton';
 
 const SyncManagerClient = lazy(() => import('../components/SyncManagerClient'));
 const ServiceWorkerRegistration = lazy(() => import('../components/ServiceWorkerRegistration'));
@@ -25,23 +26,7 @@ const Sidebar = lazy(() => import('../components/Sidebar'));
 const BottomNav = lazy(() => import('../components/BottomNav'));
 const FloatingAIChatbot = lazy(() => import('../components/FloatingAIChatbot'));
 
-const LoadingFallback = () => (
-  <div className="p-4 md:p-6 animate-pulse" aria-hidden="true">
-    <div className="space-y-4">
-      <div className="h-10 w-48 rounded-xl bg-gray-200 dark:bg-gray-700" />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <div className="h-32 rounded-2xl bg-gray-200 dark:bg-gray-700" />
-        <div className="h-32 rounded-2xl bg-gray-200 dark:bg-gray-700" />
-        <div className="h-32 rounded-2xl bg-gray-200 dark:bg-gray-700" />
-      </div>
-      <div className="h-64 rounded-2xl bg-gray-200 dark:bg-gray-700" />
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="h-40 rounded-2xl bg-gray-200 dark:bg-gray-700" />
-        <div className="h-40 rounded-2xl bg-gray-200 dark:bg-gray-700" />
-      </div>
-    </div>
-  </div>
-);
+const LoadingFallback = () => <PageSkeleton />;
 
 function TopNavbar() {
   const { user, logout } = useAuth();

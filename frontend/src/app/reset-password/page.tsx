@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTheme } from '../../context/ThemeContext';
 import { API_URL } from '../../config/constants';
+import { InlineSkeleton } from '../../components/PageSkeleton';
 
 function ResetPasswordForm() {
   const [password, setPassword] = useState('');
@@ -143,7 +144,7 @@ function ResetPasswordForm() {
 
 export default function ResetPassword() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center p-8"><InlineSkeleton rows={5} /></div>}>
       <ResetPasswordForm />
     </Suspense>
   )

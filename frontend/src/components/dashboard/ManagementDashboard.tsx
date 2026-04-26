@@ -449,20 +449,7 @@ export default function ManagementDashboard({
   }, [anonymousReports, cases, dataset]);
 
   if (authLoading || loading) {
-    return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-12 w-72 rounded-2xl bg-slate-200 dark:bg-slate-800" />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-          {[1, 2, 3, 4, 5].map((item) => (
-            <div key={item} className="h-32 rounded-3xl bg-slate-200 dark:bg-slate-800" />
-          ))}
-        </div>
-        <div className="grid gap-6 xl:grid-cols-3">
-          <div className="h-80 rounded-3xl bg-slate-200 dark:bg-slate-800 xl:col-span-2" />
-          <div className="h-80 rounded-3xl bg-slate-200 dark:bg-slate-800" />
-        </div>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   const displayName = user?.name || user?.username || 'User';

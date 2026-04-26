@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/constants';
 import { authHeaders } from '../utils/api';
+import { InlineSkeleton } from './PageSkeleton';
 
 interface Student {
   _id: string;
@@ -66,14 +67,7 @@ export default function RecentStudents({
   if (loading) {
     return (
       <div className={`${className} p-4 bg-gray-50 dark:bg-gray-700 rounded-lg`}>
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-1/3 mb-3"></div>
-          <div className="space-y-2">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-8 bg-gray-200 dark:bg-gray-600 rounded"></div>
-            ))}
-          </div>
-        </div>
+        <InlineSkeleton rows={3} />
       </div>
     );
   }

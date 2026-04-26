@@ -37,7 +37,7 @@ export default function CacheStatus() {
   };
 
   const getOfflineStatus = () => {
-    if (!cacheStats) return 'Loading...';
+    if (!cacheStats) return '⋯';
     
     const totalItems = cacheStats.students + cacheStats.cases + cacheStats.evidence + cacheStats.users;
     

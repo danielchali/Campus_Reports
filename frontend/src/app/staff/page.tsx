@@ -9,7 +9,7 @@ import { useOfflineApi } from '../../hooks/useOfflineSync';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { canAccessPage } from '../../utils/access';
-import { PageSkeleton } from '../../components/PageSkeleton';
+import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
 
 // Type for a staff member
 interface Staff {
@@ -585,7 +585,9 @@ export default function StaffPage() {
             
             {/* Mobile cards */}
             <div className="space-y-4 md:hidden p-4">
-              {filteredStaff.length === 0 ? (
+              {loading ? (
+                <InlineSkeleton rows={5} />
+              ) : filteredStaff.length === 0 ? (
                 <div className="text-center text-gray-500 dark:text-gray-400 py-4">
                   No staff members found
                 </div>
@@ -637,6 +639,11 @@ export default function StaffPage() {
 
             {/* Staff Table */}
             <div className="hidden md:block overflow-x-auto">
+              {loading ? (
+                <div className="p-4">
+                  <InlineSkeleton rows={6} />
+                </div>
+              ) : (
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
@@ -706,6 +713,7 @@ export default function StaffPage() {
                   )}
                 </tbody>
               </table>
+              )}
             </div>
             
             {/* Pagination */}

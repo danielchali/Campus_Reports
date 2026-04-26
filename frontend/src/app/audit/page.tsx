@@ -7,7 +7,7 @@ import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
 import { useRouter } from "next/navigation";
 import { canAccessPage } from '../../utils/access';
-import { PageSkeleton } from '../../components/PageSkeleton';
+import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
 
 interface AuditLog {
   _id?: string;
@@ -219,33 +219,7 @@ export default function AuditPage() {
 
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="space-y-4">
-              {[...Array(6)].map((_, idx) => (
-                <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 animate-pulse">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-6 w-28 rounded-full bg-gray-200 dark:bg-gray-700" />
-                      <div className="h-4 w-40 rounded bg-gray-200 dark:bg-gray-700" />
-                    </div>
-                    <div className="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700" />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <div className="h-4 w-28 rounded bg-gray-200 dark:bg-gray-700" />
-                      <div className="h-4 w-full rounded bg-gray-200 dark:bg-gray-700" />
-                      <div className="h-4 w-5/6 rounded bg-gray-200 dark:bg-gray-700" />
-                      <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-4 w-28 rounded bg-gray-200 dark:bg-gray-700" />
-                      <div className="h-4 w-full rounded bg-gray-200 dark:bg-gray-700" />
-                      <div className="h-4 w-4/5 rounded bg-gray-200 dark:bg-gray-700" />
-                      <div className="h-4 w-2/3 rounded bg-gray-200 dark:bg-gray-700" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <InlineSkeleton rows={8} />
           ) : error ? (
             <div className="text-red-600 dark:text-red-400">{error}</div>
           ) : safeLogs.length === 0 ? (

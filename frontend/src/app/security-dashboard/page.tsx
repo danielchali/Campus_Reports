@@ -258,16 +258,7 @@ export default function SecurityDashboard() {
   ];
 
   if (authLoading || loading) {
-    return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-12 w-80 rounded-2xl bg-slate-200 dark:bg-slate-800" />
-        <div className="grid gap-4 md:grid-cols-3">
-          {[1, 2, 3].map((item) => (
-            <div key={item} className="h-32 rounded-3xl bg-slate-200 dark:bg-slate-800" />
-          ))}
-        </div>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   return (
