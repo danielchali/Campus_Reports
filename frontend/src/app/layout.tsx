@@ -91,9 +91,11 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
   const { user } = useAuth();
   const { sidebarWidth } = useSidebar();
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const shouldShowNav = !isLogin && user;
 
   useEffect(() => {
+    setMounted(true);
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -108,11 +110,11 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
         </Suspense>
       )}
 
-      <div className="relative flex flex-1 flex-col" style={shouldShowNav && !isMobile ? { marginLeft: `${sidebarWidth}px` } : undefined}>
+      <div className="relative flex flex-1 flex-col" style={mounted && shouldShowNav && !isMobile ? { marginLeft: `${sidebarWidth}px` } : undefined}>
         {shouldShowNav && <TopNavbar />}
         <main
           className={clsx('flex-1 overflow-x-hidden', {
-            'bg-slate-50 px-3 pb-24 pt-4 sm:px-4 md:px-6 md:pb-8 md:pt-6 dark:bg-slate-950': !isLogin,
+            'bg-slate-50 px-3 pb-20 pt-4 sm:px-4 md:px-6 md:pb-8 md:pt-6 dark:bg-slate-950': !isLogin,
           })}
         >
           {shouldShowNav && (
