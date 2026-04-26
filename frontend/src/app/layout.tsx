@@ -5,6 +5,7 @@ import { useEffect, useState, Suspense, lazy } from 'react';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { Bell, ChevronDown, Moon, Search, Sun } from 'lucide-react';
+import Image from 'next/image';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { SyncProvider } from '../context/SyncContext';
@@ -53,6 +54,13 @@ function TopNavbar() {
     <nav className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
       <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
+          <Image 
+            src="/kmu_logo.svg" 
+            alt="KMU Logo" 
+            width={36} 
+            height={36} 
+            className="h-9 w-9 flex-shrink-0"
+          />
           <GlobalSearch />
           <h1 className="truncate text-lg font-semibold text-slate-900 dark:text-white md:hidden">Campus Reports</h1>
         </div>
