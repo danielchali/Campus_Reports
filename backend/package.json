@@ -25,6 +25,7 @@
         "xlsx": "^0.18.5"
     },
     "devDependencies": {
+        "@types/nodemailer": "^8.0.0",
         "nodemon": "^3.0.1"
     }
 }

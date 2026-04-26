@@ -2,6 +2,7 @@ import express from 'express';
 import crypto from 'crypto';
 import AnonymousReportModel from '../models/anonymousReport.js';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { sendAnonymousReportNotification } from '../utils/emailService.js';
 
 const router = express.Router();
 
@@ -54,6 +55,13 @@ router.post('/', async (req, res) => {
             contact_email: contact_email ? contact_email.trim() : '',
             ip_hash,
         });
+
+        // Send email notification if enabled
+        if (process.env.EMAIL_ENABLED === 'true') {
+            sendAnonymousReportNotification(report).catch(err => {
+                console.error('Failed to send email notification:', err);
+            });
+        }
 
         res.status(201).json({
             message: 'Report submitted successfully.',
