@@ -278,34 +278,27 @@ export default function LoginPage() {
       {/* Right Column - Login Area */}
       <div className="relative z-20 w-full sm:w-[45%] md:w-[45%] lg:w-[40%] flex flex-col h-full">
         {/* Top Controls */}
-        <div className="absolute top-4 right-4 md:top-8 md:right-8 flex items-center gap-3 z-30">
+        <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-3 z-30">
           {/* Dark Mode Slider Toggle */}
           <button
             onClick={toggleTheme}
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-md transition-colors ${theme === 'dark' ? 'bg-slate-800/80 border-slate-700 text-slate-300' : 'bg-white/80 border-slate-200 text-slate-600'}`}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border backdrop-blur-md transition-all hover:scale-105 active:scale-95 ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700/50 text-slate-300' : 'bg-white/40 border-slate-200/50 text-slate-600'}`}
           >
             {/* Icon */}
             {theme === 'dark'
-              ? <Moon className="w-3.5 h-3.5 text-indigo-400" />
-              : <Sun className="w-3.5 h-3.5 text-amber-500" />
+              ? <Moon className="w-3 h-3 text-indigo-400" />
+              : <Sun className="w-3 h-3 text-amber-500" />
             }
-            <span className="hidden sm:inline">{theme === 'dark' ? 'Dark Mode' : 'Dark Mode'}</span>
+            <span>{theme === 'dark' ? 'Dark' : 'Light'}</span>
             {/* Slider knob */}
             <div
-              className={`relative inline-flex items-center w-9 h-5 rounded-full transition-colors duration-200 ${theme === 'dark' ? 'bg-indigo-500' : 'bg-slate-300'}`}
+              className={`relative inline-flex items-center w-7 h-4 rounded-full transition-colors duration-200 ${theme === 'dark' ? 'bg-indigo-500' : 'bg-slate-300'}`}
             >
               <span
-                className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-200 ${theme === 'dark' ? 'translate-x-4' : 'translate-x-0'}`}
+                className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full shadow-sm transition-transform duration-200 ${theme === 'dark' ? 'translate-x-3' : 'translate-x-0'}`}
               />
             </div>
-          </button>
-
-          {/* Language selector */}
-          <button className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border backdrop-blur-md transition-colors ${theme === 'dark' ? 'bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-700' : 'bg-white/80 border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
-            <Globe className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">English</span>
-            <ChevronDown className="w-3 h-3" />
           </button>
         </div>
 
