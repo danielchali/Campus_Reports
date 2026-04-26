@@ -169,46 +169,50 @@ export default function AnonymousReportPage() {
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
 
         {/* Page Title */}
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 mb-4">
-            <Ghost className="w-8 h-8" />
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-xl shadow-purple-500/20 mb-2">
+            <Ghost className="w-10 h-10" />
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white">Anonymous Reporting</h1>
-          <p className="mt-2 text-slate-500 dark:text-slate-400 max-w-lg mx-auto text-sm">
-            Submit a report confidentially. No account required. Save your tracking code to follow up on your report's status.
+          <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">Anonymous Reporting</h1>
+          <p className="mt-2 text-slate-600 dark:text-slate-400 max-w-xl mx-auto text-base leading-relaxed">
+            Your voice matters. Submit reports confidentially without an account. 
+            <span className="block mt-1 font-medium text-kmuGreen">Your identity remains 100% protected.</span>
           </p>
         </div>
 
         {/* Privacy Notice */}
-        <div className="flex items-start gap-3 p-4 rounded-2xl bg-kmuGreen/5 border border-kmuGreen/20 dark:bg-kmuGreen/10 dark:border-kmuGreen/30">
-          <ShieldCheck className="w-5 h-5 text-kmuGreen flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-slate-700 dark:text-slate-300">
-            <span className="font-bold text-kmuGreen">Your identity is protected.</span> We do not collect any personal information that could identify you. Your report is handled confidentially by authorised staff only.
+        <div className="flex items-center gap-4 p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+            <ShieldCheck className="w-6 h-6" />
+          </div>
+          <p className="text-sm text-slate-600 dark:text-slate-400 leading-snug">
+            <span className="font-bold text-slate-900 dark:text-white block mb-0.5">Privacy Guaranteed</span>
+            We do not collect IP addresses or device data. Your report is encrypted and handled only by authorized personnel.
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex rounded-xl bg-slate-100 dark:bg-slate-900 p-1 gap-1">
+        <div className="flex rounded-2xl bg-slate-200/50 dark:bg-slate-900/50 p-1.5 gap-1.5 backdrop-blur-sm">
           <button
             onClick={() => setActiveTab('report')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+            className={`flex-1 flex items-center justify-center gap-2.5 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
               activeTab === 'report'
-                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                ? 'bg-white dark:bg-slate-800 text-kmuGreen dark:text-white shadow-md'
                 : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
-            <FileText className="w-4 h-4" />
+            <FileText className="w-4.5 h-4.5" />
             Submit a Report
           </button>
           <button
             onClick={() => setActiveTab('track')}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+            className={`flex-1 flex items-center justify-center gap-2.5 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
               activeTab === 'track'
-                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                ? 'bg-white dark:bg-slate-800 text-kmuGreen dark:text-white shadow-md'
                 : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4.5 h-4.5" />
             Track My Report
           </button>
         </div>
@@ -217,7 +221,7 @@ export default function AnonymousReportPage() {
         {activeTab === 'report' && (
           <>
             {step === 'form' && (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 md:p-10 space-y-8">
+              <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-slate-800 p-8 md:p-12 space-y-10">
 
                 {error && (
                   <div className="flex items-start gap-3 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-400 text-sm">
@@ -227,19 +231,27 @@ export default function AnonymousReportPage() {
                 )}
 
                 {/* Category Selection */}
-                <div className="space-y-3">
-                  <h2 className="text-base font-bold text-slate-900 dark:text-white">What are you reporting?</h2>
-                  <div className="grid gap-3 md:grid-cols-3">
+                <div className="space-y-5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-6 bg-kmuGreen rounded-full"></div>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Select Category</h2>
+                  </div>
+                  <div className="grid gap-4 md:grid-cols-3">
                     {CATEGORIES.map((cat) => {
                       const Icon = cat.icon;
                       const isSelected = category === cat.value;
+                      const colorClasses: Record<string, string> = {
+                        rose: 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400',
+                        amber: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
+                        blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
+                      };
                       return (
                         <label
                           key={cat.value}
-                          className={`flex flex-col gap-2 p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                          className={`group flex flex-col gap-3 p-5 rounded-[2rem] border-2 cursor-pointer transition-all duration-300 ${
                             isSelected
-                              ? 'border-kmuGreen bg-kmuGreen/5 dark:bg-kmuGreen/10'
-                              : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                              ? 'border-kmuGreen bg-kmuGreen/5 dark:bg-kmuGreen/10 ring-4 ring-kmuGreen/10'
+                              : 'border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 hover:border-slate-200 dark:hover:border-slate-700'
                           }`}
                         >
                           <input
@@ -250,12 +262,12 @@ export default function AnonymousReportPage() {
                             onChange={() => setCategory(cat.value)}
                             className="sr-only"
                           />
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-${cat.color}-100 dark:bg-${cat.color}-900/30 text-${cat.color}-600 dark:text-${cat.color}-400`}>
-                            <Icon className="w-5 h-5" />
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${colorClasses[cat.color]}`}>
+                            <Icon className="w-6 h-6" />
                           </div>
                           <div>
-                            <p className="font-bold text-sm text-slate-900 dark:text-white">{cat.label}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">{cat.description}</p>
+                            <p className="font-bold text-base text-slate-900 dark:text-white">{cat.label}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{cat.description}</p>
                           </div>
                         </label>
                       );
