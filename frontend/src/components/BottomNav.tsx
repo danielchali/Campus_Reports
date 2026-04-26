@@ -14,14 +14,15 @@ export default function BottomNav() {
   }
 
   const allNavLinks = getNavLinksForRole(user.role);
+  const bottomNavLinks = allNavLinks.slice(0, 5);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-gray-900/95 md:hidden">
-      <div className="flex overflow-x-auto px-1 sm:px-2 py-1.5 sm:py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {allNavLinks.map((link) => {
+      <div className="flex px-1 sm:px-2 py-1.5 sm:py-2">
+        {bottomNavLinks.map((link) => {
           const Icon = link.icon;
           const isActive = pathname === link.path;
-          const commonClasses = `min-w-[64px] sm:min-w-[76px] flex-1 rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 text-center transition ${
+          const commonClasses = `flex-1 rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 text-center transition ${
             isActive
               ? 'bg-kmuGreen/10 text-kmuGreen dark:bg-kmuGreen/20'
               : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
