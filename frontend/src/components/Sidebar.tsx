@@ -94,7 +94,7 @@ export default function Sidebar() {
       <aside className={sidebarBase} style={{ width: isDesktop ? `${sidebarWidth}px` : undefined }}>
         <div className="border-b border-slate-100 dark:border-slate-800 px-5 pb-5 pt-6">
           <div className="flex items-center justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 dark:bg-slate-800 p-2 shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 dark:bg-slate-800 p-2 shadow-sm border border-slate-200 dark:border-slate-700">
               <img
                 src="/kmu_logo.svg"
                 alt="KMU Logo"

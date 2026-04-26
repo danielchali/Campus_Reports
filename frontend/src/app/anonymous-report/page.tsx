@@ -152,7 +152,7 @@ export default function AnonymousReportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -222,7 +222,7 @@ export default function AnonymousReportPage() {
         {activeTab === 'report' && (
           <>
             {step === 'form' && (
-              <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-100 dark:border-slate-800 p-8 md:p-12 space-y-10">
+              <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-200 dark:border-slate-800 p-8 md:p-12 space-y-10">
 
                 {error && (
                   <div className="flex items-start gap-3 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-400 text-sm">
@@ -415,7 +415,7 @@ export default function AnonymousReportPage() {
 
             {/* ─── SUCCESS STATE ─── */}
             {step === 'success' && (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 p-8 md:p-12 text-center space-y-6">
+              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 md:p-12 text-center space-y-6">
                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mx-auto">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
@@ -462,7 +462,7 @@ export default function AnonymousReportPage() {
 
         {/* ─────────────── TRACK TAB ─────────────── */}
         {activeTab === 'track' && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 p-6 md:p-10 space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 md:p-10 space-y-6">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">Check Report Status</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">

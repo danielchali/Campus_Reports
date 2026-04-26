@@ -74,6 +74,14 @@ select:focus {
 }
 
 
+/* Enhanced card elevation in light mode */
+
+:not(.dark) article.shadow-sm,
+:not(.dark) section.shadow-sm {
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+
 /* Remove any unwanted borders */
 
 * {

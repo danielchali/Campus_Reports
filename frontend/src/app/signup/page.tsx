@@ -237,7 +237,7 @@ export default function StudentSignupPage() {
   };
 
   return (
-    <div className={`min-h-screen px-4 py-6 md:py-12 ${theme === 'dark' ? 'bg-slate-950' : 'bg-[#f8fafc]'}`}>
+    <div className={`min-h-screen px-4 py-6 md:py-12 ${theme === 'dark' ? 'bg-slate-950' : 'bg-slate-100'}`}>
       <div className="mx-auto max-w-4xl">
         <div className="mb-8 md:mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="text-center md:text-left">
@@ -418,7 +418,7 @@ export default function StudentSignupPage() {
 
             {step === 3 && (
               <div className="space-y-8">
-                <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/50 p-6 border border-slate-100 dark:border-slate-800">
+                <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/50 p-6 border border-slate-200 dark:border-slate-800">
                   <h3 className="text-lg font-bold text-[#002d62] dark:text-white mb-4">Summary</h3>
                   <div className="grid gap-6 md:grid-cols-2 text-sm">
                     <div>

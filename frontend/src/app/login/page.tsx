@@ -174,7 +174,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={`h-screen relative overflow-hidden flex flex-col md:flex-row ${theme === 'dark' ? 'bg-slate-950 text-slate-200' : 'bg-slate-50 text-slate-800'}`}>
+    <div className={`h-screen relative overflow-hidden flex flex-col md:flex-row ${theme === 'dark' ? 'bg-slate-950 text-slate-200' : 'bg-slate-100 text-slate-800'}`}>
 
       {/* Left Column - Desktop & Tablet (hidden on small mobile) */}
       <div className="hidden sm:flex md:relative md:w-[55%] lg:w-[60%] flex-col justify-between p-8 lg:p-12 h-full overflow-hidden">
@@ -237,7 +237,7 @@ export default function LoginPage() {
 
         {/* Bottom Feature Bar */}
         <div className="mt-4 relative z-10">
-          <div className="hidden md:grid grid-cols-4 gap-3 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 shadow-sm">
+          <div className="hidden md:grid grid-cols-4 gap-3 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/50 shadow-sm">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-6 h-6 text-kmuGreen flex-shrink-0" />
               <div>
