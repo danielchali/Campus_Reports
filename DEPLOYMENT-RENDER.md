@@ -14,7 +14,7 @@ This guide will help you deploy the Campus Reports application to Render with mi
 2. Click "New+" and select "Web Service"
 3. Connect your GitHub repository
 4. Configure the service:
-   - Name: `kmu-discipline-desk-backend`
+   - Name: `campus-reports-backend`
    - Region: Choose your preferred region
    - Branch: `main`
    - Root Directory: `backend`
@@ -34,7 +34,7 @@ This guide will help you deploy the Campus Reports application to Render with mi
 1. From the Render dashboard, click "New+" and select "Static Site"
 2. Connect your GitHub repository
 3. Configure the service:
-   - Name: `kmu-discipline-desk-frontend`
+   - Name: `campus reports frontend`
    - Branch: `main`
    - Root Directory: `frontend`
    - Build Command: `npm install && npm run build`
