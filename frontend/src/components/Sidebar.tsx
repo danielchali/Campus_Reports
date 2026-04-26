@@ -20,8 +20,8 @@ export default function Sidebar() {
   const allNavLinks = getNavLinksForRole(user?.role);
   const { bottomNav, sidebarNav } = splitNavLinksForMobile(allNavLinks);
 
-  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl transition-transform duration-300 ease-in-out md:translate-x-0 ${
-    isOpenMobile ? 'translate-x-0 w-[280px]' : '-translate-x-full md:w-auto'
+  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl transition-transform duration-300 ease-in-out ${
+    isOpenMobile ? 'translate-x-0 w-[280px]' : '-translate-x-full md:translate-x-0 md:w-auto'
   }`;
 
   const linkBase =
