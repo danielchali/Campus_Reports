@@ -17,6 +17,7 @@ import statementRequestsRouter from './routes/statementRequests.js';
 import anonymousReportsRouter from './routes/anonymousReports.js';
 import searchRouter from './routes/search.js';
 import notificationsRouter from './routes/notifications.js';
+import aiAssistantRouter from './routes/aiAssistant.js';
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use('/api/statement-requests', statementRequestsRouter);
 app.use('/api/anonymous-reports', anonymousReportsRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/ai-assistant', aiAssistantRouter);
 
 // Health check endpoint (legacy)
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));

@@ -223,3 +223,89 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}) {
     throw error;
   }
 }
+
+type AssistantMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
+export async function chatWithAssistant(params: {
+  messages: AssistantMessage[];
+  systemPrompt: string;
+  pathname: string;
+}) {
+  const { messages, systemPrompt, pathname } = params;
+
+  const response = await fetch(`${API_BASE_URL}/ai-assistant/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ messages, systemPrompt, pathname }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data?.error || 'Unable to get assistant response');
+  }
+
+  return data as { reply: string; model?: string };
+}
+
+export async function streamChatWithAssistant(
+  params: {
+    messages: AssistantMessage[];
+    systemPrompt: string;
+    pathname: string;
+  },
+  onToken: (token: string) => void
+) {
+  const response = await fetch(`${API_BASE_URL}/ai-assistant/chat/stream`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(params),
+  });
+
+  if (!response.ok || !response.body) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data?.error || 'Unable to stream assistant response');
+  }
+
+  const decoder = new TextDecoder();
+  const reader = response.body.getReader();
+  let buffer = '';
+  let fullText = '';
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const events = buffer.split('\n\n');
+    buffer = events.pop() || '';
+
+    for (const eventBlock of events) {
+      const lines = eventBlock
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+      for (const line of lines) {
+        if (!line.startsWith('data:')) continue;
+        const raw = line.slice(5).trim();
+        if (raw === '[DONE]') return fullText;
+
+        try {
+          const payload = JSON.parse(raw);
+          const token = payload?.choices?.[0]?.delta?.content;
+          if (typeof token === 'string' && token.length > 0) {
+            fullText += token;
+            onToken(token);
+          }
+        } catch {
+          // Ignore malformed chunks and continue streaming.
+        }
+      }
+    }
+  }
+
+  return fullText;
+}

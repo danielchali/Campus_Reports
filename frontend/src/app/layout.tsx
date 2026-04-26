@@ -23,6 +23,7 @@ const OfflineIndicator = lazy(() => import('../components/OfflineIndicator'));
 const Breadcrumbs = lazy(() => import('../components/Breadcrumbs'));
 const Sidebar = lazy(() => import('../components/Sidebar'));
 const BottomNav = lazy(() => import('../components/BottomNav'));
+const FloatingAIChatbot = lazy(() => import('../components/FloatingAIChatbot'));
 
 const LoadingFallback = () => (
   <div className="p-4 md:p-6 animate-pulse" aria-hidden="true">
@@ -124,6 +125,11 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
         {shouldShowNav && isMobile && (
           <Suspense fallback={null}>
             <BottomNav />
+          </Suspense>
+        )}
+        {shouldShowNav && (
+          <Suspense fallback={null}>
+            <FloatingAIChatbot />
           </Suspense>
         )}
       </div>
