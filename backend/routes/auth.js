@@ -1,10 +1,11 @@
 import express from 'express';
 import { login, register, registerStudent } from '../controllers/authController.js';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { loginRateLimit } from '../middleware/loginRateLimit.js';
 import jwt from 'jsonwebtoken';
 const router = express.Router();
 
-router.post('/login', login);
+router.post('/login', loginRateLimit, login);
 router.post('/student-signup', registerStudent);
 router.post('/register', authenticate, authorize(['admin']), register);
 router.post('/refresh-token', (req, res) => {

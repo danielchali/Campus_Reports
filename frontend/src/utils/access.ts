@@ -5,16 +5,17 @@ export type AppRole =
   | 'dean_of_students'
   | 'assistant_dean'
   | 'secretary'
+  | 'maintenance'
   | 'student'
   | string;
 
 export const PAGE_ACCESS = {
   adminUsers: ['admin'],
-  audit: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer'],
-  reports: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer'],
+  audit: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance'],
+  reports: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance'],
   evidence: ['admin', 'security_officer'],
   students: ['admin', 'security_officer'],
-  staff: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary'],
+  staff: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'maintenance'],
   cases: ['admin', 'security_officer'],
   caseCreate: ['admin', 'security_officer'],
   makeReport: ['student'],

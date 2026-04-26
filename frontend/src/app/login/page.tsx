@@ -119,7 +119,8 @@ export default function LoginPage() {
       const validPaths = [
         '/admin', '/academic-dashboard', '/security-dashboard', 
         '/student-dashboard', '/my-reports', '/make-report', 
-        '/dashboard', '/cases', '/students', '/reports', 
+        '/dashboard', '/cases', '/students', '/reports',
+        '/maintenance-dashboard',
         '/evidence', '/audit', '/profile', '/help'
       ];
 
@@ -133,6 +134,7 @@ export default function LoginPage() {
       else if (role === 'dean_of_students') router.push('/dean-of-students-dashboard');
       else if (role === 'assistant_dean') router.push('/assistant-dean-dashboard');
       else if (role === 'secretary') router.push('/secretary-dashboard');
+      else if (role === 'maintenance') router.push('/maintenance-dashboard');
       else if (role === 'security_officer') router.push('/security-dashboard');
       else if (role === 'student') router.push('/student-dashboard');
       else router.push('/dashboard');

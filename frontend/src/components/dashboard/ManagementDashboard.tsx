@@ -38,7 +38,8 @@ type SupportedRole =
   | 'chief_security_officer'
   | 'dean_of_students'
   | 'assistant_dean'
-  | 'secretary';
+  | 'secretary'
+  | 'maintenance';
 
 type MetricKey =
   | 'totalCases'

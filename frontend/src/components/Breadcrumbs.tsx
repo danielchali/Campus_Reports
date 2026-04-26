@@ -32,6 +32,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   'assistant-dean-dashboard': 'Dashboard',
   'dean-of-students-dashboard': 'Dashboard',
   'chief-security-officer-dashboard': 'Dashboard',
+  'maintenance-dashboard': 'Dashboard',
 };
 
 function formatSegmentLabel(segment: string, previousSegment?: string) {

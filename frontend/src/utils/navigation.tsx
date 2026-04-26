@@ -16,6 +16,7 @@ import {
   Shield,
   User,
   UserCog,
+  Wrench,
 } from 'lucide-react';
 
 export type NavLink = {
@@ -40,11 +41,13 @@ const navIcons = {
   dean: GraduationCap,
   audit: Search,
   users: UserCog,
+  staff: Briefcase,
   profile: User,
   help: HelpCircle,
   security: Lock,
   assistant: Briefcase,
   secretary: Clipboard,
+  maintenance: Wrench,
 } as const;
 
 export function getNavLinksForRole(role?: string): NavLink[] {
@@ -125,6 +128,18 @@ export function getNavLinksForRole(role?: string): NavLink[] {
       { icon: navIcons.students, label: 'Students', path: '/students' },
       { icon: navIcons.cases, label: 'Cases', path: '/cases' },
       { icon: navIcons.reports, label: 'Reports', path: '/reports' },
+      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
+      { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
+      { icon: navIcons.help, label: 'Help', path: '/help' },
+      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+    ];
+  }
+
+  if (role === 'maintenance') {
+    return [
+      { icon: navIcons.maintenance, label: 'Dashboard', path: '/maintenance-dashboard' },
+      { icon: navIcons.reports, label: 'Reports', path: '/reports' },
+      { icon: navIcons.staff, label: 'Staff', path: '/staff' },
       { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
       { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
       { icon: navIcons.help, label: 'Help', path: '/help' },

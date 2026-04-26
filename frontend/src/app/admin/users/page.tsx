@@ -14,6 +14,7 @@ const ROLES = [
   { value: 'dean_of_students', label: 'Dean of Students' },
   { value: 'assistant_dean', label: 'Assistant Dean' },
   { value: 'secretary', label: 'Secretary' },
+  { value: 'maintenance', label: 'Maintenance' },
   { value: 'student', label: 'Student' },
 ];
 

@@ -9,7 +9,8 @@ router.use(authenticate, authorize([
     'dean_of_students',
     'assistant_dean',
     'secretary',
-    'security_officer'
+    'security_officer',
+    'maintenance'
 ]));
 router.get('/', listAuditLogs);
 

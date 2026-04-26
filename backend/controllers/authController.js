@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import UserModel from '../models/user.js';
 import StudentModel from '../models/student.js';
 import { logAudit } from './auditController.js';
+import { clearLoginAttempts, recordFailedLoginAttempt } from '../middleware/loginRateLimit.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 
@@ -91,6 +92,7 @@ function validateStudentSignupPayload(payload = {}) {
 
 export async function login(req, res) {
     const { username, password } = req.body;
+    const loginAttemptKey = req.loginAttemptKey;
     console.log('Login attempt:', username);
     try {
         const user = await UserModel.findOne({ username });
@@ -109,6 +111,7 @@ export async function login(req, res) {
                 ipAddress: req.ip,
                 userAgent: req.get('User-Agent')
             });
+            recordFailedLoginAttempt(loginAttemptKey);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
@@ -127,6 +130,7 @@ export async function login(req, res) {
                 ipAddress: req.ip,
                 userAgent: req.get('User-Agent')
             });
+            recordFailedLoginAttempt(loginAttemptKey);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
@@ -146,6 +150,7 @@ export async function login(req, res) {
             userAgent: req.get('User-Agent')
         });
 
+        clearLoginAttempts(loginAttemptKey);
         res.json({ token, user: payload });
     } catch (err) {
         console.error('Login error:', err);
