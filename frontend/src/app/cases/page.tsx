@@ -10,6 +10,7 @@ import { useSearchParams } from 'next/navigation';
 import { saveAs } from 'file-saver';
 import Notification, { useNotification } from '../../components/Notification';
 import { canAccessPage } from '../../utils/access';
+import { PageSkeleton, TableSkeleton } from '../../components/PageSkeleton';
 
 interface Student {
   _id: string;
@@ -55,11 +56,9 @@ export default function CasesPage() {
   if (typeof window !== 'undefined') {
     if (!authLoading && !token) {
       router.replace('/login');
-      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
-    
-    if (authLoading) {
-      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
+    if (!token) {
+      return <PageSkeleton />;
     }
 
     if (!user || !canAccessPage(user.role, 'cases')) {
@@ -300,11 +299,16 @@ export default function CasesPage() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto p-4 space-y-4 animate-pulse">
-        <div className="h-10 w-64 bg-gray-200 dark:bg-gray-700 rounded" />
-        <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded" />
-        <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded" />
-      </div>
+      <section className="max-w-6xl mx-auto p-4 space-y-4">
+        <div className="flex items-center justify-between mb-6">
+          <div className="h-8 w-32 rounded-lg bg-slate-200 dark:bg-slate-700 animate-pulse" />
+          <div className="flex gap-3">
+            <div className="h-10 w-28 rounded-lg bg-slate-200 dark:bg-slate-700 animate-pulse" />
+            <div className="h-10 w-20 rounded-lg bg-slate-200 dark:bg-slate-700 animate-pulse" />
+          </div>
+        </div>
+        <TableSkeleton rows={8} cols={5} />
+      </section>
     );
   }
 

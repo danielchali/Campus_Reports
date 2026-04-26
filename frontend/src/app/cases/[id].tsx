@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { API_BASE_URL } from '../../config/constants';
 import { OFFENSE_TYPES, SEVERITY_LEVELS, CASE_STATUSES } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
+import { InlineSkeleton } from '../../components/PageSkeleton';
 
 export default function CaseDetailsPage() {
   const { user, token } = useAuth();
@@ -130,7 +131,7 @@ export default function CaseDetailsPage() {
     }
   }
 
-  if (loading) return <div className="text-kmuGreen">Loading...</div>;
+  if (loading) return <InlineSkeleton rows={5} />;
   if (error) return <div className="text-red-600">{error}</div>;
   if (!caseData) return <div className="text-gray-500">Case not found.</div>;
 
@@ -229,7 +230,7 @@ export default function CaseDetailsPage() {
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <h2 className="text-lg font-semibold mb-2 text-kmuOrange">Evidence Files</h2>
         {evidenceLoading ? (
-          <div className="text-gray-500">Loading...</div>
+          <InlineSkeleton rows={4} />
         ) : evidenceError ? (
           <div className="text-red-600">{evidenceError}</div>
         ) : evidence.length === 0 ? (

@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { API_BASE_URL } from '../../config/constants';
 import { getProfile, updateProfile } from '../../utils/api';
 import { useRouter } from "next/navigation";
+import { ProfilePageSkeleton } from '../../components/PageSkeleton';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -84,7 +85,7 @@ export default function ProfilePage() {
       </div>
 
       {loading ? (
-        <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>
+        <ProfilePageSkeleton />
       ) : error ? (
         <div className="text-center text-red-600 dark:text-red-400">{error}</div>
       ) : (

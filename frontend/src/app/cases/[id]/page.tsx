@@ -8,6 +8,7 @@ import Link from "next/link";
 import { API_BASE_URL } from '../../../config/constants';
 import { authHeaders } from '../../../utils/api';
 import { canAccessPage } from '../../../utils/access';
+import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
 
 interface Student {
     _id: string;
@@ -59,11 +60,9 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
     if (typeof window !== 'undefined') {
         if (!authLoading && !token) {
             router.replace('/login');
-            return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
         }
-        
-        if (authLoading) {
-            return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
+        if (!token) {
+            return <PageSkeleton />;
         }
         if (user && !canAccessPage(user.role, 'cases')) {
             return <div className="text-red-600">Access denied.</div>;
@@ -211,11 +210,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
 
     if (loading) {
         return (
-            <div className="max-w-4xl mx-auto p-6 space-y-4 animate-pulse">
-                <div className="h-8 w-52 bg-gray-200 dark:bg-gray-700 rounded" />
-                <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded" />
-                <div className="h-40 bg-gray-200 dark:bg-gray-700 rounded" />
-            </div>
+            <DetailPageSkeleton />
         );
     }
 

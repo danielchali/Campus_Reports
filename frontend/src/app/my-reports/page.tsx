@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronUp, EyeOff, FileStack, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { PageSkeleton } from '../../components/PageSkeleton';
 import { getStudentReportsForUser } from '../../utils/studentReports';
 
 const categoryLabels = {
@@ -21,11 +22,9 @@ export default function MyReportsPage() {
   if (typeof window !== 'undefined') {
     if (!authLoading && !token) {
       router.replace('/login');
-      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
-
-    if (authLoading) {
-      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
+    if (!token) {
+      return <PageSkeleton />;
     }
 
     if (!user || user.role !== 'student') {

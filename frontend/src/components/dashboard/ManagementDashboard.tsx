@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { PageSkeleton } from '../PageSkeleton';
 import { Doughnut, Line } from 'react-chartjs-2';
 import {
   ArcElement,
@@ -289,7 +290,10 @@ export default function ManagementDashboard({
   }, [role, token]);
 
   if (!authLoading && !token) {
-    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+    router.replace('/login');
+  }
+  if (!token) {
+    return <PageSkeleton />;
   }
 
   if (!authLoading && user && user.role !== role) {

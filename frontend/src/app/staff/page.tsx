@@ -9,6 +9,7 @@ import { useOfflineApi } from '../../hooks/useOfflineSync';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { canAccessPage } from '../../utils/access';
+import { PageSkeleton } from '../../components/PageSkeleton';
 
 // Type for a staff member
 interface Staff {
@@ -32,11 +33,9 @@ export default function StaffPage() {
   if (typeof window !== 'undefined') {
     if (!authLoading && !token) {
       router.replace('/login');
-      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
-    
-    if (authLoading) {
-      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
+    if (!token) {
+      return <PageSkeleton />;
     }
 
     if (!user || !canAccessPage(user.role, 'staff')) {

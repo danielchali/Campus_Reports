@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from '../../../config/constants';
 import { getAll, register, update, remove, exportDocx, exportExcel } from '../../../utils/api';
 import { canAccessPage } from '../../../utils/access';
+import { PageSkeleton, TableSkeleton } from '../../../components/PageSkeleton';
 
 
 const ROLES = [
@@ -26,11 +27,11 @@ export default function UserManagementPage() {
   if (typeof window !== 'undefined') {
     if (!authLoading && !token) {
       router.replace('/login');
-      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+      return <PageSkeleton />;
     }
     
     if (authLoading) {
-      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
+      return <PageSkeleton />;
     }
     
     if (!user || !canAccessPage(user.role, 'adminUsers')) {
@@ -283,11 +284,7 @@ export default function UserManagementPage() {
 
           {/* Users Table */}
           {loading ? (
-            <div className="space-y-3 animate-pulse">
-              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded" />
-              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded" />
-              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded" />
-            </div>
+            <TableSkeleton rows={5} cols={5} />
           ) : (
             <>
             <div className="space-y-4 md:hidden">

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
 import {
   BookOpen,
   CheckCircle2,
@@ -108,20 +109,13 @@ export default function StudentDashboardPage() {
   }, [token, user?.role]);
 
   if (!authLoading && !token) {
-    return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
+    router.replace('/login');
   }
-
-  if (authLoading || !user) {
-    return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-12 w-80 rounded-2xl bg-slate-200 dark:bg-slate-800" />
-        <div className="grid gap-4 md:grid-cols-3">
-          {[1, 2, 3].map((item) => (
-            <div key={item} className="h-32 rounded-3xl bg-slate-200 dark:bg-slate-800" />
-          ))}
-        </div>
-      </div>
-    );
+  if (!token) {
+    return <PageSkeleton />;
+  }
+  if (!user) {
+    return <PageSkeleton />;
   }
 
   const progressCount = Math.max(metrics.open - metrics.resolved, 0);
@@ -258,7 +252,7 @@ export default function StudentDashboardPage() {
                 <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Statement Requests</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Fetched from the backend.</p>
               </div>
-              {statementLoading && <span className="text-xs text-slate-400">Loading...</span>}
+              {statementLoading && <InlineSkeleton rows={2} />}
             </div>
 
             <div className="space-y-3">

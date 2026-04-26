@@ -6,6 +6,8 @@ import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
 import { useOfflineApi } from '../../hooks/useOfflineSync';
 import { canAccessPage } from '../../utils/access';
+import { PageSkeleton } from '../../components/PageSkeleton';
+import { InlineSkeleton } from '../../components/PageSkeleton';
 
 
 interface Evidence {
@@ -33,11 +35,9 @@ export default function EvidencePage() {
   if (typeof window !== 'undefined') {
     if (!authLoading && !token) {
       router.replace('/login');
-      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
-    
-    if (authLoading) {
-      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
+    if (!token) {
+      return <PageSkeleton />;
     }
     
     if (!user || !canAccessPage(user.role, 'evidence')) {
@@ -294,7 +294,7 @@ export default function EvidencePage() {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Uploaded Evidence</h2>
           {loading ? (
-            <div className="text-gray-500 dark:text-gray-400">Loading...</div>
+            <InlineSkeleton rows={3} />
           ) : safeEvidence.length === 0 ? (
             <div className="text-gray-400 dark:text-gray-500">No evidence available.</div>
           ) : (

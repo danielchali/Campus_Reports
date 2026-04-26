@@ -16,6 +16,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import Notification, { useNotification } from '../../components/Notification';
 import { canAccessPage } from '../../utils/access';
+import { PageSkeleton, CardSkeleton } from '../../components/PageSkeleton';
 import {
   getAllStudentReports,
   getUnreadStudentReportsCount,
@@ -58,11 +59,9 @@ export default function ReportsPage() {
   if (typeof window !== 'undefined') {
     if (!authLoading && !token) {
       router.replace('/login');
-      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
-
-    if (authLoading) {
-      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
+    if (!token) {
+      return <PageSkeleton />;
     }
 
     if (!user || !canAccessPage(user.role, 'reports')) {
@@ -325,10 +324,10 @@ export default function ReportsPage() {
 
         <div className="space-y-4">
           {loading ? (
-            <div className="space-y-3 animate-pulse">
-              <div className="rounded-2xl bg-gray-200 dark:bg-gray-700 h-24" />
-              <div className="rounded-2xl bg-gray-200 dark:bg-gray-700 h-24" />
-              <div className="rounded-2xl bg-gray-200 dark:bg-gray-700 h-24" />
+            <div className="space-y-3">
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
             </div>
           ) : filteredReports.length === 0 ? (
             <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 shadow text-center text-gray-500 dark:text-gray-400">

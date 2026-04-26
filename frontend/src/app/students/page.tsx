@@ -9,6 +9,7 @@ import { useOfflineApi } from '../../hooks/useOfflineSync';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { canAccessPage } from '../../utils/access';
+import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
 
 // Type for a student
 interface Student {
@@ -30,11 +31,9 @@ export default function StudentsPage() {
   if (typeof window !== 'undefined') {
     if (!authLoading && !token) {
       router.replace('/login');
-      return <div className="text-center text-kmuGreen">Redirecting to login...</div>;
     }
-    
-    if (authLoading) {
-      return <div className="p-6 animate-pulse"><div className="h-8 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-4" /><div className="h-28 bg-gray-200 dark:bg-gray-700 rounded" /></div>;
+    if (!token) {
+      return <PageSkeleton />;
     }
 
     if (!user || !canAccessPage(user.role, 'students')) {
@@ -474,7 +473,7 @@ export default function StudentsPage() {
           {success}
         </div>
       )}
-      {loading && <div className="mb-4 text-sm text-kmuGreen">Loading...</div>}
+      {loading && <div className="mb-4"><InlineSkeleton rows={5} /></div>}
 
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
