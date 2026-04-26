@@ -55,7 +55,8 @@ function TopNavbar() {
       <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <GlobalSearch />
-          <h1 className="truncate text-lg font-semibold text-slate-900 dark:text-white md:hidden">Campus Reports</h1>
+          <h1 className="truncate text-lg font-semibold text-kmuGreen md:hidden">Campus Reports</h1>
+          <h1 className="hidden truncate text-lg font-semibold text-kmuGreen md:block">Campus Reports</h1>
         </div>
 
         <div className="flex items-center gap-3">

@@ -143,6 +143,8 @@ export default function LoginPage() {
 
   const signupSuccess = searchParams.get('registered') === '1';
 
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -152,7 +154,7 @@ export default function LoginPage() {
 
     try {
       let success = false;
-      if (isOnline && authIsOnline) {
+      if (isDevelopment || (isOnline && authIsOnline)) {
         success = await login(username, password);
       } else {
         success = await loginOffline(username, password);

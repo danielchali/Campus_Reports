@@ -79,6 +79,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (storedToken && storedUser) {
         try {
+          // In development, don't use offline credentials
+          if (process.env.NODE_ENV === 'development' && storedToken === 'offline_token') {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_user');
+            localStorage.removeItem('offline_auth_data');
+            setLoading(false);
+            return;
+          }
+
           if (storedToken !== 'offline_token' && isTokenExpired(storedToken)) {
             localStorage.removeItem('auth_token');
             localStorage.removeItem('auth_user');

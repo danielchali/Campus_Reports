@@ -93,7 +93,7 @@ export default function Sidebar() {
       )}
       <aside className={sidebarBase} style={{ width: isDesktop ? `${sidebarWidth}px` : undefined }}>
         <div className="border-b border-slate-100 dark:border-slate-800 px-5 pb-5 pt-6">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 dark:bg-slate-800 p-2 shadow-sm border border-slate-100 dark:border-slate-700">
               <img
                 src="/kmu_logo.svg"
@@ -109,10 +109,6 @@ export default function Sidebar() {
                   e.currentTarget.parentNode?.appendChild(fallback);
                 }}
               />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">Campus</p>
-              <p className="text-2xl font-semibold leading-none text-slate-900 dark:text-white">Reports</p>
             </div>
           </div>
         </div>

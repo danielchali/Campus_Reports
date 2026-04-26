@@ -523,20 +523,10 @@ export default function CasesPage() {
                         )}
                       </div>
                     </div>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      s.status === 'Open' ? 'bg-red-100 text-red-800' :
-                      s.status === 'Closed' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {s.status || '-'}
-                    </span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">{s._id.slice(-6)}</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Department</div>
-                      <div className="text-gray-900 dark:text-white">{person?.department || '-'}</div>
-                    </div>
                     <div>
                       <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Date</div>
                       <div className="text-gray-900 dark:text-white">{s.incidentDate ? new Date(s.incidentDate).toLocaleDateString() : '-'}</div>
@@ -544,17 +534,6 @@ export default function CasesPage() {
                     <div>
                       <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Offense</div>
                       <div className="text-gray-900 dark:text-white">{s.offenseType || '-'}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Severity</div>
-                      <span className={`inline-block px-2 py-1 rounded text-xs ${
-                        s.severity === 'High' ? 'bg-red-100 text-red-800' :
-                        s.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                        s.severity === 'Low' ? 'bg-green-100 text-green-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {s.severity || '-'}
-                      </span>
                     </div>
                   </div>
 
@@ -572,24 +551,22 @@ export default function CasesPage() {
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="py-2 px-2 md:px-4">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={selected.length === filteredCases.length && filteredCases.length > 0}
                       onChange={selected.length === filteredCases.length && filteredCases.length > 0 ? clearSelected : selectAll}
                     />
                   </th>
+                  <th className="py-2 px-2 md:px-4 text-left">ID</th>
                   <th className="py-2 px-2 md:px-4 text-left">Person</th>
-                  <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Department</th>
-                  <th className="py-2 px-2 md:px-4 text-left">Date</th>
                   <th className="py-2 px-2 md:px-4 text-left">Offense</th>
-                  <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Status</th>
-                  <th className="py-2 px-2 md:px-4 text-left hidden md:table-cell">Severity</th>
+                  <th className="py-2 px-2 md:px-4 text-left">Date</th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {filteredCases.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-8 px-4 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={5} className="py-8 px-4 text-center text-gray-500 dark:text-gray-400">
                       No cases found
                     </td>
                   </tr>
@@ -610,15 +587,15 @@ export default function CasesPage() {
                             onChange={() => toggleSelect(s._id)}
                           />
                         </td>
+                        <td className="py-2 px-2 md:px-4 text-xs text-gray-500 dark:text-gray-400">
+                          {s._id.slice(-6)}
+                        </td>
                         <td className="py-2 px-2 md:px-4">
                           {person ? (
                             <div>
                               <Link href={person.link} className="text-kmuGreen hover:underline font-medium">
                                 {person.name}
                               </Link>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 md:hidden">
-                                {person.department || '-'} • {s.incidentDate ? new Date(s.incidentDate).toLocaleDateString() : '-'}
-                              </div>
                               <div className="text-xs text-gray-500 dark:text-gray-400">
                                 {person.type === 'student' ? 'Student' : 'Staff'} • {person.id}
                               </div>
@@ -632,33 +609,11 @@ export default function CasesPage() {
                             </div>
                           )}
                         </td>
-                        <td className="py-2 px-2 md:px-4 hidden md:table-cell">
-                          {person?.department || '-'}
-                        </td>
-                        <td className="py-2 px-2 md:px-4">
-                          {s.incidentDate ? new Date(s.incidentDate).toLocaleDateString() : '-'}
-                        </td>
                         <td className="py-2 px-2 md:px-4">
                           {s.offenseType || '-'}
                         </td>
-                        <td className="py-2 px-2 md:px-4 hidden md:table-cell">
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            s.status === 'Open' ? 'bg-red-100 text-red-800' :
-                            s.status === 'Closed' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {s.status || '-'}
-                          </span>
-                        </td>
-                        <td className="py-2 px-2 md:px-4 hidden md:table-cell">
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            s.severity === 'High' ? 'bg-red-100 text-red-800' :
-                            s.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                            s.severity === 'Low' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {s.severity || '-'}
-                          </span>
+                        <td className="py-2 px-2 md:px-4">
+                          {s.incidentDate ? new Date(s.incidentDate).toLocaleDateString() : '-'}
                         </td>
                       </tr>
                     );
