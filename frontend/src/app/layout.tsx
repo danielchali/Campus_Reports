@@ -162,6 +162,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="Campus Reports - Kapasa Makasa University Student Discipline Management System" />
         <meta name="theme-color" content="#10B981" />
+        <link rel="icon" href="/kmu_logo.ico" sizes="any" />
+        <link rel="icon" href="/kmu_logo.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/kmu_logo.png" />
         <link rel="preload" href="/kmu_logo.svg" as="image" type="image/svg+xml" />
         <link rel="dns-prefetch" href="//kmu-disciplinedesk.onrender.com" />
         <link rel="preconnect" href="https://kmu-disciplinedesk.onrender.com" />
