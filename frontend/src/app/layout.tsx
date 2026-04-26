@@ -4,7 +4,7 @@ import '../globals.css';
 import { useEffect, useState, Suspense, lazy } from 'react';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
-import { Bell, ChevronDown, Menu, Moon, Search, Sun } from 'lucide-react';
+import { Bell, ChevronDown, Moon, Search, Sun } from 'lucide-react';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { SyncProvider } from '../context/SyncContext';
@@ -46,7 +46,6 @@ const LoadingFallback = () => (
 function TopNavbar() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { setIsOpenMobile } = useSidebar();
 
   if (!user) return null;
 
@@ -54,14 +53,6 @@ function TopNavbar() {
     <nav className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
       <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setIsOpenMobile(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-700 md:hidden dark:border-slate-800 dark:text-slate-200"
-            aria-label="Open navigation"
-          >
-            <Menu size={18} />
-          </button>
           <GlobalSearch />
           <h1 className="truncate text-lg font-semibold text-slate-900 dark:text-white md:hidden">Campus Reports</h1>
         </div>

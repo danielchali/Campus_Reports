@@ -2,27 +2,23 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useSidebar } from '../context/SidebarContext';
-import { getNavLinksForRole, splitNavLinksForMobile } from '../utils/navigation';
+import { getNavLinksForRole } from '../utils/navigation';
 
 export default function BottomNav() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const { setIsOpenMobile } = useSidebar();
 
   if (!user) {
     return null;
   }
 
   const allNavLinks = getNavLinksForRole(user.role);
-  const { bottomNav } = splitNavLinksForMobile(allNavLinks);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-gray-900/95 md:hidden">
       <div className="flex overflow-x-auto px-1 sm:px-2 py-1.5 sm:py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {bottomNav.map((link) => {
+        {allNavLinks.map((link) => {
           const Icon = link.icon;
           const isActive = pathname === link.path;
           const commonClasses = `min-w-[64px] sm:min-w-[76px] flex-1 rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 text-center transition ${
@@ -55,15 +51,6 @@ export default function BottomNav() {
             </Link>
           );
         })}
-        <button
-          onClick={() => setIsOpenMobile(true)}
-          className="min-w-[64px] sm:min-w-[76px] flex-1 rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 text-center transition text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-        >
-          <span className="mx-auto flex h-5 w-5 items-center justify-center">
-            <Menu size={16} />
-          </span>
-          <span className="mt-1 block text-[10px] sm:text-[11px] font-medium leading-tight">More</span>
-        </button>
       </div>
     </nav>
   );
