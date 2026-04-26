@@ -20,6 +20,7 @@ import notificationsRouter from './routes/notifications.js';
 import aiAssistantRouter from './routes/aiAssistant.js';
 
 const app = express();
+const API_V1_BASE = '/api/v1';
 
 // CORS configuration - flexible for any deployment environment
 const corsOrigin = process.env.CORS_ORIGIN || process.env.FRONTEND_URL ;
@@ -40,24 +41,31 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Register API routes
-app.use('/api/users', usersRouter);
-app.use('/api/students', studentsRouter);
-app.use('/api/staff', staffRouter);
-app.use('/api/cases', casesRouter);
-app.use('/api/reports', reportsRouter);
-app.use('/api', authRouter);
-app.use('/api/evidence', evidenceRouter);
-app.use('/api/audit', auditRouter);
-app.use('/api/health', healthRouter);
-app.use('/api/statement-requests', statementRequestsRouter);
-app.use('/api/anonymous-reports', anonymousReportsRouter);
-app.use('/api/search', searchRouter);
-app.use('/api/notifications', notificationsRouter);
-app.use('/api/ai-assistant', aiAssistantRouter);
+function mountRoutes(basePath) {
+    app.use(`${basePath}/users`, usersRouter);
+    app.use(`${basePath}/students`, studentsRouter);
+    app.use(`${basePath}/staff`, staffRouter);
+    app.use(`${basePath}/cases`, casesRouter);
+    app.use(`${basePath}/reports`, reportsRouter);
+    app.use(basePath, authRouter);
+    app.use(`${basePath}/evidence`, evidenceRouter);
+    app.use(`${basePath}/audit`, auditRouter);
+    app.use(`${basePath}/health`, healthRouter);
+    app.use(`${basePath}/statement-requests`, statementRequestsRouter);
+    app.use(`${basePath}/anonymous-reports`, anonymousReportsRouter);
+    app.use(`${basePath}/search`, searchRouter);
+    app.use(`${basePath}/notifications`, notificationsRouter);
+    app.use(`${basePath}/ai-assistant`, aiAssistantRouter);
+}
+
+// Primary versioned API
+mountRoutes(API_V1_BASE);
+// Temporary legacy alias for backward compatibility during migration
+mountRoutes('/api');
 
 // Health check endpoint (legacy)
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }));
 
 // Root endpoint
 app.get('/', (req, res) => {
