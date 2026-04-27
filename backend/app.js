@@ -18,6 +18,7 @@ import anonymousReportsRouter from './routes/anonymousReports.js';
 import searchRouter from './routes/search.js';
 import notificationsRouter from './routes/notifications.js';
 import aiAssistantRouter from './routes/aiAssistant.js';
+import studentReportsRouter from './routes/studentReports.js';
 
 const app = express();
 const API_V1_BASE = '/api/v1';
@@ -56,6 +57,7 @@ function mountRoutes(basePath) {
     app.use(`${basePath}/search`, searchRouter);
     app.use(`${basePath}/notifications`, notificationsRouter);
     app.use(`${basePath}/ai-assistant`, aiAssistantRouter);
+    app.use(`${basePath}/student-reports`, studentReportsRouter);
 }
 
 // Primary versioned API

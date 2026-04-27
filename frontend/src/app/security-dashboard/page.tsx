@@ -77,6 +77,7 @@ export default function SecurityDashboard() {
   const [students, setStudents] = useState<Student[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [cases, setCases] = useState<CaseRecord[]>([]);
+  const [displayedCases, setDisplayedCases] = useState<CaseRecord[]>([]);
   const [caseType, setCaseType] = useState<'student' | 'staff'>('student');
   const [studentId, setStudentId] = useState('');
   const [staffId, setStaffId] = useState('');
@@ -121,9 +122,11 @@ export default function SecurityDashboard() {
         const staffData = staffRes.ok ? await staffRes.json() : { staff: [] };
         const casesData = casesRes.ok ? await casesRes.json() : { cases: [] };
 
+        const loadedCases = Array.isArray(casesData) ? casesData : casesData.cases || [];
         setStudents(Array.isArray(studentsData) ? studentsData : studentsData.students || []);
         setStaff(Array.isArray(staffData) ? staffData : staffData.staff || []);
-        setCases(Array.isArray(casesData) ? casesData : casesData.cases || []);
+        setCases(loadedCases);
+        setDisplayedCases(loadedCases);
       } catch (loadError: any) {
         if (!active) return;
         setError(loadError?.message || 'Failed to load dashboard data.');
@@ -160,22 +163,29 @@ export default function SecurityDashboard() {
 
   const offenseTypeDescription = OFFENSE_TYPES.find((item) => item.value === offenseType)?.description || '';
 
-  const filteredCases = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return cases;
+  // Fetch filtered cases from API when search changes
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
 
-    return cases.filter((item) =>
-      [
-        item.student?.fullName,
-        item.student?.studentId,
-        item.staff?.fullName,
-        item.staff?.staffId,
-        item.offenseType,
-        item.severity,
-        item.status,
-      ].some((value) => value?.toLowerCase().includes(query)),
-    );
-  }, [cases, search]);
+    async function fetchFiltered() {
+      const params = new URLSearchParams();
+      if (search.trim()) params.set('search', search.trim());
+      const endpoint = `/cases${params.toString() ? `?${params.toString()}` : ''}`;
+      try {
+        const res = await fetch(`${API_BASE_URL}${endpoint}`, { headers: { ...authHeaders() } });
+        if (!active) return;
+        const data = await res.json();
+        const caseList = Array.isArray(data) ? data : data.cases || [];
+        setDisplayedCases(caseList);
+      } catch {
+        // ignore
+      }
+    }
+
+    fetchFiltered();
+    return () => { active = false; };
+  }, [token, search]);
 
   const metrics = useMemo(() => {
     const openCases = cases.filter((item) => item.status === 'Open').length;
@@ -465,7 +475,7 @@ export default function SecurityDashboard() {
             <div className="mt-4 space-y-3 text-sm">
               <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
                 <span className="text-slate-500 dark:text-slate-400">Filtered cases</span>
-                <span className="font-semibold text-slate-900 dark:text-white">{filteredCases.length}</span>
+                <span className="font-semibold text-slate-900 dark:text-white">{displayedCases.length}</span>
               </div>
               <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
                 <span className="text-slate-500 dark:text-slate-400">Students ready</span>
@@ -492,7 +502,7 @@ export default function SecurityDashboard() {
         </div>
 
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
-          {filteredCases.slice(0, 10).map((item) => {
+          {displayedCases.slice(0, 10).map((item) => {
             const name = item.student?.fullName || item.staff?.fullName || 'Unknown';
             const meta = item.student?.studentId || item.staff?.staffId || 'No ID';
             const unit = item.student?.program || item.student?.department || item.staff?.department || 'N/A';
@@ -524,7 +534,7 @@ export default function SecurityDashboard() {
             );
           })}
 
-          {filteredCases.length === 0 && (
+          {displayedCases.length === 0 && (
             <div className="px-5 py-10 text-sm text-slate-500 dark:text-slate-400">No cases match the current search.</div>
           )}
         </div>

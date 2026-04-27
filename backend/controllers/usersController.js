@@ -4,7 +4,16 @@ import mongoose from 'mongoose';
 
 export async function listUsers(req, res) {
     try {
-        const users = await UserModel.find({}, '-password');
+        const search = req.query.search;
+        const query = {};
+        if (search) {
+            const regex = { $regex: search, $options: 'i' };
+            query.$or = [
+                { username: regex },
+                { name: regex }
+            ];
+        }
+        const users = await UserModel.find(query, '-password');
         res.json(users);
     } catch (err) {
         res.status(500).json({ error: 'Server error' });

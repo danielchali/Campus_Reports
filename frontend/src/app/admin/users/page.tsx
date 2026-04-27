@@ -55,7 +55,10 @@ export default function UserManagementPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAll('users');
+      const query: Record<string, string> = {};
+      if (search) query.search = search;
+      if (roleFilter) query.role = roleFilter;
+      const data = await getAll('users', query);
       setUsers(Array.isArray(data) ? data : (data.users || data || []));
     } catch (err: any) {
       console.error('Error fetching users:', err);
@@ -70,7 +73,7 @@ export default function UserManagementPage() {
     if (user && canAccessPage(user.role, 'adminUsers')) {
       fetchUsers(); 
     }
-  }, [token, user]);
+  }, [token, user, search, roleFilter]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -132,21 +135,12 @@ export default function UserManagementPage() {
     setEditUser(null);
   }
 
-  const filteredUsers = users.filter(
-    (u) =>
-      (!search ||
-        u.username?.toLowerCase().includes(search.toLowerCase()) ||
-        u.name?.toLowerCase().includes(search.toLowerCase())
-      ) &&
-      (!roleFilter || u.role === roleFilter)
-  );
-
   function toggleSelect(id: string) {
     setSelected(sel => sel.includes(id) ? sel.filter(x => x !== id) : [...sel, id]);
   }
 
   function selectAll() {
-    setSelected(filteredUsers.map(u => u.id || u._id));
+    setSelected(users.map(u => u.id || u._id));
   }
 
   function clearSelected() {
@@ -288,7 +282,7 @@ export default function UserManagementPage() {
           ) : (
             <>
             <div className="space-y-4 md:hidden">
-              {filteredUsers.map((u) => {
+              {users.map((u) => {
                 const userId = u.id || u._id;
                 const isEditing = editingUserId === userId;
 
@@ -356,7 +350,7 @@ export default function UserManagementPage() {
                     <th className="py-2 px-2 md:px-4 text-left">
                       <input 
                         type="checkbox" 
-                        checked={selected.length === filteredUsers.length && filteredUsers.length > 0} 
+                        checked={selected.length === users.length && users.length > 0}
                         onChange={e => e.target.checked ? selectAll() : clearSelected()} 
                       />
                     </th>
@@ -367,7 +361,7 @@ export default function UserManagementPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.map((u) => {
+                  {users.map((u) => {
                     const userId = u.id || u._id;
                     const isEditing = editingUserId === userId;
                     

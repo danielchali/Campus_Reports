@@ -1,12 +1,26 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { Bell, Check, BellRing } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Bell, Check, BellRing, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { API_URL } from '../config/constants';
+import { authHeaders } from '../utils/api';
+import { markStudentReportSeen, markAllStudentReportsSeen, getAllStudentReports, type StudentReport } from '../utils/studentReports';
+
+type NotificationItem = {
+  _id: string;
+  message: string;
+  createdAt: string;
+  isRead: boolean;
+  link?: string;
+  type: 'system' | 'report';
+  report?: StudentReport;
+};
 
 export default function NotificationBell() {
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const router = useRouter();
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -22,31 +36,80 @@ export default function NotificationBell() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const fetchNotifications = async () => {
+  const loadAll = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    // Fetch system notifications
+    let systemNotifications: NotificationItem[] = [];
     try {
       const res = await fetch(`${API_URL}/notifications`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { ...authHeaders() }
       });
       if (res.ok) {
-        setNotifications(await res.json());
+        const data = await res.json();
+        systemNotifications = (Array.isArray(data) ? data : []).map((n: any) => ({
+          _id: `sys_${n._id}`,
+          message: n.message,
+          createdAt: n.createdAt,
+          isRead: !!n.isRead,
+          link: n.link,
+          type: 'system' as const,
+        }));
       }
     } catch (err) {
       console.error('Failed to fetch notifications', err);
     }
-  };
 
-  useEffect(() => {
-    fetchNotifications();
-    // Poll every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+    // Fetch unread student reports
+    let reportNotifications: NotificationItem[] = [];
+    try {
+      const reports = await getAllStudentReports();
+      const userId = JSON.parse(atob(token.split('.')[1]))?.id || '';
+      const unreadReports = reports.filter((r) => !(r.seenBy || []).includes(userId));
+      reportNotifications = unreadReports.slice(0, 10).map((r) => ({
+        _id: `report_${r.id}`,
+        message: `${r.anonymous ? 'Anonymous' : r.ownerName} submitted ${r.title}`,
+        createdAt: r.submittedAt,
+        isRead: false,
+        link: '/reports',
+        type: 'report' as const,
+        report: r,
+      }));
+    } catch (err) {
+      console.error('Failed to fetch student reports', err);
+    }
+
+    setNotifications([...reportNotifications, ...systemNotifications].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    ));
   }, []);
 
+  useEffect(() => {
+    loadAll();
+    const interval = setInterval(loadAll, 30000);
+    return () => clearInterval(interval);
+  }, [loadAll]);
+
   const markAsRead = async (id: string) => {
+    const item = notifications.find(n => n._id === id);
+    if (!item) return;
+
+    if (item.type === 'report' && item.report) {
+      try {
+        await markStudentReportSeen(item.report.id, '');
+        setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
+      } catch (err) {
+        console.error(err);
+      }
+      return;
+    }
+
+    const sysId = id.replace('sys_', '');
     try {
-      await fetch(`${API_URL}/notifications/${id}/read`, {
+      await fetch(`${API_URL}/notifications/${sysId}/read`, {
         method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { ...authHeaders() }
       });
       setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
     } catch (err) {
@@ -55,14 +118,32 @@ export default function NotificationBell() {
   };
 
   const markAllAsRead = async () => {
+    // Mark all system notifications as read
     try {
       await fetch(`${API_URL}/notifications/mark-all-read`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        headers: { ...authHeaders() }
       });
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch (err) {
       console.error(err);
+    }
+
+    // Mark all student reports as seen
+    try {
+      await markAllStudentReportsSeen('');
+    } catch (err) {
+      console.error(err);
+    }
+
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+  };
+
+  const handleReportClick = async (item: NotificationItem) => {
+    if (item.type === 'report' && item.report) {
+      await markStudentReportSeen(item.report.id, '');
+      setNotifications(prev => prev.map(n => n._id === item._id ? { ...n, isRead: true } : n));
+      setIsOpen(false);
+      router.push('/reports');
     }
   };
 
@@ -108,21 +189,33 @@ export default function NotificationBell() {
                 {notifications.map((n) => (
                   <div key={n._id} className={`p-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${!n.isRead ? 'bg-kmuGreen/5 dark:bg-kmuGreen/10' : ''}`}>
                     <div className="flex gap-3">
-                      <div className="flex-1">
+                      {n.type === 'report' && (
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300">
+                          <FileText size={14} />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
                         <p className={`text-sm ${!n.isRead ? 'font-semibold text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>
                           {n.message}
                         </p>
                         <span className="text-xs text-slate-400 mt-1 block">
                           {new Date(n.createdAt).toLocaleDateString()} {new Date(n.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </span>
-                        {n.link && (
+                        {n.type === 'report' ? (
+                          <button
+                            onClick={() => handleReportClick(n)}
+                            className="text-xs text-kmuGreen mt-2 inline-block font-medium hover:underline"
+                          >
+                            View report
+                          </button>
+                        ) : n.link && (
                           <Link href={n.link} className="text-xs text-kmuGreen mt-2 inline-block font-medium hover:underline" onClick={() => setIsOpen(false)}>
                             View details
                           </Link>
                         )}
                       </div>
                       {!n.isRead && (
-                        <button onClick={() => markAsRead(n._id)} className="h-6 w-6 rounded-full flex items-center justify-center text-slate-400 hover:text-kmuGreen hover:bg-kmuGreen/10 transition-colors" title="Mark as read">
+                        <button onClick={() => markAsRead(n._id)} className="h-6 w-6 rounded-full flex items-center justify-center text-slate-400 hover:text-kmuGreen hover:bg-kmuGreen/10 transition-colors shrink-0" title="Mark as read">
                           <Check size={14} />
                         </button>
                       )}

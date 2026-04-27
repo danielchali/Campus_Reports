@@ -72,8 +72,13 @@ export async function registerStudent(studentData: any) {
 }
 
 // Generic CRUD helpers
-export async function getAll(resource: string) {
-  const res = await fetch(`${API_BASE_URL}/${resource}`, {
+export async function getAll(resource: string, query?: string | Record<string, string>) {
+  let url = `${API_BASE_URL}/${resource}`;
+  if (query) {
+    const params = typeof query === 'string' ? query : new URLSearchParams(query).toString();
+    url += `?${params}`;
+  }
+  const res = await fetch(url, {
     headers: { ...authHeaders() }
   });
   if (!res.ok) throw new Error((await res.json()).error || 'Fetch failed');

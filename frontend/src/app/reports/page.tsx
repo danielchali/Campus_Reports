@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Bell,
   CheckCheck,
   ChevronDown,
   ChevronUp,
@@ -51,7 +50,6 @@ export default function ReportsPage() {
   const [visibilityFilter, setVisibilityFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [search, setSearch] = useState('');
-  const [showNotifications, setShowNotifications] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusDrafts, setStatusDrafts] = useState<Record<string, StudentReportStatus>>({});
   const [updateMessages, setUpdateMessages] = useState<Record<string, string>>({});
@@ -70,35 +68,49 @@ export default function ReportsPage() {
   }
 
   useEffect(() => {
-    if (!user) {
-      return;
+    if (!user) return;
+
+    const userId = user.id;
+    const userUsername = user.username;
+    const userName = user.name;
+    let cancelled = false;
+
+    async function fetchReports() {
+      setLoading(true);
+      try {
+        const allReports = await getAllStudentReports(search);
+        if (!cancelled) setReports(allReports);
+      } catch (err) {
+        console.error('Failed to load reports:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
 
-    setLoading(true);
-    const allReports = getAllStudentReports();
-    setReports(allReports);
-    setLoading(false);
-  }, [user]);
+    fetchReports();
+    return () => { cancelled = true; };
+  }, [user, search]);
 
-  const unreadCount = useMemo(() => {
-    if (!user) {
-      return 0;
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+
+    async function fetchUnread() {
+      try {
+        const count = await getUnreadStudentReportsCount('');
+        if (!cancelled) setUnreadCount(count);
+      } catch {
+        // ignore
+      }
     }
 
-    return getUnreadStudentReportsCount(user.id);
-  }, [reports, user]);
-
-  const unreadReports = useMemo(() => {
-    if (!user) {
-      return [];
-    }
-
-    return reports.filter((report) => !(report.seenBy || []).includes(user.id)).slice(0, 6);
+    fetchUnread();
+    return () => { cancelled = true; };
   }, [reports, user]);
 
   const filteredReports = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
     return reports
       .filter((report) => {
         const matchesCategory =
@@ -109,16 +121,8 @@ export default function ReportsPage() {
           visibilityFilter === 'all' ||
           (visibilityFilter === 'anonymous' && report.anonymous) ||
           (visibilityFilter === 'named' && !report.anonymous);
-        const matchesSearch =
-          !query ||
-          report.title.toLowerCase().includes(query) ||
-          report.trackingCode.toLowerCase().includes(query) ||
-          report.location.toLowerCase().includes(query) ||
-          report.description.toLowerCase().includes(query) ||
-          report.ownerName.toLowerCase().includes(query) ||
-          categoryLabels[report.category].toLowerCase().includes(query);
 
-        return matchesCategory && matchesStatus && matchesVisibility && matchesSearch;
+        return matchesCategory && matchesStatus && matchesVisibility;
       })
       .sort((a, b) => {
         if (sortBy === 'oldest') {
@@ -133,30 +137,31 @@ export default function ReportsPage() {
       });
   }, [reports, search, categoryFilter, statusFilter, visibilityFilter, sortBy]);
 
-  function refreshReports() {
-    setReports(getAllStudentReports());
+  async function refreshReports() {
+    const allReports = await getAllStudentReports(search);
+    setReports(allReports);
   }
 
-  function handleMarkSeen(reportId: string) {
+  async function handleMarkSeen(reportId: string) {
     if (!user) {
       return;
     }
 
-    markStudentReportSeen(reportId, user.id);
-    refreshReports();
+    await markStudentReportSeen(reportId, user.id);
+    await refreshReports();
   }
 
-  function handleMarkAllSeen() {
+  async function handleMarkAllSeen() {
     if (!user) {
       return;
     }
 
-    markAllStudentReportsSeen(user.id);
-    refreshReports();
+    await markAllStudentReportsSeen(user.id);
+    await refreshReports();
     showNotification('success', 'All student reports marked as seen.');
   }
 
-  function handleApplyStatus(report: StudentReport) {
+  async function handleApplyStatus(report: StudentReport) {
     if (!user) {
       return;
     }
@@ -166,14 +171,14 @@ export default function ReportsPage() {
       updateMessages[report.id]?.trim() ||
       `Status updated to ${nextStatus} by ${user.name || user.username}.`;
 
-    updateStudentReportStatus(
+    await updateStudentReportStatus(
       report.id,
       nextStatus,
       message,
       { id: user.id, username: user.username, name: user.name },
     );
 
-    refreshReports();
+    await refreshReports();
     showNotification('success', `Report ${report.trackingCode} updated to ${nextStatus}.`);
   }
 
@@ -191,19 +196,6 @@ export default function ReportsPage() {
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
-              onClick={() => setShowNotifications((current) => !current)}
-              className="relative inline-flex items-center gap-2 rounded-xl bg-white dark:bg-gray-800 px-4 py-3 shadow hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-            >
-              <Bell size={18} className="text-kmuGreen" />
-              <span className="font-medium text-gray-900 dark:text-white">Notifications</span>
-              {unreadCount > 0 && (
-                <span className="inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-blue-600 px-2 py-0.5 text-xs font-semibold text-white">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
               onClick={handleMarkAllSeen}
               className="inline-flex items-center gap-2 rounded-xl bg-kmuGreen px-4 py-3 text-white font-medium hover:bg-kmuOrange transition"
             >
@@ -212,57 +204,6 @@ export default function ReportsPage() {
             </button>
           </div>
         </div>
-
-        {showNotifications && (
-          <div className="rounded-2xl bg-white dark:bg-gray-800 shadow overflow-hidden">
-            <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-5 py-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">New report notifications</h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Facebook-style alert stream for recently submitted student reports.
-                </p>
-              </div>
-              <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                {unreadCount} new
-              </span>
-            </div>
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {unreadReports.length === 0 ? (
-                <div className="px-5 py-6 text-gray-500 dark:text-gray-400">
-                  No new student reports right now.
-                </div>
-              ) : (
-                unreadReports.map((report) => (
-                  <button
-                    key={report.id}
-                    type="button"
-                    onClick={() => {
-                      handleMarkSeen(report.id);
-                      setExpandedId(report.id);
-                      setShowNotifications(false);
-                    }}
-                    className="w-full px-5 py-4 text-left hover:bg-blue-50 dark:hover:bg-blue-900/10 transition"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <div className="mt-1 h-2.5 w-2.5 rounded-full bg-blue-600" />
-                        <div>
-                          <p className="font-semibold text-gray-900 dark:text-white">{report.title}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {categoryLabels[report.category]} • {report.anonymous ? 'Anonymous' : report.ownerName}
-                          </p>
-                        </div>
-                      </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(report.submittedAt).toLocaleString()}
-                      </span>
-                    </div>
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-        )}
 
         <div className="rounded-2xl bg-white dark:bg-gray-800 shadow p-5 space-y-4">
           <div className="flex items-center gap-2 text-kmuOrange">

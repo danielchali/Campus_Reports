@@ -51,7 +51,7 @@ export default function MakeReportPage() {
     }
   }
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setSubmitting(true);
     setError('');
@@ -62,7 +62,7 @@ export default function MakeReportPage() {
         throw new Error('You must be logged in to submit a report.');
       }
 
-      const report = createStudentReport(
+      const report = await createStudentReport(
         {
           title,
           description,

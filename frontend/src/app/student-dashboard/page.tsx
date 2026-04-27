@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
 import {
@@ -13,11 +13,10 @@ import {
   FilePenLine,
   FileText,
   Fingerprint,
-  ShieldCheck,
   Wrench,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { getStudentReportMetrics, type StudentReport } from '../../utils/studentReports';
+import { getStudentReportMetrics, type StudentReport, type StudentReportMetrics } from '../../utils/studentReports';
 import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
 
@@ -68,17 +67,30 @@ export default function StudentDashboardPage() {
     }
   }, [authLoading, token, router]);
 
-  const metrics = useMemo(() => {
-    if (!user) {
-      return { total: 0, anonymous: 0, open: 0, resolved: 0, recent: [] as StudentReport[] };
+  const [reportMetrics, setReportMetrics] = useState<StudentReportMetrics>({ total: 0, anonymous: 0, open: 0, resolved: 0, recent: [] as StudentReport[] });
+
+  useEffect(() => {
+    if (!user || user.role !== 'student') return;
+
+    const userId = user.id;
+    const userUsername = user.username;
+    const userName = user.name;
+    let cancelled = false;
+
+    async function fetchMetrics() {
+      try {
+        const data = await getStudentReportMetrics({ id: userId, username: userUsername, name: userName });
+        if (!cancelled) setReportMetrics(data);
+      } catch (err) {
+        console.error('Failed to load report metrics:', err);
+      }
     }
 
-    return getStudentReportMetrics({
-      id: user.id,
-      username: user.username,
-      name: user.name,
-    });
+    fetchMetrics();
+    return () => { cancelled = true; };
   }, [user]);
+
+  const metrics = reportMetrics;
 
   useEffect(() => {
     async function fetchStatementRequests() {
@@ -132,28 +144,28 @@ export default function StudentDashboardPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-6">
-      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-7">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+    <div className="mx-auto max-w-[1600px] space-y-4">
+      <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-6">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-kmuGreen">Dashboard</p>
-            <h1 className="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-kmuGreen">Dashboard</p>
+            <h1 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">
               Welcome back, {user.name?.split(' ')[0] || 'Student'}
             </h1>
-            <p className="mt-2 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+            <p className="mt-1 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
               Track your reports, check statement requests, and move into the main student workflows from one place.
             </p>
           </div>
-          <div className="grid min-w-[280px] gap-3 sm:grid-cols-2">
+          <div className="grid min-w-[240px] gap-2 sm:grid-cols-2">
             <Link
               href="/make-report"
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
             >
               New report
             </Link>
             <Link
               href="/my-reports"
-              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
             >
               My reports
             </Link>
@@ -161,60 +173,62 @@ export default function StudentDashboardPage() {
         </div>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (
-            <article key={card.label} className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 dark:bg-slate-950 ${card.tone}`}>
-                <Icon size={22} />
+            <article key={card.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center gap-3">
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-950 ${card.tone}`}>
+                  <Icon size={18} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{card.label}</p>
+                  <p className="text-2xl font-semibold text-slate-900 dark:text-white">{card.value}</p>
+                </div>
               </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{card.label}</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">{card.value}</p>
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{card.helper}</p>
             </article>
           );
         })}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-        <article className="rounded-[28px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <article className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent Reports</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">These entries follow the existing student report store in the app.</p>
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">Recent Reports</h2>
             </div>
-            <Link href="/my-reports" className="text-sm font-medium text-kmuGreen hover:underline">
+            <Link href="/my-reports" className="text-xs font-medium text-kmuGreen hover:underline">
               View all
             </Link>
           </div>
 
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {metrics.recent.length === 0 ? (
-              <div className="px-5 py-10 text-sm text-slate-500 dark:text-slate-400">
+              <div className="px-4 py-8 text-sm text-slate-500 dark:text-slate-400">
                 No reports found. Start by creating a report.
               </div>
             ) : (
               metrics.recent.map((report) => (
-                <div key={report.id} className="flex flex-col gap-3 px-5 py-4 md:flex-row md:items-center md:justify-between">
+                <div key={report.id} className="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:justify-between">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{report.title}</p>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
                       {categoryLabels[report.category]} • {report.location}
                     </p>
-                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{formatDate(report.submittedAt)}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{formatDate(report.submittedAt)}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusColors[report.status]}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusColors[report.status]}`}>
                       {report.status}
                     </span>
                     <button
                       type="button"
                       onClick={() => router.push('/my-reports')}
-                      className="rounded-full p-2 text-slate-400 transition hover:text-kmuGreen"
+                      className="rounded-full p-1.5 text-slate-400 transition hover:text-kmuGreen"
                       aria-label="Open reports"
                     >
-                      <ChevronRight size={16} />
+                      <ChevronRight size={14} />
                     </button>
                   </div>
                 </div>
@@ -223,79 +237,78 @@ export default function StudentDashboardPage() {
           </div>
         </article>
 
-        <div className="space-y-6">
-          <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Quick Actions</h2>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <Link href="/make-report" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
-                <FilePenLine size={18} />
+        <div className="space-y-4">
+          <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">Quick Actions</h2>
+            <div className="mt-3 grid gap-2 grid-cols-2">
+              <Link href="/make-report" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+                <FilePenLine size={16} />
                 <span>New Report</span>
               </Link>
-              <Link href="/make-report?anonymous=true" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
-                <Fingerprint size={18} />
-                <span>Anonymous Report</span>
+              <Link href="/make-report?anonymous=true" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+                <Fingerprint size={16} />
+                <span>Anonymous</span>
               </Link>
-              <Link href="/make-report?category=maintenance_issue" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
-                <Wrench size={18} />
-                <span>Maintenance Request</span>
+              <Link href="/make-report?category=maintenance_issue" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+                <Wrench size={16} />
+                <span>Maintenance</span>
               </Link>
-              <Link href="/help" className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
-                <BookOpen size={18} />
+              <Link href="/help" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+                <BookOpen size={16} />
                 <span>Help</span>
               </Link>
             </div>
           </article>
 
-          <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="mb-4 flex items-center justify-between">
+          <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="mb-3 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Statement Requests</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">Fetched from the backend.</p>
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">Statement Requests</h2>
               </div>
               {statementLoading && <InlineSkeleton rows={2} />}
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               {statementRequests.length === 0 ? (
-                <div className="rounded-2xl bg-slate-50 px-4 py-4 text-sm text-slate-500 dark:bg-slate-950 dark:text-slate-400">
+                <div className="rounded-xl bg-slate-50 px-3 py-3 text-xs text-slate-500 dark:bg-slate-950 dark:text-slate-400">
                   No statement requests at the moment.
                 </div>
               ) : (
-                statementRequests.slice(0, 5).map((request) => (
-                  <div key={request._id} className="rounded-2xl bg-slate-50 px-4 py-4 dark:bg-slate-950">
-                    <div className="flex items-start justify-between gap-3">
+                statementRequests.slice(0, 4).map((request) => (
+                  <div key={request._id} className="rounded-xl bg-slate-50 px-3 py-3 dark:bg-slate-950">
+                    <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-sm font-medium text-slate-900 dark:text-white">{request.title}</p>
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                          Created {formatDate(request.createdAt)}
+                        <p className="text-xs font-medium text-slate-900 dark:text-white">{request.title}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                          {formatDate(request.createdAt)}
                           {request.dueAt ? ` • Due ${formatDate(request.dueAt)}` : ''}
                         </p>
                       </div>
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${statementStatusColors[request.status]}`}>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statementStatusColors[request.status]}`}>
                         {request.status}
                       </span>
                     </div>
-                    <p className="mt-3 line-clamp-3 text-sm text-slate-600 dark:text-slate-300">{request.prompt}</p>
+                    <p className="mt-2 line-clamp-2 text-xs text-slate-600 dark:text-slate-300">{request.prompt}</p>
                   </div>
                 ))
               )}
             </div>
           </article>
 
-          <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Current Snapshot</h2>
-            <div className="mt-4 space-y-3 text-sm">
-              <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
-                <span className="text-slate-500 dark:text-slate-400">Maintenance reports</span>
-                <span className="font-semibold text-slate-900 dark:text-white">{maintenanceCount}</span>
+          <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">Current Snapshot</h2>
+            <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+              <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-3 dark:bg-slate-950">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Maintenance</span>
+                <span className="mt-0.5 text-lg font-semibold text-slate-900 dark:text-white">{maintenanceCount}</span>
               </div>
-              <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
-                <span className="text-slate-500 dark:text-slate-400">Anonymous reports</span>
-                <span className="font-semibold text-slate-900 dark:text-white">{metrics.anonymous}</span>
+              <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-3 dark:bg-slate-950">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Anonymous</span>
+                <span className="mt-0.5 text-lg font-semibold text-slate-900 dark:text-white">{metrics.anonymous}</span>
               </div>
-              <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
-                <span className="text-slate-500 dark:text-slate-400">Pending statements</span>
-                <span className="font-semibold text-slate-900 dark:text-white">{pendingStatements}</span>
+              <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-3 dark:bg-slate-950">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Pending</span>
+                <span className="mt-0.5 text-lg font-semibold text-slate-900 dark:text-white">{pendingStatements}</span>
               </div>
             </div>
           </article>

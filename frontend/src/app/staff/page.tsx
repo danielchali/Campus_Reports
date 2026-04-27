@@ -355,13 +355,7 @@ export default function StaffPage() {
     }
   }
 
-  // Filter staff for search
-  const filteredStaff = staff.filter(s => 
-    s.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-    s.staffId?.toLowerCase().includes(search.toLowerCase()) ||
-    s.department?.toLowerCase().includes(search.toLowerCase()) ||
-    s.position?.toLowerCase().includes(search.toLowerCase())
-  );
+
 
   return (
     <section className="max-w-6xl mx-auto">
@@ -587,12 +581,12 @@ export default function StaffPage() {
             <div className="space-y-4 md:hidden p-4">
               {loading ? (
                 <InlineSkeleton rows={5} />
-              ) : filteredStaff.length === 0 ? (
+              ) : staff.length === 0 ? (
                 <div className="text-center text-gray-500 dark:text-gray-400 py-4">
                   No staff members found
                 </div>
               ) : (
-                filteredStaff.map((s) => (
+                staff.map((s) => (
                   <div key={s.staffId} className="rounded-lg border border-gray-200 dark:border-gray-700 p-4 space-y-3">
                     <div className="flex items-start gap-3">
                       <input
@@ -662,14 +656,14 @@ export default function StaffPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredStaff.length === 0 ? (
+                  {staff.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-4 px-4 text-center text-gray-500 dark:text-gray-400">
                         No staff members found
                       </td>
                     </tr>
                   ) : (
-                    filteredStaff.map((s) => (
+                    staff.map((s) => (
                       <tr key={s.staffId} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="py-2 px-2 md:px-4">
                           <input 

@@ -1,11 +1,15 @@
 "use client";
 
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronDown, ChevronUp, EyeOff, FileStack, Search } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { PageSkeleton } from '../../components/PageSkeleton';
-import { getStudentReportsForUser } from '../../utils/studentReports';
+import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
+import {
+  getStudentReportsForUser,
+  migrateLocalReports,
+  type StudentReport,
+} from '../../utils/studentReports';
 
 const categoryLabels = {
   disciplinary_case: 'Disciplinary Case',
@@ -18,46 +22,60 @@ export default function MyReportsPage() {
   const [statusFilter, setStatusFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [reports, setReports] = useState<StudentReport[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  if (typeof window !== 'undefined') {
+  useEffect(() => {
     if (!authLoading && !token) {
       router.replace('/login');
     }
-    if (!token) {
-      return <PageSkeleton />;
+  }, [authLoading, token, router]);
+
+  useEffect(() => {
+    if (!user || user.role !== 'student') return;
+
+    const userId = user.id;
+    const userUsername = user.username;
+    const userName = user.name;
+    let cancelled = false;
+
+    async function fetchReports() {
+      setLoading(true);
+      try {
+        // Run migration on first load
+        await migrateLocalReports({ id: userId, username: userUsername, name: userName });
+
+        const data = await getStudentReportsForUser({
+          id: userId,
+          username: userUsername,
+          name: userName,
+        }, search);
+        if (!cancelled) setReports(data);
+      } catch (err) {
+        console.error('Failed to load reports:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
 
-    if (!user || user.role !== 'student') {
-      return <div className="text-red-600">Access denied.</div>;
-    }
+    fetchReports();
+    return () => { cancelled = true; };
+  }, [user, search]);
+
+  if (!authLoading && !token) {
+    router.replace('/login');
+  }
+  if (!token || !user) {
+    return <PageSkeleton />;
+  }
+  if (user.role !== 'student') {
+    return <div className="text-red-600">Access denied.</div>;
   }
 
-  const reports = useMemo(() => {
-    if (!user) {
-      return [];
-    }
-
-    return getStudentReportsForUser({
-      id: user.id,
-      username: user.username,
-      name: user.name,
-    });
-  }, [user]);
-
-  const filteredReports = useMemo(() => {
-    return reports.filter((report) => {
-      const matchesStatus = statusFilter === 'All' || report.status === statusFilter;
-      const query = search.trim().toLowerCase();
-      const matchesSearch =
-        !query ||
-        report.title.toLowerCase().includes(query) ||
-        report.trackingCode.toLowerCase().includes(query) ||
-        report.description.toLowerCase().includes(query) ||
-        categoryLabels[report.category].toLowerCase().includes(query);
-
-      return matchesStatus && matchesSearch;
-    });
-  }, [reports, search, statusFilter]);
+  const filteredReports = reports.filter((report) => {
+    const matchesStatus = statusFilter === 'All' || report.status === statusFilter;
+    return matchesStatus;
+  });
 
   return (
     <section className="max-w-5xl mx-auto space-y-6 md:space-y-8">
@@ -95,7 +113,11 @@ export default function MyReportsPage() {
           </select>
         </div>
 
-        {filteredReports.length === 0 ? (
+        {loading ? (
+          <div className="space-y-3 p-4">
+            <InlineSkeleton rows={4} />
+          </div>
+        ) : filteredReports.length === 0 ? (
           <div className="rounded-lg md:rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 p-6 md:p-10 text-center">
             <FileStack className="mx-auto mb-2 md:mb-3 text-kmuOrange" size={24} />
             <h2 className="text-base md:text-xl font-semibold text-gray-900 dark:text-white">No reports found</h2>
