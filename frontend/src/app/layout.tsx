@@ -148,7 +148,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="Campus Reports - Kapasa Makasa University Student Discipline Management System" />
+        <meta name="description" content="Campus safety and issue reporting platform" />
         <meta name="theme-color" content="#008542" />
         <link rel="icon" href="/icon-transparent-192.png" sizes="any" />
         <link rel="apple-touch-icon" href="/icon-512x512.png" />

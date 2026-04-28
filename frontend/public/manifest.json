@@ -1,7 +1,7 @@
 {
     "name": "Campus Reports",
     "short_name": "Campus Reports",
-    "description": "Student Discipline Management System - Fast, Secure, and Offline-Capable",
+    "description": "Campus safety and issue reporting platform",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
