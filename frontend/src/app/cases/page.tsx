@@ -30,6 +30,7 @@ interface Staff {
 
 interface Case {
   _id: string;
+  caseId?: string;
   student_id?: string; // Raw student ID from database
   student?: Student;
   staff_id?: string; // Raw staff ID from database
@@ -297,6 +298,10 @@ export default function CasesPage() {
     return caseItem.student?.fullName || caseItem.staff?.fullName || 'Unknown';
   };
 
+  const getCaseDisplayId = (caseItem: Case) => {
+    return caseItem.caseId || caseItem._id;
+  };
+
   if (loading) {
     return (
       <section className="max-w-6xl mx-auto p-4 space-y-4">
@@ -527,7 +532,7 @@ export default function CasesPage() {
                         )}
                       </div>
                     </div>
-                    <span className="text-xs text-gray-400 dark:text-gray-500">{s._id.slice(-6)}</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">{getCaseDisplayId(s)}</span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-sm">
@@ -592,7 +597,7 @@ export default function CasesPage() {
                           />
                         </td>
                         <td className="py-2 px-2 md:px-4 text-xs text-gray-500 dark:text-gray-400">
-                          {s._id.slice(-6)}
+                          {getCaseDisplayId(s)}
                         </td>
                         <td className="py-2 px-2 md:px-4">
                           {person ? (

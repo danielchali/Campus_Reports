@@ -272,17 +272,17 @@ export default function SecurityDashboard() {
   }
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-6">
-      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-7">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+    <div className="mx-auto max-w-[1600px] space-y-4 xl:space-y-5">
+      <section className="max-w-4xl rounded-[24px] border border-slate-200 bg-white px-5 py-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-6">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-kmuGreen">Dashboard</p>
-            <h1 className="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">Security Officer Dashboard</h1>
-            <p className="mt-2 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+            <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white md:text-[1.75rem]">Security Officer Dashboard</h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
               Record new cases quickly, keep active investigations visible, and work from the same dashboard pattern as the other roles.
             </p>
           </div>
-          <div className="flex min-w-[260px] items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950 xl:max-w-md">
+          <div className="flex min-w-[240px] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-950 xl:max-w-sm">
             <UserRound size={18} className="text-kmuGreen" />
             <input
               value={search}
@@ -300,33 +300,33 @@ export default function SecurityDashboard() {
         </div>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (
-            <article key={card.label} className={`rounded-[28px] border p-5 shadow-sm ${toneClasses[card.tone as keyof typeof toneClasses]}`}>
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-kmuGreen/10 text-kmuGreen dark:bg-kmuGreen/20">
-                <Icon size={22} />
+            <article key={card.label} className={`rounded-[24px] border p-4 shadow-sm ${toneClasses[card.tone as keyof typeof toneClasses]}`}>
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-kmuGreen/10 text-kmuGreen dark:bg-kmuGreen/20">
+                <Icon size={18} />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{card.label}</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">{card.value}</p>
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{card.helper}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{card.label}</p>
+              <p className="mt-1.5 text-2xl font-semibold text-slate-900 dark:text-white">{card.value}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{card.helper}</p>
             </article>
           );
         })}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.9fr)]">
-        <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="mb-6 flex items-center justify-between">
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.82fr)]">
+        <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Create Case</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Submit a student or staff case directly to the backend.</p>
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">Create Case</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Submit a student or staff case directly to the backend.</p>
             </div>
             <PlusCircle size={18} className="text-kmuGreen" />
           </div>
 
-          <div className="mb-4 inline-flex rounded-2xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950">
+          <div className="mb-3 inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-950">
             <button
               type="button"
               onClick={() => {
@@ -334,7 +334,7 @@ export default function SecurityDashboard() {
                 setStaffId('');
                 setSelectedStaff(null);
               }}
-              className={`rounded-xl px-4 py-2 text-sm font-medium ${caseType === 'student' ? 'bg-kmuGreen text-white' : 'text-slate-600 dark:text-slate-300'}`}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium ${caseType === 'student' ? 'bg-kmuGreen text-white' : 'text-slate-600 dark:text-slate-300'}`}
             >
               Student Case
             </button>
@@ -345,13 +345,13 @@ export default function SecurityDashboard() {
                 setStudentId('');
                 setSelectedStudent(null);
               }}
-              className={`rounded-xl px-4 py-2 text-sm font-medium ${caseType === 'staff' ? 'bg-kmuGreen text-white' : 'text-slate-600 dark:text-slate-300'}`}
+              className={`rounded-lg px-3 py-1.5 text-xs font-medium ${caseType === 'staff' ? 'bg-kmuGreen text-white' : 'text-slate-600 dark:text-slate-300'}`}
             >
               Staff Case
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3">
             <div className="space-y-2">
               {caseType === 'student' ? (
                 <SmartStudentSearch
@@ -374,30 +374,30 @@ export default function SecurityDashboard() {
               )}
 
               {selectedStudent && (
-                <div className="rounded-2xl bg-slate-50 px-3 py-3 text-sm text-slate-600 dark:bg-slate-950 dark:text-slate-300">
+                <div className="rounded-xl bg-slate-50 px-3 py-2.5 text-sm text-slate-600 dark:bg-slate-950 dark:text-slate-300">
                   {selectedStudent.fullName} ({selectedStudent.studentId}) • {selectedStudent.program || selectedStudent.department || 'N/A'}
                 </div>
               )}
 
               {selectedStaff && (
-                <div className="rounded-2xl bg-slate-50 px-3 py-3 text-sm text-slate-600 dark:bg-slate-950 dark:text-slate-300">
+                <div className="rounded-xl bg-slate-50 px-3 py-2.5 text-sm text-slate-600 dark:bg-slate-950 dark:text-slate-300">
                   {selectedStaff.fullName} ({selectedStaff.staffId}) • {selectedStaff.department}
                 </div>
               )}
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-3">
               <input
                 type="date"
                 value={incidentDate}
                 onChange={(event) => setIncidentDate(event.target.value)}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                 required
               />
               <select
                 value={offenseType}
                 onChange={(event) => setOffenseType(event.target.value)}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                 required
               >
                 <option value="">Select offense type</option>
@@ -410,7 +410,7 @@ export default function SecurityDashboard() {
               <select
                 value={severity}
                 onChange={(event) => setSeverity(event.target.value)}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                 required
               >
                 <option value="">Select severity</option>
@@ -427,7 +427,7 @@ export default function SecurityDashboard() {
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder={offenseTypeDescription || 'Case description'}
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
               required
             />
 
@@ -436,7 +436,7 @@ export default function SecurityDashboard() {
               value={sanctions}
               onChange={(event) => setSanctions(event.target.value)}
               placeholder="Sanctions (optional)"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
             />
 
             <div className="flex items-center justify-between gap-3">
@@ -446,7 +446,7 @@ export default function SecurityDashboard() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="rounded-2xl bg-kmuGreen px-5 py-3 text-sm font-medium text-white transition hover:bg-kmuGreen-dark disabled:opacity-60"
+                className="rounded-xl bg-kmuGreen px-4 py-2.5 text-sm font-medium text-white transition hover:bg-kmuGreen-dark disabled:opacity-60"
               >
                 {submitting ? 'Submitting...' : 'Submit Case'}
               </button>
@@ -454,34 +454,34 @@ export default function SecurityDashboard() {
           </form>
         </article>
 
-        <div className="space-y-6">
-          <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Quick Actions</h2>
-            <div className="mt-4 grid gap-3">
-              <Link href="/cases" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+        <div className="space-y-4">
+          <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">Quick Actions</h2>
+            <div className="mt-3 grid gap-2">
+              <Link href="/cases" className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
                 Open full case list
               </Link>
-              <Link href="/students" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+              <Link href="/students" className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
                 Browse students
               </Link>
-              <Link href="/evidence" className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+              <Link href="/evidence" className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
                 Review evidence
               </Link>
             </div>
           </article>
 
-          <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Current Load</h2>
-            <div className="mt-4 space-y-3 text-sm">
-              <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
+          <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">Current Load</h2>
+            <div className="mt-3 space-y-2.5 text-sm">
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
                 <span className="text-slate-500 dark:text-slate-400">Filtered cases</span>
                 <span className="font-semibold text-slate-900 dark:text-white">{displayedCases.length}</span>
               </div>
-              <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
                 <span className="text-slate-500 dark:text-slate-400">Students ready</span>
                 <span className="font-semibold text-slate-900 dark:text-white">{students.length}</span>
               </div>
-              <div className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
                 <span className="text-slate-500 dark:text-slate-400">Staff ready</span>
                 <span className="font-semibold text-slate-900 dark:text-white">{staff.length}</span>
               </div>
@@ -490,13 +490,13 @@ export default function SecurityDashboard() {
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 dark:border-slate-800 md:flex-row md:items-center md:justify-between">
+      <section className="rounded-[24px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col gap-3 border-b border-slate-200 px-4 py-3 dark:border-slate-800 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Recent Cases</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Live results from the existing backend case feed.</p>
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">Recent Cases</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Live results from the existing backend case feed.</p>
           </div>
-          <Link href="/cases" className="text-sm font-medium text-kmuGreen hover:underline">
+          <Link href="/cases" className="text-xs font-medium text-kmuGreen hover:underline">
             View all
           </Link>
         </div>
@@ -512,7 +512,7 @@ export default function SecurityDashboard() {
                 key={item._id}
                 type="button"
                 onClick={() => item._id && router.push(`/cases/${item._id}`)}
-                className="flex w-full flex-col gap-3 px-5 py-4 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
+                className="flex w-full flex-col gap-2 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{name}</p>
@@ -535,7 +535,7 @@ export default function SecurityDashboard() {
           })}
 
           {displayedCases.length === 0 && (
-            <div className="px-5 py-10 text-sm text-slate-500 dark:text-slate-400">No cases match the current search.</div>
+            <div className="px-4 py-8 text-sm text-slate-500 dark:text-slate-400">No cases match the current search.</div>
           )}
         </div>
       </section>

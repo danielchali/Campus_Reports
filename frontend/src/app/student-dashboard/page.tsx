@@ -144,7 +144,7 @@ export default function StudentDashboardPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-4">
+    <div className="mx-auto max-w-[1600px] space-y-4 xl:space-y-5">
       <section className="max-w-4xl rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-6">
         <div>
           <div>
@@ -159,18 +159,18 @@ export default function StudentDashboardPage() {
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <section className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-6">
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (
-            <article key={card.label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className="flex items-center gap-3">
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-950 ${card.tone}`}>
-                  <Icon size={18} />
+            <article key={card.label} className="rounded-[20px] border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center gap-2.5">
+                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-950 ${card.tone}`}>
+                  <Icon size={16} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">{card.label}</p>
-                  <p className="text-2xl font-semibold text-slate-900 dark:text-white">{card.value}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">{card.label}</p>
+                  <p className="text-xl font-semibold text-slate-900 dark:text-white">{card.value}</p>
                 </div>
               </div>
             </article>
@@ -178,7 +178,7 @@ export default function StudentDashboardPage() {
         })}
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,0.95fr)]">
         <article className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
             <div>
@@ -196,7 +196,7 @@ export default function StudentDashboardPage() {
               </div>
             ) : (
               metrics.recent.map((report) => (
-                <div key={report.id} className="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:justify-between">
+                <div key={report.id} className="flex flex-col gap-2 px-4 py-2.5 md:flex-row md:items-center md:justify-between">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{report.title}</p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
@@ -224,29 +224,29 @@ export default function StudentDashboardPage() {
         </article>
 
         <div className="space-y-4">
-          <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-base font-semibold text-slate-900 dark:text-white">Quick Actions</h2>
             <div className="mt-3 grid gap-2 grid-cols-2">
-              <Link href="/make-report" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+              <Link href="/make-report" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
                 <FilePenLine size={16} />
                 <span>New Report</span>
               </Link>
-              <Link href="/make-report?anonymous=true" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+              <Link href="/make-report?anonymous=true" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
                 <Fingerprint size={16} />
                 <span>Anonymous</span>
               </Link>
-              <Link href="/make-report?category=maintenance_issue" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+              <Link href="/make-report?category=maintenance_issue" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
                 <Wrench size={16} />
                 <span>Maintenance</span>
               </Link>
-              <Link href="/help" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+              <Link href="/help" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
                 <BookOpen size={16} />
                 <span>Help</span>
               </Link>
             </div>
           </article>
 
-          <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <h2 className="text-base font-semibold text-slate-900 dark:text-white">Statement Requests</h2>
@@ -261,7 +261,7 @@ export default function StudentDashboardPage() {
                 </div>
               ) : (
                 statementRequests.slice(0, 4).map((request) => (
-                  <div key={request._id} className="rounded-xl bg-slate-50 px-3 py-3 dark:bg-slate-950">
+                  <div key={request._id} className="rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="text-xs font-medium text-slate-900 dark:text-white">{request.title}</p>
@@ -281,18 +281,18 @@ export default function StudentDashboardPage() {
             </div>
           </article>
 
-          <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-base font-semibold text-slate-900 dark:text-white">Current Snapshot</h2>
             <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
-              <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-3 dark:bg-slate-950">
+              <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
                 <span className="text-[10px] uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Maintenance</span>
                 <span className="mt-0.5 text-lg font-semibold text-slate-900 dark:text-white">{maintenanceCount}</span>
               </div>
-              <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-3 dark:bg-slate-950">
+              <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
                 <span className="text-[10px] uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Anonymous</span>
                 <span className="mt-0.5 text-lg font-semibold text-slate-900 dark:text-white">{metrics.anonymous}</span>
               </div>
-              <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-3 dark:bg-slate-950">
+              <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
                 <span className="text-[10px] uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Pending</span>
                 <span className="mt-0.5 text-lg font-semibold text-slate-900 dark:text-white">{pendingStatements}</span>
               </div>

@@ -434,7 +434,7 @@ export default function ManagementDashboard({
   const viewAllHref = dataset === 'cases' ? '/cases' : '/anonymous-report';
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-6">
+    <div className="mx-auto max-w-[1600px] space-y-4 xl:space-y-5">
       <section className="max-w-4xl rounded-[24px] border border-slate-200 bg-white px-5 py-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-6">
         <div>
           <div>
@@ -451,32 +451,32 @@ export default function ManagementDashboard({
         </div>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {metricKeys.map((key) => {
           const metric = metricMap[key];
           const Icon = metric.icon;
           const tone = toneClasses[metric.tone];
 
           return (
-            <article key={metric.label} className={`rounded-[28px] border bg-white p-5 shadow-sm dark:bg-slate-900 ${tone.border}`}>
-              <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${tone.icon}`}>
-                <Icon size={22} />
+            <article key={metric.label} className={`rounded-[24px] border bg-white p-4 shadow-sm dark:bg-slate-900 ${tone.border}`}>
+              <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${tone.icon}`}>
+                <Icon size={18} />
               </div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{metric.label}</p>
-              <p className="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">{metric.value}</p>
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">{metric.helper}</p>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{metric.label}</p>
+              <p className="mt-1.5 text-2xl font-semibold text-slate-900 dark:text-white">{metric.value}</p>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{metric.helper}</p>
             </article>
           );
         })}
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-3">
-        <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 xl:col-span-2">
-          <div className="mb-6">
+      <section className="grid gap-4 xl:grid-cols-3">
+        <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 xl:col-span-2">
+          <div className="mb-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{dataset === 'cases' ? 'Case Activity' : 'Report Activity'}</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Last seven days from endpoints this role is allowed to access.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Last seven days from endpoints this role is allowed to access.</p>
           </div>
-          <div className="h-[320px]">
+          <div className="h-[250px] xl:h-[230px]">
             <Line
               data={trendData}
               options={{
@@ -492,26 +492,26 @@ export default function ManagementDashboard({
           </div>
         </article>
 
-        <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="mb-6">
+        <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="mb-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{dataset === 'cases' ? 'Offense Breakdown' : 'Category Breakdown'}</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Current distribution for the visible dataset.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Current distribution for the visible dataset.</p>
           </div>
-          <div className="relative mx-auto h-[220px] max-w-[240px]">
+          <div className="relative mx-auto h-[190px] max-w-[210px]">
             <Doughnut data={breakdown} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-semibold text-slate-900 dark:text-white">{primaryItems.length}</span>
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+              <span className="text-2xl font-semibold text-slate-900 dark:text-white">{primaryItems.length}</span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
                 {dataset === 'cases' ? 'Cases' : 'Reports'}
               </span>
             </div>
           </div>
-          <div className="mt-6 space-y-3">
+          <div className="mt-4 space-y-2.5">
             {breakdown.labels.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400">No breakdown data available.</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">No breakdown data available.</p>
             ) : (
               breakdown.labels.map((label, index) => (
-                <div key={label} className="flex items-center justify-between gap-3 text-sm">
+                <div key={label} className="flex items-center justify-between gap-3 text-xs">
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: breakdown.datasets[0].backgroundColor[index] as string }} />
                     <span className="truncate text-slate-600 dark:text-slate-300">{label}</span>
@@ -524,20 +524,20 @@ export default function ManagementDashboard({
         </article>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
-        <article className="rounded-[28px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.85fr)_minmax(280px,0.95fr)]">
+        <article className="rounded-[24px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{focusLabel}</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Latest visible items for this dashboard.</p>
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">{focusLabel}</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Latest visible items for this dashboard.</p>
             </div>
-            <Link href={viewAllHref} className="text-sm font-medium text-kmuGreen hover:underline">
+            <Link href={viewAllHref} className="text-xs font-medium text-kmuGreen hover:underline">
               View all
             </Link>
           </div>
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {focusItems.length === 0 ? (
-              <div className="px-5 py-10 text-sm text-slate-500 dark:text-slate-400">{focusEmpty}</div>
+              <div className="px-4 py-8 text-sm text-slate-500 dark:text-slate-400">{focusEmpty}</div>
             ) : dataset === 'cases' ? (
               (focusItems as CaseItem[]).map((item) => {
                 const person = getCasePerson(item);
@@ -550,7 +550,7 @@ export default function ManagementDashboard({
                     key={item._id || `${person.name}-${getCaseDate(item)}`}
                     type="button"
                     onClick={() => item._id && router.push(`/cases/${item._id}`)}
-                    className="flex w-full flex-col gap-3 px-5 py-4 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
+                    className="flex w-full flex-col gap-2 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{person.name}</p>
@@ -572,7 +572,7 @@ export default function ManagementDashboard({
                   <Link
                     key={item._id || item.tracking_code}
                     href="/anonymous-report"
-                    className="flex w-full flex-col gap-3 px-5 py-4 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
+                    className="flex w-full flex-col gap-2 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{item.title || 'Untitled report'}</p>
@@ -590,43 +590,43 @@ export default function ManagementDashboard({
           </div>
         </article>
 
-        <div className="space-y-6">
-          <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Quick Actions</h2>
-            <div className="mt-4 grid gap-3">
+        <div className="space-y-4">
+          <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">Quick Actions</h2>
+            <div className="mt-3 grid gap-2">
               {quickActions.map((action) => (
                 <Link
                   key={action.href}
                   href={action.href}
-                  className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 transition hover:border-kmuGreen/30 hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:border-kmuGreen/30 hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
                 >
                   <span>{action.label}</span>
-                  <ArrowRight size={16} />
+                  <ArrowRight size={14} />
                 </Link>
               ))}
             </div>
           </article>
 
-          <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">System Snapshot</h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-              <div className="rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+          <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-white">System Snapshot</h2>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+              <div className="rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
                   {dataset === 'cases' ? 'Visible Cases' : 'Visible Reports'}
                 </p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{primaryItems.length}</p>
+                <p className="mt-1.5 text-xl font-semibold text-slate-900 dark:text-white">{primaryItems.length}</p>
               </div>
-              <div className="rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Staff Loaded</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{summary.totalStaff}</p>
+              <div className="rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Staff Loaded</p>
+                <p className="mt-1.5 text-xl font-semibold text-slate-900 dark:text-white">{summary.totalStaff}</p>
               </div>
-              <div className="rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Pending Statements</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{summary.pendingStatements}</p>
+              <div className="rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Pending Statements</p>
+                <p className="mt-1.5 text-xl font-semibold text-slate-900 dark:text-white">{summary.pendingStatements}</p>
               </div>
-              <div className="rounded-2xl bg-slate-50 px-4 py-3 dark:bg-slate-950">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Submitted Statements</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{summary.submittedStatements}</p>
+              <div className="rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Submitted Statements</p>
+                <p className="mt-1.5 text-xl font-semibold text-slate-900 dark:text-white">{summary.submittedStatements}</p>
               </div>
             </div>
           </article>
