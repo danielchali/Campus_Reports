@@ -36,7 +36,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col items-center gap-6"
+            className="flex flex-col items-center gap-6 -mt-12"
           >
             <div className="relative h-40 w-40">
               <img 
@@ -64,7 +64,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
             className="space-y-1"
           >
             <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
-              from
+              by
             </p>
             <p className="text-sm font-bold text-slate-700">
               Daniel Chali & Grace Namonje
