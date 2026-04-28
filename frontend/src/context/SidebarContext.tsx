@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState } from 'react';
 
+const DEFAULT_SIDEBAR_WIDTH = 224;
+
 interface SidebarContextType {
   sidebarWidth: number;
   setSidebarWidth: (width: number) => void;
@@ -10,14 +12,14 @@ interface SidebarContextType {
 }
 
 const SidebarContext = createContext<SidebarContextType>({
-  sidebarWidth: 256,
+  sidebarWidth: DEFAULT_SIDEBAR_WIDTH,
   setSidebarWidth: () => {},
   isOpenMobile: false,
   setIsOpenMobile: () => {},
 });
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
-  const [sidebarWidth, setSidebarWidth] = useState(256);
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
   const [isOpenMobile, setIsOpenMobile] = useState(false);
 
   return (

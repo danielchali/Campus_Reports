@@ -10,7 +10,7 @@ export default function AdminPage() {
       subtitle="Monitor case activity, review operational load, and move into the main management tools from one place."
       focusLabel="Recent Campus Reports"
       focusEmpty="No recent incident or maintenance reports are available."
-      metricKeys={['totalCases', 'resolvedCases', 'pendingCases', 'highPriorityCases', 'totalUsers']}
+      metricKeys={['totalCampusReports', 'resolvedReports', 'pendingReviewReports', 'openReports']}
       dataset="anonymousReports"
       quickActions={[
         { href: '/cases/new', label: 'Create New Case' },

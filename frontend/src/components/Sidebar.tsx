@@ -9,6 +9,10 @@ import { useSidebar } from '../context/SidebarContext';
 import { useTheme } from '../context/ThemeContext';
 import { getNavLinksForRole, splitNavLinksForMobile } from '../utils/navigation';
 
+const MOBILE_SIDEBAR_WIDTH = 'min(240px, calc(100vw - 4rem))';
+const MIN_DESKTOP_SIDEBAR_WIDTH = 184;
+const MAX_DESKTOP_SIDEBAR_WIDTH = 320;
+
 export default function Sidebar() {
   const [isResizing, setIsResizing] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -21,7 +25,7 @@ export default function Sidebar() {
   const { bottomNav, sidebarNav } = splitNavLinksForMobile(allNavLinks);
 
   const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl transition-transform duration-300 ease-in-out ${
-    isOpenMobile ? 'translate-x-0 w-[280px]' : '-translate-x-full md:translate-x-0 md:w-auto'
+    isOpenMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0 md:w-auto'
   }`;
 
   const linkBase =
@@ -40,7 +44,7 @@ export default function Sidebar() {
     }
 
     const newWidth = e.clientX;
-    if (newWidth >= 200 && newWidth <= 400) {
+    if (newWidth >= MIN_DESKTOP_SIDEBAR_WIDTH && newWidth <= MAX_DESKTOP_SIDEBAR_WIDTH) {
       setSidebarWidth(newWidth);
     }
   };
@@ -91,7 +95,10 @@ export default function Sidebar() {
           onClick={() => setIsOpenMobile(false)}
         />
       )}
-      <aside className={sidebarBase} style={{ width: isDesktop ? `${sidebarWidth}px` : undefined }}>
+      <aside
+        className={sidebarBase}
+        style={{ width: isDesktop ? `${sidebarWidth}px` : MOBILE_SIDEBAR_WIDTH }}
+      >
         <div className="px-5 pb-4 pt-6">
           <div className="flex items-center justify-center">
             <img

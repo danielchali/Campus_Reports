@@ -47,6 +47,9 @@ type MetricKey =
   | 'pendingCases'
   | 'resolvedCases'
   | 'highPriorityCases'
+  | 'totalCampusReports'
+  | 'pendingReviewReports'
+  | 'resolvedReports'
   | 'totalStudents'
   | 'totalStaff'
   | 'totalUsers'
@@ -308,9 +311,18 @@ export default function ManagementDashboard({
     const pendingCases = cases.filter((item) => item.status === 'Open' || item.status === 'Under Investigation').length;
     const resolvedCases = cases.filter((item) => item.status === 'Closed').length;
     const highPriorityCases = cases.filter((item) => item.severity === 'High' || item.severity === 'Critical').length;
+    const totalCampusReports = anonymousReports.length + studentReports.length;
+    const pendingReviewReports =
+      anonymousReports.filter((item) => item.status === 'Submitted' || item.status === 'Under Review').length +
+      studentReports.filter((item) => item.status === 'Submitted' || item.status === 'Under Review').length;
+    const resolvedReports =
+      anonymousReports.filter((item) => item.status === 'Resolved').length +
+      studentReports.filter((item) => item.status === 'Resolved').length;
 
     const totalReports = anonymousReports.length;
-    const openReports = anonymousReports.filter((item) => item.status !== 'Resolved').length;
+    const openReports =
+      anonymousReports.filter((item) => item.status === 'In Progress').length +
+      studentReports.filter((item) => item.status === 'In Progress').length;
     const pendingStatements = statementRequests.filter((item) => item.status === 'pending').length;
     const submittedStatements = statementRequests.filter((item) => item.status === 'submitted').length;
 
@@ -320,6 +332,9 @@ export default function ManagementDashboard({
       pendingCases,
       resolvedCases,
       highPriorityCases,
+      totalCampusReports,
+      pendingReviewReports,
+      resolvedReports,
       totalStudents: students.length,
       totalStaff: staff.length,
       totalUsers: users.length,
@@ -336,11 +351,14 @@ export default function ManagementDashboard({
     pendingCases: { label: 'Pending Review', value: summary.pendingCases, tone: 'orange', icon: AlertTriangle, helper: 'Open or under investigation' },
     resolvedCases: { label: 'Resolved', value: summary.resolvedCases, tone: 'emerald', icon: CheckCircle2, helper: 'Closed matters' },
     highPriorityCases: { label: 'High Priority', value: summary.highPriorityCases, tone: 'orange', icon: Shield, helper: 'High or critical severity' },
+    totalCampusReports: { label: 'Total Reports', value: summary.totalCampusReports, tone: 'green', icon: FileStack, helper: 'Student and anonymous reports' },
+    pendingReviewReports: { label: 'Pending Review', value: summary.pendingReviewReports, tone: 'amber', icon: AlertTriangle, helper: 'Submitted or under review' },
+    resolvedReports: { label: 'Resolved', value: summary.resolvedReports, tone: 'emerald', icon: CheckCircle2, helper: 'Resolved reports' },
     totalStudents: { label: 'Students', value: summary.totalStudents, tone: 'green', icon: GraduationCap, helper: 'Fetched student records' },
     totalStaff: { label: 'Staff', value: summary.totalStaff, tone: 'slate', icon: Briefcase, helper: 'Fetched staff records' },
     totalUsers: { label: 'Users', value: summary.totalUsers, tone: 'slate', icon: Users, helper: 'Fetched user accounts' },
-    totalReports: { label: 'Anonymous Reports', value: summary.totalReports, tone: 'green', icon: FileStack, helper: 'Allowed report records' },
-    openReports: { label: 'Open Reports', value: summary.openReports, tone: 'amber', icon: Clock3, helper: 'Not yet resolved' },
+    totalReports: { label: 'Anonymous Reports', value: summary.totalReports, tone: 'green', icon: FileStack, helper: 'Allowed anonymous report records' },
+    openReports: { label: 'In Progress', value: summary.openReports, tone: 'orange', icon: Clock3, helper: 'Reports actively being handled' },
     pendingStatements: { label: 'Pending Statements', value: summary.pendingStatements, tone: 'orange', icon: AlertTriangle, helper: 'Student replies outstanding' },
     submittedStatements: { label: 'Submitted Statements', value: summary.submittedStatements, tone: 'emerald', icon: CheckCircle2, helper: 'Received from students' },
   };
@@ -383,7 +401,7 @@ export default function ManagementDashboard({
       return [...studentReportItems, ...filteredReports]
         .filter((item) => getReportDate(item))
         .sort((a, b) => new Date(getReportDate(b)).getTime() - new Date(getReportDate(a)).getTime())
-        .slice(0, 8);
+        .slice(0, 3);
     }
 
     const studentReportItems: AnonymousReport[] = studentReports.map((item) => ({
@@ -400,7 +418,7 @@ export default function ManagementDashboard({
     return [...studentReportItems, ...filteredReports]
       .filter((item) => getReportDate(item))
       .sort((a, b) => new Date(getReportDate(b)).getTime() - new Date(getReportDate(a)).getTime())
-      .slice(0, 8);
+      .slice(0, 3);
   }, [dataset, filteredReports, studentReports]);
 
   const trendData = useMemo(() => {
@@ -513,15 +531,18 @@ export default function ManagementDashboard({
         </div>
       )}
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 xl:grid-cols-5">
         {metricKeys.map((key) => {
           const metric = metricMap[key];
           const Icon = metric.icon;
           const tone = toneClasses[metric.tone];
 
           return (
-            <article key={metric.label} className={`rounded-xl border bg-white p-2.5 shadow-sm dark:bg-slate-900 ${tone.border}`}>
-              <div className="flex items-center gap-3">
+            <article
+              key={metric.label}
+              className={`aspect-square min-w-[110px] shrink-0 rounded-xl border bg-white p-3 shadow-sm dark:bg-slate-900 sm:min-w-0 sm:aspect-auto ${tone.border}`}
+            >
+              <div className="flex h-full flex-col justify-between gap-3 sm:flex-row sm:items-center sm:gap-3">
                 <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tone.icon}`}>
                   <Icon size={16} />
                 </div>

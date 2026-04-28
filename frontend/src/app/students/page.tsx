@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { API_BASE_URL, getAvailableYearsForProgram, PROGRAM_OPTIONS, YEAR_OPTIONS } from '../../config/constants';
-import { getAll, create, remove } from '../../utils/api';
+import { API_BASE_URL, PROGRAM_OPTIONS, YEAR_OPTIONS } from '../../config/constants';
+import { remove } from '../../utils/api';
 import { useOfflineApi } from '../../hooks/useOfflineSync';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
@@ -41,6 +41,7 @@ export default function StudentsPage() {
   const [total, setTotal] = useState(0);
   const [offlineMode, setOfflineMode] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
   const { apiCall, isLoading: apiLoading, error: apiError } = useOfflineApi();
   
   // Handle authentication like profile page - only on client side
@@ -409,32 +410,35 @@ export default function StudentsPage() {
       {loading && <div className="mb-4"><InlineSkeleton rows={5} /></div>}
 
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
-              <h3 className="mb-3 font-medium">Bulk Import</h3>
-              <div className="space-y-3">
-                <label className="block">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Upload CSV or Excel file:</span>
+        <div className="lg:col-span-3">
+          <div className="rounded-lg bg-white shadow dark:bg-gray-800">
+            <div className="border-b border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+              <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Student List</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    CSV and Excel imports must include `studentId`, `fullName`, and `program`.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <input
+                    ref={importInputRef}
                     type="file"
                     accept=".csv,.xls,.xlsx"
                     onChange={handleImport}
                     disabled={loading}
-                    className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded file:border-0 file:bg-kmuGreen file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-kmuOrange"
+                    className="hidden"
                   />
-                </label>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  CSV/Excel files should include columns: studentId, fullName, program (required)
-                </p>
+                  <button
+                    type="button"
+                    onClick={() => importInputRef.current?.click()}
+                    disabled={loading}
+                    className="w-full rounded bg-kmuGreen px-4 py-2 text-sm text-white transition hover:bg-kmuOrange disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+                  >
+                    {loading ? 'Importing...' : 'Import Students'}
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="lg:col-span-2">
-          <div className="rounded-lg bg-white shadow dark:bg-gray-800">
-            <div className="border-b border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
               <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
                 <input
                   type="text"

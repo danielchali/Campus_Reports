@@ -4,8 +4,10 @@ import mongoose from 'mongoose';
 
 export async function listUsers(req, res) {
     try {
-        const search = req.query.search;
+        const search = String(req.query.search || '').trim();
+        const role = String(req.query.role || '').trim();
         const query = {};
+
         if (search) {
             const regex = { $regex: search, $options: 'i' };
             query.$or = [
@@ -13,6 +15,11 @@ export async function listUsers(req, res) {
                 { name: regex }
             ];
         }
+
+        if (role) {
+            query.role = role;
+        }
+
         const users = await UserModel.find(query, '-password');
         res.json(users);
     } catch (err) {

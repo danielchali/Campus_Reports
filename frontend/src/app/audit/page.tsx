@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from '../../context/AuthContext';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
@@ -47,11 +47,18 @@ export default function AuditPage() {
   const [stats, setStats] = useState<{[key: string]: number}>({});
   const [search, setSearch] = useState('');
   const [actionFilter, setActionFilter] = useState('');
-  const [entityFilter, setEntityFilter] = useState('');
-  const [userFilter, setUserFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   const limit = 20;
+
+  const actionOptions = useMemo(() => {
+    const actionSet = new Set<string>([
+      ...Object.keys(stats || {}),
+      ...logs.map((log) => log.action).filter(Boolean),
+    ]);
+
+    return Array.from(actionSet).sort((a, b) => a.localeCompare(b));
+  }, [logs, stats]);
 
   useEffect(() => {
     async function fetchLogs() {
@@ -69,8 +76,6 @@ export default function AuditPage() {
         });
         if (search) params.set('search', search);
         if (actionFilter) params.set('action', actionFilter);
-        if (entityFilter) params.set('entity', entityFilter);
-        if (userFilter) params.set('user', userFilter);
         if (dateFrom) params.set('dateFrom', dateFrom);
         if (dateTo) params.set('dateTo', dateTo);
 
@@ -90,7 +95,7 @@ export default function AuditPage() {
       setLoading(false);
     }
     if (user && canAccessPage(user.role, 'audit')) fetchLogs();
-  }, [token, user, API_BASE_URL, page, search, actionFilter, entityFilter, userFilter, dateFrom, dateTo]);
+  }, [token, user, API_BASE_URL, page, search, actionFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     if (!user || !canAccessPage(user.role, 'audit')) return;
@@ -157,35 +162,26 @@ export default function AuditPage() {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1.8fr)_minmax(220px,0.9fr)_repeat(2,minmax(0,0.8fr))]">
             <input
               type="text"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Search"
+              placeholder="Search actions, entities, IDs, or users"
               className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             />
-            <input
-              type="text"
+            <select
               value={actionFilter}
               onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
-              placeholder="Action"
               className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            />
-            <input
-              type="text"
-              value={entityFilter}
-              onChange={(e) => { setEntityFilter(e.target.value); setPage(1); }}
-              placeholder="Entity"
-              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            />
-            <input
-              type="text"
-              value={userFilter}
-              onChange={(e) => { setUserFilter(e.target.value); setPage(1); }}
-              placeholder="User"
-              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-            />
+            >
+              <option value="">All Actions</option>
+              {actionOptions.map((action) => (
+                <option key={action} value={action}>
+                  {action.replace(/_/g, ' ')}
+                </option>
+              ))}
+            </select>
             <input
               type="date"
               value={dateFrom}
@@ -205,8 +201,6 @@ export default function AuditPage() {
               onClick={() => {
                 setSearch('');
                 setActionFilter('');
-                setEntityFilter('');
-                setUserFilter('');
                 setDateFrom('');
                 setDateTo('');
                 setPage(1);
