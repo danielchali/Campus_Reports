@@ -40,7 +40,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
           >
             <div className="relative h-40 w-40">
               <img 
-                src="/kmu_logo.png" 
+                src="/kmu_logo.svg" 
                 alt="KMU Logo" 
                 className="h-full w-full object-contain"
               />
