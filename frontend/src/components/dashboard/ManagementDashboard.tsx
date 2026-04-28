@@ -113,6 +113,18 @@ type AnonymousReport = {
   incident_date?: string;
 };
 
+type StudentReport = {
+  id?: string;
+  trackingCode?: string;
+  title?: string;
+  category?: 'disciplinary_case' | 'maintenance_issue';
+  anonymous?: boolean;
+  status?: string;
+  location?: string;
+  submittedAt?: string;
+  incidentDate?: string;
+};
+
 type StatementRequest = {
   _id?: string;
   title?: string;
@@ -191,10 +203,10 @@ function getCasePerson(caseItem: CaseItem) {
 
 function getRoleResources(role: SupportedRole) {
   if (role === 'admin') {
-    return ['/cases', '/students', '/staff', '/users'] as const;
+    return ['/cases', '/students', '/staff', '/users', '/student-reports', '/anonymous-reports'] as const;
   }
 
-  return ['/anonymous-reports', '/staff', '/statement-requests/staff'] as const;
+  return ['/student-reports', '/anonymous-reports', '/staff', '/statement-requests/staff'] as const;
 }
 
 export default function ManagementDashboard({
@@ -214,6 +226,7 @@ export default function ManagementDashboard({
   const [staff, setStaff] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [anonymousReports, setAnonymousReports] = useState<AnonymousReport[]>([]);
+  const [studentReports, setStudentReports] = useState<StudentReport[]>([]);
   const [statementRequests, setStatementRequests] = useState<StatementRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -257,6 +270,7 @@ export default function ManagementDashboard({
       setStudents(Array.isArray(resolved['/students']) ? resolved['/students'] : resolved['/students']?.students || []);
       setStaff(Array.isArray(resolved['/staff']) ? resolved['/staff'] : resolved['/staff']?.staff || []);
       setUsers(Array.isArray(resolved['/users']) ? resolved['/users'] : resolved['/users']?.users || []);
+      setStudentReports(Array.isArray(resolved['/student-reports']) ? resolved['/student-reports'] : []);
       setAnonymousReports(Array.isArray(resolved['/anonymous-reports']) ? resolved['/anonymous-reports'] : []);
       setStatementRequests(Array.isArray(resolved['/statement-requests/staff']) ? resolved['/statement-requests/staff'] : []);
 
@@ -265,6 +279,7 @@ export default function ManagementDashboard({
         Boolean((Array.isArray(resolved['/students']) ? resolved['/students'] : resolved['/students']?.students || []).length) ||
         Boolean((Array.isArray(resolved['/staff']) ? resolved['/staff'] : resolved['/staff']?.staff || []).length) ||
         Boolean((Array.isArray(resolved['/users']) ? resolved['/users'] : resolved['/users']?.users || []).length) ||
+        Boolean((Array.isArray(resolved['/student-reports']) ? resolved['/student-reports'] : []).length) ||
         Boolean((Array.isArray(resolved['/anonymous-reports']) ? resolved['/anonymous-reports'] : []).length) ||
         Boolean((Array.isArray(resolved['/statement-requests/staff']) ? resolved['/statement-requests/staff'] : []).length);
 
@@ -286,17 +301,6 @@ export default function ManagementDashboard({
       active = false;
     };
   }, [role, token]);
-
-  if (!authLoading && !token) {
-    router.replace('/login');
-  }
-  if (!token) {
-    return <PageSkeleton />;
-  }
-
-  if (!authLoading && user && user.role !== role) {
-    return <div className="text-red-600">Access denied.</div>;
-  }
 
   const summary = useMemo(() => {
     const totalCases = cases.length;
@@ -345,93 +349,149 @@ export default function ManagementDashboard({
 
   const filteredReports = useMemo(() => anonymousReports, [anonymousReports]);
 
+  const recentCampusReports = useMemo(() => {
+    const studentItems = studentReports.map((item) => ({
+      key: item.id || item.trackingCode || `${item.title || 'student-report'}-${item.submittedAt || item.incidentDate || ''}`,
+      date: item.submittedAt || item.incidentDate || '',
+      bucket: item.category === 'maintenance_issue' ? 'Maintenance' : 'Discipline',
+    }));
+
+    const anonymousItems = anonymousReports.map((item) => ({
+      key: item._id || item.tracking_code || `${item.title || 'anonymous-report'}-${item.createdAt || item.incident_date || ''}`,
+      date: item.createdAt || item.incident_date || '',
+      bucket: 'Anonymous',
+    }));
+
+    return [...studentItems, ...anonymousItems].filter((item) => item.date);
+  }, [anonymousReports, studentReports]);
+
   const primaryItems: Array<CaseItem | AnonymousReport> = dataset === 'cases' ? filteredCases : filteredReports;
 
   const focusItems = useMemo(() => {
     if (dataset === 'cases') {
-      const roleFiltered = filteredCases.filter((item) => {
-        if (role === 'assistant_dean') return item.status === 'Open' || item.status === 'Under Investigation';
-        if (role === 'dean_of_students') return item.severity === 'High' || item.severity === 'Critical';
-        if (role === 'chief_security_officer') return item.severity === 'High' || item.severity === 'Critical';
-        return true;
-      });
+      const studentReportItems: AnonymousReport[] = studentReports.map((item) => ({
+        _id: item.id || item.trackingCode,
+        tracking_code: item.anonymous ? 'Student Anonymous' : 'Student Named',
+        title: item.title,
+        category: item.category === 'maintenance_issue' ? 'Maintenance' : 'Incident',
+        status: item.status,
+        location: item.location,
+        createdAt: item.submittedAt || item.incidentDate,
+        incident_date: item.incidentDate,
+      }));
 
-      return [...roleFiltered]
-        .sort((a, b) => new Date(getCaseDate(b)).getTime() - new Date(getCaseDate(a)).getTime())
+      return [...studentReportItems, ...filteredReports]
+        .filter((item) => getReportDate(item))
+        .sort((a, b) => new Date(getReportDate(b)).getTime() - new Date(getReportDate(a)).getTime())
         .slice(0, 8);
     }
 
-    return [...filteredReports]
+    const studentReportItems: AnonymousReport[] = studentReports.map((item) => ({
+      _id: item.id || item.trackingCode,
+      tracking_code: item.anonymous ? 'Student Anonymous' : 'Student Named',
+      title: item.title,
+      category: item.category === 'maintenance_issue' ? 'Maintenance' : 'Incident',
+      status: item.status,
+      location: item.location,
+      createdAt: item.submittedAt || item.incidentDate,
+      incident_date: item.incidentDate,
+    }));
+
+    return [...studentReportItems, ...filteredReports]
+      .filter((item) => getReportDate(item))
       .sort((a, b) => new Date(getReportDate(b)).getTime() - new Date(getReportDate(a)).getTime())
       .slice(0, 8);
-  }, [dataset, filteredCases, filteredReports, role]);
+  }, [dataset, filteredReports, studentReports]);
 
   const trendData = useMemo(() => {
     const labels: string[] = [];
-    const counts: number[] = [];
     const today = new Date();
+    const maintenanceCounts: number[] = [];
+    const disciplineCounts: number[] = [];
+    const anonymousCounts: number[] = [];
 
     for (let offset = 6; offset >= 0; offset -= 1) {
       const date = new Date(today);
       date.setDate(today.getDate() - offset);
       labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
 
-      const count = primaryItems.filter((item: any) => {
-        const raw = dataset === 'cases' ? getCaseDate(item as CaseItem) : getReportDate(item as AnonymousReport);
-        if (!raw) return false;
-        return new Date(raw).toDateString() === date.toDateString();
-      }).length;
-
-      counts.push(count);
+      const dayItems = recentCampusReports.filter((item) => new Date(item.date).toDateString() === date.toDateString());
+      maintenanceCounts.push(dayItems.filter((item) => item.bucket === 'Maintenance').length);
+      disciplineCounts.push(dayItems.filter((item) => item.bucket === 'Discipline').length);
+      anonymousCounts.push(dayItems.filter((item) => item.bucket === 'Anonymous').length);
     }
 
     return {
       labels,
       datasets: [
         {
-          label: dataset === 'cases' ? 'Cases' : 'Reports',
-          data: counts,
+          label: 'Maintenance',
+          data: maintenanceCounts,
           borderColor: '#008542',
           backgroundColor: 'rgba(0, 133, 66, 0.10)',
           fill: true,
           tension: 0.35,
-          pointRadius: 4,
+          pointRadius: 3,
+          pointBackgroundColor: '#008542',
+          pointBorderWidth: 0,
+        },
+        {
+          label: 'Discipline',
+          data: disciplineCounts,
+          borderColor: '#ff8200',
+          backgroundColor: 'rgba(255, 130, 0, 0.08)',
+          fill: false,
+          tension: 0.35,
+          pointRadius: 3,
           pointBackgroundColor: '#ff8200',
+          pointBorderWidth: 0,
+        },
+        {
+          label: 'Anonymous',
+          data: anonymousCounts,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37, 99, 235, 0.08)',
+          fill: false,
+          tension: 0.35,
+          pointRadius: 3,
+          pointBackgroundColor: '#2563eb',
           pointBorderWidth: 0,
         },
       ],
     };
-  }, [dataset, primaryItems]);
+  }, [recentCampusReports]);
 
   const breakdown = useMemo(() => {
     const counts = new Map<string, number>();
+    counts.set('Maintenance', recentCampusReports.filter((item) => item.bucket === 'Maintenance').length);
+    counts.set('Discipline', recentCampusReports.filter((item) => item.bucket === 'Discipline').length);
+    counts.set('Anonymous', recentCampusReports.filter((item) => item.bucket === 'Anonymous').length);
 
-    if (dataset === 'cases') {
-      cases.forEach((item) => {
-        const label = item.offenseType || item.offense_type || 'Unspecified';
-        counts.set(label, (counts.get(label) || 0) + 1);
-      });
-    } else {
-      anonymousReports.forEach((item) => {
-        const label = item.category || 'Unspecified';
-        counts.set(label, (counts.get(label) || 0) + 1);
-      });
-    }
-
-    const entries = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 6);
-    const palette = ['#008542', '#ff8200', '#1d4ed8', '#ea580c', '#7c3aed', '#64748b'];
+    const entries = Array.from(counts.entries()).filter(([, value]) => value > 0);
+    const palette = ['#008542', '#ff8200', '#2563eb'];
 
     return {
       labels: entries.map(([label]) => label),
       datasets: [{ data: entries.map(([, value]) => value), backgroundColor: palette.slice(0, entries.length), borderWidth: 0, cutout: '68%' }],
     };
-  }, [anonymousReports, cases, dataset]);
+  }, [recentCampusReports]);
+
+  if (!authLoading && !token) {
+    router.replace('/login');
+  }
+  if (!token) {
+    return <PageSkeleton />;
+  }
+
+  if (!authLoading && user && user.role !== role) {
+    return <div className="text-red-600">Access denied.</div>;
+  }
 
   if (authLoading || loading) {
     return <PageSkeleton />;
   }
 
-  const viewAllHref = dataset === 'cases' ? '/cases' : '/anonymous-report';
+  const viewAllHref = dataset === 'cases' ? '/cases' : '/reports';
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 xl:space-y-5">
@@ -473,8 +533,8 @@ export default function ManagementDashboard({
       <section className="grid gap-4 xl:grid-cols-3">
         <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 xl:col-span-2">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{dataset === 'cases' ? 'Case Activity' : 'Report Activity'}</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Last seven days from endpoints this role is allowed to access.</p>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Report Activity</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Recent campus reports across maintenance, discipline, and anonymous channels.</p>
           </div>
           <div className="h-[250px] xl:h-[230px]">
             <Line
@@ -482,7 +542,13 @@ export default function ManagementDashboard({
               options={{
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: {
+                  legend: {
+                    display: true,
+                    position: 'top',
+                    labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true, font: { size: 11 } },
+                  },
+                },
                 scales: {
                   x: { grid: { display: false } },
                   y: { beginAtZero: true, grid: { color: 'rgba(148, 163, 184, 0.15)' } },
@@ -494,15 +560,15 @@ export default function ManagementDashboard({
 
         <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{dataset === 'cases' ? 'Offense Breakdown' : 'Category Breakdown'}</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Current distribution for the visible dataset.</p>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Report Distribution</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Breakdown of recent maintenance, discipline, and anonymous reports.</p>
           </div>
           <div className="relative mx-auto h-[190px] max-w-[210px]">
             <Doughnut data={breakdown} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-semibold text-slate-900 dark:text-white">{primaryItems.length}</span>
+              <span className="text-2xl font-semibold text-slate-900 dark:text-white">{recentCampusReports.length}</span>
               <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                {dataset === 'cases' ? 'Cases' : 'Reports'}
+                Reports
               </span>
             </div>
           </div>

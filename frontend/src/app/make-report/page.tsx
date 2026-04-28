@@ -36,6 +36,7 @@ export default function MakeReportPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [trackingCode, setTrackingCode] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   if (typeof window !== 'undefined') {
@@ -46,7 +47,7 @@ export default function MakeReportPage() {
       return <PageSkeleton />;
     }
 
-    if (!user || user.role !== 'student') {
+    if (!user || (user.role !== 'student' && user.role !== 'general_user')) {
       return <div className="text-red-600">Access denied.</div>;
     }
   }
@@ -80,6 +81,7 @@ export default function MakeReportPage() {
 
       setSuccess('Your report has been submitted successfully.');
       setTrackingCode(report.trackingCode);
+      setShowSuccessModal(true);
       setTitle('');
       setDescription('');
       setLocation('');
@@ -108,22 +110,6 @@ export default function MakeReportPage() {
           </div>
         </div>
       </div>
-
-      {success && (
-        <div className="rounded-lg md:rounded-2xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20 p-3 md:p-4 text-emerald-800 dark:text-emerald-300">
-          <div className="flex items-start gap-2 md:gap-3">
-            <CheckCircle2 size={18} className="mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-semibold text-sm md:text-base">{success}</p>
-              {trackingCode && (
-                <p className="text-xs md:text-sm mt-1">
-                  Tracking code: <span className="font-semibold">{trackingCode}</span>
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {error && (
         <div className="rounded-lg md:rounded-2xl border border-red-200 bg-red-50 dark:bg-red-900/20 p-3 md:p-4 text-red-700 dark:text-red-300">
@@ -293,6 +279,47 @@ export default function MakeReportPage() {
           </button>
         </div>
       </form>
+
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900">
+            <div className="flex items-start gap-3">
+              <div className="rounded-2xl bg-emerald-100 p-3 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300">
+                <CheckCircle2 size={22} />
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Report Submitted</h2>
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{success}</p>
+                {trackingCode && (
+                  <p className="mt-3 text-sm text-slate-700 dark:text-slate-200">
+                    Tracking code: <span className="font-semibold">{trackingCode}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setShowSuccessModal(false)}
+                className="rounded-xl bg-kmuGreen px-4 py-2.5 text-sm font-semibold text-white hover:bg-kmuOrange transition"
+              >
+                Continue
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowSuccessModal(false);
+                  router.push('/my-reports');
+                }}
+                className="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-900 hover:bg-slate-300 transition dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600"
+              >
+                Go to My Reports
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

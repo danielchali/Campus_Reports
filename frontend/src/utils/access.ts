@@ -7,6 +7,7 @@ export type AppRole =
   | 'secretary'
   | 'maintenance'
   | 'student'
+  | 'general_user'
   | string;
 
 export const PAGE_ACCESS = {
@@ -18,8 +19,8 @@ export const PAGE_ACCESS = {
   staff: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'maintenance'],
   cases: ['admin', 'security_officer'],
   caseCreate: ['admin', 'security_officer'],
-  makeReport: ['student'],
-  myReports: ['student'],
+  makeReport: ['student', 'general_user'],
+  myReports: ['student', 'general_user'],
 } as const;
 
 export type PageAccessKey = keyof typeof PAGE_ACCESS;

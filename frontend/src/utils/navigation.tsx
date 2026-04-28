@@ -158,6 +158,17 @@ export function getNavLinksForRole(role?: string): NavLink[] {
     ];
   }
 
+  if (role === 'general_user') {
+    return [
+      { icon: navIcons.dashboard, label: 'Dashboard', path: '/general-dashboard' },
+      { icon: navIcons.myReports, label: 'My Reports', path: '/my-reports' },
+      { icon: navIcons.makeReport, label: 'New Report', path: '/make-report' },
+      { icon: navIcons.maintenance, label: 'Maintenance Request', path: '/make-report?category=maintenance_issue' },
+      { icon: navIcons.help, label: 'Knowledge Base', path: '/help' },
+      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+    ];
+  }
+
   return [{ icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true }];
 }
 

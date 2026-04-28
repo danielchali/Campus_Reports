@@ -8,8 +8,8 @@ export default function SecretaryDashboard() {
       role="secretary"
       title="Secretary Dashboard"
       subtitle="Follow anonymous report intake, keep statement-request work visible, and use only the data sources this role can access."
-      focusLabel="Recent Anonymous Reports"
-      focusEmpty="No reports match the current dashboard search."
+      focusLabel="Recent Campus Reports"
+      focusEmpty="No recent incident or maintenance reports are available."
       metricKeys={['totalReports', 'openReports', 'pendingStatements', 'submittedStatements', 'totalStaff']}
       dataset="anonymousReports"
       quickActions={[

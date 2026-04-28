@@ -8,9 +8,10 @@ export default function AdminPage() {
       role="admin"
       title="Welcome back, Admin"
       subtitle="Monitor case activity, review operational load, and move into the main management tools from one place."
-      focusLabel="Recent Cases"
-      focusEmpty="No cases match the current dashboard search."
+      focusLabel="Recent Campus Reports"
+      focusEmpty="No recent incident or maintenance reports are available."
       metricKeys={['totalCases', 'resolvedCases', 'pendingCases', 'highPriorityCases', 'totalUsers']}
+      dataset="anonymousReports"
       quickActions={[
         { href: '/cases/new', label: 'Create New Case' },
         { href: '/admin/users', label: 'Manage Users' },

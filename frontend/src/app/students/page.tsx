@@ -26,21 +26,6 @@ const GENDERS = ['Male', 'Female', 'Other'];
 export default function StudentsPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
-  
-  // Handle authentication like profile page - only on client side
-  if (typeof window !== 'undefined') {
-    if (!authLoading && !token) {
-      router.replace('/login');
-    }
-    if (!token) {
-      return <PageSkeleton />;
-    }
-
-    if (!user || !canAccessPage(user.role, 'students')) {
-      return <div className="text-red-600">Access denied.</div>;
-    }
-  }
-
   const [students, setStudents] = useState<Student[]>([]);
   const [studentId, setStudentId] = useState('');
   const [fullName, setFullName] = useState('');
@@ -61,6 +46,20 @@ export default function StudentsPage() {
   const [offlineMode, setOfflineMode] = useState(false);
   const { apiCall, isLoading: apiLoading, error: apiError } = useOfflineApi();
   const availableYears = useMemo(() => getAvailableYearsForProgram(program), [program]);
+  
+  // Handle authentication like profile page - only on client side
+  if (typeof window !== 'undefined') {
+    if (!authLoading && !token) {
+      router.replace('/login');
+    }
+    if (!token) {
+      return <PageSkeleton />;
+    }
+
+    if (!user || !canAccessPage(user.role, 'students')) {
+      return <div className="text-red-600">Access denied.</div>;
+    }
+  }
 
   async function loadStudents(pageNum = page) {
     setLoading(true);

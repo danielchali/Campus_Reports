@@ -120,6 +120,7 @@ export default function LoginPage() {
         '/admin', '/academic-dashboard', '/security-dashboard', 
         '/student-dashboard', '/my-reports', '/make-report', 
         '/dashboard', '/cases', '/students', '/reports',
+        '/general-dashboard',
         '/maintenance-dashboard',
         '/evidence', '/audit', '/profile', '/help'
       ];
@@ -137,6 +138,7 @@ export default function LoginPage() {
       else if (role === 'maintenance') router.push('/maintenance-dashboard');
       else if (role === 'security_officer') router.push('/security-dashboard');
       else if (role === 'student') router.push('/student-dashboard');
+      else if (role === 'general_user') router.push('/general-dashboard');
       else router.push('/dashboard');
     }
   }, [user, router]);

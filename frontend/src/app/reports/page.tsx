@@ -53,6 +53,34 @@ export default function ReportsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusDrafts, setStatusDrafts] = useState<Record<string, StudentReportStatus>>({});
   const [updateMessages, setUpdateMessages] = useState<Record<string, string>>({});
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const filteredReports = useMemo(() => {
+    return reports
+      .filter((report) => {
+        const matchesCategory =
+          categoryFilter === 'all' || report.category === categoryFilter;
+        const matchesStatus =
+          statusFilter === 'all' || report.status === statusFilter;
+        const matchesVisibility =
+          visibilityFilter === 'all' ||
+          (visibilityFilter === 'anonymous' && report.anonymous) ||
+          (visibilityFilter === 'named' && !report.anonymous);
+
+        return matchesCategory && matchesStatus && matchesVisibility;
+      })
+      .sort((a, b) => {
+        if (sortBy === 'oldest') {
+          return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
+        }
+
+        if (sortBy === 'status') {
+          return a.status.localeCompare(b.status);
+        }
+
+        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+      });
+  }, [reports, categoryFilter, statusFilter, visibilityFilter, sortBy]);
 
   if (typeof window !== 'undefined') {
     if (!authLoading && !token) {
@@ -91,8 +119,6 @@ export default function ReportsPage() {
     return () => { cancelled = true; };
   }, [user, search]);
 
-  const [unreadCount, setUnreadCount] = useState(0);
-
   useEffect(() => {
     if (!user) return;
     let cancelled = false;
@@ -109,33 +135,6 @@ export default function ReportsPage() {
     fetchUnread();
     return () => { cancelled = true; };
   }, [reports, user]);
-
-  const filteredReports = useMemo(() => {
-    return reports
-      .filter((report) => {
-        const matchesCategory =
-          categoryFilter === 'all' || report.category === categoryFilter;
-        const matchesStatus =
-          statusFilter === 'all' || report.status === statusFilter;
-        const matchesVisibility =
-          visibilityFilter === 'all' ||
-          (visibilityFilter === 'anonymous' && report.anonymous) ||
-          (visibilityFilter === 'named' && !report.anonymous);
-
-        return matchesCategory && matchesStatus && matchesVisibility;
-      })
-      .sort((a, b) => {
-        if (sortBy === 'oldest') {
-          return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
-        }
-
-        if (sortBy === 'status') {
-          return a.status.localeCompare(b.status);
-        }
-
-        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
-      });
-  }, [reports, search, categoryFilter, statusFilter, visibilityFilter, sortBy]);
 
   async function refreshReports() {
     const allReports = await getAllStudentReports(search);

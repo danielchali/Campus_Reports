@@ -8,8 +8,8 @@ export default function DeanOfStudentsDashboard() {
       role="dean_of_students"
       title="Dean of Students Dashboard"
       subtitle="Review anonymous report flow, keep statement work visible, and stay within the endpoints available to this role."
-      focusLabel="Recent Anonymous Reports"
-      focusEmpty="No reports match the current dashboard search."
+      focusLabel="Recent Campus Reports"
+      focusEmpty="No recent incident or maintenance reports are available."
       metricKeys={['totalReports', 'openReports', 'pendingStatements', 'submittedStatements', 'totalStaff']}
       dataset="anonymousReports"
       quickActions={[

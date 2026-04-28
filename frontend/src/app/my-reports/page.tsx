@@ -32,7 +32,7 @@ export default function MyReportsPage() {
   }, [authLoading, token, router]);
 
   useEffect(() => {
-    if (!user || user.role !== 'student') return;
+    if (!user || (user.role !== 'student' && user.role !== 'general_user')) return;
 
     const userId = user.id;
     const userUsername = user.username;
@@ -68,7 +68,7 @@ export default function MyReportsPage() {
   if (!token || !user) {
     return <PageSkeleton />;
   }
-  if (user.role !== 'student') {
+  if (user.role !== 'student' && user.role !== 'general_user') {
     return <div className="text-red-600">Access denied.</div>;
   }
 
@@ -82,7 +82,7 @@ export default function MyReportsPage() {
       <div className="rounded-2xl md:rounded-3xl bg-white dark:bg-gray-800 p-4 md:p-8 shadow">
         <h1 className="text-2xl md:text-4xl font-bold text-kmuGreen">My Reports</h1>
         <p className="mt-2 md:mt-3 text-gray-600 dark:text-gray-400 text-sm md:text-lg">
-          Track every report you have submitted, review status changes, and keep your tracking codes handy.
+          Track every report or request you have submitted, review status changes, and keep your tracking codes handy.
         </p>
       </div>
 

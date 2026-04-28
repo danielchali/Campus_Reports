@@ -17,6 +17,7 @@ const ROLES = [
   { value: 'secretary', label: 'Secretary' },
   { value: 'maintenance', label: 'Maintenance' },
   { value: 'student', label: 'Student' },
+  { value: 'general_user', label: 'General User' },
 ];
 
 export default function UserManagementPage() {
