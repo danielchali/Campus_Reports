@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { API_BASE_URL } from '../../../config/constants';
@@ -165,11 +165,37 @@ export default function UserManagementPage() {
     await exportExcel('users');
   }
 
+  const userStats = useMemo(() => {
+    const adminCount = users.filter((account) => account.role === 'admin').length;
+    const studentCount = users.filter((account) => account.role === 'student').length;
+    const supportCount = users.filter((account) =>
+      ['security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'maintenance'].includes(account.role)
+    ).length;
+
+    return [
+      { label: 'Visible Users', value: users.length, tone: 'text-kmuGreen bg-kmuGreen/10' },
+      { label: 'Admins', value: adminCount, tone: 'text-blue-700 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30' },
+      { label: 'Students', value: studentCount, tone: 'text-amber-700 bg-amber-100 dark:text-amber-300 dark:bg-amber-900/30' },
+      { label: 'Staff Roles', value: supportCount, tone: 'text-purple-700 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/30' },
+    ];
+  }, [users]);
+
   return (
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-kmuGreen">User Management</h1>
+        </div>
+
+        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {userStats.map((stat) => (
+            <div key={stat.label} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+              <div className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${stat.tone}`}>
+                {stat.label}
+              </div>
+              <div className="mt-3 text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
+            </div>
+          ))}
         </div>
 
         {/* Create User Section */}
