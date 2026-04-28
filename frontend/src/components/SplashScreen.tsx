@@ -38,11 +38,11 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="flex flex-col items-center gap-6"
           >
-            <div className="relative h-32 w-32 overflow-hidden rounded-2xl shadow-lg">
+            <div className="relative h-40 w-40">
               <img 
                 src="/kmu_logo.png" 
                 alt="KMU Logo" 
-                className="h-full w-full object-contain p-2"
+                className="h-full w-full object-contain"
               />
             </div>
             
