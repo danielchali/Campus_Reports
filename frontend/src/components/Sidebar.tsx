@@ -92,24 +92,22 @@ export default function Sidebar() {
         />
       )}
       <aside className={sidebarBase} style={{ width: isDesktop ? `${sidebarWidth}px` : undefined }}>
-        <div className="border-b border-slate-100 dark:border-slate-800 px-5 pb-5 pt-6">
+        <div className="px-5 pb-4 pt-6">
           <div className="flex items-center justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 dark:bg-slate-800 p-2 shadow-sm border border-slate-200 dark:border-slate-700">
-              <img
-                src="/kmu_logo.svg"
-                alt="KMU Logo"
-                width={40}
-                height={40}
-                className="h-10 w-10 object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const fallback = document.createElement('div');
-                  fallback.className = 'text-lg font-bold text-kmuGreen';
-                  fallback.textContent = 'KMU';
-                  e.currentTarget.parentNode?.appendChild(fallback);
-                }}
-              />
-            </div>
+            <img
+              src="/kmu_logo.svg"
+              alt="KMU Logo"
+              width={80}
+              height={80}
+              className="h-20 w-20 object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.className = 'text-2xl font-bold text-kmuGreen';
+                fallback.textContent = 'KMU';
+                e.currentTarget.parentNode?.appendChild(fallback);
+              }}
+            />
           </div>
         </div>
         <nav className="sidebar-scroll mt-4 flex flex-1 flex-col gap-1 overflow-y-auto px-3 pb-6">

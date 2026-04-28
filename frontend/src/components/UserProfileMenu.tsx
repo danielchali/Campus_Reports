@@ -26,14 +26,14 @@ export default function UserProfileMenu() {
     <div ref={wrapperRef} className="relative">
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 hover:bg-slate-100 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 text-left"
+        className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 hover:bg-slate-100 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 text-left"
       >
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-kmuGreen/10 font-semibold text-kmuGreen dark:bg-kmuGreen/20 dark:text-emerald-300">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-sm font-semibold text-kmuGreen dark:bg-kmuGreen/20 dark:text-emerald-300">
           {(user.name || user.username).charAt(0).toUpperCase()}
         </div>
         <div className="leading-tight hidden sm:block">
-          <p className="text-sm font-medium text-slate-900 dark:text-white max-w-[120px] truncate">{user.name || user.username}</p>
-          <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+          <p className="text-xs font-medium text-slate-900 dark:text-white max-w-[100px] truncate">{user.name || user.username}</p>
+          <p className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
             {user.role.replaceAll('_', ' ')}
           </p>
         </div>
@@ -53,17 +53,11 @@ export default function UserProfileMenu() {
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
           >
-            <User size={16} className="text-slate-400" />
-            My Profile
-          </Link>
-          
-          <Link 
-            href="/profile" 
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
-          >
-            <Settings size={16} className="text-slate-400" />
-            Account Settings
+            <div className="flex items-center gap-2">
+              <User size={16} className="text-slate-400" />
+              <Settings size={16} className="text-slate-400" />
+            </div>
+            Profile & Settings
           </Link>
           
           <div className="h-px bg-slate-100 dark:bg-slate-800 my-1"></div>

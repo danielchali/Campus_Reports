@@ -37,7 +37,7 @@ function TopNavbar() {
 
   return (
     <nav className="sticky top-0 z-[40] w-full border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
-      <div className="flex items-center justify-between gap-4 px-4 py-3 md:px-6">
+      <div className="flex items-center justify-between gap-4 px-4 py-2 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <h1 className="truncate text-lg font-semibold text-kmuGreen md:hidden">Campus Reports</h1>
           <h1 className="hidden truncate text-lg font-semibold text-kmuGreen md:block">Campus Reports</h1>
