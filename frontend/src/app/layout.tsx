@@ -155,6 +155,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preload" href="/kmu_logo.svg" as="image" type="image/svg+xml" />
         <link rel="dns-prefetch" href="//kmu-disciplinedesk.onrender.com" />
         <link rel="preconnect" href="https://kmu-disciplinedesk.onrender.com" />
+        <meta name="google-site-verification" content="WL2Hsh_H3trQjtqpxyS0H0rR5uAT8rYX7Dym3blXRmc" />
         <title>Campus Reports</title>
       </head>
       <body className="min-h-screen">
