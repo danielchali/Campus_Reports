@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { useTheme } from '../context/ThemeContext';
 
 interface SplashScreenProps {
   onFinish?: () => void;
@@ -9,6 +10,7 @@ interface SplashScreenProps {
 
 export default function SplashScreen({ onFinish }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -26,7 +28,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-between bg-white px-6 py-12 text-center"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-between bg-white dark:bg-slate-950 px-6 py-12 text-center transition-colors duration-300"
         >
           {/* Top spacer to push content to center */}
           <div />
@@ -50,7 +52,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
               <h1 className="text-3xl font-bold tracking-tight text-[#008542]">
                 Campus Reports
               </h1>
-              <p className="text-slate-500 font-medium">
+              <p className="text-slate-500 dark:text-slate-400 font-medium">
                 Campus safety and issue reporting platform
               </p>
             </div>
@@ -63,10 +65,10 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
             transition={{ delay: 0.5, duration: 0.8 }}
             className="space-y-1"
           >
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
               by
             </p>
-            <p className="text-sm font-bold text-slate-700">
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
               Daniel Chali & Grace Namonje
             </p>
           </motion.div>
