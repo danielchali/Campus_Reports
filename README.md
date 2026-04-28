@@ -1,179 +1,192 @@
 # Campus Reports
 
-A comprehensive disciplinary case management system for educational institutions.
+Campus Reports is a full-stack disciplinary case management application built for educational institutions. It combines a modern Next.js frontend with an Express + MongoDB backend, includes offline-enabled PWA support, and supports role-based workflow for case handling, reporting, evidence, and notifications.
+
+## Key Features
+
+- Role-based access with dashboards for:
+  - Admin
+  - Security Officer
+  - Chief Security Officer
+  - Dean of Students
+  - Assistant Dean
+  - Secretary
+  - General users / students
+- Student and case management
+- Evidence upload and case documentation
+- Anonymous reporting and statement request workflows
+- Audit logs and activity tracking
+- Export reports, students, and cases to DOCX/XLSX
+- Offline-first PWA support with sync and conflict handling
+- AI assistant integration for guided workflows
+- WebSocket notifications via Socket.io
 
 ## Project Structure
 
 ```
-campus-reports/
-├── frontend/                 # Next.js frontend application
-│   ├── src/
-│   │   ├── app/             # App router pages
-│   │   ├── components/      # Reusable components
-│   │   └── lib/            # Utility functions and configurations
-│   └── public/             # Static assets
-│
-├── backend/                 # Backend API server
-│   ├── src/
-│   │   ├── controllers/    # Route controllers
-│   │   ├── models/        # Database models
-│   │   ├── routes/        # API routes
-│   │   └── utils/         # Utility functions
-│   └── prisma/            # Database schema and migrations
-│
-└── docs/                   # Documentation
+Campus_Reports/
+├── backend/                 # Express API, MongoDB models, and business logic
+│   ├── controllers/        # Request handlers
+│   ├── middleware/         # Auth and rate limiting
+│   ├── models/             # Mongoose schemas
+│   ├── routes/             # API routes
+│   ├── scripts/            # backend utility scripts
+│   └── bin/                # server startup entrypoint
+├── frontend/                # Next.js application
+│   ├── src/app/             # Pages and route groups
+│   ├── src/components/      # Shared UI components
+│   ├── public/              # Static assets, PWA files, offline page
+│   └── src/utils/           # Frontend utilities and helpers
+├── scripts/                 # Project-level utilities
+├── render.yaml              # Render deployment configuration
+├── DEPLOYMENT-RENDER.md     # Render deployment guide
+└── OFFLINE-FEATURES.md      # Offline and PWA implementation details
 ```
-
-## Features
-
-1. Authentication & Access Control
-   - Secure login (Email/Password or Institutional)
-   - Role-based access control (admin, academic_office, security_officer)
-   - Session management
-
-2. Student Management
-   - Student lookup and profile management (admin, academic_office)
-   - Disciplinary history tracking
-
-3. Case Management
-   - Case creation and tracking (admin, security_officer)
-   - Document management (admin, security_officer)
-   - Status updates
-
-4. Reporting & Analytics
-   - Statistical reports
-   - Export functionality
 
 ## Tech Stack
 
-- Frontend:
-  - Next.js 14
-  - TypeScript
-  - Tailwind CSS
-  - NextAuth.js
-  - React Query
-
-- Backend:
-  - Node.js
-  - Express
-  - MongoDB (Mongoose)
-  - JWT Authentication
+- Frontend: Next.js 14, TypeScript, Tailwind CSS, React
+- Backend: Node.js, Express, MongoDB, Mongoose
+- Authentication: JWT-based login and role protection
+- Export: DOCX and XLSX generation using `docx`, `exceljs`, `xlsx`
+- Real-time: Socket.io notifications
+- PWA: Service worker offline support and installable app experience
 
 ## Getting Started
 
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   # Frontend
-   cd frontend
-   npm install
+### 1. Clone the repo
 
-   # Backend
-   cd ../backend
-   npm install
-   ```
+```bash
+git clone https://github.com/iamdanielchali/Campus_Reports.git
+cd Campus_Reports
+```
 
-3. Set up environment variables:
-   - Copy `.env.example` to `.env` in both frontend and backend directories
-   - Update the variables with your configuration
+### 2. Install dependencies
 
-4. Start the development servers:
-   ```bash
-   # Backend
-   cd backend
-   npm install
-   node server.js
+```bash
+npm install
+cd frontend && npm install
+cd ../backend && npm install
+```
 
-   # Frontend
-   cd frontend
-   npm install
-   npm run build
-   npm run start
-   ```
+Or from the root:
+
+```bash
+npm run install-all
+```
+
+### 3. Configure backend environment
+
+Copy the backend example env file:
+
+```bash
+cd backend
+copy env.example .env
+```
+
+Then update values inside `backend/.env`.
+
+### 4. Run the backend
+
+```bash
+cd backend
+npm run dev
+```
+
+The backend listens on `http://localhost:5000` by default.
+
+### 5. Run the frontend
+
+```bash
+cd frontend
+npm run dev
+```
+
+Open `http://localhost:3000` to access the app.
+
+## Environment Variables
+
+The backend requires:
+
+- `NODE_ENV` - `production` or `development`
+- `PORT` - server port (default `5000`)
+- `JWT_SECRET` - strong JWT secret
+- `MONGODB_URI` - MongoDB connection string
+- `CORS_ORIGIN` - allowed frontend origin (e.g. `http://localhost:3000`)
+- `FRONTEND_URL` - frontend site URL
+- `EMAIL_ENABLED` - `true` / `false`
+- `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `ADMIN_EMAIL` - for email notifications
+- `OPENROUTER_API_KEY`, `OPENROUTER_MODEL`, `OPENROUTER_SITE_URL`, `OPENROUTER_SITE_NAME` - for AI assistant support
+
+The frontend uses:
+
+- `NEXT_PUBLIC_API_BASE_URL` - backend API base URL (e.g. `http://localhost:5000/api`)
+
+## Running scripts
+
+From the root:
+
+- `npm run install-all` — install both frontend and backend dependencies
+- `npm run dev` — start backend and frontend together (may depend on shell behavior)
+- `npm run build` — build the frontend only
+- `npm run deploy-pwa` — run the PWA deployment helper script
+- `npm run test-db` — run database connectivity tests
+
+From `backend/`:
+
+- `npm run dev` — start backend with nodemon
+- `npm run start` — start backend normally
+- `npm run create-admin` — create a default admin user
+
+From `frontend/`:
+
+- `npm run dev` — start Next.js development server
+- `npm run build` — build the frontend
+- `npm run start` — serve the built frontend
+- `npm run generate-pwa-icons` — generate PWA icon assets
 
 ## Deployment
 
-### Frontend (Vercel/Netlify/Other Static Host)
-1. Set environment variables:
-   - `NEXT_PUBLIC_API_BASE_URL` - Your backend API URL (e.g., https://your-backend.onrender.com/api)
+This repository includes `render.yaml` for Render deployment. The backend is configured as a Node web service and the frontend as a static web service.
 
-### Backend (Render/Railway/Heroku/Any Server)
-1. Create a MongoDB database (MongoDB Atlas recommended)
-2. Set environment variables in your hosting platform:
-   - `MONGODB_URI` - Your MongoDB connection string
-   - `DB_TYPE` - Set to "mongo"
-   - `JWT_SECRET` - A secure secret for JWT tokens
-   - `FRONTEND_URL` - Your frontend URL (e.g., https://your-frontend.vercel.app)
-   - `CORS_ORIGIN` - Your frontend URL (same as above, for backward compatibility)
+### Render Notes
 
-### Render-Specific Deployment Instructions
+- Frontend builds from `frontend/` and publishes `frontend/.next`
+- Backend uses `node server.js`
+- The Render frontend rewrites API calls to the backend service via `/api/*`
 
-#### Frontend Deployment on Vercel:
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel project settings:
-   - `NEXT_PUBLIC_API_BASE_URL` = `https://your-backend.onrender.com/api`
+For more deployment detail, see `DEPLOYMENT-RENDER.md`.
 
-#### Backend Deployment on Render:
-1. Create a new Web Service on Render
-2. Connect your GitHub repository
-3. Set the following build command:
-   ```bash
-   npm install
-   ```
-4. Set the start command:
-   ```bash
-   node server.js
-   ```
-5. Set environment variables in Render dashboard:
-   - `MONGODB_URI` = your MongoDB connection string
-   - `DB_TYPE` = mongo
-   - `JWT_SECRET` = your secure JWT secret
-   - `FRONTEND_URL` = your frontend URL (e.g., https://your-app.vercel.app)
-   - `NODE_ENV` = production
-   - `PORT` = 5000
+## Offline & PWA Support
 
-### Institutional Deployment (On-Premises or Any Server)
-For detailed instructions on deploying to institutional servers, see [DEPLOYMENT-INSTITUTIONAL.md](DEPLOYMENT-INSTITUTIONAL.md).
+- Offline-first application with local caching and sync support
+- Installable PWA experience
+- Offline fallback page available at `frontend/public/offline.html`
 
-## PWA (Progressive Web App)
+Details are available in `OFFLINE-FEATURES.md`.
 
-The application supports PWA features for offline usage:
-- Install as a desktop or mobile app
-- Works offline with cached data
-- Syncs data when online
+## Application Pages
 
-To generate proper PWA icons:
-```bash
-cd frontend
-npm run generate-pwa-icons
-```
+The frontend includes dedicated pages for:
 
-Then follow the instructions to create properly sized icons.
+- Login / Signup / Password reset
+- Role-specific dashboards
+- Student management
+- Case management
+- Evidence management
+- Reports and exports
+- Anonymous report submission
+- Audit logs
+- Profile and settings
+- Help and support
+- AI assistant
 
-## Troubleshooting
+## Notes
 
-### Dashboard Data Fetching Issues
-If dashboards can't fetch data from the database:
-1. Check that `NEXT_PUBLIC_API_BASE_URL` is correctly set in your frontend environment
-2. Verify that the backend is running and accessible
-3. Check browser console for network errors
-4. Ensure CORS is properly configured
-
-### PWA Icon Issues
-If the PWA is not showing the correct icon:
-1. Ensure you have properly sized PNG icons in `frontend/public/icons/`
-2. Update `frontend/public/manifest.json` to reference the correct icon paths
-3. Verify the service worker is caching the icon files
-
-## Development
-
-- Frontend runs on: http://localhost:3000
-- Backend API runs on: http://localhost:5000
-
-## Contributing
-
-Please read our contributing guidelines before submitting pull requests.
+- The backend currently uses MongoDB via Mongoose and supports JWT-based auth.
+- Anonymous reporting and statement requests are available via dedicated API routes.
+- Audit trails help track user activity and case updates.
 
 ## License
 
-This project is licensed under the MIT License.
+This project is released under the MIT License.
