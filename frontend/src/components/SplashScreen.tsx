@@ -10,15 +10,27 @@ interface SplashScreenProps {
 
 export default function SplashScreen({ onFinish }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const [progress, setProgress] = useState(0);
   const { theme } = useTheme();
+  const DURATION = 1500; // 1.5 seconds
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      if (onFinish) onFinish();
-    }, 3000); // 3 seconds duration
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const nextProgress = Math.min((elapsed / DURATION) * 100, 100);
+      setProgress(nextProgress);
+      
+      if (nextProgress >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setIsVisible(false);
+          if (onFinish) onFinish();
+        }, 200); // Small buffer after progress reaches 100%
+      }
+    }, 16); // ~60fps
 
-    return () => clearTimeout(timer);
+    return () => clearInterval(interval);
   }, [onFinish]);
 
   return (
@@ -27,7 +39,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
           className="fixed inset-0 z-[9999] flex flex-col items-center justify-between bg-white dark:bg-slate-950 px-6 py-12 text-center transition-colors duration-300"
         >
           {/* Top spacer to push content to center */}
@@ -37,7 +49,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
             className="flex flex-col items-center gap-6 -mt-12"
           >
             <div className="relative h-40 w-40">
@@ -48,21 +60,33 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
               />
             </div>
             
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight text-[#008542]">
-                Campus Reports
-              </h1>
-              <p className="text-slate-500 dark:text-slate-400 font-medium">
-                Campus safety and issue reporting platform
-              </p>
+            <div className="space-y-4 w-full max-w-[240px]">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold tracking-tight text-[#008542]">
+                  Campus Reports
+                </h1>
+                <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">
+                  Campus safety and issue reporting platform
+                </p>
+              </div>
+
+              {/* Progress Bar Container */}
+              <div className="h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <motion.div 
+                  className="h-full bg-[#008542]"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ ease: "linear" }}
+                />
+              </div>
             </div>
           </motion.div>
 
-          {/* Bottom Branding (Facebook-like style) */}
+          {/* Bottom Branding */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
             className="space-y-1"
           >
             <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
