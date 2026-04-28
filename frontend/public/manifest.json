@@ -4,8 +4,8 @@
     "description": "Student Discipline Management System - Fast, Secure, and Offline-Capable",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#10B981",
-    "theme_color": "#10B981",
+    "background_color": "#ffffff",
+    "theme_color": "#008542",
     "orientation": "portrait-primary",
     "scope": "/",
     "lang": "en",
@@ -13,22 +13,28 @@
     "categories": ["education", "productivity", "business"],
     "icons": [
         {
-            "src": "/kmu_logo.svg",
-            "sizes": "any",
-            "type": "image/svg+xml",
-            "purpose": "any maskable"
-        },
-        {
-            "src": "/kmu_logo.png",
+            "src": "/icon-192x192.png",
             "sizes": "192x192",
             "type": "image/png",
             "purpose": "any"
         },
         {
-            "src": "/kmu_logo.png",
+            "src": "/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/icon-512x512.png",
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any"
+        },
+        {
+            "src": "/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
     ],
     "shortcuts": [{
@@ -37,8 +43,8 @@
             "description": "Create a new discipline case",
             "url": "/cases/new",
             "icons": [{
-                "src": "/kmu_logo.png",
-                "sizes": "96x96",
+                "src": "/icon-192x192.png",
+                "sizes": "192x192",
                 "type": "image/png"
             }]
         },
@@ -48,56 +54,25 @@
             "description": "View all discipline cases",
             "url": "/cases",
             "icons": [{
-                "src": "/kmu_logo.png",
-                "sizes": "96x96",
-                "type": "image/png"
-            }]
-        },
-        {
-            "name": "Students",
-            "short_name": "Students",
-            "description": "Manage student records",
-            "url": "/students",
-            "icons": [{
-                "src": "/kmu_logo.png",
-                "sizes": "96x96",
+                "src": "/icon-192x192.png",
+                "sizes": "192x192",
                 "type": "image/png"
             }]
         }
     ],
     "screenshots": [{
-            "src": "/kmu_logo.png",
-            "sizes": "1280x720",
+            "src": "/icon-512x512.png",
+            "sizes": "512x512",
             "type": "image/png",
             "form_factor": "wide",
             "label": "Campus Reports Dashboard"
         },
         {
-            "src": "/kmu_logo.png",
-            "sizes": "750x1334",
+            "src": "/icon-512x512.png",
+            "sizes": "512x512",
             "type": "image/png",
             "form_factor": "narrow",
             "label": "Campus Reports Mobile View"
         }
-    ],
-    "prefer_related_applications": false,
-    "related_applications": [],
-    "edge_side_panel": {
-        "preferred_width": 400
-    },
-    "launch_handler": {
-        "client_mode": "navigate-existing"
-    },
-    "protocol_handlers": [{
-        "protocol": "web+kmudesk",
-        "url": "/?case=%s"
-    }],
-    "file_handlers": [{
-        "action": "/",
-        "accept": {
-            "text/csv": [".csv"],
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
-            "application/vnd.ms-excel": [".xls"]
-        }
-    }]
+    ]
 }

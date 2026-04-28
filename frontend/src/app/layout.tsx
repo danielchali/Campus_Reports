@@ -2,6 +2,7 @@
 
 import '../globals.css';
 import { useEffect, useState, Suspense, lazy } from 'react';
+import SplashScreen from '../components/SplashScreen';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { Bell, ChevronDown, Menu, Moon, Search, Sun } from 'lucide-react';
@@ -130,6 +131,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     pathname === '/test-login' ||
     pathname === '/anonymous-report';
   const [syncError, setSyncError] = useState<string | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     onSyncError(handleSyncError);
@@ -147,10 +149,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="Campus Reports - Kapasa Makasa University Student Discipline Management System" />
-        <meta name="theme-color" content="#10B981" />
-        <link rel="icon" href="/kmu_logo.ico" sizes="any" />
-        <link rel="icon" href="/kmu_logo.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/kmu_logo.png" />
+        <meta name="theme-color" content="#008542" />
+        <link rel="icon" href="/icon-192x192.png" sizes="any" />
+        <link rel="apple-touch-icon" href="/icon-512x512.png" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="preload" href="/kmu_logo.svg" as="image" type="image/svg+xml" />
         <link rel="dns-prefetch" href="//kmu-disciplinedesk.onrender.com" />
@@ -159,6 +160,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <title>Campus Reports</title>
       </head>
       <body className="min-h-screen">
+        {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
         {syncError && <div className="fixed left-0 right-0 top-0 z-50 bg-red-600 p-3 text-center text-white">{syncError}</div>}
 
         <AuthProvider>
