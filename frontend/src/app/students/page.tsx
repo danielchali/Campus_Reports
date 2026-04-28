@@ -10,6 +10,7 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { canAccessPage } from '../../utils/access';
 import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
+import CreateStudentModal from '../../components/CreateStudentModal';
 
 // Type for a student
 interface Student {
@@ -27,11 +28,6 @@ export default function StudentsPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
   const [students, setStudents] = useState<Student[]>([]);
-  const [studentId, setStudentId] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [program, setProgram] = useState('');
-  const [year, setYear] = useState('');
-  const [gender, setGender] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -44,8 +40,8 @@ export default function StudentsPage() {
   const [limit, setLimit] = useState(20);
   const [total, setTotal] = useState(0);
   const [offlineMode, setOfflineMode] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const { apiCall, isLoading: apiLoading, error: apiError } = useOfflineApi();
-  const availableYears = useMemo(() => getAvailableYearsForProgram(program), [program]);
   
   // Handle authentication like profile page - only on client side
   if (typeof window !== 'undefined') {
@@ -107,28 +103,9 @@ export default function StudentsPage() {
     }
   }, [success]);
 
-  useEffect(() => {
-    if (year && !availableYears.includes(year)) {
-      setYear('');
-    }
-  }, [availableYears, year]);
-
-  async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-    try {
-      const student: Student = { studentId, fullName, program, year, gender };
-      await create('students', student);
-      setStudentId(''); setFullName(''); setProgram(''); setYear(''); setGender('');
-      setSuccess('Student added successfully!');
-      loadStudents();
-    } catch (err: any) {
-      setError(err?.message || 'Network error, please try again');
-    } finally {
-      setLoading(false);
-    }
+  function handleCreateSuccess() {
+    setSuccess('Student user created successfully!');
+    loadStudents();
   }
 
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -294,84 +271,32 @@ export default function StudentsPage() {
         });
       }
       
-      // Check for validation errors
+      // If there are validation errors, show them
       if (validationErrors.length > 0) {
-        const errorMessage = `Validation errors found:\n${validationErrors.slice(0, 10).join('\n')}${validationErrors.length > 10 ? `\n... and ${validationErrors.length - 10} more errors` : ''}`;
-        setError(errorMessage);
+        const errorMessage = validationErrors.slice(0, 10).join('\n');
+        const moreErrors = validationErrors.length > 10 ? `\n... and ${validationErrors.length - 10} more errors` : '';
+        setError(`Validation errors found:\n${errorMessage}${moreErrors}`);
         setLoading(false);
         return;
       }
       
-      // Filter out invalid records
-      const validStudents = studentsToImport.filter(s => s.studentId && s.fullName && s.program);
+      // Filter out invalid entries (those with empty required fields)
+      studentsToImport = studentsToImport.filter(s => s.studentId && s.fullName && s.program);
       
-      if (validStudents.length === 0) {
-        setError('No valid students found in the file. Please ensure all required fields (Student ID, Full Name, Program) are filled.');
+      if (studentsToImport.length === 0) {
+        setError('No valid student records found in the file.');
         setLoading(false);
         return;
       }
       
-      // Check for duplicate student IDs in the import file
-      const studentIds = validStudents.map(s => s.studentId);
-      const duplicateIds = studentIds.filter((id, index) => studentIds.indexOf(id) !== index);
-      if (duplicateIds.length > 0) {
-        const uniqueDuplicates = Array.from(new Set(duplicateIds));
-        setError(`Duplicate Student IDs found in import file: ${uniqueDuplicates.join(', ')}. Each Student ID must be unique.`);
-        setLoading(false);
-        return;
-      }
+      // Import students
+      const importResponse = await apiCall<{success: boolean, summary?: {successful: number, skipped: number, failed: number}}>('post', '/students/import', studentsToImport);
       
-      // Show preview
-      const confirmed = window.confirm(
-        `Ready to import ${validStudents.length} students:\n\n` +
-        `- Valid records: ${validStudents.length}\n` +
-        `- Skipped records: ${studentsToImport.length - validStudents.length}\n\n` +
-        `Continue with import?`
-      );
-      
-      if (!confirmed) {
-        setLoading(false);
-        return;
-      }
-      
-      // Send to backend
-      const res = await fetch(`${API_BASE_URL}/students/import`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ students: validStudents }),
-      });
-      
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText);
-      }
-      
-      const result = await res.json();
-      
-      // Show detailed results
-      let successMessage = `✅ Successfully imported ${result.inserted} students.`;
-      
-      if (result.skipped && result.skipped > 0) {
-        successMessage += `\n\n⚠️ ${result.skipped} students were skipped (already exist in database).`;
-      }
-      
-      if (result.errors && result.errors.length > 0) {
-        successMessage += `\n\n❌ ${result.errors.length} errors occurred:`;
-        result.errors.slice(0, 5).forEach((error: any) => {
-          successMessage += `\n- ${error.student?.studentId || 'Unknown'}: ${error.error}`;
-        });
-        if (result.errors.length > 5) {
-          successMessage += `\n... and ${result.errors.length - 5} more errors`;
-        }
-      }
-      
-      if (studentsToImport.length - validStudents.length > 0) {
-        successMessage += `\n\n⚠️ ${studentsToImport.length - validStudents.length} records were skipped due to missing required fields.`;
-      }
+      let successMessage = `Successfully imported ${studentsToImport.length} student records!`;
       
       // Show summary if available
-      if (result.summary) {
-        successMessage += `\n\n📊 Summary: ${result.summary.successful} imported, ${result.summary.skipped} skipped, ${result.summary.failed} failed`;
+      if (importResponse.data.summary) {
+        successMessage += `\n\n📊 Summary: ${importResponse.data.summary.successful} imported, ${importResponse.data.summary.skipped} skipped, ${importResponse.data.summary.failed} failed`;
       }
       
       setSuccess(successMessage);
@@ -453,13 +378,22 @@ export default function StudentsPage() {
             </span>
           )}
         </div>
-        <button
-          type="button"
-          onClick={handleExportStudentsList}
-          className="w-full rounded bg-kmuGreen px-4 py-2 text-white transition hover:bg-kmuOrange sm:w-auto"
-        >
-          Export Students List
-        </button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <button
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="w-full rounded bg-kmuGreen px-4 py-2 text-white transition hover:bg-kmuOrange sm:w-auto"
+          >
+            Add New Student
+          </button>
+          <button
+            type="button"
+            onClick={handleExportStudentsList}
+            className="w-full rounded bg-kmuGreen px-4 py-2 text-white transition hover:bg-kmuOrange sm:w-auto"
+          >
+            Export Students List
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -477,84 +411,6 @@ export default function StudentsPage() {
       <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-1">
           <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <h2 className="mb-4 text-lg font-semibold text-kmuOrange">Add New Student</h2>
-            <form onSubmit={handleAdd} className="space-y-4">
-              <div>
-                <label htmlFor="studentId" className="mb-1 block text-sm font-medium">Student ID *</label>
-                <input
-                  id="studentId"
-                  type="text"
-                  value={studentId}
-                  onChange={(e) => setStudentId(e.target.value)}
-                  className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="fullName" className="mb-1 block text-sm font-medium">Full Name *</label>
-                <input
-                  id="fullName"
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="program" className="mb-1 block text-sm font-medium">Program *</label>
-                <select
-                  id="program"
-                  value={program}
-                  onChange={(e) => setProgram(e.target.value)}
-                  className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  required
-                >
-                  <option value="">Select Program</option>
-                  {PROGRAM_OPTIONS.map((item) => (
-                    <option key={item} value={item}>{item}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="year" className="mb-1 block text-sm font-medium">Year</label>
-                  <select
-                    id="year"
-                    value={year}
-                    onChange={(e) => setYear(e.target.value)}
-                    className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  >
-                    <option value="">Select Year</option>
-                    {availableYears.map((item) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="gender" className="mb-1 block text-sm font-medium">Gender</label>
-                  <select
-                    id="gender"
-                    value={gender}
-                    onChange={(e) => setGender(e.target.value)}
-                    className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                  >
-                    <option value="">Select Gender</option>
-                    {GENDERS.map((item) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded bg-kmuGreen px-4 py-2 text-white transition hover:bg-kmuOrange disabled:opacity-50"
-              >
-                {loading ? 'Adding...' : 'Add Student'}
-              </button>
-            </form>
-
             <div className="mt-6 border-t border-gray-200 pt-6 dark:border-gray-700">
               <h3 className="mb-3 font-medium">Bulk Import</h3>
               <div className="space-y-3">
@@ -578,7 +434,7 @@ export default function StudentsPage() {
 
         <div className="lg:col-span-2">
           <div className="rounded-lg bg-white shadow dark:bg-gray-800">
-            <div className="border-b border-gray-200 p-4 dark:border-gray-700 md:p-6">
+            <div className="border-b border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
               <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
                 <input
                   type="text"
@@ -737,69 +593,52 @@ export default function StudentsPage() {
                         <Link href={`/students/${(s as any)._id}`} className="font-medium text-kmuGreen hover:underline">
                           {s.fullName}
                         </Link>
-                        <div className="mt-1 flex flex-col gap-1 sm:flex-row">
-                          <Link href={`/students/${(s as any)._id}?tab=add-case`} className="text-xs text-kmuOrange hover:underline">
-                            Add Case
-                          </Link>
-                          {s.year && (
-                            <span className="text-xs text-gray-500 dark:text-gray-400 sm:ml-2">
-                              Year: {s.year}
-                            </span>
-                          )}
-                          {s.gender && (
-                            <span className="text-xs text-gray-500 dark:text-gray-400 sm:ml-2">
-                              {s.gender}
-                            </span>
-                          )}
-                        </div>
                       </td>
-                      <td className="hidden py-2 px-2 sm:table-cell md:px-4">{s.program}</td>
+                      <td className="hidden py-2 px-2 text-sm sm:table-cell md:px-4">{s.program}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            {total > 0 && (
-              <div className="border-t border-gray-200 p-4 dark:border-gray-700">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Page {page} of {Math.max(1, Math.ceil(total / limit))}
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-                    <button
-                      type="button"
-                      className="rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300"
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={page === 1}
-                    >
-                      Prev
-                    </button>
-                    {Array.from({ length: Math.ceil(total / limit) }, (_, i) => i + 1).slice(0, 5).map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        className={`rounded px-3 py-2 text-sm ${p === page ? 'bg-kmuGreen text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200'}`}
-                        onClick={() => setPage(p)}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      className="rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 disabled:opacity-50 dark:border-gray-600 dark:text-gray-300"
-                      onClick={() => setPage((p) => Math.min(Math.ceil(total / limit), p + 1))}
-                      disabled={page === Math.ceil(total / limit) || total === 0}
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
+            {filteredStudents.length === 0 && (
+              <div className="rounded-lg bg-white p-6 text-center text-gray-500 shadow dark:bg-gray-800 dark:text-gray-400">
+                No students found
               </div>
             )}
+
+            <div className="border-t border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-700/50">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Showing {filteredStudents.length > 0 ? (page - 1) * limit + 1 : 0} to {Math.min(page * limit, total)} of {total}
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setPage(Math.max(1, page - 1))}
+                    disabled={page === 1}
+                    className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    onClick={() => setPage(page + 1)}
+                    disabled={page * limit >= total}
+                    className="rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <CreateStudentModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={handleCreateSuccess}
+      />
     </section>
   );
 }
