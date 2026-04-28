@@ -145,17 +145,19 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 xl:space-y-5">
-      <section className="max-w-4xl rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-6">
-        <div>
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-kmuGreen">Dashboard</p>
-            <h1 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white md:text-[1.75rem]">
+      <section className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
+              <ClipboardList size={18} />
+            </div>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
               Welcome back, {user.name?.split(' ')[0] || 'Student'}
             </h1>
-            <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-              Track your reports, check statement requests, and move into the main student workflows from one place.
-            </p>
           </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Track reports, check statement requests, and manage workflows.
+          </p>
         </div>
       </section>
 
@@ -163,14 +165,14 @@ export default function StudentDashboardPage() {
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (
-            <article key={card.label} className="rounded-[20px] border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className="flex items-center gap-2.5">
+            <article key={card.label} className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center gap-3">
                 <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-950 ${card.tone}`}>
                   <Icon size={16} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">{card.label}</p>
-                  <p className="text-xl font-semibold text-slate-900 dark:text-white">{card.value}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{card.label}</p>
+                  <p className="text-lg font-bold text-slate-900 dark:text-white">{card.value}</p>
                 </div>
               </div>
             </article>

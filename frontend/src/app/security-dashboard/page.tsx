@@ -273,17 +273,16 @@ export default function SecurityDashboard() {
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 xl:space-y-5">
-      <section className="max-w-4xl rounded-[24px] border border-slate-200 bg-white px-5 py-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-6">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-kmuGreen">Dashboard</p>
-            <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white md:text-[1.75rem]">Security Officer Dashboard</h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-              Record new cases quickly, keep active investigations visible, and work from the same dashboard pattern as the other roles.
-            </p>
+      <section className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
+              <Shield size={18} />
+            </div>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Security Dashboard</h1>
           </div>
-          <div className="flex min-w-[240px] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-950 xl:max-w-sm">
-            <UserRound size={18} className="text-kmuGreen" />
+          <div className="flex min-w-[240px] items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-800 dark:bg-slate-950 md:max-w-xs">
+            <UserRound size={16} className="text-kmuGreen" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -304,13 +303,16 @@ export default function SecurityDashboard() {
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (
-            <article key={card.label} className={`rounded-[24px] border p-4 shadow-sm ${toneClasses[card.tone as keyof typeof toneClasses]}`}>
-              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-kmuGreen/10 text-kmuGreen dark:bg-kmuGreen/20">
-                <Icon size={18} />
+            <article key={card.label} className={`rounded-xl border p-2.5 shadow-sm ${toneClasses[card.tone as keyof typeof toneClasses]}`}>
+              <div className="flex items-center gap-3">
+                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${card.tone === 'green' ? 'bg-kmuGreen/10 text-kmuGreen' : card.tone === 'amber' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300' : card.tone === 'orange' ? 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>
+                  <Icon size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{card.label}</p>
+                  <p className="text-lg font-bold text-slate-900 dark:text-white">{card.value}</p>
+                </div>
               </div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{card.label}</p>
-              <p className="mt-1.5 text-2xl font-semibold text-slate-900 dark:text-white">{card.value}</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{card.helper}</p>
             </article>
           );
         })}

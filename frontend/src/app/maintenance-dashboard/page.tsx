@@ -280,12 +280,18 @@ export default function MaintenanceDashboard() {
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 xl:space-y-5">
-      <section className="max-w-4xl rounded-[24px] border border-slate-200 bg-white px-5 py-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-kmuGreen">Dashboard</p>
-        <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white md:text-[1.75rem]">Maintenance Dashboard</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-          Track only maintenance requests, follow work progress, and keep the operations team focused on campus facility issues.
-        </p>
+      <section className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
+              <Wrench size={18} />
+            </div>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Maintenance Dashboard</h1>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Monitor maintenance requests and track completion status.
+          </p>
+        </div>
       </section>
 
       {error && (
@@ -304,13 +310,16 @@ export default function MaintenanceDashboard() {
         ].map((card) => {
           const Icon = card.icon;
           return (
-            <article key={card.label} className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${card.tone}`}>
-                <Icon size={18} />
+            <article key={card.label} className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="flex items-center gap-3">
+                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${card.tone}`}>
+                  <Icon size={16} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{card.label}</p>
+                  <p className="text-lg font-bold text-slate-900 dark:text-white">{card.value}</p>
+                </div>
               </div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{card.label}</p>
-              <p className="mt-1.5 text-2xl font-semibold text-slate-900 dark:text-white">{card.value}</p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{card.helper}</p>
             </article>
           );
         })}
