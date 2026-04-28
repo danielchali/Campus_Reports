@@ -1,6 +1,40 @@
 import UserModel from '../models/user.js';
+import StudentModel from '../models/student.js';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
+
+function buildStudentProfileUpdate(body = {}) {
+    const studentProfile = body.studentProfile || {};
+    const firstName = studentProfile.personalInfo?.firstName ?? studentProfile.firstName;
+    const surName = studentProfile.personalInfo?.surName ?? studentProfile.surName;
+
+    return {
+        program: studentProfile.program ?? '',
+        year: studentProfile.year ?? '',
+        status: studentProfile.status ?? 'Active',
+        deliveryMode: studentProfile.deliveryMode ?? '',
+        personalInfo: {
+            firstName: firstName ?? '',
+            surName: surName ?? '',
+            nrc: studentProfile.personalInfo?.nrc ?? studentProfile.nrc ?? '',
+            passport: studentProfile.personalInfo?.passport ?? studentProfile.passport ?? '',
+            maritalStatus: studentProfile.personalInfo?.maritalStatus ?? studentProfile.maritalStatus ?? '',
+            nationality: studentProfile.personalInfo?.nationality ?? studentProfile.nationality ?? '',
+            gender: studentProfile.personalInfo?.gender ?? studentProfile.gender ?? '',
+            dateOfBirth: studentProfile.personalInfo?.dateOfBirth ?? studentProfile.dateOfBirth ?? ''
+        },
+        accommodation: {
+            roomNumber: studentProfile.accommodation?.roomNumber ?? studentProfile.roomNumber ?? ''
+        },
+        addressInfo: {
+            province: studentProfile.addressInfo?.province ?? studentProfile.province ?? '',
+            town: studentProfile.addressInfo?.town ?? studentProfile.town ?? '',
+            address: studentProfile.addressInfo?.address ?? studentProfile.address ?? '',
+            phone: studentProfile.addressInfo?.phone ?? studentProfile.phone ?? '',
+            email: studentProfile.addressInfo?.email ?? studentProfile.email ?? ''
+        }
+    };
+}
 
 export async function listUsers(req, res) {
     try {
@@ -78,8 +112,16 @@ export async function getOwnProfile(req, res) {
             console.log('User not found for id:', req.user.id);
             return res.status(404).json({ error: 'User not found' });
         }
+
+        let studentProfile = null;
+        if (user.role === 'student' && user.username) {
+            studentProfile = await StudentModel.findOne({ studentId: user.username });
+        }
         console.log('User found:', user);
-        res.json(user);
+        res.json({
+            ...user.toObject(),
+            studentProfile
+        });
     } catch (err) {
         console.error('getOwnProfile error:', err);
         res.status(500).json({ error: 'Server error' });
@@ -102,8 +144,46 @@ export async function updateOwnProfile(req, res) {
             }
         }
 
+        const currentUser = await UserModel.findById(id, '-password');
+        if (!currentUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (currentUser.role === 'student') {
+            delete updateData.username;
+
+            if (req.body.studentProfile) {
+                const studentUpdate = buildStudentProfileUpdate(req.body);
+                await StudentModel.findOneAndUpdate(
+                    { studentId: currentUser.username },
+                    {
+                        $set: {
+                            ...studentUpdate,
+                            studentId: currentUser.username
+                        }
+                    },
+                    { new: true, upsert: true, setDefaultsOnInsert: true }
+                );
+
+                const fullName = [studentUpdate.personalInfo.firstName, studentUpdate.personalInfo.surName]
+                    .filter(Boolean)
+                    .join(' ')
+                    .trim();
+                if (fullName) {
+                    updateData.name = fullName;
+                }
+            }
+        }
+
         const result = await UserModel.findByIdAndUpdate(id, updateData, { new: true, select: '-password' });
-        res.json(result);
+        let studentProfile = null;
+        if (result?.role === 'student') {
+            studentProfile = await StudentModel.findOne({ studentId: result.username });
+        }
+        res.json({
+            ...result.toObject(),
+            studentProfile
+        });
     } catch (err) {
         console.error('updateOwnProfile error:', err);
         res.status(500).json({ error: 'Server error' });
