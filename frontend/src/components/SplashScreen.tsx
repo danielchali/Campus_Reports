@@ -51,7 +51,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
                 Campus Reports
               </h1>
               <p className="text-slate-500 font-medium">
-                Student Discipline Management System
+                Campus Safety and Issue Reporting Platform
               </p>
             </div>
           </motion.div>
