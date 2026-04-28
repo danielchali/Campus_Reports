@@ -58,7 +58,7 @@ export default function GlobalSearch() {
       </div>
 
       {isOpen && (
-        <div className="absolute top-full mt-2 w-[400px] max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2">
+        <div className="absolute top-full right-0 mt-2 w-[400px] max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2">
           {!hasResults && query.length >= 2 ? (
             <div className="p-4 text-center text-sm text-slate-500">No results found for "{query}"</div>
           ) : (
