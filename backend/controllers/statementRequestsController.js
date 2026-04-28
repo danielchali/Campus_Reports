@@ -1,6 +1,8 @@
 import StatementRequestModel from '../models/statementRequest.js';
 import StudentModel from '../models/student.js';
+import UserModel from '../models/user.js';
 import { logAudit } from './auditController.js';
+import { createNotification } from '../utils/notifications.js';
 
 function isExpired(record) {
     return Boolean(record?.dueAt && new Date(record.dueAt).getTime() < Date.now());
@@ -35,6 +37,20 @@ export async function createStatementRequest(req, res) {
             createdBy: req.user?.username || 'unknown',
             notificationSentAt: new Date()
         });
+
+        const studentUser = await UserModel.findOne({
+            username: created.studentId,
+            role: 'student',
+        }).select('_id');
+
+        if (studentUser?._id) {
+            await createNotification({
+                userId: studentUser._id,
+                type: 'statement_request',
+                message: `You have a new statement request: ${created.title}`,
+                link: '/student-dashboard',
+            });
+        }
 
         await logAudit({
             action: 'statement_request_created',

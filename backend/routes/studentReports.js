@@ -1,6 +1,7 @@
 import express from 'express';
 import StudentReportModel from '../models/studentReport.js';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { createNotification } from '../utils/notifications.js';
 
 const router = express.Router();
 
@@ -37,7 +38,7 @@ function mapReport(doc) {
 }
 
 // POST / — Student creates a report
-router.post('/', authenticate, authorize(['student']), async (req, res) => {
+router.post('/', authenticate, authorize(['student', 'general_user']), async (req, res) => {
     try {
         const { title, description, category, anonymous, location, incidentDate } = req.body;
 
@@ -73,7 +74,7 @@ router.post('/', authenticate, authorize(['student']), async (req, res) => {
 });
 
 // GET /mine — Student gets their own reports
-router.get('/mine', authenticate, authorize(['student']), async (req, res) => {
+router.get('/mine', authenticate, authorize(['student', 'general_user']), async (req, res) => {
     try {
         const userId = String(req.user.id || req.user._id);
         const username = req.user.username;
@@ -109,7 +110,7 @@ router.get('/mine', authenticate, authorize(['student']), async (req, res) => {
 });
 
 // GET /metrics — Student gets their report metrics
-router.get('/metrics', authenticate, authorize(['student']), async (req, res) => {
+router.get('/metrics', authenticate, authorize(['student', 'general_user']), async (req, res) => {
     try {
         const userId = String(req.user.id || req.user._id);
         const username = req.user.username;
@@ -240,6 +241,12 @@ router.patch('/:id/status', authenticate, authorize(['admin', 'chief_security_of
         report.updatedAt = new Date();
 
         await report.save();
+        await createNotification({
+            userId: report.owner_id,
+            type: 'report_update',
+            message: `Your report "${report.title}" is now ${status}. ${message.trim()}`,
+            link: '/my-reports',
+        });
         res.json(mapReport(report));
     } catch (err) {
         console.error('Update status error:', err);
@@ -248,7 +255,7 @@ router.patch('/:id/status', authenticate, authorize(['admin', 'chief_security_of
 });
 
 // POST /migrate — One-time migration from localStorage data
-router.post('/migrate', authenticate, authorize(['student']), async (req, res) => {
+router.post('/migrate', authenticate, authorize(['student', 'general_user']), async (req, res) => {
     try {
         const { reports } = req.body;
 

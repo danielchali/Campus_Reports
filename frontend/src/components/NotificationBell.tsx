@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { API_URL } from '../config/constants';
 import { authHeaders } from '../utils/api';
 import { markStudentReportSeen, markAllStudentReportsSeen, getAllStudentReports, type StudentReport } from '../utils/studentReports';
+import { useAuth } from '../context/AuthContext';
 
 type NotificationItem = {
   _id: string;
@@ -18,11 +19,23 @@ type NotificationItem = {
   report?: StudentReport;
 };
 
+const STAFF_NOTIFICATION_ROLES = [
+  'admin',
+  'chief_security_officer',
+  'dean_of_students',
+  'assistant_dean',
+  'secretary',
+  'security_officer',
+  'maintenance',
+] as const;
+
 export default function NotificationBell() {
   const router = useRouter();
+  const { user, token, loading } = useAuth();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const isStaffRole = !!user && STAFF_NOTIFICATION_ROLES.includes(user.role as typeof STAFF_NOTIFICATION_ROLES[number]);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -37,10 +50,12 @@ export default function NotificationBell() {
   }, []);
 
   const loadAll = useCallback(async () => {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+    if (loading) return;
+    if (!token || !user) {
+      setNotifications([]);
+      return;
+    }
 
-    // Fetch system notifications
     let systemNotifications: NotificationItem[] = [];
     try {
       const res = await fetch(`${API_URL}/notifications`, {
@@ -61,35 +76,38 @@ export default function NotificationBell() {
       console.error('Failed to fetch notifications', err);
     }
 
-    // Fetch unread student reports
     let reportNotifications: NotificationItem[] = [];
-    try {
-      const reports = await getAllStudentReports();
-      const userId = JSON.parse(atob(token.split('.')[1]))?.id || '';
-      const unreadReports = reports.filter((r) => !(r.seenBy || []).includes(userId));
-      reportNotifications = unreadReports.slice(0, 10).map((r) => ({
-        _id: `report_${r.id}`,
-        message: `${r.anonymous ? 'Anonymous' : r.ownerName} submitted ${r.title}`,
-        createdAt: r.submittedAt,
-        isRead: false,
-        link: '/reports',
-        type: 'report' as const,
-        report: r,
-      }));
-    } catch (err) {
-      console.error('Failed to fetch student reports', err);
+    if (isStaffRole) {
+      try {
+        const reports = await getAllStudentReports();
+        const userId = user.id || '';
+        const unreadReports = reports.filter((r) => !(r.seenBy || []).includes(userId));
+        reportNotifications = unreadReports.slice(0, 10).map((r) => ({
+          _id: `report_${r.id}`,
+          message: `${r.anonymous ? 'Anonymous' : r.ownerName} submitted ${r.title}`,
+          createdAt: r.submittedAt,
+          isRead: false,
+          link: '/reports',
+          type: 'report' as const,
+          report: r,
+        }));
+      } catch (err) {
+        console.error('Failed to fetch student reports', err);
+      }
     }
 
     setNotifications([...reportNotifications, ...systemNotifications].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     ));
-  }, []);
+  }, [isStaffRole, loading, token, user]);
 
   useEffect(() => {
+    if (loading) return;
+
     loadAll();
     const interval = setInterval(loadAll, 30000);
     return () => clearInterval(interval);
-  }, [loadAll]);
+  }, [loadAll, loading]);
 
   const markAsRead = async (id: string) => {
     const item = notifications.find(n => n._id === id);
@@ -97,7 +115,7 @@ export default function NotificationBell() {
 
     if (item.type === 'report' && item.report) {
       try {
-        await markStudentReportSeen(item.report.id, '');
+        await markStudentReportSeen(item.report.id, user?.id || '');
         setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
       } catch (err) {
         console.error(err);
@@ -118,7 +136,6 @@ export default function NotificationBell() {
   };
 
   const markAllAsRead = async () => {
-    // Mark all system notifications as read
     try {
       await fetch(`${API_URL}/notifications/mark-all-read`, {
         method: 'POST',
@@ -128,11 +145,12 @@ export default function NotificationBell() {
       console.error(err);
     }
 
-    // Mark all student reports as seen
-    try {
-      await markAllStudentReportsSeen('');
-    } catch (err) {
-      console.error(err);
+    if (isStaffRole) {
+      try {
+        await markAllStudentReportsSeen(user?.id || '');
+      } catch (err) {
+        console.error(err);
+      }
     }
 
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
@@ -140,10 +158,21 @@ export default function NotificationBell() {
 
   const handleReportClick = async (item: NotificationItem) => {
     if (item.type === 'report' && item.report) {
-      await markStudentReportSeen(item.report.id, '');
+      await markStudentReportSeen(item.report.id, user?.id || '');
       setNotifications(prev => prev.map(n => n._id === item._id ? { ...n, isRead: true } : n));
       setIsOpen(false);
       router.push('/reports');
+    }
+  };
+
+  const handleSystemNotificationOpen = async (item: NotificationItem) => {
+    if (!item.isRead) {
+      await markAsRead(item._id);
+    }
+
+    setIsOpen(false);
+    if (item.link) {
+      router.push(item.link);
     }
   };
 
@@ -209,7 +238,10 @@ export default function NotificationBell() {
                             View report
                           </button>
                         ) : n.link && (
-                          <Link href={n.link} className="text-xs text-kmuGreen mt-2 inline-block font-medium hover:underline" onClick={() => setIsOpen(false)}>
+                          <Link href={n.link} className="text-xs text-kmuGreen mt-2 inline-block font-medium hover:underline" onClick={(event) => {
+                            event.preventDefault();
+                            handleSystemNotificationOpen(n);
+                          }}>
                             View details
                           </Link>
                         )}
