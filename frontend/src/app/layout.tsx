@@ -2,7 +2,7 @@
 
 import '../globals.css';
 import { useEffect, useState, Suspense, lazy } from 'react';
-import SplashScreen from '../components/SplashScreen';
+
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 import { Bell, ChevronDown, Menu, Moon, Search, Sun } from 'lucide-react';
@@ -131,7 +131,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     pathname === '/test-login' ||
     pathname === '/anonymous-report';
   const [syncError, setSyncError] = useState<string | null>(null);
-  const [showSplash, setShowSplash] = useState(true);
+
 
   useEffect(() => {
     onSyncError(handleSyncError);
@@ -160,7 +160,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <title>Campus Reports</title>
       </head>
       <body className="min-h-screen">
-        {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
+
         {syncError && <div className="fixed left-0 right-0 top-0 z-50 bg-red-600 p-3 text-center text-white">{syncError}</div>}
 
         <AuthProvider>
