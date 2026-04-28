@@ -145,30 +145,16 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4">
-      <section className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-6">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <section className="max-w-4xl rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-6">
+        <div>
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-kmuGreen">Dashboard</p>
-            <h1 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">
+            <h1 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white md:text-[1.75rem]">
               Welcome back, {user.name?.split(' ')[0] || 'Student'}
             </h1>
-            <p className="mt-1 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+            <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
               Track your reports, check statement requests, and move into the main student workflows from one place.
             </p>
-          </div>
-          <div className="grid min-w-[240px] gap-2 sm:grid-cols-2">
-            <Link
-              href="/make-report"
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
-            >
-              New report
-            </Link>
-            <Link
-              href="/my-reports"
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
-            >
-              My reports
-            </Link>
           </div>
         </div>
       </section>

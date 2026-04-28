@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Bot, Sparkles, MessageCircle, Send, Wand2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -156,6 +156,26 @@ function applyFormSuggestions(suggestions: FormFieldSuggestion[]) {
   return applied;
 }
 
+const FAB_SIZE = 56;
+const FAB_MARGIN = 20;
+const PANEL_GAP = 12;
+const PANEL_HEIGHT = 416;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function getDefaultLauncherPosition() {
+  if (typeof window === 'undefined') {
+    return { x: 0, y: 0 };
+  }
+
+  return {
+    x: window.innerWidth - FAB_SIZE - FAB_MARGIN,
+    y: window.innerHeight - FAB_SIZE - FAB_MARGIN,
+  };
+}
+
 export default function FloatingAIChatbot() {
   const pathname = usePathname();
   const { user } = useAuth();
@@ -167,13 +187,28 @@ export default function FloatingAIChatbot() {
   const [pendingSuggestions, setPendingSuggestions] = useState<FormFieldSuggestion[]>([]);
   const [applyResult, setApplyResult] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [launcherPosition, setLauncherPosition] = useState(getDefaultLauncherPosition);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const dragStateRef = useRef({
+    pointerId: -1,
+    startX: 0,
+    startY: 0,
+    originX: 0,
+    originY: 0,
+    moved: false,
+  });
 
   const systemPrompt = useMemo(() => getLocationAwareSystemPrompt(pathname, user?.role), [pathname, user?.role]);
   const key = useMemo(() => storageKey(pathname, user?.id), [pathname, user?.id]);
+  const viewportWidth = typeof window === 'undefined' ? 1440 : window.innerWidth;
+  const viewportHeight = typeof window === 'undefined' ? 900 : window.innerHeight;
+  const panelWidth = isHydrated ? Math.min(viewportWidth * 0.92, 384) : 384;
+  const panelLeft = clamp(launcherPosition.x + FAB_SIZE - panelWidth, 16, Math.max(16, viewportWidth - panelWidth - 16));
+  const panelTop = clamp(launcherPosition.y - PANEL_HEIGHT - PANEL_GAP, 16, Math.max(16, viewportHeight - PANEL_HEIGHT - 16));
 
   useEffect(() => {
     setIsHydrated(true);
+    setLauncherPosition(getDefaultLauncherPosition());
     try {
       const raw = localStorage.getItem(key);
       if (raw) {
@@ -198,6 +233,20 @@ export default function FloatingAIChatbot() {
     if (!scrollContainerRef.current) return;
     scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
   }, [messages, isLoading, isOpen]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const handleResize = () => {
+      setLauncherPosition((current) => ({
+        x: clamp(current.x, 16, Math.max(16, window.innerWidth - FAB_SIZE - 16)),
+        y: clamp(current.y, 16, Math.max(16, window.innerHeight - FAB_SIZE - 16)),
+      }));
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const sendMessage = async (event: FormEvent) => {
     event.preventDefault();
@@ -265,19 +314,71 @@ export default function FloatingAIChatbot() {
     setApplyResult(null);
   };
 
+  const handleLauncherPointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    dragStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: launcherPosition.x,
+      originY: launcherPosition.y,
+      moved: false,
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleLauncherPointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (dragStateRef.current.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - dragStateRef.current.startX;
+    const deltaY = event.clientY - dragStateRef.current.startY;
+    const nextX = clamp(dragStateRef.current.originX + deltaX, 16, Math.max(16, window.innerWidth - FAB_SIZE - 16));
+    const nextY = clamp(dragStateRef.current.originY + deltaY, 16, Math.max(16, window.innerHeight - FAB_SIZE - 16));
+
+    if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
+      dragStateRef.current.moved = true;
+    }
+
+    setLauncherPosition({ x: nextX, y: nextY });
+  };
+
+  const handleLauncherPointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (dragStateRef.current.pointerId !== event.pointerId) return;
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    if (!dragStateRef.current.moved) {
+      setIsOpen((prev) => !prev);
+    }
+
+    dragStateRef.current.pointerId = -1;
+    dragStateRef.current.moved = false;
+  };
+
   return (
     <>
+      {isOpen && <button type="button" aria-label="Close AI assistant overlay" onClick={() => setIsOpen(false)} className="fixed inset-0 z-30 bg-transparent md:hidden" />}
+
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="fixed bottom-5 right-5 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg shadow-indigo-900/30 transition hover:bg-indigo-500"
+        onPointerDown={handleLauncherPointerDown}
+        onPointerMove={handleLauncherPointerMove}
+        onPointerUp={handleLauncherPointerUp}
+        onPointerCancel={handleLauncherPointerUp}
+        style={{ left: launcherPosition.x, top: launcherPosition.y }}
+        className="fixed z-40 inline-flex h-14 w-14 touch-none items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg shadow-indigo-900/30 transition hover:bg-indigo-500"
         aria-label={isOpen ? 'Close AI assistant' : 'Open AI assistant'}
       >
         {isOpen ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
       </button>
 
       {isOpen && (
-        <section className="fixed bottom-24 right-5 z-40 flex h-[26rem] w-[min(92vw,24rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+        <section
+          style={{ left: panelLeft, top: panelTop }}
+          className="fixed z-40 flex h-[26rem] w-[min(92vw,24rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+        >
           <header className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
             <div className="flex items-center gap-2">
               <Bot className="h-4 w-4 text-indigo-500" />

@@ -25,7 +25,6 @@ import {
   FileStack,
   GraduationCap,
   Shield,
-  UserRound,
   Users,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -216,7 +215,6 @@ export default function ManagementDashboard({
   const [users, setUsers] = useState<any[]>([]);
   const [anonymousReports, setAnonymousReports] = useState<AnonymousReport[]>([]);
   const [statementRequests, setStatementRequests] = useState<StatementRequest[]>([]);
-  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -343,28 +341,9 @@ export default function ManagementDashboard({
     submittedStatements: { label: 'Submitted Statements', value: summary.submittedStatements, tone: 'emerald', icon: CheckCircle2, helper: 'Received from students' },
   };
 
-  const filteredCases = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return cases;
+  const filteredCases = useMemo(() => cases, [cases]);
 
-    return cases.filter((item) => {
-      const person = getCasePerson(item);
-      return [person.name, person.meta, person.detail, item.offenseType, item.offense_type, item.severity, item.status].some((value) =>
-        value?.toLowerCase().includes(query),
-      );
-    });
-  }, [cases, search]);
-
-  const filteredReports = useMemo(() => {
-    const query = search.trim().toLowerCase();
-    if (!query) return anonymousReports;
-
-    return anonymousReports.filter((item) =>
-      [item.title, item.tracking_code, item.category, item.status, item.location].some((value) =>
-        value?.toLowerCase().includes(query),
-      ),
-    );
-  }, [anonymousReports, search]);
+  const filteredReports = useMemo(() => anonymousReports, [anonymousReports]);
 
   const primaryItems: Array<CaseItem | AnonymousReport> = dataset === 'cases' ? filteredCases : filteredReports;
 
@@ -452,36 +431,16 @@ export default function ManagementDashboard({
     return <PageSkeleton />;
   }
 
-  const displayName = user?.name || user?.username || 'User';
   const viewAllHref = dataset === 'cases' ? '/cases' : '/anonymous-report';
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-6">
-      <section className="rounded-[28px] border border-slate-200 bg-white px-5 py-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-7">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+      <section className="max-w-4xl rounded-[24px] border border-slate-200 bg-white px-5 py-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:px-6">
+        <div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-kmuGreen">Dashboard</p>
-            <h1 className="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">{title}</h1>
-            <p className="mt-2 max-w-3xl text-sm text-slate-600 dark:text-slate-300">{subtitle}</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="min-w-[260px] flex-1 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950 xl:min-w-[320px] xl:flex-none">
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder={dataset === 'cases' ? 'Search cases, people, programs...' : 'Search reports, tracking codes, locations...'}
-                className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-200"
-              />
-            </div>
-            <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-950">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-kmuGreen/10 text-kmuGreen dark:bg-kmuGreen/20 dark:text-emerald-300">
-                <UserRound size={18} />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-900 dark:text-white">{displayName}</p>
-                <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{user?.role?.replaceAll('_', ' ')}</p>
-              </div>
-            </div>
+            <h1 className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white md:text-[1.75rem]">{title}</h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">{subtitle}</p>
           </div>
         </div>
       </section>
@@ -570,7 +529,7 @@ export default function ManagementDashboard({
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <div>
               <h2 className="text-lg font-semibold text-slate-900 dark:text-white">{focusLabel}</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Refined by the current dashboard search.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Latest visible items for this dashboard.</p>
             </div>
             <Link href={viewAllHref} className="text-sm font-medium text-kmuGreen hover:underline">
               View all
