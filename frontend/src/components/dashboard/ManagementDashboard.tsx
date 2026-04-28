@@ -678,29 +678,7 @@ export default function ManagementDashboard({
             </div>
           </article>
 
-          <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-base font-semibold text-slate-900 dark:text-white">System Snapshot</h2>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              <div className="rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-                  {dataset === 'cases' ? 'Visible Cases' : 'Visible Reports'}
-                </p>
-                <p className="mt-1.5 text-xl font-semibold text-slate-900 dark:text-white">{primaryItems.length}</p>
-              </div>
-              <div className="rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Staff Loaded</p>
-                <p className="mt-1.5 text-xl font-semibold text-slate-900 dark:text-white">{summary.totalStaff}</p>
-              </div>
-              <div className="rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Pending Statements</p>
-                <p className="mt-1.5 text-xl font-semibold text-slate-900 dark:text-white">{summary.pendingStatements}</p>
-              </div>
-              <div className="rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Submitted Statements</p>
-                <p className="mt-1.5 text-xl font-semibold text-slate-900 dark:text-white">{summary.submittedStatements}</p>
-              </div>
-            </div>
-          </article>
+
         </div>
       </section>
     </div>

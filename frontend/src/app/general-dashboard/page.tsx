@@ -103,12 +103,9 @@ export default function GeneralDashboardPage() {
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 xl:space-y-5">
-      <section className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section>
         <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
-              <ClipboardList size={18} />
-            </div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
               Welcome back, {user.name?.split(' ')[0] || 'User'}
             </h1>
