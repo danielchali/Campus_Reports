@@ -161,12 +161,12 @@ export default function StudentDashboardPage() {
         </div>
       </section>
 
-      <section className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-6">
+      <section className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 xl:grid-cols-6">
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (
-            <article key={card.label} className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className="flex items-center gap-3">
+            <article key={card.label} className="aspect-square min-w-[110px] shrink-0 rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:min-w-0 sm:aspect-auto">
+              <div className="flex h-full flex-col justify-between gap-3 sm:flex-row sm:items-center sm:gap-3">
                 <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-950 ${card.tone}`}>
                   <Icon size={16} />
                 </div>
