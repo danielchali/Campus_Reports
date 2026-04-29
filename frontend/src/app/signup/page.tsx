@@ -7,7 +7,9 @@ import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { getAvailableYearsForProgram, PROGRAM_OPTIONS } from '../../config/constants';
-import { registerStudent } from '../../utils/api';
+import { register, registerStudent } from '../../utils/api';
+
+type AccountType = 'student' | 'general_user' | null;
 
 type SignupFormState = {
   studentId: string;
@@ -87,6 +89,13 @@ export default function StudentSignupPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [form, setForm] = useState<SignupFormState>(INITIAL_FORM);
+  const [accountType, setAccountType] = useState<AccountType>(null);
+  const [generalUserForm, setGeneralUserForm] = useState({
+    fullName: '',
+    username: '',
+    password: '',
+    confirmPassword: '',
+  });
 
   useEffect(() => {
     if (user) {
@@ -186,6 +195,42 @@ export default function StudentSignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (accountType === 'general_user') {
+      if (!generalUserForm.fullName.trim()) return setError('Full name is required.');
+      if (!generalUserForm.username.trim()) return setError('Username is required.');
+      if (!generalUserForm.password) return setError('Password is required.');
+      if (generalUserForm.password.length < 6) return setError('Password must be at least 6 characters.');
+      if (generalUserForm.password !== generalUserForm.confirmPassword) return setError('Passwords do not match.');
+
+      setLoading(true);
+      setError('');
+      setSuccess('');
+      try {
+        await register(
+          generalUserForm.username.trim(),
+          generalUserForm.password,
+          generalUserForm.fullName.trim(),
+          'general_user'
+        );
+        setSuccess('Your general user account has been created. You can now sign in.');
+        setGeneralUserForm({ fullName: '', username: '', password: '', confirmPassword: '' });
+        window.setTimeout(() => {
+          router.push('/login?registered=1');
+        }, 1200);
+      } catch (err: any) {
+        setError(err?.message || 'Signup failed. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (!accountType) {
+      setError('Please select how you want to register.');
+      return;
+    }
+
     const validationError = validateStep();
     if (validationError) {
       setError(validationError);
@@ -245,7 +290,9 @@ export default function StudentSignupPage() {
               <ArrowLeft className="w-4 h-4" />
               Back to Login
             </Link>
-            <p className="text-xs md:text-sm font-bold uppercase tracking-[0.2em] text-kmuOrange mb-2">Student Registration</p>
+            <p className="text-xs md:text-sm font-bold uppercase tracking-[0.2em] text-kmuOrange mb-2">
+              {accountType === 'general_user' ? 'General User Registration' : 'Student Registration'}
+            </p>
             <h1 className="text-3xl md:text-5xl font-extrabold text-[#002d62] dark:text-white tracking-tight">Create your account</h1>
             <p className={`mt-4 max-w-2xl text-sm md:text-lg ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
               Join the Campus Reports community. Fill in your details to get started.
@@ -254,29 +301,31 @@ export default function StudentSignupPage() {
         </div>
 
         {/* Progress Stepper */}
-        <div className="mb-8 overflow-x-auto pb-2 scrollbar-hide">
-          <div className="flex items-center justify-between min-w-[600px] px-2">
-            {STEP_TITLES.map((title, i) => (
-              <div key={title} className="flex flex-col items-center gap-2 relative flex-1">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-colors ${
-                  step >= i ? 'bg-kmuGreen text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
-                }`}>
-                  {step > i ? <CheckCircle2 className="w-5 h-5" /> : i + 1}
+        {accountType === 'student' && (
+          <div className="mb-8 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="flex items-center justify-between min-w-[600px] px-2">
+              {STEP_TITLES.map((title, i) => (
+                <div key={title} className="flex flex-col items-center gap-2 relative flex-1">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold z-10 transition-colors ${
+                    step >= i ? 'bg-kmuGreen text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
+                  }`}>
+                    {step > i ? <CheckCircle2 className="w-5 h-5" /> : i + 1}
+                  </div>
+                  <span className={`text-[10px] md:text-xs font-bold uppercase tracking-wider ${
+                    step >= i ? 'text-kmuGreen' : 'text-slate-400'
+                  }`}>
+                    {title}
+                  </span>
+                  {i < STEP_TITLES.length - 1 && (
+                    <div className={`absolute top-4 left-[60%] w-[80%] h-0.5 ${
+                      step > i ? 'bg-kmuGreen' : 'bg-slate-200 dark:bg-slate-800'
+                    }`} />
+                  )}
                 </div>
-                <span className={`text-[10px] md:text-xs font-bold uppercase tracking-wider ${
-                  step >= i ? 'text-kmuGreen' : 'text-slate-400'
-                }`}>
-                  {title}
-                </span>
-                {i < STEP_TITLES.length - 1 && (
-                  <div className={`absolute top-4 left-[60%] w-[80%] h-0.5 ${
-                    step > i ? 'bg-kmuGreen' : 'bg-slate-200 dark:bg-slate-800'
-                  }`} />
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <form onSubmit={handleSubmit} className={`${cardClassName} overflow-hidden shadow-2xl shadow-slate-200 dark:shadow-none`}>
           <div className="p-6 md:p-10">
@@ -294,7 +343,25 @@ export default function StudentSignupPage() {
               </div>
             )}
 
-            {step === 0 && (
+            {!accountType && (
+              <div className="space-y-6">
+                <p className={`text-sm md:text-base ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>
+                  Choose how you want to register.
+                </p>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <button type="button" onClick={() => { setAccountType('student'); setError(''); }} className="text-left p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-kmuGreen transition-all">
+                    <h3 className="font-bold text-lg mb-2">Student</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Register with your student details and academic information.</p>
+                  </button>
+                  <button type="button" onClick={() => { setAccountType('general_user'); setError(''); }} className="text-left p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-kmuGreen transition-all">
+                    <h3 className="font-bold text-lg mb-2">General User (e.g. Lecturer)</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">For malpractice reports, disciplinary reports, and maintenance requests.</p>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {accountType === 'student' && step === 0 && (
               <div className="space-y-6">
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
@@ -338,7 +405,7 @@ export default function StudentSignupPage() {
               </div>
             )}
 
-            {step === 1 && (
+            {accountType === 'student' && step === 1 && (
               <div className="space-y-6">
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
@@ -383,7 +450,7 @@ export default function StudentSignupPage() {
               </div>
             )}
 
-            {step === 2 && (
+            {accountType === 'student' && step === 2 && (
               <div className="space-y-6">
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
@@ -416,9 +483,9 @@ export default function StudentSignupPage() {
               </div>
             )}
 
-            {step === 3 && (
+            {accountType === 'student' && step === 3 && (
               <div className="space-y-8">
-                <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/50 p-6 border border-slate-200 dark:border-slate-800">
+              <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/50 p-6 border border-slate-200 dark:border-slate-800">
                   <h3 className="text-lg font-bold text-[#002d62] dark:text-white mb-4">Summary</h3>
                   <div className="grid gap-6 md:grid-cols-2 text-sm">
                     <div>
@@ -448,8 +515,33 @@ export default function StudentSignupPage() {
               </div>
             )}
 
+            {accountType === 'general_user' && (
+              <div className="space-y-8">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Full Name</label>
+                    <input className={inputClassName} value={generalUserForm.fullName} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, fullName: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Username</label>
+                    <input className={inputClassName} value={generalUserForm.username} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, username: e.target.value }))} />
+                  </div>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Password</label>
+                    <input type="password" className={inputClassName} value={generalUserForm.password} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, password: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Confirm Password</label>
+                    <input type="password" className={inputClassName} value={generalUserForm.confirmPassword} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, confirmPassword: e.target.value }))} />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="mt-10 flex flex-col md:flex-row gap-4">
-              {step > 0 && (
+              {(accountType === 'student' && step > 0) && (
                 <button
                   type="button"
                   onClick={handleBack}
@@ -459,7 +551,7 @@ export default function StudentSignupPage() {
                   Previous
                 </button>
               )}
-              {step < STEP_TITLES.length - 1 ? (
+              {(accountType === 'student' && step < STEP_TITLES.length - 1) ? (
                 <button
                   type="button"
                   onClick={handleNext}
