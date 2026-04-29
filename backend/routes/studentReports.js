@@ -27,14 +27,32 @@ function mapReport(doc) {
         ownerId: obj.owner_id,
         ownerUsername: obj.owner_username,
         ownerName: obj.owner_name,
+        ownerRole: obj.owner_role,
+        routedToMaintenance: !!obj.routed_to_maintenance,
+        routedByRole: obj.routed_by_role || '',
         seenBy: obj.seen_by || [],
         updates: (obj.updates || []).map((u) => ({
             id: String(u._id),
             status: u.status,
             message: u.message,
+            createdByRole: u.createdByRole || '',
             createdAt: u.createdAt?.toISOString?.() || u.createdAt,
         })),
     };
+}
+
+function getStaffReportScope(user) {
+    const role = user?.role;
+    if (role === 'dean_of_students') {
+        return { owner_role: 'student' };
+    }
+    if (role === 'secretary') {
+        return { owner_role: 'general_user', category: 'maintenance_issue' };
+    }
+    if (role === 'maintenance') {
+        return { category: 'maintenance_issue', routed_to_maintenance: true };
+    }
+    return null;
 }
 
 // POST / — Student creates a report
@@ -58,11 +76,13 @@ router.post('/', authenticate, authorize(['student', 'general_user']), async (re
             owner_id: String(req.user.id || req.user._id),
             owner_username: req.user.username,
             owner_name: req.user.name || req.user.username,
+            owner_role: req.user.role,
             seen_by: [],
             updates: [{
                 status: 'Submitted',
                 message: 'Your report has been received and is waiting for review by the appropriate office.',
                 createdBy: req.user.username,
+                createdByRole: req.user.role,
             }],
         });
 
@@ -136,7 +156,7 @@ router.get('/metrics', authenticate, authorize(['student', 'general_user']), asy
 router.get('/', authenticate, authorize(['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance']), async (req, res) => {
     try {
         const search = req.query.search;
-        const query = {};
+        const query = getStaffReportScope(req.user) || {};
         if (search) {
             const regex = { $regex: search, $options: 'i' };
             query.$or = [
@@ -162,7 +182,9 @@ router.get('/', authenticate, authorize(['admin', 'chief_security_officer', 'dea
 router.get('/unread-count', authenticate, authorize(['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance']), async (req, res) => {
     try {
         const userId = String(req.user.id || req.user._id);
+        const scopeQuery = getStaffReportScope(req.user) || {};
         const count = await StudentReportModel.countDocuments({
+            ...scopeQuery,
             seen_by: { $ne: userId },
         });
         res.json({ count });
@@ -197,8 +219,9 @@ router.patch('/:id/seen', authenticate, async (req, res) => {
 router.patch('/mark-all-seen', authenticate, authorize(['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance']), async (req, res) => {
     try {
         const userId = String(req.user.id || req.user._id);
+        const scopeQuery = getStaffReportScope(req.user) || {};
         await StudentReportModel.updateMany(
-            { seen_by: { $ne: userId } },
+            { ...scopeQuery, seen_by: { $ne: userId } },
             { $addToSet: { seen_by: userId } },
         );
         res.json({ success: true });
@@ -227,6 +250,18 @@ router.patch('/:id/status', authenticate, authorize(['admin', 'chief_security_of
             return res.status(404).json({ error: 'Report not found' });
         }
 
+        if (req.user.role === 'dean_of_students' && report.owner_role !== 'student') {
+            return res.status(403).json({ error: 'Dean can only handle student reports.' });
+        }
+        if (req.user.role === 'secretary' && (report.owner_role !== 'general_user' || report.category !== 'maintenance_issue')) {
+            return res.status(403).json({ error: 'Registrar can only handle general-user maintenance requests.' });
+        }
+        if (req.user.role === 'maintenance') {
+            if (report.category !== 'maintenance_issue' || !report.routed_to_maintenance) {
+                return res.status(403).json({ error: 'Maintenance can only handle routed maintenance work orders.' });
+            }
+        }
+
         const userId = String(req.user.id || req.user._id);
         if (!report.seen_by.includes(userId)) {
             report.seen_by.push(userId);
@@ -237,7 +272,12 @@ router.patch('/:id/status', authenticate, authorize(['admin', 'chief_security_of
             status,
             message: message.trim(),
             createdBy: req.user.username || req.user.name,
+            createdByRole: req.user.role,
         });
+        if ((req.user.role === 'dean_of_students' || req.user.role === 'secretary') && report.category === 'maintenance_issue' && status === 'In Progress') {
+            report.routed_to_maintenance = true;
+            report.routed_by_role = req.user.role;
+        }
         report.updatedAt = new Date();
 
         await report.save();

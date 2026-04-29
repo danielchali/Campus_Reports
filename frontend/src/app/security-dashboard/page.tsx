@@ -299,12 +299,12 @@ export default function SecurityDashboard() {
         </div>
       )}
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <section className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 xl:grid-cols-6">
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (
-            <article key={card.label} className={`rounded-xl border p-2.5 shadow-sm ${toneClasses[card.tone as keyof typeof toneClasses]}`}>
-              <div className="flex items-center gap-3">
+            <article key={card.label} className={`aspect-square min-w-[110px] shrink-0 rounded-xl border p-3 shadow-sm sm:min-w-0 sm:aspect-auto ${toneClasses[card.tone as keyof typeof toneClasses]}`}>
+              <div className="flex h-full flex-col justify-between gap-3 sm:flex-row sm:items-center sm:gap-3">
                 <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${card.tone === 'green' ? 'bg-kmuGreen/10 text-kmuGreen' : card.tone === 'amber' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300' : card.tone === 'orange' ? 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>
                   <Icon size={16} />
                 </div>

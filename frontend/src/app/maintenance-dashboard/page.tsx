@@ -300,7 +300,7 @@ export default function MaintenanceDashboard() {
         </div>
       )}
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 xl:grid-cols-5">
         {[
           { label: 'Total Requests', value: summary.total, helper: 'All maintenance items', icon: FileStack, tone: 'text-red-700 bg-red-50 dark:bg-red-900/20 dark:text-red-300' },
           { label: 'Completed', value: summary.completed, helper: 'Resolved maintenance work', icon: CheckCircle2, tone: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-300' },
@@ -310,8 +310,8 @@ export default function MaintenanceDashboard() {
         ].map((card) => {
           const Icon = card.icon;
           return (
-            <article key={card.label} className="rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className="flex items-center gap-3">
+            <article key={card.label} className="aspect-square min-w-[110px] shrink-0 rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:min-w-0 sm:aspect-auto">
+              <div className="flex h-full flex-col justify-between gap-3 sm:flex-row sm:items-center sm:gap-3">
                 <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${card.tone}`}>
                   <Icon size={16} />
                 </div>

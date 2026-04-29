@@ -134,7 +134,7 @@ export default function LoginPage() {
       else if (role === 'chief_security_officer') router.push('/chief-security-officer-dashboard');
       else if (role === 'dean_of_students') router.push('/dean-of-students-dashboard');
       else if (role === 'assistant_dean') router.push('/assistant-dean-dashboard');
-      else if (role === 'secretary') router.push('/secretary-dashboard');
+      else if (role === 'secretary') router.push('/registrar-dashboard');
       else if (role === 'maintenance') router.push('/maintenance-dashboard');
       else if (role === 'security_officer') router.push('/security-dashboard');
       else if (role === 'student') router.push('/student-dashboard');
