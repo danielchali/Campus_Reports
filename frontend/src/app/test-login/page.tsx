@@ -100,7 +100,7 @@ export default function TestLoginPage() {
           <li><a href="/chief-security-officer-dashboard" className="text-kmuGreen hover:underline">Chief Security Officer Dashboard</a></li>
           <li><a href="/dean-of-students-dashboard" className="text-kmuGreen hover:underline">Dean of Students Dashboard</a></li>
           <li><a href="/assistant-dean-dashboard" className="text-kmuGreen hover:underline">Assistant Dean Dashboard</a></li>
-          <li><a href="/secretary-dashboard" className="text-kmuGreen hover:underline">Secretary Dashboard</a></li>
+          <li><a href="/registrar-dashboard" className="text-kmuGreen hover:underline">Registrar Dashboard</a></li>
           <li><a href="/security-dashboard" className="text-kmuGreen hover:underline">Security Dashboard</a></li>
         </ul>
       </div>

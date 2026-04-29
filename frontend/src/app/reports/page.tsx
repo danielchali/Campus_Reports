@@ -323,7 +323,9 @@ export default function ReportsPage() {
                             )}
                           </div>
                           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                            {report.anonymous ? 'Reporter hidden' : report.ownerName} • {report.location} • Tracking code {report.trackingCode}
+                            {report.anonymous
+                              ? 'Reporter hidden'
+                              : `Reporter: ${report.ownerName || report.ownerUsername || 'Name not provided'}`} • {report.location} • Tracking code {report.trackingCode}
                           </p>
                           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                             Submitted {new Date(report.submittedAt).toLocaleString()}

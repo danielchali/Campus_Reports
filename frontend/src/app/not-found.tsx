@@ -14,7 +14,7 @@ export default function NotFound() {
       else if (user.role === 'chief_security_officer') router.replace('/chief-security-officer-dashboard');
       else if (user.role === 'dean_of_students') router.replace('/dean-of-students-dashboard');
       else if (user.role === 'assistant_dean') router.replace('/assistant-dean-dashboard');
-      else if (user.role === 'secretary') router.replace('/secretary-dashboard');
+      else if (user.role === 'secretary') router.replace('/registrar-dashboard');
       else if (user.role === 'maintenance') router.replace('/maintenance-dashboard');
       else if (user.role === 'security_officer') router.replace('/security-dashboard');
       else if (user.role === 'student') router.replace('/student-dashboard');

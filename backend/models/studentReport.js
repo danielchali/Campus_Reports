@@ -4,6 +4,7 @@ const studentReportUpdateSchema = new mongoose.Schema({
     status: { type: String, enum: ['Submitted', 'Under Review', 'In Progress', 'Resolved'], required: true },
     message: { type: String, required: true, trim: true },
     createdBy: { type: String, default: '' },
+    createdByRole: { type: String, default: '' },
     createdAt: { type: Date, default: Date.now },
 });
 
@@ -19,6 +20,9 @@ const studentReportSchema = new mongoose.Schema({
     owner_id: { type: String, required: true, index: true },
     owner_username: { type: String, required: true },
     owner_name: { type: String, default: '' },
+    owner_role: { type: String, enum: ['student', 'general_user'], default: 'student' },
+    routed_to_maintenance: { type: Boolean, default: false },
+    routed_by_role: { type: String, default: '' },
     seen_by: { type: [String], default: [] },
     updates: { type: [studentReportUpdateSchema], default: [] },
     createdAt: { type: Date, default: Date.now },
