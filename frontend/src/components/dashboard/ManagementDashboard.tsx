@@ -653,6 +653,25 @@ export default function ManagementDashboard({
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${toneClasses[severityTone].badge}`}>{item.severity || 'No severity'}</span>
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${toneClasses[statusTone].badge}`}>{item.status || 'No status'}</span>
                       <span className="text-xs text-slate-500 dark:text-slate-400">{formatDateLabel(getCaseDate(item))}</span>
+                    </div>
+                  </button>
+                );
+              })
+            ) : (
+              (focusItems as AnonymousReport[]).map((item) => {
+                const statusTone = item.status === 'Resolved' ? 'emerald' : item.status === 'In Progress' || item.status === 'Under Review' ? 'amber' : 'slate';
+
+                return (
+                  <Link
+                    key={item._id || item.tracking_code || `${item.title}-${getReportDate(item)}`}
+                    href={`/anonymous-reports/${item._id}`}
+                    className="flex w-full flex-col gap-2 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{item.tracking_code || 'No tracking code'}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{item.category || 'No category'} • {item.location || 'No location'}</p>
+                      <p className="mt-2 truncate text-sm text-slate-600 dark:text-slate-300">{item.title || 'No title'}</p>
+                    </div>
                     <div className="flex flex-wrap items-center gap-2 md:justify-end">
                       <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${toneClasses[statusTone].badge}`}>{item.status || 'No status'}</span>
                       <span className="text-xs text-slate-500 dark:text-slate-400">{formatDateLabel(getReportDate(item))}</span>
@@ -680,8 +699,6 @@ export default function ManagementDashboard({
               ))}
             </div>
           </article>
-
-
         </div>
       </section>
     </div>
