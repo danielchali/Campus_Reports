@@ -126,6 +126,8 @@ type StudentReport = {
   location?: string;
   submittedAt?: string;
   incidentDate?: string;
+  ownerName?: string;
+  ownerUsername?: string;
 };
 
 type StatementRequest = {
@@ -389,7 +391,7 @@ export default function ManagementDashboard({
     if (dataset === 'cases') {
       const studentReportItems: AnonymousReport[] = studentReports.map((item) => ({
         _id: item.id || item.trackingCode,
-        tracking_code: item.anonymous ? 'Student Anonymous' : 'Student Named',
+        tracking_code: item.anonymous ? 'Student Anonymous' : (item.ownerName || item.ownerUsername || 'Student Named'),
         title: item.title,
         category: item.category === 'maintenance_issue' ? 'Maintenance' : 'Incident',
         status: item.status,
@@ -406,7 +408,7 @@ export default function ManagementDashboard({
 
     const studentReportItems: AnonymousReport[] = studentReports.map((item) => ({
       _id: item.id || item.trackingCode,
-      tracking_code: item.anonymous ? 'Student Anonymous' : 'Student Named',
+      tracking_code: item.anonymous ? 'Student Anonymous' : (item.ownerName || item.ownerUsername || 'Student Named'),
       title: item.title,
       category: item.category === 'maintenance_issue' ? 'Maintenance' : 'Incident',
       status: item.status,

@@ -107,7 +107,7 @@ export default function GeneralDashboardPage() {
         <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-              Welcome back, {user.name?.split(' ')[0] || 'User'}
+              Welcome back, {user.name || 'User'}
             </h1>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400">

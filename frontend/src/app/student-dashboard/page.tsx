@@ -152,7 +152,7 @@ export default function StudentDashboardPage() {
               <ClipboardList size={18} />
             </div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-              Welcome back, {user.name?.split(' ')[0] || 'Student'}
+              Welcome back, {user.name || 'Student'}
             </h1>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400">
