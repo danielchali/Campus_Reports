@@ -232,7 +232,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <section className="max-w-6xl mx-auto p-6">
+    <section className="max-w-[1600px] mx-auto p-6">
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold mb-4 text-kmuGreen">Profile & Settings</h1>
         <p className="text-gray-700 dark:text-gray-300 text-lg">
