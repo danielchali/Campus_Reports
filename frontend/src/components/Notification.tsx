@@ -63,7 +63,7 @@ export default function Notification({
   };
 
   return (
-    <div className="fixed top-4 right-4 z-50 max-w-sm w-full">
+    <div className="fixed top-4 left-4 right-4 sm:left-auto z-50 sm:max-w-sm sm:w-full">
       <div className={`border rounded-lg p-4 shadow-lg ${getStyles()}`}>
         <div className="flex items-start">
           <div className="flex-shrink-0">
