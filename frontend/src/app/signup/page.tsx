@@ -284,12 +284,14 @@ export default function StudentSignupPage() {
   return (
     <div className={`min-h-screen px-4 py-6 md:py-12 ${theme === 'dark' ? 'bg-slate-950' : 'bg-slate-100'}`}>
       <div className="mx-auto max-w-4xl">
-        <div className="mb-8 md:mb-12 flex flex-col justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-3 justify-center md:justify-start">
+        <div className="mb-8 md:mb-12 flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 justify-center md:justify-start">
             <Link href="/login" className="inline-flex items-center gap-2 text-kmuGreen font-semibold hover:underline">
               <ArrowLeft className="w-4 h-4" />
               Back to Login
             </Link>
+            <span className="text-slate-300 dark:text-slate-700">|</span>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[#002d62] dark:text-white tracking-tight">Create your account</h1>
             {accountType && (
               <>
                 <span className="hidden md:inline text-slate-300 dark:text-slate-700">|</span>
@@ -299,8 +301,7 @@ export default function StudentSignupPage() {
               </>
             )}
           </div>
-          <div className="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-4 justify-center md:justify-start text-center md:text-left">
-            <h1 className="text-3xl md:text-4xl font-extrabold text-[#002d62] dark:text-white tracking-tight">Create your account</h1>
+          <div className="text-center md:text-left">
             <p className={`text-sm md:text-lg ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
               Join the Campus Reports community. Fill in your details to get started.
             </p>
