@@ -5,7 +5,7 @@ import { useEffect, useState, Suspense, lazy } from 'react';
 
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
-import { Bell, ChevronDown, Menu, Moon, Search, Sun } from 'lucide-react';
+import { Menu, Moon, Sun } from 'lucide-react';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { SyncProvider } from '../context/SyncContext';
@@ -30,7 +30,7 @@ const FloatingAIChatbot = lazy(() => import('../components/FloatingAIChatbot'));
 const LoadingFallback = () => <PageSkeleton />;
 
 function TopNavbar() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { setIsOpenMobile } = useSidebar();
 
