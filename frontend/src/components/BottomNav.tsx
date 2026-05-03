@@ -2,15 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useSidebar } from '../context/SidebarContext';
 import { getNavLinksForRole, splitNavLinksForMobile } from '../utils/navigation';
 
 export default function BottomNav() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const { setIsOpenMobile } = useSidebar();
 
   if (!user) {
     return null;
@@ -55,15 +52,6 @@ export default function BottomNav() {
             </Link>
           );
         })}
-        <button
-          onClick={() => setIsOpenMobile(true)}
-          className="min-w-[64px] sm:min-w-[76px] flex-1 rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 text-center transition text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-        >
-          <span className="mx-auto flex h-5 w-5 items-center justify-center">
-            <Menu size={16} />
-          </span>
-          <span className="mt-1 block text-[10px] sm:text-[11px] font-medium leading-tight">More</span>
-        </button>
       </div>
     </nav>
   );
