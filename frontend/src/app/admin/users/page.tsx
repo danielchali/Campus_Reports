@@ -1,11 +1,31 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getAll, register, update, remove, exportDocx, exportExcel } from '../../../utils/api';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, TableSkeleton } from '../../../components/PageSkeleton';
 
+
+
+type UserAccount = {
+  id?: string;
+  _id?: string;
+  username: string;
+  name: string;
+  role: string;
+};
+
+type ApiError = {
+  message?: string;
+};
+
+const getErrorMessage = (err: unknown, fallback: string) => {
+  if (typeof err === 'object' && err !== null && 'message' in err) {
+    return (err as ApiError).message || fallback;
+  }
+  return fallback;
+};
 
 const ROLES = [
   { value: 'admin', label: 'Admin' },
@@ -23,12 +43,12 @@ export default function UserManagementPage() {
   const { token, user, loading: authLoading } = useAuth();
   const router = useRouter();
   
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const [editUser, setEditUser] = useState<any | null>(null);
+  const [editUser, setEditUser] = useState<UserAccount | null>(null);
   const [newUser, setNewUser] = useState({ username: '', name: '', password: '', role: 'security_officer' });
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
@@ -41,7 +61,7 @@ export default function UserManagementPage() {
     }
   }, [authLoading, token, router]);
 
-  async function fetchUsers() {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -50,20 +70,20 @@ export default function UserManagementPage() {
       if (roleFilter) query.role = roleFilter;
       const data = await getAll('users', query);
       setUsers(Array.isArray(data) ? data : (data.users || data || []));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching users:', err);
-      setError(err.message || 'Failed to load users');
+      setError(getErrorMessage(err, 'Failed to load users'));
       setUsers([]);
     } finally {
       setLoading(false);
     }
-  }
+  }, [search, roleFilter]);
 
   useEffect(() => { 
     if (user && canAccessPage(user.role, 'adminUsers')) {
       fetchUsers(); 
     }
-  }, [token, user, search, roleFilter]);
+  }, [fetchUsers, user]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -75,9 +95,9 @@ export default function UserManagementPage() {
       setShowCreate(false);
       setNewUser({ username: '', name: '', password: '', role: 'security_officer' });
       fetchUsers();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error creating user:', err);
-      setError(err.message || 'Failed to create user');
+      setError(getErrorMessage(err, 'Failed to create user'));
     }
   }
 
@@ -95,9 +115,9 @@ export default function UserManagementPage() {
       setEditUser(null);
       setEditingUserId(null);
       fetchUsers();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error updating user:', err);
-      setError(err.message || 'Failed to update user');
+      setError(getErrorMessage(err, 'Failed to update user'));
     }
   }
 
@@ -109,15 +129,15 @@ export default function UserManagementPage() {
       await remove('users', id);
       setSuccess('User deleted successfully!');
       fetchUsers();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error deleting user:', err);
-      setError(err.message || 'Failed to delete user');
+      setError(getErrorMessage(err, 'Failed to delete user'));
     }
   }
 
-  function startEdit(user: any) {
-    setEditingUserId(user.id || user._id);
-    setEditUser({ ...user });
+  function startEdit(userAccount: UserAccount) {
+    setEditingUserId(userAccount.id || userAccount._id || null);
+    setEditUser({ ...userAccount });
   }
 
   function cancelEdit() {
