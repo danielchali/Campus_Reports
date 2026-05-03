@@ -103,13 +103,24 @@ export default function UserManagementPage() {
 
   async function handleEdit(e: React.FormEvent) {
     e.preventDefault();
+    if (!editUser) {
+      setError('No user selected for editing.');
+      return;
+    }
+
+    const targetUserId = editUser.id || editUser._id;
+    if (!targetUserId) {
+      setError('Selected user has no identifier.');
+      return;
+    }
+
     setError(null);
     setSuccess(null);
     try {
-      await update('users', editUser.id || editUser._id, { 
-        username: editUser.username, 
-        name: editUser.name, 
-        role: editUser.role 
+      await update('users', targetUserId, {
+        username: editUser.username,
+        name: editUser.name,
+        role: editUser.role
       });
       setSuccess('User updated successfully!');
       setEditUser(null);
@@ -150,7 +161,7 @@ export default function UserManagementPage() {
   }
 
   function selectAll() {
-    setSelected(users.map(u => u.id || u._id));
+    setSelected(users.map((u) => u.id || u._id).filter((id): id is string => Boolean(id)));
   }
 
   function clearSelected() {
@@ -162,7 +173,10 @@ export default function UserManagementPage() {
     for (const id of selected) {
       await remove('users', id);
     }
-    setUsers(users => users.filter(u => !selected.includes(u.id || u._id)));
+    setUsers((users) => users.filter((u) => {
+      const identifier = u.id || u._id;
+      return !identifier || !selected.includes(identifier);
+    }));
     setSelected([]);
   }
 
@@ -328,20 +342,20 @@ export default function UserManagementPage() {
             <>
             <div className="space-y-4 md:hidden">
               {users.map((u) => {
-                const userId = u.id || u._id;
-                const isEditing = editingUserId === userId;
+                const userId = u.id || u._id || "";
+                const isEditing = userId ? editingUserId === userId : false;
 
                 return (
-                  <div key={userId} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-3">
+                  <div key={userId || `${u.username}-${u.role}`} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-3">
                     <div className="flex items-start gap-3">
                       <input
                         type="checkbox"
                         checked={selected.includes(userId)}
-                        onChange={() => toggleSelect(userId)}
+                        onChange={() => userId && toggleSelect(userId)}
                         className="mt-1"
                       />
                       <div className="min-w-0 flex-1">
-                        {isEditing ? (
+                        {isEditing && editUser ? (
                           <div className="space-y-3">
                             <input
                               type="text"
@@ -407,7 +421,7 @@ export default function UserManagementPage() {
                 </thead>
                 <tbody>
                   {users.map((u) => {
-                    const userId = u.id || u._id;
+                    const userId = u.id || u._id || "";
                     const isEditing = editingUserId === userId;
                     
                     return (
@@ -416,10 +430,10 @@ export default function UserManagementPage() {
                           <input 
                             type="checkbox" 
                             checked={selected.includes(userId)} 
-                            onChange={() => toggleSelect(userId)} 
+                            onChange={() => userId && toggleSelect(userId)} 
                           />
                         </td>
-                        {isEditing ? (
+                        {isEditing && editUser ? (
                           <>
                             <td className="py-2 px-2 md:px-4">
                               <input 
