@@ -106,6 +106,7 @@ type CaseItem = {
 };
 
 type AnonymousReport = {
+  source?: 'student' | 'anonymous';
   _id?: string;
   tracking_code?: string;
   title?: string;
@@ -391,13 +392,14 @@ export default function ManagementDashboard({
     if (dataset === 'cases') {
       const studentReportItems: AnonymousReport[] = studentReports.map((item) => ({
         _id: item.id || item.trackingCode,
-        tracking_code: item.anonymous ? 'Student Anonymous' : (item.ownerName || item.ownerUsername || 'Student Named'),
+        tracking_code: item.anonymous ? 'Student Anonymous' : (item.ownerName || 'Named reporter'),
         title: item.title,
         category: item.category === 'maintenance_issue' ? 'Maintenance' : 'Incident',
         status: item.status,
         location: item.location,
         createdAt: item.submittedAt || item.incidentDate,
         incident_date: item.incidentDate,
+        source: 'student',
       }));
 
       return [...studentReportItems, ...filteredReports]
@@ -408,13 +410,14 @@ export default function ManagementDashboard({
 
     const studentReportItems: AnonymousReport[] = studentReports.map((item) => ({
       _id: item.id || item.trackingCode,
-      tracking_code: item.anonymous ? 'Student Anonymous' : (item.ownerName || item.ownerUsername || 'Student Named'),
+      tracking_code: item.anonymous ? 'Student Anonymous' : (item.ownerName || 'Named reporter'),
       title: item.title,
       category: item.category === 'maintenance_issue' ? 'Maintenance' : 'Incident',
       status: item.status,
       location: item.location,
       createdAt: item.submittedAt || item.incidentDate,
       incident_date: item.incidentDate,
+        source: 'student',
     }));
 
     return [...studentReportItems, ...filteredReports]
@@ -563,6 +566,7 @@ export default function ManagementDashboard({
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Report Activity</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">Recent campus reports across maintenance, discipline, and anonymous channels.</p>
+            <p className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-300">Total reports: <span className="text-slate-900 dark:text-white">{summary.totalCampusReports}</span></p>
           </div>
           <div className="h-[250px] xl:h-[230px]">
             <Line
@@ -666,7 +670,7 @@ export default function ManagementDashboard({
                 return (
                   <Link
                     key={item._id || item.tracking_code || `${item.title}-${getReportDate(item)}`}
-                    href={`/anonymous-reports/${item._id}`}
+                    href={item.source === 'student' ? '/reports' : (item.tracking_code ? `/anonymous-report?track=${encodeURIComponent(item.tracking_code)}` : '/anonymous-report')}
                     className="flex w-full flex-col gap-2 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
                   >
                     <div className="min-w-0">

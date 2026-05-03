@@ -1,12 +1,31 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { API_BASE_URL } from '../../../config/constants';
 import { getAll, register, update, remove, exportDocx, exportExcel } from '../../../utils/api';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, TableSkeleton } from '../../../components/PageSkeleton';
 
+
+
+type UserAccount = {
+  id?: string;
+  _id?: string;
+  username: string;
+  name: string;
+  role: string;
+};
+
+type ApiError = {
+  message?: string;
+};
+
+const getErrorMessage = (err: unknown, fallback: string) => {
+  if (typeof err === 'object' && err !== null && 'message' in err) {
+    return (err as ApiError).message || fallback;
+  }
+  return fallback;
+};
 
 const ROLES = [
   { value: 'admin', label: 'Admin' },
@@ -24,35 +43,25 @@ export default function UserManagementPage() {
   const { token, user, loading: authLoading } = useAuth();
   const router = useRouter();
   
-  // Handle authentication like profile page - only on client side
-  if (typeof window !== 'undefined') {
-    if (!authLoading && !token) {
-      router.replace('/login');
-      return <PageSkeleton />;
-    }
-    
-    if (authLoading) {
-      return <PageSkeleton />;
-    }
-    
-    if (!user || !canAccessPage(user.role, 'adminUsers')) {
-      return <div className="text-red-600">Access denied. Admin privileges required.</div>;
-    }
-  }
-
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
-  const [editUser, setEditUser] = useState<any | null>(null);
+  const [editUser, setEditUser] = useState<UserAccount | null>(null);
   const [newUser, setNewUser] = useState({ username: '', name: '', password: '', role: 'security_officer' });
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
 
-  async function fetchUsers() {
+  useEffect(() => {
+    if (!authLoading && !token) {
+      router.replace('/login');
+    }
+  }, [authLoading, token, router]);
+
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -61,20 +70,20 @@ export default function UserManagementPage() {
       if (roleFilter) query.role = roleFilter;
       const data = await getAll('users', query);
       setUsers(Array.isArray(data) ? data : (data.users || data || []));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching users:', err);
-      setError(err.message || 'Failed to load users');
+      setError(getErrorMessage(err, 'Failed to load users'));
       setUsers([]);
     } finally {
       setLoading(false);
     }
-  }
+  }, [search, roleFilter]);
 
   useEffect(() => { 
     if (user && canAccessPage(user.role, 'adminUsers')) {
       fetchUsers(); 
     }
-  }, [token, user, search, roleFilter]);
+  }, [fetchUsers, user]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -86,29 +95,40 @@ export default function UserManagementPage() {
       setShowCreate(false);
       setNewUser({ username: '', name: '', password: '', role: 'security_officer' });
       fetchUsers();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error creating user:', err);
-      setError(err.message || 'Failed to create user');
+      setError(getErrorMessage(err, 'Failed to create user'));
     }
   }
 
   async function handleEdit(e: React.FormEvent) {
     e.preventDefault();
+    if (!editUser) {
+      setError('No user selected for editing.');
+      return;
+    }
+
+    const targetUserId = editUser.id || editUser._id;
+    if (!targetUserId) {
+      setError('Selected user has no identifier.');
+      return;
+    }
+
     setError(null);
     setSuccess(null);
     try {
-      await update('users', editUser.id || editUser._id, { 
-        username: editUser.username, 
-        name: editUser.name, 
-        role: editUser.role 
+      await update('users', targetUserId, {
+        username: editUser.username,
+        name: editUser.name,
+        role: editUser.role
       });
       setSuccess('User updated successfully!');
       setEditUser(null);
       setEditingUserId(null);
       fetchUsers();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error updating user:', err);
-      setError(err.message || 'Failed to update user');
+      setError(getErrorMessage(err, 'Failed to update user'));
     }
   }
 
@@ -120,15 +140,15 @@ export default function UserManagementPage() {
       await remove('users', id);
       setSuccess('User deleted successfully!');
       fetchUsers();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error deleting user:', err);
-      setError(err.message || 'Failed to delete user');
+      setError(getErrorMessage(err, 'Failed to delete user'));
     }
   }
 
-  function startEdit(user: any) {
-    setEditingUserId(user.id || user._id);
-    setEditUser({ ...user });
+  function startEdit(userAccount: UserAccount) {
+    setEditingUserId(userAccount.id || userAccount._id || null);
+    setEditUser({ ...userAccount });
   }
 
   function cancelEdit() {
@@ -141,7 +161,7 @@ export default function UserManagementPage() {
   }
 
   function selectAll() {
-    setSelected(users.map(u => u.id || u._id));
+    setSelected(users.map((u) => u.id || u._id).filter((id): id is string => Boolean(id)));
   }
 
   function clearSelected() {
@@ -153,7 +173,10 @@ export default function UserManagementPage() {
     for (const id of selected) {
       await remove('users', id);
     }
-    setUsers(users => users.filter(u => !selected.includes(u.id || u._id)));
+    setUsers((users) => users.filter((u) => {
+      const identifier = u.id || u._id;
+      return !identifier || !selected.includes(identifier);
+    }));
     setSelected([]);
   }
 
@@ -179,6 +202,15 @@ export default function UserManagementPage() {
       { label: 'Staff Roles', value: supportCount, tone: 'text-purple-700 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/30' },
     ];
   }, [users]);
+
+  if (authLoading || (!token && typeof window !== 'undefined')) {
+    return <PageSkeleton />;
+  }
+
+  if (!user || !canAccessPage(user.role, 'adminUsers')) {
+    return <div className="text-red-600">Access denied. Admin privileges required.</div>;
+  }
+
 
   return (
       <div className="max-w-6xl mx-auto p-6">
@@ -310,20 +342,20 @@ export default function UserManagementPage() {
             <>
             <div className="space-y-4 md:hidden">
               {users.map((u) => {
-                const userId = u.id || u._id;
-                const isEditing = editingUserId === userId;
+                const userId = u.id || u._id || "";
+                const isEditing = userId ? editingUserId === userId : false;
 
                 return (
-                  <div key={userId} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-3">
+                  <div key={userId || `${u.username}-${u.role}`} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-3">
                     <div className="flex items-start gap-3">
                       <input
                         type="checkbox"
                         checked={selected.includes(userId)}
-                        onChange={() => toggleSelect(userId)}
+                        onChange={() => userId && toggleSelect(userId)}
                         className="mt-1"
                       />
                       <div className="min-w-0 flex-1">
-                        {isEditing ? (
+                        {isEditing && editUser ? (
                           <div className="space-y-3">
                             <input
                               type="text"
@@ -389,7 +421,7 @@ export default function UserManagementPage() {
                 </thead>
                 <tbody>
                   {users.map((u) => {
-                    const userId = u.id || u._id;
+                    const userId = u.id || u._id || "";
                     const isEditing = editingUserId === userId;
                     
                     return (
@@ -398,10 +430,10 @@ export default function UserManagementPage() {
                           <input 
                             type="checkbox" 
                             checked={selected.includes(userId)} 
-                            onChange={() => toggleSelect(userId)} 
+                            onChange={() => userId && toggleSelect(userId)} 
                           />
                         </td>
-                        {isEditing ? (
+                        {isEditing && editUser ? (
                           <>
                             <td className="py-2 px-2 md:px-4">
                               <input 

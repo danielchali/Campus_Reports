@@ -34,8 +34,8 @@ export default function SignatureField({
         return;
       }
 
-      const module = await import("signature_pad");
-      const SignaturePadClass = module.default;
+      const signaturePadModule = await import("signature_pad");
+      const SignaturePadClass = signaturePadModule.default;
 
       if (!mounted || !canvasRef.current) {
         return;
