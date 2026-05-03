@@ -84,7 +84,7 @@ export default function NotificationBell() {
         const unreadReports = reports.filter((r) => !(r.seenBy || []).includes(userId));
         reportNotifications = unreadReports.slice(0, 10).map((r) => ({
           _id: `report_${r.id}`,
-          message: `${r.anonymous ? 'Anonymous' : r.ownerName} submitted ${r.title}`,
+          message: `${r.anonymous ? 'Anonymous' : (r.ownerName || 'Named reporter')} submitted ${r.title}`,
           createdAt: r.submittedAt,
           isRead: false,
           link: '/reports',
@@ -165,6 +165,15 @@ export default function NotificationBell() {
     }
   };
 
+
+  const normalizeNotificationLink = (link: string) => {
+    if (link.startsWith('/anonymous-reports/')) {
+      const tracking = link.split('/').pop();
+      return tracking ? `/anonymous-report?track=${encodeURIComponent(tracking)}` : '/anonymous-report';
+    }
+    return link;
+  };
+
   const handleSystemNotificationOpen = async (item: NotificationItem) => {
     if (!item.isRead) {
       await markAsRead(item._id);
@@ -172,7 +181,7 @@ export default function NotificationBell() {
 
     setIsOpen(false);
     if (item.link) {
-      router.push(item.link);
+      router.push(normalizeNotificationLink(item.link));
     }
   };
 
@@ -238,7 +247,7 @@ export default function NotificationBell() {
                             View report
                           </button>
                         ) : n.link && (
-                          <Link href={n.link} className="text-xs text-kmuGreen mt-2 inline-block font-medium hover:underline" onClick={(event) => {
+                          <Link href={normalizeNotificationLink(n.link)} className="text-xs text-kmuGreen mt-2 inline-block font-medium hover:underline" onClick={(event) => {
                             event.preventDefault();
                             handleSystemNotificationOpen(n);
                           }}>
