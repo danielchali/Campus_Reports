@@ -403,7 +403,7 @@ export default function LoginPage() {
                   </div>
                   <span className="text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors">Remember me</span>
                 </label>
-                <Link href="#" className="text-kmuGreen hover:underline font-medium">
+                <Link href="/forgot-password" className="text-kmuGreen hover:underline font-medium">
                   Forgot Password?
                 </Link>
               </div>
