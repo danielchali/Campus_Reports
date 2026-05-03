@@ -2,7 +2,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { API_BASE_URL } from '../../../config/constants';
 import { getAll, register, update, remove, exportDocx, exportExcel } from '../../../utils/api';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, TableSkeleton } from '../../../components/PageSkeleton';
@@ -24,22 +23,6 @@ export default function UserManagementPage() {
   const { token, user, loading: authLoading } = useAuth();
   const router = useRouter();
   
-  // Handle authentication like profile page - only on client side
-  if (typeof window !== 'undefined') {
-    if (!authLoading && !token) {
-      router.replace('/login');
-      return <PageSkeleton />;
-    }
-    
-    if (authLoading) {
-      return <PageSkeleton />;
-    }
-    
-    if (!user || !canAccessPage(user.role, 'adminUsers')) {
-      return <div className="text-red-600">Access denied. Admin privileges required.</div>;
-    }
-  }
-
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +34,12 @@ export default function UserManagementPage() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!authLoading && !token) {
+      router.replace('/login');
+    }
+  }, [authLoading, token, router]);
 
   async function fetchUsers() {
     setLoading(true);
@@ -179,6 +168,15 @@ export default function UserManagementPage() {
       { label: 'Staff Roles', value: supportCount, tone: 'text-purple-700 bg-purple-100 dark:text-purple-300 dark:bg-purple-900/30' },
     ];
   }, [users]);
+
+  if (authLoading || (!token && typeof window !== 'undefined')) {
+    return <PageSkeleton />;
+  }
+
+  if (!user || !canAccessPage(user.role, 'adminUsers')) {
+    return <div className="text-red-600">Access denied. Admin privileges required.</div>;
+  }
+
 
   return (
       <div className="max-w-6xl mx-auto p-6">
