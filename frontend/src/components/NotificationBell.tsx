@@ -195,15 +195,14 @@ export default function NotificationBell() {
       >
         <Bell size={18} />
         {unreadCount > 0 && (
-          <span className="absolute right-2 top-2 flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-kmuOrange opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-kmuOrange"></span>
+          <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-kmuOrange px-1 text-[10px] font-bold leading-none text-white shadow-sm">
+            {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-[320px] sm:w-[320px] max-h-[400px] flex flex-col bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden">
+        <div className="fixed left-2 right-2 top-14 z-50 max-h-[70vh] w-auto max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:max-h-[400px] sm:w-[320px]">
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
             <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               Notifications
