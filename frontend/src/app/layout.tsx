@@ -78,10 +78,12 @@ function TopNavbar({ showMenuButton }: { showMenuButton: boolean }) {
 
 function AppContent({ isLogin, children }: { isLogin: boolean; children: React.ReactNode }) {
   const { user } = useAuth();
+  const pathname = usePathname();
   const { sidebarWidth } = useSidebar();
   const [isMobile, setIsMobile] = useState(true); // Default to true to avoid sidebar space on mobile during hydration
   const shouldShowNav = !isLogin && user;
   const disableSidebarForStudentMobile = !!shouldShowNav && user.role === 'student' && isMobile;
+  const showPublicChatbot = !user && (pathname === '/login' || pathname === '/anonymous-report');
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -122,7 +124,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
             </Suspense>
           </div>
         )}
-        {shouldShowNav && (
+        {(shouldShowNav || showPublicChatbot) && (
           <Suspense fallback={null}>
             <FloatingAIChatbot />
           </Suspense>

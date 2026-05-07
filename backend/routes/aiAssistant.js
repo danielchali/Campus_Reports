@@ -1,5 +1,4 @@
 import express from 'express';
-import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -50,7 +49,7 @@ function openRouterHeaders(apiKey) {
   };
 }
 
-router.post('/chat', authenticate, async (req, res) => {
+router.post('/chat', async (req, res) => {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'OpenRouter API key is not configured on the server.' });
@@ -86,7 +85,7 @@ router.post('/chat', authenticate, async (req, res) => {
   }
 });
 
-router.post('/chat/stream', authenticate, async (req, res) => {
+router.post('/chat/stream', async (req, res) => {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     return res.status(500).json({ error: 'OpenRouter API key is not configured on the server.' });
