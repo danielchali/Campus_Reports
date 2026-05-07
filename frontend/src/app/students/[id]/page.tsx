@@ -334,22 +334,22 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                 </div>
 
                 {/* Statistics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                <div className="mb-6 flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 lg:grid-cols-4">
+                    <div className="min-w-[140px] shrink-0 rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:min-w-0">
                         <div className="text-2xl font-bold text-kmuGreen">{totalCases}</div>
-                        <div className="text-gray-600 dark:text-gray-400 text-sm">Total Cases</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">Total Cases</div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                    <div className="min-w-[140px] shrink-0 rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:min-w-0">
                         <div className="text-2xl font-bold text-red-600">{openCases}</div>
-                        <div className="text-gray-600 dark:text-gray-400 text-sm">Open Cases</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">Open Cases</div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                    <div className="min-w-[140px] shrink-0 rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:min-w-0">
                         <div className="text-2xl font-bold text-green-600">{closedCases}</div>
-                        <div className="text-gray-600 dark:text-gray-400 text-sm">Closed Cases</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">Closed Cases</div>
                     </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                    <div className="min-w-[140px] shrink-0 rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:min-w-0">
                         <div className="text-2xl font-bold text-orange-600">{highSeverityCases}</div>
-                        <div className="text-gray-600 dark:text-gray-400 text-sm">High Severity</div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">High Severity</div>
                     </div>
                 </div>
 

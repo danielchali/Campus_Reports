@@ -19,6 +19,7 @@ import { useAuth } from '../../context/AuthContext';
 import { getStudentReportMetrics, type StudentReport, type StudentReportMetrics } from '../../utils/studentReports';
 import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
+import { getDisplayFirstName } from '../../utils/userDisplay';
 
 type StatementRequest = {
   _id: string;
@@ -152,7 +153,7 @@ export default function StudentDashboardPage() {
               <ClipboardList size={18} />
             </div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-              Welcome back, {user.name || 'Student'}
+              Welcome back, {getDisplayFirstName(user.name, user.username, 'Student')}
             </h1>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400">
