@@ -515,6 +515,8 @@ export default function ManagementDashboard({
   }
 
   const viewAllHref = dataset === 'cases' ? '/cases' : '/reports';
+  const metricDesktopColumnsClass =
+    metricKeys.length >= 5 ? 'xl:grid-cols-5' : metricKeys.length === 4 ? 'xl:grid-cols-4' : 'xl:grid-cols-3';
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 xl:space-y-5">
@@ -536,7 +538,7 @@ export default function ManagementDashboard({
         </div>
       )}
 
-      <section className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 xl:grid-cols-5">
+      <section className={`flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 ${metricDesktopColumnsClass}`}>
         {metricKeys.map((key) => {
           const metric = metricMap[key];
           const Icon = metric.icon;
@@ -566,7 +568,10 @@ export default function ManagementDashboard({
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Report Activity</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">Recent campus reports across maintenance, discipline, and anonymous channels.</p>
-            <p className="mt-1 text-xs font-medium text-slate-600 dark:text-slate-300">Total reports: <span className="text-slate-900 dark:text-white">{summary.totalCampusReports}</span></p>
+            <div className="mt-2 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-800/60">
+              <span className="font-medium text-slate-600 dark:text-slate-300">Total reports</span>
+              <span className="text-sm font-semibold text-slate-900 dark:text-white">{summary.totalCampusReports}</span>
+            </div>
           </div>
           <div className="h-[250px] xl:h-[230px]">
             <Line

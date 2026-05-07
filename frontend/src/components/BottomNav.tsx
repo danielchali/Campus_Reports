@@ -15,11 +15,14 @@ export default function BottomNav() {
 
   const allNavLinks = getNavLinksForRole(user.role);
   const { bottomNav } = splitNavLinksForMobile(allNavLinks);
+  const navItems = user.role === 'student'
+    ? bottomNav.filter((link) => link.label !== 'Logout').slice(0, 4)
+    : bottomNav;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-gray-900/95 md:hidden">
       <div className="flex overflow-x-auto px-1 sm:px-2 py-1.5 sm:py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {bottomNav.map((link) => {
+        {navItems.map((link) => {
           const Icon = link.icon;
           const isActive = pathname === link.path;
           const commonClasses = `min-w-[64px] sm:min-w-[76px] flex-1 rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 text-center transition ${

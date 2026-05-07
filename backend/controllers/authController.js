@@ -257,19 +257,8 @@ export async function registerStudent(req, res) {
 }
 
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 import StaffModel from '../models/staff.js';
-
-// Setup mock email transport for development
-// In production, configure this with real SMTP credentials
-const transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
-    auth: {
-        user: 'mock_user@ethereal.email', // Replace with real auth in prod
-        pass: 'mock_pass'
-    }
-});
+import { sendEmail } from '../utils/emailService.js';
 
 export async function forgotPassword(req, res) {
     const { username } = req.body; // username is typically studentId or staffId
@@ -295,32 +284,32 @@ export async function forgotPassword(req, res) {
             return res.status(400).json({ error: 'No email address associated with this account. Please contact administration.' });
         }
 
-        // Generate token
+        // Generate OTP + token fallback
         const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetOTP = `${Math.floor(100000 + Math.random() * 900000)}`;
         user.resetPasswordToken = resetToken;
+        user.resetPasswordOTP = resetOTP;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+        user.resetPasswordOTPExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
         await user.save();
 
         const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
 
         const mailOptions = {
-            from: '"Campus Reports" <noreply@campusreports.com>',
             to: email,
-            subject: 'Password Reset Request',
-            text: `You requested a password reset. Please click the following link to reset your password: \n\n ${resetUrl} \n\n If you did not request this, please ignore this email.`,
-            html: `<p>You requested a password reset.</p><p>Please click the following link to reset your password:</p><a href="${resetUrl}">${resetUrl}</a><p>If you did not request this, please ignore this email.</p>`
+            subject: 'Password Reset OTP',
+            text: `Use this OTP to reset your password: ${resetOTP}. It expires in 15 minutes.\n\nReset link: ${resetUrl}`,
+            html: `<p>Your password reset OTP is <strong style="font-size:20px">${resetOTP}</strong>.</p><p>It expires in 15 minutes.</p><p>Or use this link: <a href="${resetUrl}">${resetUrl}</a></p>`
         };
 
         // Attempt to send email
         try {
-            await transporter.sendMail(mailOptions);
-            console.log(`[Mock Email] Sent reset link to ${email}: ${resetUrl}`);
-            res.json({ message: 'Password reset link sent to your email.' });
+            await sendEmail(mailOptions);
+            res.json({ message: 'Password reset OTP sent to your email.' });
         } catch (emailErr) {
-            console.error('Email send error (Mocking fallback):', emailErr);
-            // Fallback for development if ethereal fails to connect
-            console.log(`[Dev Fallback] Reset Link for ${username}: ${resetUrl}`);
-            res.json({ message: 'Password reset link generated. (Check console in development)' });
+            console.error('Email send error:', emailErr);
+            console.log(`[Dev Fallback] Reset OTP for ${username}: ${resetOTP}; link: ${resetUrl}`);
+            res.json({ message: 'Password reset OTP generated. (Check server console in development)' });
         }
 
     } catch (err) {
@@ -330,14 +319,13 @@ export async function forgotPassword(req, res) {
 }
 
 export async function resetPassword(req, res) {
-    const { token, newPassword } = req.body;
-    if (!token || !newPassword) return res.status(400).json({ error: 'Token and new password are required' });
+    const { token, otp, newPassword } = req.body;
+    if ((!token && !otp) || !newPassword) return res.status(400).json({ error: 'OTP (or token) and new password are required' });
 
     try {
-        const user = await UserModel.findOne({
-            resetPasswordToken: token,
-            resetPasswordExpires: { $gt: Date.now() }
-        });
+        const user = otp
+            ? await UserModel.findOne({ resetPasswordOTP: otp, resetPasswordOTPExpires: { $gt: Date.now() } })
+            : await UserModel.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
 
         if (!user) {
             return res.status(400).json({ error: 'Password reset token is invalid or has expired.' });
@@ -347,6 +335,8 @@ export async function resetPassword(req, res) {
         user.password = hashed;
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
+        user.resetPasswordOTP = undefined;
+        user.resetPasswordOTPExpires = undefined;
         await user.save();
 
         await logAudit({
@@ -365,4 +355,3 @@ export async function resetPassword(req, res) {
         res.status(500).json({ error: 'Server error' });
     }
 }
-
