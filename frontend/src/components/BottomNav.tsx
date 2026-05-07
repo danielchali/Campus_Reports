@@ -16,7 +16,9 @@ export default function BottomNav() {
   const allNavLinks = getNavLinksForRole(user.role);
   const { bottomNav } = splitNavLinksForMobile(allNavLinks);
   const navItems = user.role === 'student'
-    ? bottomNav.filter((link) => link.label !== 'Logout').slice(0, 4)
+    ? allNavLinks
+      .filter((link) => ['Dashboard', 'My Reports', 'Make a Report', 'Help'].includes(link.label))
+      .slice(0, 4)
     : bottomNav;
 
   return (
