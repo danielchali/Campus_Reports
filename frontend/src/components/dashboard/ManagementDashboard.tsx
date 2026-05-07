@@ -515,6 +515,8 @@ export default function ManagementDashboard({
   }
 
   const viewAllHref = dataset === 'cases' ? '/cases' : '/reports';
+  const metricDesktopColumnsClass =
+    metricKeys.length >= 5 ? 'xl:grid-cols-5' : metricKeys.length === 4 ? 'xl:grid-cols-4' : 'xl:grid-cols-3';
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-4 xl:space-y-5">
@@ -536,7 +538,7 @@ export default function ManagementDashboard({
         </div>
       )}
 
-      <section className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 xl:grid-cols-5">
+      <section className={`flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 ${metricDesktopColumnsClass}`}>
         {metricKeys.map((key) => {
           const metric = metricMap[key];
           const Icon = metric.icon;
