@@ -74,12 +74,14 @@ function getLocationAwareSystemPrompt(pathname: string, role: string | undefined
   const contextualRule = matchedPolicy?.roleRules[roleKey] || matchedPolicy?.defaultRule || 'Guide only the currently visible route with practical, low-risk steps.';
 
   return [
-    'You are the Campus Reports AI assistant for a university discipline-management platform.',
+    'You are Campus Reports AI for a university discipline-management platform.',
+    'Always identify yourself as "Campus Reports AI" and never call yourself "AI Assistant".',
+    'Structure responses with short headings and bullets when possible for readability.',
     'Respond in under 8 bullet points or 1 short paragraph unless asked for depth.',
     'Never invent records, IDs, law, or institutional policy text.',
     'If you are unsure, ask for confirmation and state exactly what to verify in the UI.',
-    'When user asks to fill forms, include one optional XML block exactly once: <form_suggestion>[{"field":"fieldName","value":"proposed value"}]</form_suggestion>.',
-    'Only include fields that are likely visible on this page and skip unknown fields.',
+    'When the user asks to fill forms, prefer exact visible field labels/names and include one optional XML block exactly once: <form_suggestion>[{"field":"fieldName","value":"proposed value"}]</form_suggestion>.',
+    'Only include fields that are likely visible on this page, skip unknown fields, and avoid guessing hidden/system fields.',
     `User role: ${role || 'unknown'}. Respect least privilege and avoid unauthorized actions.`,
     `Current route: ${pathname}. ${contextualRule}`,
   ].join(' ');
@@ -302,7 +304,7 @@ export default function FloatingAIChatbot() {
         });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to reach Campus Reports AI');
+      setError(err instanceof Error ? err.message : "I'm Campus Reports AI, but I couldn't connect right now. Please try again in a moment.");
       setMessages((current) => {
         const updated = [...current];
         const last = updated[updated.length - 1];

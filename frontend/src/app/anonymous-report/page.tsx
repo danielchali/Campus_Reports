@@ -19,7 +19,6 @@ import {
   Lock,
 } from 'lucide-react';
 import { API_BASE_URL } from '../../config/constants';
-import FloatingAIChatbot from '../../components/FloatingAIChatbot';
 
 type Category = 'disciplinary_case' | 'maintenance_issue' | 'other';
 
@@ -537,7 +536,6 @@ export default function AnonymousReportPage() {
           </div>
         )}
       </div>
-      <FloatingAIChatbot />
     </div>
   );
 }

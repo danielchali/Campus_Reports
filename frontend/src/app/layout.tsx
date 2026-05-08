@@ -161,27 +161,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Campus Reports | Secure Issue Reporting</title>
-        <meta name="description" content="A secure, anonymous, and efficient platform for reporting campus issues, incidents, and safety concerns." />
-        <meta name="keywords" content="campus safety, incident reporting, KMU, secure reporting, anonymous report, university issues, student safety" />
         <meta name="theme-color" content="#008542" />
-        
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://campusreports.vercel.app/" />
-        <meta property="og:title" content="Campus Reports | Secure Issue Reporting" />
-        <meta property="og:description" content="A secure, anonymous, and efficient platform for reporting campus issues, incidents, and safety concerns." />
-        <meta property="og:image" content="https://campusreports.vercel.app/kmu_logo.svg" />
-        
-        {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://campusreports.vercel.app/" />
-        <meta property="twitter:title" content="Campus Reports | Secure Issue Reporting" />
-        <meta property="twitter:description" content="A secure, anonymous, and efficient platform for reporting campus issues, incidents, and safety concerns." />
-        <meta property="twitter:image" content="https://campusreports.vercel.app/kmu_logo.svg" />
-        
-        <link rel="canonical" href="https://campusreports.vercel.app/" />
-        
+
         <link rel="icon" href="/kmu_logo.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/kmu_logo.svg" />
         <link rel="manifest" href="/manifest.json" />

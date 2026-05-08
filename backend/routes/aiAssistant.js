@@ -23,7 +23,7 @@ function buildPayload(reqBody) {
 
   const resolvedSystemPrompt = typeof systemPrompt === 'string' && systemPrompt.trim()
     ? systemPrompt.trim().slice(0, 3000)
-    : 'You are Campus Reports AI assistant. Provide concise, practical guidance for this platform.';
+    : 'You are Campus Reports AI. Introduce yourself as "I\'m Campus Reports AI" when greeting users. Provide concise, practical guidance for this platform.';
 
   return {
     payload: {

@@ -499,6 +499,26 @@ export default function ManagementDashboard({
     };
   }, [recentCampusReports]);
 
+  const totalReportSparkline = useMemo(() => {
+    const dailyTotals = trendData.labels.map((_, index) =>
+      trendData.datasets.reduce((sum, dataset) => sum + ((dataset.data[index] as number) || 0), 0)
+    );
+    const maxValue = Math.max(...dailyTotals, 1);
+    const width = 72;
+    const height = 20;
+    const points = dailyTotals
+      .map((value, index) => {
+        const x = dailyTotals.length === 1 ? width / 2 : (index / (dailyTotals.length - 1)) * width;
+        const y = height - (value / maxValue) * (height - 2) - 1;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(' ');
+    const latest = dailyTotals[dailyTotals.length - 1] || 0;
+    const previous = dailyTotals[dailyTotals.length - 2] || 0;
+    const rising = latest >= previous;
+    return { points, rising };
+  }, [trendData]);
+
   if (!authLoading && !token) {
     router.replace('/login');
   }
@@ -571,6 +591,19 @@ export default function ManagementDashboard({
             <div className="mt-2 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-800/60">
               <span className="font-medium text-slate-600 dark:text-slate-300">Total reports</span>
               <span className="text-sm font-semibold text-slate-900 dark:text-white">{summary.totalCampusReports}</span>
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${totalReportSparkline.rising ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}`}>
+                {totalReportSparkline.rising ? '↗' : '↘'}
+              </span>
+              <svg viewBox="0 0 72 20" className="h-5 w-[72px]" aria-hidden="true">
+                <polyline
+                  fill="none"
+                  stroke="#6366f1"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  points={totalReportSparkline.points}
+                />
+              </svg>
             </div>
           </div>
           <div className="h-[250px] xl:h-[230px]">
