@@ -34,7 +34,7 @@ const ROLES = [
   { value: 'chief_security_officer', label: 'Chief Security Officer' },
   { value: 'dean_of_students', label: 'Dean of Students' },
   { value: 'assistant_dean', label: 'Assistant Dean' },
-  { value: 'secretary', label: 'Secretary' },
+  { value: 'registrar', label: 'Registrar' },
   { value: 'maintenance', label: 'Maintenance' },
   { value: 'student', label: 'Student' },
   { value: 'general_user', label: 'General User' },
@@ -216,7 +216,7 @@ export default function UserManagementPage() {
     const adminCount = users.filter((account) => account.role === 'admin').length;
     const studentCount = users.filter((account) => account.role === 'student').length;
     const supportCount = users.filter((account) =>
-      ['security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'maintenance'].includes(account.role)
+      ['security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar', 'maintenance'].includes(account.role)
     ).length;
 
     return [
