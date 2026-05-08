@@ -17,32 +17,34 @@ router.get('/', async (req, res) => {
 
         const regex = new RegExp(q, 'i');
 
-        // Search students
-        const students = await StudentModel.find({
+        const role = req.user?.role;
+        const canViewStudents = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary'].includes(role);
+        const canViewCases = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary'].includes(role);
+        const canViewReports = ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'maintenance'].includes(role);
+
+        const students = canViewStudents ? await StudentModel.find({
             $or: [
                 { fullName: regex },
                 { studentId: regex },
                 { program: regex }
             ]
-        }).limit(5);
+        }).limit(5) : [];
 
-        // Search cases
-        const cases = await CaseModel.find({
+        const cases = canViewCases ? await CaseModel.find({
             $or: [
                 { offense_type: regex },
                 { description: regex },
                 { location: regex }
             ]
-        }).limit(5);
+        }).limit(5) : [];
 
-        // Search reports (if admin/staff, let's limit it to everyone for now)
-        const reports = await AnonymousReportModel.find({
+        const reports = canViewReports ? await AnonymousReportModel.find({
             $or: [
                 { title: regex },
                 { description: regex },
                 { tracking_code: regex }
             ]
-        }).limit(5);
+        }).limit(5) : [];
 
         res.json({
             students,

@@ -2,7 +2,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { getAll, register, update, remove, exportDocx, exportExcel } from '../../../utils/api';
+import { getAll, register, update, remove, exportDocx, exportExcel, authHeaders } from '../../../utils/api';
+import { API_BASE_URL } from '../../../config/constants';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, TableSkeleton } from '../../../components/PageSkeleton';
 
@@ -146,6 +147,29 @@ export default function UserManagementPage() {
     }
   }
 
+  async function handleAdminResetPassword(id: string) {
+    const newPassword = window.prompt('Enter a temporary password (min 6 chars):');
+    if (!newPassword) return;
+    if (newPassword.length < 6) {
+      setError('Temporary password must be at least 6 characters.');
+      return;
+    }
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/${id}/reset-password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to reset password');
+      setSuccess('Password reset successfully.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to reset password'));
+    }
+  }
+
   function startEdit(userAccount: UserAccount) {
     setEditingUserId(userAccount.id || userAccount._id || null);
     setEditUser({ ...userAccount });
@@ -219,9 +243,9 @@ export default function UserManagementPage() {
           <h1 className="text-2xl font-bold text-kmuGreen">User Management</h1>
         </div>
 
-        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="mb-6 flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 lg:grid-cols-4">
           {userStats.map((stat) => (
-            <div key={stat.label} className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <div key={stat.label} className="min-w-[140px] shrink-0 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:min-w-0">
               <div className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${stat.tone}`}>
                 {stat.label}
               </div>
@@ -392,6 +416,7 @@ export default function UserManagementPage() {
                             </div>
                             <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                               <button type="button" className="bg-blue-500 text-white px-3 py-2 rounded text-xs hover:bg-blue-600 transition" onClick={() => startEdit(u)}>Edit</button>
+                              <button type="button" className="bg-amber-600 text-white px-3 py-2 rounded text-xs hover:bg-amber-700 transition" onClick={() => handleAdminResetPassword(userId)}>Reset Password</button>
                               <button type="button" className="bg-red-600 text-white px-3 py-2 rounded text-xs hover:bg-red-700 transition" onClick={() => handleDelete(userId)}>Delete</button>
                             </div>
                           </>
@@ -502,6 +527,12 @@ export default function UserManagementPage() {
                                   onClick={() => handleDelete(userId)}
                                 >
                                   Delete
+                                </button>
+                                <button
+                                  className="bg-amber-600 text-white px-2 py-1 rounded text-xs hover:bg-amber-700 transition"
+                                  onClick={() => handleAdminResetPassword(userId)}
+                                >
+                                  Reset Password
                                 </button>
                               </div>
                             </td>

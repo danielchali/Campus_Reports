@@ -1,5 +1,5 @@
 import express from 'express';
-import { listUsers, getUser, createUser, updateUser, deleteUser, updateOwnProfile, changeOwnPassword, getOwnProfile } from '../controllers/usersController.js';
+import { listUsers, getUser, createUser, updateUser, deleteUser, updateOwnProfile, changeOwnPassword, getOwnProfile, adminResetUserPassword } from '../controllers/usersController.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import ExcelJS from 'exceljs';
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun } from 'docx';
@@ -23,6 +23,7 @@ router.get('/', listUsers);
 router.get('/:id', getUser);
 router.post('/', createUser);
 router.put('/:id', updateUser);
+router.put('/:id/reset-password', adminResetUserPassword);
 router.delete('/:id', deleteUser);
 
 // Excel export
