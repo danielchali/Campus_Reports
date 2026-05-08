@@ -397,7 +397,7 @@ export default function ProfilePage() {
                     </>
                   )}
 
-                  {error && <div className="text-red-600 dark:text-red-400 text-sm">{error}</div>}
+                  {formError && <div className="text-red-600 dark:text-red-400 text-sm">{formError}</div>}
                   {success && <div className="text-kmuGreen dark:text-green-400 text-sm">{success}</div>}
                   <div className="flex gap-2">
                     <button type="submit" className="bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition">

@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { performanceMonitor, addResourceHints } from '../../utils/performance';
-import FloatingAIChatbot from '../../components/FloatingAIChatbot';
 import {
   User,
   Lock,
@@ -459,7 +458,6 @@ export default function LoginPage() {
         </div>
 
         {/* Floating AI Chatbot */}
-        <FloatingAIChatbot />
       </div>
     </div>
   );
