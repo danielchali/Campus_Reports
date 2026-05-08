@@ -226,7 +226,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
             const signature = summon.studentSignatures?.[String(i)] || '................................................................';
             return `<div class="callout-card">
 `
-                + `<div class="logo"><img src="${window.location.origin}/kmu_logo.png" alt="KMU Logo"/></div>
+                + `<div class="logo"><img src="${window.location.origin}/kmu_logo.svg" alt="KMU Logo"/></div>
 `
                 + `<div class="title">KAPASA MAKASA UNIVERSITY</div>
 `

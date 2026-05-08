@@ -20,9 +20,18 @@ router.get('/:id/export-docx-full', async(req, res) => {
         const caseItem = await CaseModel.findById(req.params.id).lean();
         if (!caseItem) return res.status(404).json({ error: 'Case not found' });
 
-        const logoPath = path.resolve(process.cwd(), '../frontend/public/kmu_logo.png');
-        const logoBuffer = fs.existsSync(logoPath) ? fs.readFileSync(logoPath) : null;
-        const logo = logoBuffer ? new Paragraph({ alignment: AlignmentType.CENTER, children: [new ImageRun({ data: logoBuffer, transformation: { width: 110, height: 55 } })] }) : new Paragraph('');
+        const logoSvgPath = path.resolve(process.cwd(), '../frontend/public/kmu_logo.svg');
+        const logoPngPath = path.resolve(process.cwd(), '../frontend/public/kmu_logo.png');
+        const hasSvgLogo = fs.existsSync(logoSvgPath);
+        const logoBuffer = hasSvgLogo
+            ? fs.readFileSync(logoSvgPath)
+            : (fs.existsSync(logoPngPath) ? fs.readFileSync(logoPngPath) : null);
+        const logo = logoBuffer
+            ? new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [new ImageRun({ data: logoBuffer, type: hasSvgLogo ? 'svg' : 'png', transformation: { width: 110, height: 55 } })]
+            })
+            : new Paragraph('');
 
         const sectionTitle = (title) => ([logo, new Paragraph({ text: title, heading: 'Heading1', alignment: AlignmentType.CENTER, spacing: { after: 220 } })]);
         const kv = (k, v) => new Paragraph({ children: [new TextRun({ text: `${k}: `, bold: true }), new TextRun(String(v || 'N/A'))] });
