@@ -181,12 +181,11 @@ export function splitNavLinksForMobile(navLinks: NavLink[]) {
     'Audit/Logs',
     'Help',
     'Admin Panel',
-    'Logout',
   ];
 
   for (const link of navLinks) {
-    // Skip profile links entirely (they are in the top navbar)
-    if (link.label === 'Profile & Settings' || link.label === 'My Profile') {
+    // Skip profile and logout links because they live in the top navbar profile menu.
+    if (link.label === 'Profile & Settings' || link.label === 'My Profile' || link.label === 'Logout') {
       continue;
     }
 
@@ -200,9 +199,6 @@ export function splitNavLinksForMobile(navLinks: NavLink[]) {
       }
     }
   }
-
-  // Ensure logout is always in sidebarNav if it's in navLinks
-  // But our settingsLabels already includes 'Logout'
 
   return { bottomNav, sidebarNav };
 }
