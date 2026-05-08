@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
@@ -14,10 +14,53 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { PageSkeleton } from "../../components/PageSkeleton";
+import { getProfile } from "../../utils/api";
 import {
   createStudentReport,
   type StudentReportCategory,
 } from "../../utils/studentReports";
+
+type ReporterProfile = {
+  name?: string;
+  username?: string;
+  role?: string;
+  studentProfile?: {
+    accommodation?: {
+      roomNumber?: string;
+    };
+    addressInfo?: {
+      province?: string;
+      town?: string;
+      address?: string;
+    };
+  } | null;
+};
+
+function getTodayDateInputValue() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function buildLocationFromProfile(profile: ReporterProfile | null) {
+  const roomNumber = profile?.studentProfile?.accommodation?.roomNumber?.trim();
+  const addressInfo = profile?.studentProfile?.addressInfo;
+  const addressParts = [
+    addressInfo?.address,
+    addressInfo?.town,
+    addressInfo?.province,
+  ]
+    .map((part) => part?.trim())
+    .filter(Boolean);
+
+  if (roomNumber && addressParts.length > 0) {
+    return `Room ${roomNumber}, ${addressParts.join(", ")}`;
+  }
+
+  if (roomNumber) {
+    return `Room ${roomNumber}`;
+  }
+
+  return addressParts.join(", ");
+}
 
 const categoryOptions: Array<{
   value: StudentReportCategory;
@@ -62,8 +105,53 @@ export default function MakeReportPage() {
   const [trackingCode, setTrackingCode] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [autoFillNotice, setAutoFillNotice] = useState("");
+  const [profileDefaultLocation, setProfileDefaultLocation] = useState("");
 
   const isMaintenanceRequest = category === "maintenance_issue";
+
+  useEffect(() => {
+    if (!user || (user.role !== "student" && user.role !== "general_user")) {
+      return;
+    }
+
+    let cancelled = false;
+    const today = getTodayDateInputValue();
+
+    setIncidentDate((current) => current || today);
+
+    async function autoFillReporterInfo() {
+      try {
+        const profile = (await getProfile()) as ReporterProfile;
+        if (cancelled) return;
+
+        const defaultLocation = buildLocationFromProfile(profile);
+        setProfileDefaultLocation(defaultLocation);
+        if (defaultLocation) {
+          setLocation((current) => current || defaultLocation);
+          setAutoFillNotice(
+            "We pre-filled your incident date and saved profile location. You can edit them before submitting.",
+          );
+        } else {
+          setAutoFillNotice(
+            "We pre-filled today's date. Add the exact campus location before submitting.",
+          );
+        }
+      } catch {
+        if (!cancelled) {
+          setAutoFillNotice(
+            "We pre-filled today's date. Add the exact campus location before submitting.",
+          );
+        }
+      }
+    }
+
+    autoFillReporterInfo();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   function addAttachments(files: FileList | null) {
     if (!files) return;
@@ -136,8 +224,8 @@ export default function MakeReportPage() {
       setShowSuccessModal(true);
       setTitle("");
       setDescription("");
-      setLocation("");
-      setIncidentDate("");
+      setLocation(profileDefaultLocation);
+      setIncidentDate(getTodayDateInputValue());
       setAnonymous(false);
       setCategory("disciplinary_case");
       setPeopleInvolved("");
@@ -196,6 +284,11 @@ export default function MakeReportPage() {
             Provide enough detail for follow-up and review. You can still track
             anonymous submissions from your account.
           </p>
+          {autoFillNotice && (
+            <p className="mt-3 rounded-lg bg-kmuGreen/10 px-3 py-2 text-xs md:text-sm text-kmuGreen dark:text-emerald-300">
+              {autoFillNotice}
+            </p>
+          )}
         </div>
 
         {/* Mobile dropdown */}
