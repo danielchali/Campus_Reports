@@ -346,8 +346,5 @@ export function splitNavLinksForMobile(navLinks: NavLink[]) {
     }
   }
 
-  // Ensure logout is always in sidebarNav if it's in navLinks
-  // But our settingsLabels already includes 'Logout'
-
   return { bottomNav, sidebarNav };
 }
