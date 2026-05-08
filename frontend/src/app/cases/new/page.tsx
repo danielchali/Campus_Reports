@@ -83,7 +83,8 @@ type StudentCaseProcessState = {
     reportTime: string;
     reportDate: string;
     appointment: string;
-    signature: string;
+    officerSignature: string;
+    studentSignatures: Record<string, string>;
   };
   statementPad: {
     statementRole: string;
@@ -172,7 +173,8 @@ const createInitialStudentCaseProcess = (): StudentCaseProcessState => ({
     reportTime: "",
     reportDate: "",
     appointment: "",
-    signature: "",
+    officerSignature: "",
+    studentSignatures: {},
   },
   statementPad: {
     statementRole: "Complainant",
@@ -775,6 +777,19 @@ export default function NewCasePage() {
     }));
   };
 
+  const updateSummonStudentSignature = (index: number, value: string) => {
+    setStudentCaseProcess((prev) => ({
+      ...prev,
+      summon: {
+        ...prev.summon,
+        studentSignatures: {
+          ...prev.summon.studentSignatures,
+          [String(index)]: value,
+        },
+      },
+    }));
+  };
+
   const updateStatementField = (field: keyof StudentCaseProcessState["statementPad"], value: string) => {
     setStudentCaseProcess((prev) => ({
       ...prev,
@@ -1216,7 +1231,21 @@ export default function NewCasePage() {
                   <div><span className="font-semibold">Day & Date:</span> {studentCaseProcess.summon.reportDate || "____________________"}</div>
                   <div className="md:col-span-2"><span className="font-semibold">Appointment:</span> {studentCaseProcess.summon.appointment || "____________________"}</div>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-4">
+                <div className="mt-4 grid grid-cols-1 gap-4 print:hidden md:grid-cols-2">
+                  <SignatureField
+                    label="Officer Signature"
+                    value={studentCaseProcess.summon.officerSignature}
+                    onChange={(value) => updateSummonField("officerSignature", value)}
+                    helperText="Draw officer signature."
+                  />
+                  <SignatureField
+                    label="Student Signature"
+                    value={studentCaseProcess.summon.studentSignatures[String(index)] || ""}
+                    onChange={(value) => updateSummonStudentSignature(index, value)}
+                    helperText="Draw this student's signature."
+                  />
+                </div>
+                <div className="mt-4 hidden print:grid grid-cols-2 gap-4">
                   <div className="border-t border-black pt-2 text-center">Officer Signature</div>
                   <div className="border-t border-black pt-2 text-center">Student Signature</div>
                 </div>
