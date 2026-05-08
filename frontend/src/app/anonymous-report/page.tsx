@@ -168,7 +168,7 @@ export default function AnonymousReportPage() {
       <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
 
         {/* Page Title */}
-        <div className="text-center space-y-4">
+        <div className="text-center space-y-3">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-xl shadow-purple-500/20 mb-2">
             <Ghost className="w-10 h-10" />
           </div>

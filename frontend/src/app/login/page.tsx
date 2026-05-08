@@ -45,7 +45,7 @@ export default function LoginPage() {
   const featureTexts = [
     'Report issues. Request maintenance. Improve campus life.',
     'Track student and staff discipline cases in one place.',
-    'Create KMU four-step case records with draft support.',
+    'Manage campus cases from initial report to resolution.',
     'Keep evidence, reports, and audit logs organized and secure.',
   ];
 

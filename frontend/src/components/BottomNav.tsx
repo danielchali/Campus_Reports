@@ -7,7 +7,7 @@ import { getNavLinksForRole, splitNavLinksForMobile } from '../utils/navigation'
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   if (!user) {
     return null;
@@ -31,21 +31,6 @@ export default function BottomNav() {
               ? 'bg-kmuGreen/10 text-kmuGreen dark:bg-kmuGreen/20'
               : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
           }`;
-
-          if (link.label === 'Logout') {
-            return (
-              <button
-                key={link.path}
-                onClick={() => logout()}
-                className={`${commonClasses} ${link.danger ? 'text-red-500 dark:text-red-400' : ''}`}
-              >
-                <span className="mx-auto flex h-5 w-5 items-center justify-center">
-                  <Icon size={16} />
-                </span>
-                <span className="mt-1 block text-[10px] sm:text-[11px] font-medium leading-tight">{link.label}</span>
-              </button>
-            );
-          }
 
           return (
             <Link key={link.path} href={link.path} className={commonClasses}>
