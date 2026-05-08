@@ -591,10 +591,13 @@ export default function ManagementDashboard({
             <div className="mt-2 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-800/60">
               <span className="font-medium text-slate-600 dark:text-slate-300">Total reports</span>
               <span className="text-sm font-semibold text-slate-900 dark:text-white">{summary.totalCampusReports}</span>
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${totalReportSparkline.rising ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}`}>
+                {totalReportSparkline.rising ? '↗' : '↘'}
+              </span>
               <svg viewBox="0 0 72 20" className="h-5 w-[72px]" aria-hidden="true">
                 <polyline
                   fill="none"
-                  stroke={totalReportSparkline.rising ? '#16a34a' : '#ef4444'}
+                  stroke="#6366f1"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
