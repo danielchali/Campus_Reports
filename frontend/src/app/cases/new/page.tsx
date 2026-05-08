@@ -334,6 +334,7 @@ export default function NewCasePage() {
   const activeStudentStep = STUDENT_CASE_STEPS[studentCaseStep];
   const [isSpeechSupported, setIsSpeechSupported] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [interimTranscript, setInterimTranscript] = useState("");
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
   const [statementAudioFile, setStatementAudioFile] = useState<File | null>(null);
   const [statementAudioUrl, setStatementAudioUrl] = useState("");
@@ -540,6 +541,7 @@ export default function NewCasePage() {
     if (isListening) {
       recognitionRef.current?.stop();
       stopAudioRecording();
+      setInterimTranscript("");
       return;
     }
 
@@ -555,27 +557,35 @@ export default function NewCasePage() {
 
     recognition.onresult = (event: any) => {
       let finalTranscript = "";
+      let liveTranscript = "";
 
       for (let index = event.resultIndex; index < event.results.length; index += 1) {
         const result = event.results[index];
         if (result.isFinal) {
           finalTranscript += result[0]?.transcript || "";
+        } else {
+          liveTranscript += result[0]?.transcript || "";
         }
       }
 
+      setInterimTranscript(liveTranscript.trim());
+
       if (finalTranscript) {
         appendSpeechToStatement(finalTranscript);
+        setInterimTranscript("");
       }
     };
 
     recognition.onerror = () => {
       setIsListening(false);
       stopAudioRecording();
+      setInterimTranscript("");
     };
 
     recognition.onend = () => {
       setIsListening(false);
       stopAudioRecording();
+      setInterimTranscript("");
       recognitionRef.current = null;
     };
 
@@ -1368,7 +1378,7 @@ export default function NewCasePage() {
 
             <TextAreaField
               label="Statement"
-              value={studentCaseProcess.statementPad.statementText}
+              value={`${studentCaseProcess.statementPad.statementText}${interimTranscript ? `${studentCaseProcess.statementPad.statementText ? "\n" : ""}${interimTranscript}` : ""}`}
               onChange={(value) => updateStatementField("statementText", value)}
               rows={8}
               placeholder="I do recall very well that it was around..."
