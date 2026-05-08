@@ -331,6 +331,7 @@ export default function ReportsPage() {
                             {report.anonymous
                               ? 'Reporter hidden'
                               : `Reporter: ${getDisplayFullName(report.ownerName, undefined, 'Named reporter')}`} • {report.location} • Tracking code {report.trackingCode}
+                              : `Reporter: ${getDisplayFullName(report.ownerName, report.ownerUsername)}`} • {report.location} • Tracking code {report.trackingCode}
                           </p>
                           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                             Submitted {new Date(report.submittedAt).toLocaleString()}
