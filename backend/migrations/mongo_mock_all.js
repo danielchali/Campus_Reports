@@ -12,7 +12,7 @@ const users = [
     { username: 'chief_security', password: 'password', name: 'Chief Security Officer', role: 'chief_security_officer' },
     { username: 'dean', password: 'password', name: 'Dean of Students', role: 'dean_of_students' },
     { username: 'assistant_dean', password: 'password', name: 'Assistant Dean', role: 'assistant_dean' },
-    { username: 'secretary', password: 'password', name: 'Secretary', role: 'secretary' },
+    { username: 'registrar', password: 'password', name: 'Registrar', role: 'registrar' },
     { username: 'security', password: 'password', name: 'Security Officer', role: 'security_officer' }
 ];
 

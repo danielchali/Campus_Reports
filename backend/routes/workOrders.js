@@ -10,6 +10,7 @@ const WORK_ORDER_ROLES = [
   "dean_of_students",
   "assistant_dean",
   "secretary",
+  "registrar",
   "maintenance",
 ];
 const WORK_ORDER_STATUSES = [

@@ -194,7 +194,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
     ];
   }
 
-  if (role === "secretary") {
+  if (role === "registrar" || role === "secretary") {
     return [
       {
         icon: navIcons.secretary,

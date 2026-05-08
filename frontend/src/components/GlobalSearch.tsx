@@ -47,9 +47,9 @@ export default function GlobalSearch() {
   }, [query]);
 
   const hasResults = results.students.length > 0 || results.cases.length > 0 || results.reports.length > 0;
-  const canViewStudents = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary'].includes(user?.role || '');
-  const canViewCases = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary'].includes(user?.role || '');
-  const canViewReports = ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'maintenance'].includes(user?.role || '');
+  const canViewStudents = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar'].includes(user?.role || '');
+  const canViewCases = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar'].includes(user?.role || '');
+  const canViewReports = ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar', 'maintenance'].includes(user?.role || '');
 
   return (
     <div ref={wrapperRef} className="relative hidden md:block min-w-[260px]">

@@ -5,7 +5,7 @@ import ManagementDashboard from "../../components/dashboard/ManagementDashboard"
 export default function RegistrarDashboard() {
   return (
     <ManagementDashboard
-      role="secretary"
+      role="registrar"
       title="Registrar Dashboard"
       subtitle="Follow anonymous report intake, keep statement-request work visible, and use only the data sources this role can access."
       focusLabel="Recent Campus Reports"

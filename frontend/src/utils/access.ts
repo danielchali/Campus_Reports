@@ -5,6 +5,7 @@ export type AppRole =
   | "dean_of_students"
   | "assistant_dean"
   | "secretary"
+  | "registrar"
   | "maintenance"
   | "student"
   | "general_user"
@@ -18,6 +19,7 @@ export const PAGE_ACCESS = {
     "dean_of_students",
     "assistant_dean",
     "secretary",
+    "registrar",
     "security_officer",
     "maintenance",
   ],
@@ -27,6 +29,7 @@ export const PAGE_ACCESS = {
     "dean_of_students",
     "assistant_dean",
     "secretary",
+    "registrar",
     "security_officer",
     "maintenance",
   ],
@@ -35,6 +38,7 @@ export const PAGE_ACCESS = {
     "dean_of_students",
     "assistant_dean",
     "secretary",
+    "registrar",
     "maintenance",
   ],
   workOrders: [
@@ -42,9 +46,10 @@ export const PAGE_ACCESS = {
     "dean_of_students",
     "assistant_dean",
     "secretary",
+    "registrar",
     "maintenance",
   ],
-  registrarIssues: ["admin", "secretary"],
+  registrarIssues: ["admin", "secretary", "registrar"],
   evidence: ["admin", "security_officer"],
   students: ["admin", "security_officer"],
   staff: [
@@ -53,6 +58,7 @@ export const PAGE_ACCESS = {
     "dean_of_students",
     "assistant_dean",
     "secretary",
+    "registrar",
     "maintenance",
   ],
   cases: ["admin", "security_officer"],

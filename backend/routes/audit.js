@@ -9,6 +9,7 @@ router.use(authenticate, authorize([
     'dean_of_students',
     'assistant_dean',
     'secretary',
+    'registrar',
     'security_officer',
     'maintenance'
 ]));

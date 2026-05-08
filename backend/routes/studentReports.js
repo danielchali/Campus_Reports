@@ -127,7 +127,7 @@ function canViewReport(user, report) {
   if (role === "dean_of_students") {
     return report.owner_role === "student" || !!report.student_involved;
   }
-  if (role === "secretary") {
+  if (["secretary", "registrar"].includes(role)) {
     return (
       report.owner_role === "general_user" &&
       (report.category === "maintenance_issue" || !report.student_involved)
@@ -146,7 +146,7 @@ function getStaffReportScope(user) {
   if (role === "dean_of_students") {
     return { $or: [{ owner_role: "student" }, { student_involved: true }] };
   }
-  if (role === "secretary") {
+  if (["secretary", "registrar"].includes(role)) {
     return {
       $or: [
         { owner_role: "general_user", category: "maintenance_issue" },
@@ -330,6 +330,7 @@ router.get(
     "dean_of_students",
     "assistant_dean",
     "secretary",
+    "registrar",
     "security_officer",
     "maintenance",
   ]),
@@ -359,6 +360,7 @@ router.get(
     "dean_of_students",
     "assistant_dean",
     "secretary",
+    "registrar",
     "security_officer",
     "maintenance",
   ]),
@@ -443,6 +445,7 @@ router.patch(
     "dean_of_students",
     "assistant_dean",
     "secretary",
+    "registrar",
     "security_officer",
     "maintenance",
   ]),
@@ -472,6 +475,7 @@ router.patch(
     "dean_of_students",
     "assistant_dean",
     "secretary",
+    "registrar",
     "security_officer",
     "maintenance",
   ]),
@@ -515,7 +519,7 @@ router.patch(
           .json({ error: "Dean can only handle reports involving students." });
       }
       if (
-        req.user.role === "secretary" &&
+        ["secretary", "registrar"].includes(req.user.role) &&
         (report.owner_role !== "general_user" ||
           (report.category !== "maintenance_issue" && report.student_involved))
       ) {
@@ -549,7 +553,7 @@ router.patch(
         createdByRole: req.user.role,
       });
       if (
-        ["admin", "dean_of_students", "assistant_dean", "secretary"].includes(
+        ["admin", "dean_of_students", "assistant_dean", "secretary", "registrar"].includes(
           req.user.role,
         ) &&
         report.category === "maintenance_issue" &&
