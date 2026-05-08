@@ -10,7 +10,7 @@ export default function Head() {
       <meta name="description" content={description} />
       <meta
         name="keywords"
-        content="campus reports, campus safety, incident reporting, anonymous report, university reporting, student discipline, security office"
+        content="campus reports, kmu reports, kapasa makasa university, kmu campus safety, kmu campus report, incident reporting, anonymous report, university reporting, student discipline, security office"
       />
       <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
 
