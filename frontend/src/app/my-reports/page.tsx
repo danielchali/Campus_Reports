@@ -1,38 +1,59 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, EyeOff, FileStack, Search } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
+  ChevronDown,
+  ChevronUp,
+  EyeOff,
+  FileStack,
+  Paperclip,
+  Search,
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { PageSkeleton, InlineSkeleton } from "../../components/PageSkeleton";
+import {
+  downloadStudentReportAttachment,
   getStudentReportsForUser,
   migrateLocalReports,
   type StudentReport,
-} from '../../utils/studentReports';
+} from "../../utils/studentReports";
 
 const categoryLabels = {
-  disciplinary_case: 'Disciplinary Case',
-  maintenance_issue: 'Maintenance Issue',
+  disciplinary_case: "Disciplinary Case",
+  maintenance_issue: "Maintenance Issue",
 } as const;
+
+const detailLabels: Record<string, string> = {
+  peopleInvolved: "People Involved",
+  witnesses: "Witnesses",
+  riskLevel: "Safety / Security Risk",
+  securityAction: "Immediate Action Taken",
+  studentInvolved: "Learner/Student Involved",
+  issueType: "Maintenance Issue Type",
+  priority: "Priority",
+  affectedAsset: "Affected Room, Fixture, or Asset",
+  accessInstructions: "Access or Timing Notes",
+};
 
 export default function MyReportsPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [reports, setReports] = useState<StudentReport[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!authLoading && !token) {
-      router.replace('/login');
+      router.replace("/login");
     }
   }, [authLoading, token, router]);
 
   useEffect(() => {
-    if (!user || (user.role !== 'student' && user.role !== 'general_user')) return;
+    if (!user || (user.role !== "student" && user.role !== "general_user"))
+      return;
 
     const userId = user.id;
     const userUsername = user.username;
@@ -43,46 +64,59 @@ export default function MyReportsPage() {
       setLoading(true);
       try {
         // Run migration on first load
-        await migrateLocalReports({ id: userId, username: userUsername, name: userName });
-
-        const data = await getStudentReportsForUser({
+        await migrateLocalReports({
           id: userId,
           username: userUsername,
           name: userName,
-        }, search);
+        });
+
+        const data = await getStudentReportsForUser(
+          {
+            id: userId,
+            username: userUsername,
+            name: userName,
+          },
+          search,
+        );
         if (!cancelled) setReports(data);
       } catch (err) {
-        console.error('Failed to load reports:', err);
+        console.error("Failed to load reports:", err);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
     fetchReports();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [user, search]);
 
   if (!authLoading && !token) {
-    router.replace('/login');
+    router.replace("/login");
   }
   if (!token || !user) {
     return <PageSkeleton />;
   }
-  if (user.role !== 'student' && user.role !== 'general_user') {
+  if (user.role !== "student" && user.role !== "general_user") {
     return <div className="text-red-600">Access denied.</div>;
   }
 
   const filteredReports = reports.filter((report) => {
-    const matchesStatus = statusFilter === 'All' || report.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "All" || report.status === statusFilter;
     return matchesStatus;
   });
 
   return (
     <section className="max-w-5xl mx-auto space-y-6 md:space-y-8">
       <div className="rounded-2xl md:rounded-3xl bg-white dark:bg-gray-800 p-4 md:p-8 shadow">
-        <h1 className="text-2xl md:text-4xl font-bold text-kmuGreen">My Reports</h1>
+        <h1 className="text-2xl md:text-4xl font-bold text-kmuGreen">
+          My Reports
+        </h1>
         <p className="mt-2 md:mt-3 text-gray-600 dark:text-gray-400 text-sm md:text-lg">
-          Track every report or request you have submitted, review status changes, and keep your tracking codes handy.
+          Track every report or request you have submitted, review status
+          changes, and keep your tracking codes handy.
         </p>
       </div>
 
@@ -90,7 +124,10 @@ export default function MyReportsPage() {
         <div className="grid gap-2 md:gap-4 grid-cols-1 md:grid-cols-[1fr_220px]">
           <label className="relative">
             <span className="sr-only">Search reports</span>
-            <Search size={16} className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search
+              size={16}
+              className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 text-gray-400"
+            />
             <input
               type="text"
               value={search}
@@ -119,8 +156,13 @@ export default function MyReportsPage() {
           </div>
         ) : filteredReports.length === 0 ? (
           <div className="rounded-lg md:rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 p-6 md:p-10 text-center">
-            <FileStack className="mx-auto mb-2 md:mb-3 text-kmuOrange" size={24} />
-            <h2 className="text-base md:text-xl font-semibold text-gray-900 dark:text-white">No reports found</h2>
+            <FileStack
+              className="mx-auto mb-2 md:mb-3 text-kmuOrange"
+              size={24}
+            />
+            <h2 className="text-base md:text-xl font-semibold text-gray-900 dark:text-white">
+              No reports found
+            </h2>
             <p className="mt-2 text-xs md:text-sm text-gray-600 dark:text-gray-400">
               Submit a report first, or adjust your search and status filters.
             </p>
@@ -143,16 +185,21 @@ export default function MyReportsPage() {
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 md:gap-4">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-1 md:gap-2">
-                          <h2 className="text-sm md:text-lg font-semibold text-gray-900 dark:text-white truncate">{report.title}</h2>
+                          <h2 className="text-sm md:text-lg font-semibold text-gray-900 dark:text-white truncate">
+                            {report.title}
+                          </h2>
                           {report.anonymous && (
                             <span className="inline-flex items-center gap-0.5 rounded-full bg-slate-100 px-2 md:px-2.5 py-0.5 md:py-1 text-[10px] md:text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300 flex-shrink-0">
                               <EyeOff size={10} />
-                              <span className="hidden sm:inline">Anonymous</span>
+                              <span className="hidden sm:inline">
+                                Anonymous
+                              </span>
                             </span>
                           )}
                         </div>
                         <p className="mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400 truncate">
-                          {categoryLabels[report.category]} • {report.trackingCode} • Submitted{' '}
+                          {categoryLabels[report.category]} •{" "}
+                          {report.trackingCode} • Submitted{" "}
                           {new Date(report.submittedAt).toLocaleString()}
                         </p>
                       </div>
@@ -160,7 +207,11 @@ export default function MyReportsPage() {
                         <span className="rounded-full bg-emerald-100 px-2 md:px-3 py-0.5 md:py-1 text-xs md:text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 whitespace-nowrap">
                           {report.status}
                         </span>
-                        {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        {expanded ? (
+                          <ChevronUp size={16} />
+                        ) : (
+                          <ChevronDown size={16} />
+                        )}
                       </div>
                     </div>
                   </button>
@@ -169,11 +220,17 @@ export default function MyReportsPage() {
                     <div className="border-t border-gray-200 dark:border-gray-700 p-3 md:p-5 bg-gray-50 dark:bg-gray-900/20 space-y-4 md:space-y-5">
                       <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
                         <div>
-                          <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Location</p>
-                          <p className="mt-1 text-xs md:text-sm text-gray-900 dark:text-white">{report.location}</p>
+                          <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            Location
+                          </p>
+                          <p className="mt-1 text-xs md:text-sm text-gray-900 dark:text-white">
+                            {report.location}
+                          </p>
                         </div>
                         <div>
-                          <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Incident Date</p>
+                          <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            Incident Date
+                          </p>
                           <p className="mt-1 text-xs md:text-sm text-gray-900 dark:text-white">
                             {new Date(report.incidentDate).toLocaleDateString()}
                           </p>
@@ -181,14 +238,81 @@ export default function MyReportsPage() {
                       </div>
 
                       <div>
-                        <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Description</p>
+                        <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                          Description
+                        </p>
                         <p className="mt-2 text-xs md:text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                           {report.description}
                         </p>
                       </div>
 
+                      {report.details &&
+                        Object.values(report.details).some(Boolean) && (
+                          <div>
+                            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                              Report Details
+                            </p>
+                            <div className="mt-2 grid gap-2 md:grid-cols-2">
+                              {Object.entries(report.details)
+                                .filter(([, value]) => Boolean(value))
+                                .map(([key, value]) => (
+                                  <div
+                                    key={key}
+                                    className="rounded-lg bg-white dark:bg-gray-800 p-3 border border-gray-200 dark:border-gray-700"
+                                  >
+                                    <p className="text-[10px] md:text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                      {detailLabels[key] || key}
+                                    </p>
+                                    <p className="mt-1 text-xs md:text-sm text-gray-900 dark:text-white">
+                                      {value}
+                                    </p>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+
+                      {report.attachments && report.attachments.length > 0 && (
+                        <div>
+                          <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            Evidence / Files
+                          </p>
+                          <div className="mt-2 space-y-2">
+                            {report.attachments.map((attachment) => (
+                              <button
+                                key={attachment.id}
+                                type="button"
+                                onClick={() =>
+                                  downloadStudentReportAttachment(
+                                    report.id,
+                                    attachment.id,
+                                    attachment.originalName,
+                                  )
+                                }
+                                className="flex w-full items-center justify-between gap-3 rounded-lg bg-white dark:bg-gray-800 p-3 text-left text-xs md:text-sm text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 hover:border-kmuGreen"
+                              >
+                                <span className="inline-flex min-w-0 items-center gap-2">
+                                  <Paperclip
+                                    size={14}
+                                    className="flex-shrink-0 text-kmuGreen"
+                                  />
+                                  <span className="truncate">
+                                    {attachment.originalName}
+                                  </span>
+                                </span>
+                                <span className="flex-shrink-0 text-[10px] md:text-xs text-gray-500 dark:text-gray-400">
+                                  {Math.ceil(attachment.size / 1024)} KB
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       <div>
-                        <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2 md:mb-3">Status Timeline</p>
+                        <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2 md:mb-3">
+                          Status Timeline
+                        </p>
                         <div className="space-y-2 md:space-y-3">
                           {report.updates.map((update) => (
                             <div
@@ -196,12 +320,16 @@ export default function MyReportsPage() {
                               className="rounded-lg md:rounded-xl bg-white dark:bg-gray-800 p-3 md:p-4 border border-gray-200 dark:border-gray-700"
                             >
                               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 md:gap-2">
-                                <span className="font-semibold text-kmuGreen text-sm md:text-base">{update.status}</span>
+                                <span className="font-semibold text-kmuGreen text-sm md:text-base">
+                                  {update.status}
+                                </span>
                                 <span className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
                                   {new Date(update.createdAt).toLocaleString()}
                                 </span>
                               </div>
-                              <p className="mt-1 md:mt-2 text-xs md:text-sm text-gray-700 dark:text-gray-300">{update.message}</p>
+                              <p className="mt-1 md:mt-2 text-xs md:text-sm text-gray-700 dark:text-gray-300">
+                                {update.message}
+                              </p>
                             </div>
                           ))}
                         </div>

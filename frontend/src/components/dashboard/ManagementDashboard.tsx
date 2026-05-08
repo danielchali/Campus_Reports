@@ -39,6 +39,7 @@ type SupportedRole =
   | 'dean_of_students'
   | 'assistant_dean'
   | 'secretary'
+  | 'registrar'
   | 'maintenance';
 
 type MetricKey =

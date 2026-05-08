@@ -26,6 +26,7 @@ const STAFF_NOTIFICATION_ROLES = [
   'dean_of_students',
   'assistant_dean',
   'secretary',
+  'registrar',
   'security_officer',
   'maintenance',
 ] as const;

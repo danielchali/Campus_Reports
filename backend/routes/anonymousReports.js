@@ -102,7 +102,7 @@ router.get('/track/:code', async (req, res) => {
 // --- PROTECTED ROUTES (staff only) ---
 
 // GET /api/anonymous-reports — list all anonymous reports (admin/staff only)
-router.get('/', authenticate, authorize(['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance']), async (req, res) => {
+router.get('/', authenticate, authorize(['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar', 'security_officer', 'maintenance']), async (req, res) => {
     try {
         const { category, status, search } = req.query;
         const query = {};
@@ -126,7 +126,7 @@ router.get('/', authenticate, authorize(['admin', 'chief_security_officer', 'dea
 });
 
 // GET /api/anonymous-reports/:id — get a single anonymous report (staff only)
-router.get('/:id', authenticate, authorize(['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance']), async (req, res) => {
+router.get('/:id', authenticate, authorize(['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar', 'security_officer', 'maintenance']), async (req, res) => {
     try {
         const report = await AnonymousReportModel.findById(req.params.id);
         if (!report) return res.status(404).json({ error: 'Report not found.' });
@@ -137,7 +137,7 @@ router.get('/:id', authenticate, authorize(['admin', 'chief_security_officer', '
 });
 
 // PATCH /api/anonymous-reports/:id/status — update status (staff only)
-router.patch('/:id/status', authenticate, authorize(['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance']), async (req, res) => {
+router.patch('/:id/status', authenticate, authorize(['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar', 'security_officer', 'maintenance']), async (req, res) => {
     try {
         const { status } = req.body;
         const validStatuses = ['Submitted', 'Under Review', 'In Progress', 'Resolved'];

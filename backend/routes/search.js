@@ -122,142 +122,39 @@ router.get('/', async (req, res) => {
 
         const regex = new RegExp(escapeRegex(q), 'i');
         const role = req.user?.role;
-        const idConditions = objectIdMatch(q);
+        const canViewStudents = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar'].includes(role);
+        const canViewCases = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar'].includes(role);
+        const canViewReports = ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar', 'maintenance'].includes(role);
 
-        const searches = {
-            students: can(role, 'students')
-                ? StudentModel.find({
-                    $or: [
-                        ...idConditions,
-                        ...searchOr([
-                            'studentId',
-                            'program',
-                            'year',
-                            'status',
-                            'deliveryMode',
-                            'personalInfo.firstName',
-                            'personalInfo.surName',
-                            'personalInfo.nrc',
-                            'personalInfo.passport',
-                            'personalInfo.maritalStatus',
-                            'personalInfo.nationality',
-                            'personalInfo.gender',
-                            'personalInfo.dateOfBirth',
-                            'accommodation.roomNumber',
-                            'addressInfo.province',
-                            'addressInfo.town',
-                            'addressInfo.address',
-                            'addressInfo.phone',
-                            'addressInfo.email',
-                        ], regex),
-                    ],
-                }).limit(limit).then((rows) => rows.map(mapStudent))
-                : Promise.resolve([]),
-            staff: can(role, 'staff')
-                ? StaffModel.find({
-                    $or: [
-                        ...idConditions,
-                        ...searchOr(['staffId', 'fullName', 'department', 'position', 'email', 'phone'], regex),
-                    ],
-                }).limit(limit)
-                : Promise.resolve([]),
-            cases: can(role, 'cases')
-                ? CaseModel.find({
-                    $or: [
-                        ...idConditions,
-                        ...searchOr([
-                            'case_id',
-                            'student_id',
-                            'student_ids',
-                            'staff_id',
-                            'staff_ids',
-                            'incident_date',
-                            'description',
-                            'offense_type',
-                            'severity',
-                            'status',
-                            'sanctions',
-                            'created_by',
-                            'case_type',
-                        ], regex),
-                    ],
-                }).sort({ createdAt: -1 }).limit(limit)
-                : Promise.resolve([]),
-            reports: can(role, 'studentReports')
-                ? StudentReportModel.find(andSearch(getStaffReportScope(req.user), [
-                    ...idConditions,
-                    ...searchOr([
-                        'tracking_code',
-                        'title',
-                        'description',
-                        'category',
-                        'location',
-                        'incident_date',
-                        'status',
-                        'owner_username',
-                        'owner_name',
-                        'owner_role',
-                    ], regex),
-                ])).sort({ createdAt: -1 }).limit(limit).then((rows) => rows.map(mapReport))
-                : can(role, 'ownReports')
-                    ? StudentReportModel.find(andSearch(getOwnReportScope(req.user), [
-                        ...idConditions,
-                        ...searchOr([
-                            'tracking_code',
-                            'title',
-                            'description',
-                            'category',
-                            'location',
-                            'incident_date',
-                            'status',
-                        ], regex),
-                    ])).sort({ createdAt: -1 }).limit(limit).then((rows) => rows.map(mapReport))
-                    : Promise.resolve([]),
-            anonymousReports: can(role, 'anonymousReports')
-                ? AnonymousReportModel.find({
-                    $or: [
-                        ...idConditions,
-                        ...searchOr([
-                            'tracking_code',
-                            'title',
-                            'description',
-                            'category',
-                            'location',
-                            'incident_date',
-                            'contact_email',
-                            'status',
-                        ], regex),
-                    ],
-                }).sort({ createdAt: -1 }).limit(limit).then((rows) => rows.map(mapReport))
-                : Promise.resolve([]),
-            evidence: can(role, 'evidence')
-                ? EvidenceModel.find({
-                    $or: [
-                        ...idConditions,
-                        ...searchOr(['caseId', 'filename', 'uploadedBy'], regex),
-                    ],
-                }).sort({ date: -1 }).limit(limit)
-                : Promise.resolve([]),
-            auditLogs: can(role, 'auditLogs')
-                ? AuditModel.find({
-                    $or: [
-                        ...idConditions,
-                        ...searchOr(['action', 'entity', 'entityId', 'user', 'ipAddress', 'userAgent'], regex),
-                    ],
-                }).sort({ date: -1 }).limit(limit)
-                : Promise.resolve([]),
-            users: can(role, 'users')
-                ? UserModel.find({
-                    $or: [
-                        ...idConditions,
-                        ...searchOr(['username', 'name', 'role'], regex),
-                    ],
-                }, '-password -resetPasswordToken -resetPasswordOTP').limit(limit)
-                : Promise.resolve([]),
-        };
+        const students = canViewStudents ? await StudentModel.find({
+            $or: [
+                { fullName: regex },
+                { studentId: regex },
+                { program: regex }
+            ]
+        }).limit(5) : [];
 
-        const results = await Promise.all(Object.entries(searches).map(async ([key, promise]) => [key, await promise]));
-        res.json(Object.fromEntries(results));
+        const cases = canViewCases ? await CaseModel.find({
+            $or: [
+                { offense_type: regex },
+                { description: regex },
+                { location: regex }
+            ]
+        }).limit(5) : [];
+
+        const reports = canViewReports ? await AnonymousReportModel.find({
+            $or: [
+                { title: regex },
+                { description: regex },
+                { tracking_code: regex }
+            ]
+        }).limit(5) : [];
+
+        res.json({
+            students,
+            cases,
+            reports
+        });
     } catch (err) {
         console.error('Search failed:', err);
         res.status(500).json({ error: 'Search failed' });

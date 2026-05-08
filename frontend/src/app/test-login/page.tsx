@@ -88,7 +88,7 @@ export default function TestLoginPage() {
           <li>Chief Security Officer: username: "chief_security", password: "password"</li>
           <li>Dean of Students: username: "dean", password: "password"</li>
           <li>Assistant Dean: username: "assistant_dean", password: "password"</li>
-          <li>Secretary: username: "secretary", password: "password"</li>
+          <li>Registrar: username: "registrar", password: "password"</li>
           <li>Security Officer: username: "security", password: "password"</li>
         </ul>
       </div>
