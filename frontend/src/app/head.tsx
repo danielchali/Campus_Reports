@@ -1,5 +1,6 @@
+import { SITE_URL } from '../config/site';
+
 export default function Head() {
-  const siteUrl = 'https://campusreports.vercel.app';
   const title = 'Campus Reports | Secure Campus Issue Reporting';
   const description =
     'Campus Reports helps students and staff submit secure incident and anonymous reports, track progress, and support safer campus operations.';
@@ -17,17 +18,17 @@ export default function Head() {
       <meta property="og:type" content="website" />
       <meta property="og:site_name" content="Campus Reports" />
       <meta property="og:locale" content="en_US" />
-      <meta property="og:url" content={`${siteUrl}/`} />
+      <meta property="og:url" content={`${SITE_URL}/`} />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
-      <meta property="og:image" content={`${siteUrl}/kmu_logo.png`} />
+      <meta property="og:image" content={`${SITE_URL}/kmu_logo.png`} />
 
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={`${siteUrl}/kmu_logo.png`} />
+      <meta name="twitter:image" content={`${SITE_URL}/kmu_logo.png`} />
 
-      <link rel="canonical" href={`${siteUrl}/`} />
+      <link rel="canonical" href={`${SITE_URL}/`} />
 
       <script
         type="application/ld+json"
@@ -36,12 +37,12 @@ export default function Head() {
             '@context': 'https://schema.org',
             '@type': 'WebSite',
             name: 'Campus Reports',
-            url: siteUrl,
+            url: SITE_URL,
             description,
             inLanguage: 'en',
             potentialAction: {
               '@type': 'SearchAction',
-              target: `${siteUrl}/help?q={search_term_string}`,
+              target: `${SITE_URL}/help?q={search_term_string}`,
               'query-input': 'required name=search_term_string',
             },
           }),
