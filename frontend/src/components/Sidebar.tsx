@@ -3,10 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
-import { useTheme } from '../context/ThemeContext';
 import { getNavLinksForRole, splitNavLinksForMobile } from '../utils/navigation';
 
 const MOBILE_SIDEBAR_WIDTH = 'min(240px, calc(100vw - 4rem))';
@@ -17,8 +15,7 @@ export default function Sidebar() {
   const [isResizing, setIsResizing] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const { sidebarWidth, setSidebarWidth, isOpenMobile, setIsOpenMobile } = useSidebar();
-  const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { user } = useAuth();
   const pathname = usePathname();
 
   const allNavLinks = getNavLinksForRole(user?.role);
@@ -137,21 +134,7 @@ export default function Sidebar() {
           {sidebarNav.map((link) => {
             const Icon = link.icon;
 
-            return link.label === 'Logout' ? (
-              <button
-                key={link.path}
-                onClick={() => {
-                  setIsOpenMobile(false);
-                  logout();
-                }}
-                className={`${linkBase} md:hidden ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
-              >
-                <span className="flex h-5 w-5 items-center justify-center text-slate-400 dark:text-slate-500" aria-hidden="true">
-                  <Icon size={18} />
-                </span>
-                <span>{link.label}</span>
-              </button>
-            ) : (
+            return (
               <Link
                 key={link.path}
                 href={link.path}
