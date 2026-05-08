@@ -86,6 +86,7 @@ export default function NotificationBell() {
         reportNotifications = unreadReports.slice(0, 10).map((r) => ({
           _id: `report_${r.id}`,
           message: `${r.anonymous ? 'Anonymous' : getDisplayFullName(r.ownerName, undefined, 'Named reporter')} submitted ${r.title}`,
+          message: `${r.anonymous ? 'Anonymous' : getDisplayFullName(r.ownerName, r.ownerUsername, 'Named reporter')} submitted ${r.title}`,
           createdAt: r.submittedAt,
           isRead: false,
           link: '/reports',
