@@ -36,6 +36,7 @@ const SEGMENT_LABELS: Record<string, string> = {
   "maintenance-dashboard": "Dashboard",
   "maintenance-issues": "Maintenance Issues",
   "work-orders": "Work Orders",
+  "registrar-issues": "Registrar Issues",
 };
 
 function formatSegmentLabel(segment: string, previousSegment?: string) {

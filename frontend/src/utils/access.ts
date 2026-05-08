@@ -44,6 +44,7 @@ export const PAGE_ACCESS = {
     "secretary",
     "maintenance",
   ],
+  registrarIssues: ["admin", "secretary"],
   evidence: ["admin", "security_officer"],
   students: ["admin", "security_officer"],
   staff: [

@@ -47,6 +47,7 @@ const studentReportSchema = new mongoose.Schema({
     enum: ["student", "general_user"],
     default: "student",
   },
+  student_involved: { type: Boolean, default: false },
   routed_to_maintenance: { type: Boolean, default: false },
   routed_by_role: { type: String, default: "" },
   maintenance_work_order_id: { type: String, default: "" },

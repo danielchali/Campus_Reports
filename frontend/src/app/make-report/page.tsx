@@ -95,6 +95,7 @@ export default function MakeReportPage() {
   const [witnesses, setWitnesses] = useState("");
   const [riskLevel, setRiskLevel] = useState("Medium");
   const [securityAction, setSecurityAction] = useState("");
+  const [studentInvolved, setStudentInvolved] = useState(false);
   const [issueType, setIssueType] = useState("Electrical");
   const [priority, setPriority] = useState("Normal");
   const [affectedAsset, setAffectedAsset] = useState("");
@@ -109,6 +110,10 @@ export default function MakeReportPage() {
   const [profileDefaultLocation, setProfileDefaultLocation] = useState("");
 
   const isMaintenanceRequest = category === "maintenance_issue";
+  const showStudentInvolvedToggle =
+    user?.role === "general_user" && !isMaintenanceRequest;
+  const reportInvolvesStudent =
+    user?.role === "student" || (!isMaintenanceRequest && studentInvolved);
 
   useEffect(() => {
     if (!user || (user.role !== "student" && user.role !== "general_user")) {
@@ -209,8 +214,10 @@ export default function MakeReportPage() {
                 witnesses,
                 riskLevel,
                 securityAction,
+                studentInvolved: reportInvolvesStudent ? "true" : "false",
               },
           attachments,
+          studentInvolved: reportInvolvesStudent,
         },
         {
           id: user.id,
@@ -232,6 +239,7 @@ export default function MakeReportPage() {
       setWitnesses("");
       setRiskLevel("Medium");
       setSecurityAction("");
+      setStudentInvolved(false);
       setIssueType("Electrical");
       setPriority("Normal");
       setAffectedAsset("");
@@ -495,6 +503,40 @@ export default function MakeReportPage() {
                 Disciplinary / Security Details
               </h3>
             </div>
+            {showStudentInvolvedToggle && (
+              <div className="rounded-xl border border-red-200 bg-white/80 p-3 dark:border-red-900/50 dark:bg-gray-800/80">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white text-sm md:text-base">
+                      Is a learner/student involved?
+                    </h4>
+                    <p className="mt-1 text-xs md:text-sm text-gray-600 dark:text-gray-400">
+                      Turn this on for learner malpractice, misconduct, or any
+                      incident that should be reviewed by the Dean of Students.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setStudentInvolved((current) => !current)}
+                    className={`relative inline-flex h-7 md:h-8 w-12 md:w-14 items-center rounded-full transition flex-shrink-0 ${
+                      studentInvolved
+                        ? "bg-kmuGreen"
+                        : "bg-gray-300 dark:bg-gray-600"
+                    }`}
+                    aria-pressed={studentInvolved}
+                    aria-label="Toggle learner/student involved"
+                  >
+                    <span
+                      className={`inline-block h-5 md:h-6 w-5 md:w-6 transform rounded-full bg-white transition ${
+                        studentInvolved
+                          ? "translate-x-6 md:translate-x-7"
+                          : "translate-x-0.5 md:translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            )}
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <label

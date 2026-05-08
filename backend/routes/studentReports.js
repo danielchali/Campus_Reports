@@ -60,6 +60,7 @@ function mapReport(doc) {
     ownerUsername: obj.owner_username,
     ownerName: obj.owner_name,
     ownerRole: obj.owner_role,
+    studentInvolved: !!obj.student_involved,
     routedToMaintenance: !!obj.routed_to_maintenance,
     routedByRole: obj.routed_by_role || "",
     maintenanceWorkOrderId: obj.maintenance_work_order_id || "",
@@ -111,35 +112,74 @@ function canViewReport(user, report) {
   const userId = String(user.id || user._id);
   if (report.owner_id === userId || report.owner_username === user.username)
     return true;
-  const scope = getStaffReportScope(user);
+
+  const role = user?.role;
   if (
-    ![
+    [
       "admin",
       "chief_security_officer",
-      "dean_of_students",
       "assistant_dean",
-      "secretary",
       "security_officer",
-      "maintenance",
-    ].includes(user.role)
-  )
-    return false;
-  if (!scope) return true;
-  return Object.entries(scope).every(([key, value]) => report[key] === value);
+    ].includes(role)
+  ) {
+    return true;
+  }
+  if (role === "dean_of_students") {
+    return report.owner_role === "student" || !!report.student_involved;
+  }
+  if (role === "secretary") {
+    return (
+      report.owner_role === "general_user" &&
+      (report.category === "maintenance_issue" || !report.student_involved)
+    );
+  }
+  if (role === "maintenance") {
+    return (
+      report.category === "maintenance_issue" && !!report.routed_to_maintenance
+    );
+  }
+  return false;
 }
 
 function getStaffReportScope(user) {
   const role = user?.role;
   if (role === "dean_of_students") {
-    return { owner_role: "student" };
+    return { $or: [{ owner_role: "student" }, { student_involved: true }] };
   }
   if (role === "secretary") {
-    return { owner_role: "general_user", category: "maintenance_issue" };
+    return {
+      $or: [
+        { owner_role: "general_user", category: "maintenance_issue" },
+        {
+          owner_role: "general_user",
+          category: "disciplinary_case",
+          student_involved: false,
+        },
+      ],
+    };
   }
   if (role === "maintenance") {
     return { category: "maintenance_issue", routed_to_maintenance: true };
   }
   return null;
+}
+
+function addSearchToScope(scopeQuery, search) {
+  if (!search) return scopeQuery || {};
+  const regex = { $regex: search, $options: "i" };
+  const searchQuery = {
+    $or: [
+      { title: regex },
+      { description: regex },
+      { tracking_code: regex },
+      { location: regex },
+      { category: regex },
+      { owner_name: regex },
+      { owner_username: regex },
+    ],
+  };
+  if (!scopeQuery || Object.keys(scopeQuery).length === 0) return searchQuery;
+  return { $and: [scopeQuery, searchQuery] };
 }
 
 // POST / — Student creates a report
@@ -157,8 +197,15 @@ router.post(
         anonymous,
         location,
         incidentDate,
+        studentInvolved,
       } = req.body;
       const details = parseDetails(req.body.details);
+      const hasStudentInvolved =
+        req.user.role === "student" ||
+        details.studentInvolved === true ||
+        details.studentInvolved === "true" ||
+        studentInvolved === true ||
+        studentInvolved === "true";
 
       if (!title || !description || !category || !location || !incidentDate) {
         return res.status(400).json({ error: "Missing required fields" });
@@ -179,6 +226,7 @@ router.post(
         owner_username: req.user.username,
         owner_name: req.user.name || req.user.username,
         owner_role: req.user.role,
+        student_involved: hasStudentInvolved,
         seen_by: [],
         updates: [
           {
@@ -288,19 +336,7 @@ router.get(
   async (req, res) => {
     try {
       const search = req.query.search;
-      const query = getStaffReportScope(req.user) || {};
-      if (search) {
-        const regex = { $regex: search, $options: "i" };
-        query.$or = [
-          { title: regex },
-          { description: regex },
-          { tracking_code: regex },
-          { location: regex },
-          { category: regex },
-          { owner_name: regex },
-          { owner_username: regex },
-        ];
-      }
+      const query = addSearchToScope(getStaffReportScope(req.user), search);
 
       const reports = await StudentReportModel.find(query).sort({
         createdAt: -1,
@@ -471,19 +507,21 @@ router.patch(
 
       if (
         req.user.role === "dean_of_students" &&
-        report.owner_role !== "student"
+        report.owner_role !== "student" &&
+        !report.student_involved
       ) {
         return res
           .status(403)
-          .json({ error: "Dean can only handle student reports." });
+          .json({ error: "Dean can only handle reports involving students." });
       }
       if (
         req.user.role === "secretary" &&
         (report.owner_role !== "general_user" ||
-          report.category !== "maintenance_issue")
+          (report.category !== "maintenance_issue" && report.student_involved))
       ) {
         return res.status(403).json({
-          error: "Registrar can only handle general-user maintenance requests.",
+          error:
+            "Registrar can only handle general-user maintenance requests or non-student incidents.",
         });
       }
       if (req.user.role === "maintenance") {

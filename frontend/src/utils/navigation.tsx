@@ -33,6 +33,7 @@ const navIcons = {
   reports: ClipboardList,
   maintenanceIssues: Wrench,
   workOrders: Clipboard,
+  registrarIssues: ClipboardList,
   myReports: ClipboardList,
   makeReport: FilePenLine,
   evidence: Paperclip,
@@ -59,6 +60,11 @@ export function getNavLinksForRole(role?: string): NavLink[] {
       { icon: navIcons.users, label: "Manage Users", path: "/admin/users" },
       { icon: navIcons.cases, label: "Cases", path: "/cases" },
       { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      {
+        icon: navIcons.registrarIssues,
+        label: "Registrar Issues",
+        path: "/registrar-issues",
+      },
       {
         icon: navIcons.maintenanceIssues,
         label: "Maintenance Issues",
@@ -198,6 +204,11 @@ export function getNavLinksForRole(role?: string): NavLink[] {
       { icon: navIcons.students, label: "Students", path: "/students" },
       { icon: navIcons.cases, label: "Cases", path: "/cases" },
       { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      {
+        icon: navIcons.registrarIssues,
+        label: "Registrar Issues",
+        path: "/registrar-issues",
+      },
       {
         icon: navIcons.maintenanceIssues,
         label: "Maintenance Issues",

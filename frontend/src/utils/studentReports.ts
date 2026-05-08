@@ -43,7 +43,9 @@ export interface StudentReport {
   ownerId: string;
   ownerUsername: string;
   ownerName: string;
+  ownerRole?: string;
   updates: StudentReportUpdate[];
+  studentInvolved?: boolean;
   seenBy?: string[];
   details?: StudentReportDetails;
   attachments?: StudentReportAttachment[];
@@ -65,6 +67,7 @@ export interface CreateStudentReportInput {
   incidentDate: string;
   details?: StudentReportDetails;
   attachments?: File[];
+  studentInvolved?: boolean;
 }
 
 export interface StaffIdentity {
@@ -152,6 +155,7 @@ export async function createStudentReport(
   formData.append("anonymous", String(input.anonymous));
   formData.append("location", input.location);
   formData.append("incidentDate", input.incidentDate);
+  formData.append("studentInvolved", String(!!input.studentInvolved));
   formData.append("details", JSON.stringify(input.details || {}));
   (input.attachments || []).forEach((file) => {
     formData.append("attachments", file);

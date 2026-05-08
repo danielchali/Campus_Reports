@@ -29,6 +29,7 @@ const detailLabels: Record<string, string> = {
   witnesses: "Witnesses",
   riskLevel: "Safety / Security Risk",
   securityAction: "Immediate Action Taken",
+  studentInvolved: "Learner/Student Involved",
   issueType: "Maintenance Issue Type",
   priority: "Priority",
   affectedAsset: "Affected Room, Fixture, or Asset",

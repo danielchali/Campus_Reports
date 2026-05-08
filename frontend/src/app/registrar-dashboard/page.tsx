@@ -1,6 +1,6 @@
 "use client";
 
-import ManagementDashboard from '../../components/dashboard/ManagementDashboard';
+import ManagementDashboard from "../../components/dashboard/ManagementDashboard";
 
 export default function RegistrarDashboard() {
   return (
@@ -10,13 +10,20 @@ export default function RegistrarDashboard() {
       subtitle="Follow anonymous report intake, keep statement-request work visible, and use only the data sources this role can access."
       focusLabel="Recent Campus Reports"
       focusEmpty="No recent incident or maintenance reports are available."
-      metricKeys={['totalReports', 'openReports', 'pendingStatements', 'submittedStatements', 'totalStaff']}
+      metricKeys={[
+        "totalReports",
+        "openReports",
+        "pendingStatements",
+        "submittedStatements",
+        "totalStaff",
+      ]}
       dataset="anonymousReports"
       quickActions={[
-        { href: '/anonymous-report', label: 'Open Anonymous Reports' },
-        { href: '/staff', label: 'Open Staff' },
-        { href: '/reports', label: 'Open Reports' },
-        { href: '/profile', label: 'Profile & Settings' },
+        { href: "/anonymous-report", label: "Open Anonymous Reports" },
+        { href: "/staff", label: "Open Staff" },
+        { href: "/reports", label: "Open Reports" },
+        { href: "/registrar-issues", label: "Registrar Issues" },
+        { href: "/profile", label: "Profile & Settings" },
       ]}
     />
   );
