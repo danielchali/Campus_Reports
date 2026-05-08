@@ -210,6 +210,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
 
 
     const handlePrintSummonCallout = () => {
+        if (!caseData) return;
         const summon = caseData.student_case_process?.summon || {};
         const accused = caseData.student_case_process?.occurrenceCover?.accusedPeople || [];
         if (accused.length === 0) {
@@ -275,6 +276,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
     };
 
     const handleExportCaseDocx = async () => {
+        if (!caseData) return;
         try {
             const res = await fetch(`${API_BASE_URL}/cases/${params.id}/export-docx-full`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
