@@ -10,11 +10,9 @@ const router = express.Router();
 router.use(authenticate, authorize(['admin', 'academic_office', 'security_officer']));
 
 router.get('/', listCases);
-router.get('/:id', getCase);
 router.post('/', createCase);
 router.put('/:id', updateCase);
 router.delete('/:id', deleteCase);
-
 
 router.get('/:id/export-docx-full', async(req, res) => {
     try {
@@ -265,6 +263,8 @@ router.post('/export-docx-list', async(req, res) => {
         res.status(500).json({ error: 'Export failed' });
     }
 });
+
+router.get('/:id', getCase);
 
 // Helper to get all cases (raw, no pagination)
 async function listCasesRaw() {

@@ -6,7 +6,6 @@ import { useAuth } from "../../../context/AuthContext";
 
 import Link from "next/link";
 import { API_BASE_URL } from '../../../config/constants';
-import { authHeaders } from '../../../utils/api';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
 
@@ -211,16 +210,63 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
 
 
     const handlePrintSummonCallout = () => {
-        const summon = caseData.student_case_process?.summon;
+        const summon = caseData.student_case_process?.summon || {};
         const accused = caseData.student_case_process?.occurrenceCover?.accusedPeople || [];
-        if (!summon || accused.length === 0) {
-            setActionMessage({ type: 'error', text: 'No summon callout data found for this case.' });
+        if (accused.length === 0) {
+            setActionMessage({ type: 'error', text: 'No accused persons found for callout printing.' });
             return;
         }
 
-        const html = `<!DOCTYPE html><html><head><title>Summon Callout</title><style>body{font-family:Arial,sans-serif;padding:24px;} .card{border:2px solid #0a7f3f;border-radius:10px;padding:20px;max-width:760px;margin:0 auto;} .logo{text-align:center;margin-bottom:12px;} .label{font-weight:700;} .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;} h1{font-size:22px;margin:4px 0 16px;color:#0a7f3f;text-align:center;} </style></head><body><div class="card"><div class="logo"><img src="${window.location.origin}/kmu_logo.png" alt="KMU Logo" style="height:64px;"/></div><h1>Summon Callout</h1>${accused.map((person: any, i: number) => `<h3>Callout ${i+1}</h3><div class="grid"><div><span class="label">Sign:</span> ${summon.studentSignatures?.[String(i)] || '________________'}</div><div><span class="label">Accused:</span> ${person?.fullName || ''}</div><div><span class="label">Date:</span> ${summon.reportDate || ''}</div><div><span class="label">Time:</span> ${summon.reportTime || ''}</div><div><span class="label">Appointment:</span> ${summon.appointment || ''}</div><div><span class="label">Officer Sign:</span> ${summon.officerSignature || ''}</div></div><hr style="margin:12px 0;"/>`).join('')}</div></body></html>`;
+        const reportTime = summon.reportTime || '....................';
+        const reportDate = summon.reportDate || '....................';
+        const appointment = summon.appointment || '........................................................';
 
-        const printWindow = window.open('', '_blank', 'width=900,height=800');
+        const calloutsHtml = accused.map((person: any, i: number) => {
+            const signature = summon.studentSignatures?.[String(i)] || '................................................................';
+            return `<div class="callout-card">
+`
+                + `<div class="logo"><img src="${window.location.origin}/kmu_logo.png" alt="KMU Logo"/></div>
+`
+                + `<div class="title">KAPASA MAKASA UNIVERSITY</div>
+`
+                + `<div class="subtitle">SECURITY DEPARTMENT</div>
+`
+                + `<div class="callout">CALL OUT</div>
+
+`
+                + `<p><strong>Full Names:</strong> ${person?.fullName || '................................................................'}</p>
+`
+                + `<p><strong>Sex:</strong> ${person?.sex || '....................'} &nbsp;&nbsp;&nbsp; <strong>Age:</strong> ${person?.age || '....................'} &nbsp;&nbsp;&nbsp; <strong>SIN:</strong> ${person?.sin || '........................................'}</p>
+`
+                + `<p><strong>Program of study:</strong> ${person?.programOfStudy || person?.program || '........................................................'} &nbsp;&nbsp;&nbsp; <strong>Year of study:</strong> ${person?.yearOfStudy || '....................'}</p>
+`
+                + `<p><strong>Residential Address:</strong> ${person?.residentialAddress || '........................................................'} &nbsp;&nbsp;&nbsp; <strong>Phone No:</strong> ${person?.phoneNo || '........................................'}</p>
+`
+                + `<p>You are required to report to the Security Officer's office at <strong>${reportTime}</strong> hours (Time)<br/>on <strong>${reportDate}</strong> (Day & Date) without fail.</p>
+
+`
+                + `<p><strong>Appointment:</strong> ${appointment}</p>
+`
+                + `<p><strong>Signature:</strong> ${signature}</p>
+`
+                + `</div>`;
+        }).join('<div class="page-break"></div>');
+
+        const html = `<!DOCTYPE html><html><head><title>Call Out</title><style>
+            body{font-family:Arial,sans-serif;padding:16px;background:#fff;}
+            .callout-card{max-width:800px;margin:0 auto;border:2px solid #111;padding:24px 28px;}
+            .logo{text-align:center;margin-bottom:10px;}
+            .logo img{height:64px;}
+            .title,.subtitle,.callout{text-align:center;font-weight:700;}
+            .title{font-size:22px;letter-spacing:.4px;}
+            .subtitle{font-size:18px;margin-top:2px;}
+            .callout{font-size:22px;margin:10px 0 18px;}
+            p{font-size:16px;line-height:1.5;margin:10px 0;}
+            .page-break{page-break-before:always;margin-top:20px;}
+            @media print { body{padding:0;} .callout-card{border:2px solid #000;} }
+        </style></head><body>${calloutsHtml}</body></html>`;
+
+        const printWindow = window.open('', '_blank', 'width=1000,height=900');
         if (!printWindow) return;
         printWindow.document.write(html);
         printWindow.document.close();
