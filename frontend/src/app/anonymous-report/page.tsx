@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import {
   Ghost,
-  ShieldCheck,
   Megaphone,
   Wrench,
   AlertTriangle,
@@ -177,17 +176,6 @@ export default function AnonymousReportPage() {
           <p className="mt-2 text-slate-600 dark:text-slate-400 max-w-xl mx-auto text-base leading-relaxed">
             Your voice matters. Submit reports confidentially without an account. 
             <span className="block mt-1 font-medium text-kmuGreen">Your identity remains 100% protected.</span>
-          </p>
-        </div>
-
-        {/* Privacy Notice */}
-        <div className="flex items-center gap-4 p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
-          <p className="text-sm text-slate-600 dark:text-slate-400 leading-snug">
-            <span className="font-bold text-slate-900 dark:text-white block mb-0.5">Privacy Guaranteed</span>
-            We do not collect IP addresses or device data. Your report is encrypted and handled only by authorized personnel.
           </p>
         </div>
 
