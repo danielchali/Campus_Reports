@@ -1,39 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FileText, Search, User, type LucideIcon } from "lucide-react";
-import Link from "next/link";
-import { API_URL } from "../config/constants";
-import { useAuth } from "../context/AuthContext";
-
-type SearchResult = {
-  _id: string;
-  [key: string]: string | undefined;
-};
-
-type SearchResults = {
-  students: SearchResult[];
-  cases: SearchResult[];
-  reports: SearchResult[];
-};
-
-type SearchSection = {
-  key: keyof SearchResults;
-  title: string;
-  icon: LucideIcon;
-  iconClassName: string;
-  href: (item: SearchResult) => string;
-  primaryText: (item: SearchResult) => string;
-  secondaryText: (item: SearchResult) => string;
-};
-
-const EMPTY_RESULTS: SearchResults = { students: [], cases: [], reports: [] };
-
-export default function GlobalSearch() {
-  const { user } = useAuth();
-  const [query, setQuery] = useState("");
-import { useState, useEffect, useRef } from 'react';
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from "lucide-react";
 import {
   Briefcase,
   ClipboardList,
@@ -44,11 +12,11 @@ import {
   Shield,
   User,
   UserCog,
-} from 'lucide-react';
-import Link from 'next/link';
-import { API_URL } from '../config/constants';
-import { useAuth } from '../context/AuthContext';
-import { getNavLinksForRole, type NavLink } from '../utils/navigation';
+} from "lucide-react";
+import Link from "next/link";
+import { API_URL } from "../config/constants";
+import { useAuth } from "../context/AuthContext";
+import { getNavLinksForRole, type NavLink } from "../utils/navigation";
 
 type StudentResult = {
   _id: string;
@@ -126,10 +94,18 @@ type SearchResults = {
   users: UserResult[];
 };
 
-type SearchResultItem = StudentResult | StaffResult | CaseResult | ReportResult | EvidenceResult | AuditLogResult | UserResult | PageResult;
+type SearchResultItem =
+  | StudentResult
+  | StaffResult
+  | CaseResult
+  | ReportResult
+  | EvidenceResult
+  | AuditLogResult
+  | UserResult
+  | PageResult;
 
 type ResultSection = {
-  key: keyof SearchResults | 'pages';
+  key: keyof SearchResults | "pages";
   title: string;
   icon: LucideIcon;
   iconClassName: string;
@@ -151,73 +127,47 @@ const EMPTY_RESULTS: SearchResults = {
 };
 
 function roleLabel(role?: string) {
-  return role ? role.replaceAll('_', ' ') : '';
+  return role ? role.replaceAll("_", " ") : "";
 }
 
 function compact(parts: Array<string | undefined | null | false>) {
-  return parts.filter(Boolean).join(' • ');
+  return parts.filter(Boolean).join(" • ");
 }
 
 export default function GlobalSearch() {
   const { user, token } = useAuth();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResults>(EMPTY_RESULTS);
   const [isOpen, setIsOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(event.target as Node)
-      ) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
     const trimmedQuery = query.trim();
 
     const delayDebounceFn = setTimeout(async () => {
-      if (query.length >= 2) {
-        try {
-          const res = await fetch(
-            `${API_URL}/search?q=${encodeURIComponent(query)}`,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            },
-          );
-          if (res.ok) {
-            const data = await res.json();
-            setResults({
-              students: data.students || [],
-              cases: data.cases || [],
-              reports: data.reports || [],
-            });
-            setIsOpen(true);
-          }
-        } catch (err) {
-          console.error("Search failed", err);
-        }
-      } else {
       if (!user || !token || trimmedQuery.length < 2) {
         setResults(EMPTY_RESULTS);
         setIsOpen(false);
         setIsSearching(false);
-        setError('');
+        setError("");
         return;
       }
 
       setIsOpen(true);
       setIsSearching(true);
-      setError('');
+      setError("");
 
       try {
         const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(trimmedQuery)}`, {
@@ -225,16 +175,16 @@ export default function GlobalSearch() {
         });
 
         if (!res.ok) {
-          throw new Error('Search request failed');
+          throw new Error("Search request failed");
         }
 
-        const data = await res.json() as Partial<SearchResults>;
+        const data = (await res.json()) as Partial<SearchResults>;
         setResults({ ...EMPTY_RESULTS, ...data });
         setIsOpen(true);
       } catch (err) {
-        console.error('Search failed', err);
+        console.error("Search failed", err);
         setResults(EMPTY_RESULTS);
-        setError('Search is unavailable right now.');
+        setError("Search is unavailable right now.");
         setIsOpen(true);
       } finally {
         setIsSearching(false);
@@ -250,73 +200,62 @@ export default function GlobalSearch() {
 
   const trimmedQuery = query.trim();
   const normalizedQuery = trimmedQuery.toLowerCase();
-  const pageResults: PageResult[] = trimmedQuery.length >= 2
-    ? getNavLinksForRole(user.role)
-      .filter((link) => link.label !== 'Logout')
-      .filter((link, index, links) => links.findIndex((item) => item.path === link.path) === index)
-      .filter((link) => `${link.label} ${link.path}`.toLowerCase().includes(normalizedQuery))
-      .map((link) => ({ ...link, _id: `page-${link.path}` }))
-    : [];
+  const pageResults: PageResult[] =
+    trimmedQuery.length >= 2
+      ? getNavLinksForRole(user.role)
+          .filter((link) => link.label !== "Logout")
+          .filter((link, index, links) => links.findIndex((item) => item.path === link.path) === index)
+          .filter((link) => `${link.label} ${link.path}`.toLowerCase().includes(normalizedQuery))
+          .map((link) => ({ ...link, _id: `page-${link.path}` }))
+      : [];
 
   const sections: ResultSection[] = [
     {
-      key: 'pages',
-      title: 'Pages',
+      key: "pages",
+      title: "Pages",
       icon: Search,
-      iconClassName: 'text-kmuGreen',
+      iconClassName: "text-kmuGreen",
       items: pageResults,
       getHref: (item) => (item as PageResult).path,
       getTitle: (item) => (item as PageResult).label,
       getMeta: (item) => `Open ${(item as PageResult).path}`,
     },
     {
-      key: 'students',
-      title: 'Students',
+      key: "students",
+      title: "Students",
       icon: User,
-      iconClassName: 'text-blue-500',
+      iconClassName: "text-blue-500",
       items: results.students,
-      getHref: (item) => {
-        const student = item as StudentResult;
-        return `/students/${encodeURIComponent(student.studentId)}`;
-      },
-      getTitle: (item) => {
-        const student = item as StudentResult;
-        return student.fullName || student.studentId;
-      },
+      getHref: (item) => `/students/${encodeURIComponent((item as StudentResult).studentId)}`,
+      getTitle: (item) => (item as StudentResult).fullName || (item as StudentResult).studentId,
       getMeta: (item) => {
         const student = item as StudentResult;
         return compact([student.studentId, student.program, student.year && `Year ${student.year}`, student.status]);
       },
     },
     {
-      key: 'staff',
-      title: 'Staff',
+      key: "staff",
+      title: "Staff",
       icon: Briefcase,
-      iconClassName: 'text-cyan-500',
+      iconClassName: "text-cyan-500",
       items: results.staff,
-      getHref: (item) => {
-        const staff = item as StaffResult;
-        return `/staff/${encodeURIComponent(staff.staffId)}`;
-      },
-      getTitle: (item) => {
-        const staff = item as StaffResult;
-        return staff.fullName || staff.staffId;
-      },
+      getHref: (item) => `/staff/${encodeURIComponent((item as StaffResult).staffId)}`,
+      getTitle: (item) => (item as StaffResult).fullName || (item as StaffResult).staffId,
       getMeta: (item) => {
         const staff = item as StaffResult;
         return compact([staff.staffId, staff.department, staff.position]);
       },
     },
     {
-      key: 'cases',
-      title: 'Cases',
+      key: "cases",
+      title: "Cases",
       icon: FileText,
-      iconClassName: 'text-kmuOrange',
+      iconClassName: "text-kmuOrange",
       items: results.cases,
       getHref: (item) => `/cases/${item._id}`,
       getTitle: (item) => {
         const caseItem = item as CaseResult;
-        return caseItem.offense_type || caseItem.case_id || 'Case record';
+        return caseItem.offense_type || caseItem.case_id || "Case record";
       },
       getMeta: (item) => {
         const caseItem = item as CaseResult;
@@ -324,15 +263,15 @@ export default function GlobalSearch() {
       },
     },
     {
-      key: 'reports',
-      title: user.role === 'student' || user.role === 'general_user' ? 'My Reports' : 'Submitted Reports',
+      key: "reports",
+      title: user.role === "student" || user.role === "general_user" ? "My Reports" : "Submitted Reports",
       icon: ClipboardList,
-      iconClassName: 'text-emerald-500',
+      iconClassName: "text-emerald-500",
       items: results.reports,
-      getHref: () => (user.role === 'student' || user.role === 'general_user' ? '/my-reports' : '/reports'),
+      getHref: () => (user.role === "student" || user.role === "general_user" ? "/my-reports" : "/reports"),
       getTitle: (item) => {
         const report = item as ReportResult;
-        return report.title || report.tracking_code || 'Report';
+        return report.title || report.tracking_code || "Report";
       },
       getMeta: (item) => {
         const report = item as ReportResult;
@@ -340,18 +279,20 @@ export default function GlobalSearch() {
       },
     },
     {
-      key: 'anonymousReports',
-      title: 'Anonymous Reports',
+      key: "anonymousReports",
+      title: "Anonymous Reports",
       icon: Shield,
-      iconClassName: 'text-purple-500',
+      iconClassName: "text-purple-500",
       items: results.anonymousReports,
       getHref: (item) => {
         const report = item as ReportResult;
-        return report.tracking_code ? `/anonymous-report?track=${encodeURIComponent(report.tracking_code)}` : '/anonymous-report';
+        return report.tracking_code
+          ? `/anonymous-report?track=${encodeURIComponent(report.tracking_code)}`
+          : "/anonymous-report";
       },
       getTitle: (item) => {
         const report = item as ReportResult;
-        return report.title || report.tracking_code || 'Anonymous report';
+        return report.title || report.tracking_code || "Anonymous report";
       },
       getMeta: (item) => {
         const report = item as ReportResult;
@@ -359,47 +300,41 @@ export default function GlobalSearch() {
       },
     },
     {
-      key: 'evidence',
-      title: 'Evidence',
+      key: "evidence",
+      title: "Evidence",
       icon: Paperclip,
-      iconClassName: 'text-amber-500',
+      iconClassName: "text-amber-500",
       items: results.evidence,
-      getHref: () => '/evidence',
-      getTitle: (item) => {
-        const evidence = item as EvidenceResult;
-        return evidence.filename || 'Evidence file';
-      },
+      getHref: () => "/evidence",
+      getTitle: (item) => (item as EvidenceResult).filename || "Evidence file",
       getMeta: (item) => {
         const evidence = item as EvidenceResult;
         return compact([evidence.caseId && `Case ${evidence.caseId}`, evidence.uploadedBy && `Uploaded by ${evidence.uploadedBy}`]);
       },
     },
     {
-      key: 'auditLogs',
-      title: 'Audit Logs',
+      key: "auditLogs",
+      title: "Audit Logs",
       icon: History,
-      iconClassName: 'text-slate-500',
+      iconClassName: "text-slate-500",
       items: results.auditLogs,
-      getHref: () => '/audit',
-      getTitle: (item) => {
-        const log = item as AuditLogResult;
-        return log.action || 'Audit event';
-      },
+      getHref: () => "/audit",
+      getTitle: (item) => (item as AuditLogResult).action || "Audit event",
       getMeta: (item) => {
         const log = item as AuditLogResult;
         return compact([log.entity, log.entityId, log.user]);
       },
     },
     {
-      key: 'users',
-      title: 'Users',
+      key: "users",
+      title: "Users",
       icon: UserCog,
-      iconClassName: 'text-indigo-500',
+      iconClassName: "text-indigo-500",
       items: results.users,
-      getHref: () => '/admin/users',
+      getHref: () => "/admin/users",
       getTitle: (item) => {
         const account = item as UserResult;
-        return account.name || account.username || 'User account';
+        return account.name || account.username || "User account";
       },
       getMeta: (item) => {
         const account = item as UserResult;
@@ -408,91 +343,7 @@ export default function GlobalSearch() {
     },
   ];
 
-  const hasResults =
-    results.students.length > 0 ||
-    results.cases.length > 0 ||
-    results.reports.length > 0;
-  const canViewStudents = [
-    "admin",
-    "security_officer",
-    "chief_security_officer",
-    "dean_of_students",
-    "assistant_dean",
-    "secretary",
-    "registrar",
-  ].includes(user?.role || "");
-  const canViewCases = [
-    "admin",
-    "security_officer",
-    "chief_security_officer",
-    "dean_of_students",
-    "assistant_dean",
-    "secretary",
-    "registrar",
-  ].includes(user?.role || "");
-  const canViewReports = [
-    "admin",
-    "chief_security_officer",
-    "dean_of_students",
-    "assistant_dean",
-    "secretary",
-    "registrar",
-    "maintenance",
-  ].includes(user?.role || "");
-
-  const visibleSections = useMemo<SearchSection[]>(() => {
-    const sections: SearchSection[] = [];
-
-    if (canViewStudents && results.students.length > 0) {
-      sections.push({
-        key: "students",
-        title: "Students",
-        icon: User,
-        iconClassName: "text-blue-500",
-        href: (student) => `/students/${student.studentId || student._id}`,
-        primaryText: (student) => student.fullName || "Unnamed student",
-        secondaryText: (student) =>
-          [student.studentId, student.program].filter(Boolean).join(" • "),
-      });
-    }
-
-    if (canViewCases && results.cases.length > 0) {
-      sections.push({
-        key: "cases",
-        title: "Cases",
-        icon: FileText,
-        iconClassName: "text-kmuOrange",
-        href: (caseItem) => `/cases/${caseItem._id}`,
-        primaryText: (caseItem) => caseItem.offense_type || "Case report",
-        secondaryText: (caseItem) => caseItem.description || "",
-      });
-    }
-
-    if (canViewReports && results.reports.length > 0) {
-      sections.push({
-        key: "reports",
-        title: "Anonymous Reports",
-        icon: FileText,
-        iconClassName: "text-purple-500",
-        href: () => "/reports",
-        primaryText: (report) => report.title || "Anonymous report",
-        secondaryText: (report) => report.tracking_code || "",
-      });
-    }
-
-    return sections;
-  }, [
-    canViewCases,
-    canViewReports,
-    canViewStudents,
-    results.cases,
-    results.reports,
-    results.students,
-  ]);
-  const hasResults = results.students.length > 0 || results.cases.length > 0 || results.reports.length > 0;
-  const canViewStudents = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar'].includes(user?.role || '');
-  const canViewCases = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar'].includes(user?.role || '');
-  const canViewReports = ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar', 'maintenance'].includes(user?.role || '');
+  const hasResults = sections.some((section) => section.items.length > 0);
 
   return (
     <div ref={wrapperRef} className="relative hidden md:block min-w-[260px]">
@@ -509,69 +360,46 @@ export default function GlobalSearch() {
       </div>
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-[400px] max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2">
-          {!hasResults && query.length >= 2 ? (
-            <div className="p-4 text-center text-sm text-slate-500">
-              No results found for &quot;{query}&quot;
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
         <div className="absolute top-full right-0 mt-2 w-[440px] max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2">
           {isSearching && !hasResults ? (
             <div className="p-4 text-center text-sm text-slate-500">Searching...</div>
           ) : error && !hasResults ? (
             <div className="p-4 text-center text-sm text-red-500">{error}</div>
           ) : !hasResults && trimmedQuery.length >= 2 ? (
-            <div className="p-4 text-center text-sm text-slate-500">No accessible results found for &quot;{trimmedQuery}&quot;</div>
+            <div className="p-4 text-center text-sm text-slate-500">
+              No accessible results found for &quot;{trimmedQuery}&quot;
+            </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {error && (
-                <div className="px-3 py-2 text-xs text-red-500">{error}</div>
-              )}
-              {visibleSections.map((section) => {
-                const Icon = section.icon;
+              {error && <div className="px-3 py-2 text-xs text-red-500">{error}</div>}
+              {sections
+                .filter((section) => section.items.length > 0)
+                .map((section) => {
+                  const Icon = section.icon;
 
-                return (
-                  <div key={section.key}>
-                    <h3 className="px-3 py-1.5 text-xs font-semibold uppercase text-slate-500">
-                      {section.title}
-                    </h3>
-                    {results[section.key].map((item) => (
-                      <Link
-                        key={item._id}
-                        href={section.href(item)}
-                        onClick={() => setIsOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                      >
-                        <Icon size={16} className={section.iconClassName} />
-                        <div>
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
-                            {section.primaryText(item)}
-                          </p>
-                          <p className="text-xs text-slate-500 truncate">
-                            {section.secondaryText(item)}
-                          </p>
-                    <h3 className="px-3 py-1.5 text-xs font-semibold uppercase text-slate-500">{section.title}</h3>
-                    {section.items.map((item) => (
-                      <Link
-                        key={`${section.key}-${item._id}`}
-                        href={section.getHref(item)}
-                        onClick={() => {
-                          setIsOpen(false);
-                          setQuery('');
-                        }}
-                        className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                      >
-                        <Icon size={16} className={section.iconClassName} />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{section.getTitle(item)}</p>
-                          <p className="truncate text-xs text-slate-500">{section.getMeta(item)}</p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                );
-              })}
+                  return (
+                    <div key={section.key}>
+                      <h3 className="px-3 py-1.5 text-xs font-semibold uppercase text-slate-500">{section.title}</h3>
+                      {section.items.map((item) => (
+                        <Link
+                          key={`${section.key}-${item._id}`}
+                          href={section.getHref(item)}
+                          onClick={() => {
+                            setIsOpen(false);
+                            setQuery("");
+                          }}
+                          className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        >
+                          <Icon size={16} className={section.iconClassName} />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{section.getTitle(item)}</p>
+                            <p className="truncate text-xs text-slate-500">{section.getMeta(item)}</p>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  );
+                })}
             </div>
           )}
         </div>
