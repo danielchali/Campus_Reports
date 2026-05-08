@@ -115,7 +115,8 @@ export default function ProfilePage() {
   const { token, changePassword } = useAuth();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState<ProfileForm>(buildForm({}));
   const [success, setSuccess] = useState<string | null>(null);
@@ -137,13 +138,13 @@ export default function ProfilePage() {
 
   async function fetchProfile() {
     setLoading(true);
-    setError(null);
+    setLoadError(null);
     try {
       const data = await getProfile();
       setProfile(data);
       setForm(buildForm(data));
     } catch (err: any) {
-      setError(err.message || "Failed to load profile");
+      setLoadError(err.message || "Failed to load profile");
     } finally {
       setLoading(false);
     }
@@ -155,7 +156,7 @@ export default function ProfilePage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
+    setFormError(null);
     setSuccess(null);
     try {
       if (isStudent) {
@@ -179,7 +180,7 @@ export default function ProfilePage() {
       setEditMode(false);
       await fetchProfile();
     } catch (err: any) {
-      setError(err.message || 'Failed to update profile');
+      setFormError(err.message || 'Failed to update profile');
     }
   }
 
@@ -255,8 +256,8 @@ export default function ProfilePage() {
 
       {loading ? (
         <ProfilePageSkeleton />
-      ) : error ? (
-        <div className="text-center text-red-600 dark:text-red-400">{error}</div>
+      ) : loadError ? (
+        <div className="text-center text-red-600 dark:text-red-400">{loadError}</div>
       ) : (
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_minmax(340px,0.9fr)]">
           <div className="space-y-8">
@@ -265,6 +266,11 @@ export default function ProfilePage() {
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {isStudent ? 'Review and update your linked student profile information.' : 'Update your personal information and display name.'}
               </p>
+              {formError && (
+                <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
+                  {formError}
+                </div>
+              )}
 
               {editMode ? (
                 <form onSubmit={handleSave} className="space-y-6">
