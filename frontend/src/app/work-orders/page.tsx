@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, ClipboardList, Search, Wrench } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { PageSkeleton, InlineSkeleton } from "../../components/PageSkeleton";
+import SignatureField from "../../components/SignatureField";
 import Notification, { useNotification } from "../../components/Notification";
 import { canAccessPage } from "../../utils/access";
 import {
@@ -40,6 +41,7 @@ export default function WorkOrdersPage() {
   >({});
   const [updateNotes, setUpdateNotes] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [signatures, setSignatures] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!authLoading && !token) router.replace("/login");
@@ -276,7 +278,13 @@ export default function WorkOrdersPage() {
                           {workOrder.accessInstructions}
                         </p>
                       )}
-                      <WorkOrderJobCard workOrder={workOrder} />
+                      <WorkOrderJobCard
+                        workOrder={workOrder}
+                        signatures={signatures}
+                        onSignatureChange={(key, value) =>
+                          setSignatures((current) => ({ ...current, [key]: value }))
+                        }
+                      />
                     </div>
 
                     <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-700 p-4 lg:w-80">
@@ -353,7 +361,15 @@ function DashedLine({ value }: { value?: string }) {
   );
 }
 
-function WorkOrderJobCard({ workOrder }: { workOrder: WorkOrder }) {
+function WorkOrderJobCard({
+  workOrder,
+  signatures,
+  onSignatureChange,
+}: {
+  workOrder: WorkOrder;
+  signatures: Record<string, string>;
+  onSignatureChange: (key: string, value: string) => void;
+}) {
   const formattedCreatedDate = new Date(
     workOrder.createdAt,
   ).toLocaleDateString();
@@ -436,10 +452,14 @@ function WorkOrderJobCard({ workOrder }: { workOrder: WorkOrder }) {
               Approved by
               <DashedLine />
             </label>
-            <label className="flex items-end gap-2">
-              Signature
-              <DashedLine />
-            </label>
+                          <SignatureField
+                label="Signature"
+                value={signatures[`${workOrder.id}:part-c-signature`] || ""}
+                onChange={(value) =>
+                  onSignatureChange(`${workOrder.id}:part-c-signature`, value)
+                }
+                helperText="Draw section supervisor signature."
+              />
             <label className="flex items-end gap-2">
               Date
               <DashedLine />
@@ -457,10 +477,14 @@ function WorkOrderJobCard({ workOrder }: { workOrder: WorkOrder }) {
               Name
               <DashedLine />
             </label>
-            <label className="flex items-end gap-2">
-              Signature
-              <DashedLine />
-            </label>
+                          <SignatureField
+                label="Signature"
+                value={signatures[`${workOrder.id}:part-d-signature`] || ""}
+                onChange={(value) =>
+                  onSignatureChange(`${workOrder.id}:part-d-signature`, value)
+                }
+                helperText="Draw tenant or head of department signature."
+              />
             <label className="flex items-end gap-2">
               Date
               <DashedLine />
@@ -481,10 +505,14 @@ function WorkOrderJobCard({ workOrder }: { workOrder: WorkOrder }) {
               Name
               <DashedLine />
             </label>
-            <label className="flex items-end gap-2">
-              Signature
-              <DashedLine />
-            </label>
+                          <SignatureField
+                label="Signature"
+                value={signatures[`${workOrder.id}:part-e-signature`] || ""}
+                onChange={(value) =>
+                  onSignatureChange(`${workOrder.id}:part-e-signature`, value)
+                }
+                helperText="Draw maintenance officer or foreman signature."
+              />
             <label className="flex items-end gap-2">
               Date
               <DashedLine />
