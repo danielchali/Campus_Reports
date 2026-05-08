@@ -16,6 +16,7 @@ import {
 import Link from 'next/link';
 import { API_URL } from '../config/constants';
 import { useAuth } from '../context/AuthContext';
+import { getNavLinksForRole, type NavLink } from '../utils/navigation';
 
 type StudentResult = {
   _id: string;
@@ -78,6 +79,10 @@ type UserResult = {
   role?: string;
 };
 
+type PageResult = NavLink & {
+  _id: string;
+};
+
 type SearchResults = {
   students: StudentResult[];
   staff: StaffResult[];
@@ -89,10 +94,10 @@ type SearchResults = {
   users: UserResult[];
 };
 
-type SearchResultItem = StudentResult | StaffResult | CaseResult | ReportResult | EvidenceResult | AuditLogResult | UserResult;
+type SearchResultItem = StudentResult | StaffResult | CaseResult | ReportResult | EvidenceResult | AuditLogResult | UserResult | PageResult;
 
 type ResultSection = {
-  key: keyof SearchResults;
+  key: keyof SearchResults | 'pages';
   title: string;
   icon: LucideIcon;
   iconClassName: string;
@@ -152,6 +157,7 @@ export default function GlobalSearch() {
         return;
       }
 
+      setIsOpen(true);
       setIsSearching(true);
       setError('');
 
@@ -184,7 +190,27 @@ export default function GlobalSearch() {
     return null;
   }
 
+  const trimmedQuery = query.trim();
+  const normalizedQuery = trimmedQuery.toLowerCase();
+  const pageResults: PageResult[] = trimmedQuery.length >= 2
+    ? getNavLinksForRole(user.role)
+      .filter((link) => link.label !== 'Logout')
+      .filter((link, index, links) => links.findIndex((item) => item.path === link.path) === index)
+      .filter((link) => `${link.label} ${link.path}`.toLowerCase().includes(normalizedQuery))
+      .map((link) => ({ ...link, _id: `page-${link.path}` }))
+    : [];
+
   const sections: ResultSection[] = [
+    {
+      key: 'pages',
+      title: 'Pages',
+      icon: Search,
+      iconClassName: 'text-kmuGreen',
+      items: pageResults,
+      getHref: (item) => (item as PageResult).path,
+      getTitle: (item) => (item as PageResult).label,
+      getMeta: (item) => `Open ${(item as PageResult).path}`,
+    },
     {
       key: 'students',
       title: 'Students',
@@ -326,7 +352,6 @@ export default function GlobalSearch() {
 
   const visibleSections = sections.filter((section) => section.items.length > 0);
   const hasResults = visibleSections.length > 0;
-  const trimmedQuery = query.trim();
 
   return (
     <div ref={wrapperRef} className="relative hidden md:block min-w-[260px]">
@@ -344,14 +369,17 @@ export default function GlobalSearch() {
 
       {isOpen && (
         <div className="absolute top-full right-0 mt-2 w-[440px] max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2">
-          {isSearching ? (
+          {isSearching && !hasResults ? (
             <div className="p-4 text-center text-sm text-slate-500">Searching...</div>
-          ) : error ? (
+          ) : error && !hasResults ? (
             <div className="p-4 text-center text-sm text-red-500">{error}</div>
           ) : !hasResults && trimmedQuery.length >= 2 ? (
             <div className="p-4 text-center text-sm text-slate-500">No accessible results found for &quot;{trimmedQuery}&quot;</div>
           ) : (
             <div className="flex flex-col gap-4">
+              {error && (
+                <div className="px-3 py-2 text-xs text-red-500">{error}</div>
+              )}
               {visibleSections.map((section) => {
                 const Icon = section.icon;
 
