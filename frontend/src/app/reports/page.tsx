@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CheckCheck,
   ChevronDown,
@@ -9,14 +9,16 @@ import {
   Eye,
   EyeOff,
   Filter,
+  Paperclip,
   ShieldAlert,
   Wrench,
-} from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import Notification, { useNotification } from '../../components/Notification';
-import { canAccessPage } from '../../utils/access';
-import { PageSkeleton, CardSkeleton } from '../../components/PageSkeleton';
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import Notification, { useNotification } from "../../components/Notification";
+import { canAccessPage } from "../../utils/access";
+import { PageSkeleton, CardSkeleton } from "../../components/PageSkeleton";
 import {
+  downloadStudentReportAttachment,
   getAllStudentReports,
   getUnreadStudentReportsCount,
   markAllStudentReportsSeen,
@@ -24,74 +26,95 @@ import {
   updateStudentReportStatus,
   type StudentReport,
   type StudentReportStatus,
-} from '../../utils/studentReports';
-import { getDisplayFullName } from '../../utils/userDisplay';
+} from "../../utils/studentReports";
+import { getDisplayFullName } from "../../utils/userDisplay";
 
 const categoryLabels = {
-  disciplinary_case: 'Disciplinary Case',
-  maintenance_issue: 'Maintenance Issue',
+  disciplinary_case: "Disciplinary Case",
+  maintenance_issue: "Maintenance Issue",
 } as const;
 
+const detailLabels: Record<string, string> = {
+  peopleInvolved: "People Involved",
+  witnesses: "Witnesses",
+  riskLevel: "Safety / Security Risk",
+  securityAction: "Immediate Action Taken",
+  issueType: "Maintenance Issue Type",
+  priority: "Priority",
+  affectedAsset: "Affected Room, Fixture, or Asset",
+  accessInstructions: "Access or Timing Notes",
+};
+
 const statusOptions: StudentReportStatus[] = [
-  'Submitted',
-  'Under Review',
-  'In Progress',
-  'Resolved',
+  "Submitted",
+  "Under Review",
+  "In Progress",
+  "Resolved",
 ];
 
 export default function ReportsPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
-  const { notification, showNotification, hideNotification } = useNotification();
+  const { notification, showNotification, hideNotification } =
+    useNotification();
 
   const [reports, setReports] = useState<StudentReport[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [visibilityFilter, setVisibilityFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
-  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [visibilityFilter, setVisibilityFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+  const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [statusDrafts, setStatusDrafts] = useState<Record<string, StudentReportStatus>>({});
-  const [updateMessages, setUpdateMessages] = useState<Record<string, string>>({});
+  const [statusDrafts, setStatusDrafts] = useState<
+    Record<string, StudentReportStatus>
+  >({});
+  const [updateMessages, setUpdateMessages] = useState<Record<string, string>>(
+    {},
+  );
   const [unreadCount, setUnreadCount] = useState(0);
 
   const filteredReports = useMemo(() => {
     return reports
       .filter((report) => {
         const matchesCategory =
-          categoryFilter === 'all' || report.category === categoryFilter;
+          categoryFilter === "all" || report.category === categoryFilter;
         const matchesStatus =
-          statusFilter === 'all' || report.status === statusFilter;
+          statusFilter === "all" || report.status === statusFilter;
         const matchesVisibility =
-          visibilityFilter === 'all' ||
-          (visibilityFilter === 'anonymous' && report.anonymous) ||
-          (visibilityFilter === 'named' && !report.anonymous);
+          visibilityFilter === "all" ||
+          (visibilityFilter === "anonymous" && report.anonymous) ||
+          (visibilityFilter === "named" && !report.anonymous);
 
         return matchesCategory && matchesStatus && matchesVisibility;
       })
       .sort((a, b) => {
-        if (sortBy === 'oldest') {
-          return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
+        if (sortBy === "oldest") {
+          return (
+            new Date(a.submittedAt).getTime() -
+            new Date(b.submittedAt).getTime()
+          );
         }
 
-        if (sortBy === 'status') {
+        if (sortBy === "status") {
           return a.status.localeCompare(b.status);
         }
 
-        return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+        return (
+          new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+        );
       });
   }, [reports, categoryFilter, statusFilter, visibilityFilter, sortBy]);
 
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     if (!authLoading && !token) {
-      router.replace('/login');
+      router.replace("/login");
     }
     if (!token) {
       return <PageSkeleton />;
     }
 
-    if (!user || !canAccessPage(user.role, 'reports')) {
+    if (!user || !canAccessPage(user.role, "reports")) {
       return <div className="text-red-600">Access denied.</div>;
     }
   }
@@ -110,14 +133,16 @@ export default function ReportsPage() {
         const allReports = await getAllStudentReports(search);
         if (!cancelled) setReports(allReports);
       } catch (err) {
-        console.error('Failed to load reports:', err);
+        console.error("Failed to load reports:", err);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
 
     fetchReports();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [user, search]);
 
   useEffect(() => {
@@ -126,7 +151,7 @@ export default function ReportsPage() {
 
     async function fetchUnread() {
       try {
-        const count = await getUnreadStudentReportsCount('');
+        const count = await getUnreadStudentReportsCount("");
         if (!cancelled) setUnreadCount(count);
       } catch {
         // ignore
@@ -134,7 +159,9 @@ export default function ReportsPage() {
     }
 
     fetchUnread();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [reports, user]);
 
   async function refreshReports() {
@@ -158,7 +185,7 @@ export default function ReportsPage() {
 
     await markAllStudentReportsSeen(user.id);
     await refreshReports();
-    showNotification('success', 'All student reports marked as seen.');
+    showNotification("success", "All student reports marked as seen.");
   }
 
   async function handleApplyStatus(report: StudentReport) {
@@ -168,22 +195,27 @@ export default function ReportsPage() {
 
     const nextStatus = statusDrafts[report.id] || report.status;
     if (nextStatus === report.status) {
-      showNotification('info', `Report ${report.trackingCode} is already marked as ${report.status}.`);
+      showNotification(
+        "info",
+        `Report ${report.trackingCode} is already marked as ${report.status}.`,
+      );
       return;
     }
     const message =
       updateMessages[report.id]?.trim() ||
       `Status updated to ${nextStatus} by ${user.name || user.username}.`;
 
-    await updateStudentReportStatus(
-      report.id,
-      nextStatus,
-      message,
-      { id: user.id, username: user.username, name: user.name },
-    );
+    await updateStudentReportStatus(report.id, nextStatus, message, {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+    });
 
     await refreshReports();
-    showNotification('success', `Report ${report.trackingCode} updated to ${nextStatus}.`);
+    showNotification(
+      "success",
+      `Report ${report.trackingCode} updated to ${nextStatus}.`,
+    );
   }
 
   return (
@@ -191,9 +223,12 @@ export default function ReportsPage() {
       <section className="max-w-6xl mx-auto space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-kmuGreen">Student Report Inbox</h1>
+            <h1 className="text-3xl font-bold text-kmuGreen">
+              Student Report Inbox
+            </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Review incoming student reports, track new submissions, and update follow-up status from one shared inbox.
+              Review incoming student reports, track new submissions, and update
+              follow-up status from one shared inbox.
             </p>
           </div>
 
@@ -238,7 +273,9 @@ export default function ReportsPage() {
             >
               <option value="all">All statuses</option>
               {statusOptions.map((status) => (
-                <option key={status} value={status}>{status}</option>
+                <option key={status} value={status}>
+                  {status}
+                </option>
               ))}
             </select>
             <select
@@ -253,7 +290,8 @@ export default function ReportsPage() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {filteredReports.length} report{filteredReports.length === 1 ? '' : 's'} found
+              {filteredReports.length} report
+              {filteredReports.length === 1 ? "" : "s"} found
             </span>
             <select
               value={sortBy}
@@ -289,8 +327,8 @@ export default function ReportsPage() {
                   key={report.id}
                   className={`rounded-2xl bg-white dark:bg-gray-800 shadow overflow-hidden border ${
                     isSeen
-                      ? 'border-gray-200 dark:border-gray-700'
-                      : 'border-blue-300 dark:border-blue-700'
+                      ? "border-gray-200 dark:border-gray-700"
+                      : "border-blue-300 dark:border-blue-700"
                   }`}
                 >
                   <button
@@ -305,10 +343,14 @@ export default function ReportsPage() {
                   >
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="flex items-start gap-3">
-                        {!isSeen && <div className="mt-2 h-2.5 w-2.5 rounded-full bg-blue-600" />}
+                        {!isSeen && (
+                          <div className="mt-2 h-2.5 w-2.5 rounded-full bg-blue-600" />
+                        )}
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{report.title}</h2>
+                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                              {report.title}
+                            </h2>
                             <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 dark:bg-gray-700 dark:text-gray-300">
                               {categoryLabels[report.category]}
                             </span>
@@ -329,15 +371,22 @@ export default function ReportsPage() {
                           </div>
                           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                             {report.anonymous
-                              ? 'Reporter hidden'
-                              : `Reporter: ${getDisplayFullName(report.ownerName, report.ownerUsername)}`} • {report.location} • Tracking code {report.trackingCode}
+                              ? "Reporter hidden"
+                              : `Reporter: ${getDisplayFullName(report.ownerName, report.ownerUsername)}`}{" "}
+                            • {report.location} • Tracking code{" "}
+                            {report.trackingCode}
                           </p>
                           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Submitted {new Date(report.submittedAt).toLocaleString()}
+                            Submitted{" "}
+                            {new Date(report.submittedAt).toLocaleString()}
                           </p>
                         </div>
                       </div>
-                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                      {isExpanded ? (
+                        <ChevronUp size={18} />
+                      ) : (
+                        <ChevronDown size={18} />
+                      )}
                     </div>
                   </button>
 
@@ -346,11 +395,82 @@ export default function ReportsPage() {
                       <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
                         <div className="space-y-4">
                           <div>
-                            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Description</p>
-                            <p className="mt-2 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{report.description}</p>
+                            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                              Description
+                            </p>
+                            <p className="mt-2 text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                              {report.description}
+                            </p>
                           </div>
+
+                          {report.details &&
+                            Object.values(report.details).some(Boolean) && (
+                              <div>
+                                <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                  Report Details
+                                </p>
+                                <div className="mt-2 grid gap-2 md:grid-cols-2">
+                                  {Object.entries(report.details)
+                                    .filter(([, value]) => Boolean(value))
+                                    .map(([key, value]) => (
+                                      <div
+                                        key={key}
+                                        className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3"
+                                      >
+                                        <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                          {detailLabels[key] || key}
+                                        </p>
+                                        <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                                          {value}
+                                        </p>
+                                      </div>
+                                    ))}
+                                </div>
+                              </div>
+                            )}
+
+                          {report.attachments &&
+                            report.attachments.length > 0 && (
+                              <div>
+                                <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                  Evidence / Files
+                                </p>
+                                <div className="mt-2 space-y-2">
+                                  {report.attachments.map((attachment) => (
+                                    <button
+                                      key={attachment.id}
+                                      type="button"
+                                      onClick={() =>
+                                        downloadStudentReportAttachment(
+                                          report.id,
+                                          attachment.id,
+                                          attachment.originalName,
+                                        )
+                                      }
+                                      className="flex w-full items-center justify-between gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 text-left text-sm text-gray-700 dark:text-gray-200 hover:border-kmuGreen"
+                                    >
+                                      <span className="inline-flex min-w-0 items-center gap-2">
+                                        <Paperclip
+                                          size={14}
+                                          className="flex-shrink-0 text-kmuGreen"
+                                        />
+                                        <span className="truncate">
+                                          {attachment.originalName}
+                                        </span>
+                                      </span>
+                                      <span className="flex-shrink-0 text-xs text-gray-500 dark:text-gray-400">
+                                        {Math.ceil(attachment.size / 1024)} KB
+                                      </span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
                           <div>
-                            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">Timeline</p>
+                            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
+                              Timeline
+                            </p>
                             <div className="space-y-3">
                               {report.updates.map((update) => (
                                 <div
@@ -358,12 +478,18 @@ export default function ReportsPage() {
                                   className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4"
                                 >
                                   <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <span className="font-semibold text-kmuGreen">{update.status}</span>
+                                    <span className="font-semibold text-kmuGreen">
+                                      {update.status}
+                                    </span>
                                     <span className="text-xs text-gray-500 dark:text-gray-400">
-                                      {new Date(update.createdAt).toLocaleString()}
+                                      {new Date(
+                                        update.createdAt,
+                                      ).toLocaleString()}
                                     </span>
                                   </div>
-                                  <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">{update.message}</p>
+                                  <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                                    {update.message}
+                                  </p>
                                 </div>
                               ))}
                             </div>
@@ -371,7 +497,9 @@ export default function ReportsPage() {
                         </div>
 
                         <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 space-y-4">
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Update handling status</h3>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Update handling status
+                          </h3>
                           <div className="grid gap-4">
                             <div>
                               <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -382,13 +510,16 @@ export default function ReportsPage() {
                                 onChange={(e) =>
                                   setStatusDrafts((current) => ({
                                     ...current,
-                                    [report.id]: e.target.value as StudentReportStatus,
+                                    [report.id]: e.target
+                                      .value as StudentReportStatus,
                                   }))
                                 }
                                 className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white"
                               >
                                 {statusOptions.map((status) => (
-                                  <option key={status} value={status}>{status}</option>
+                                  <option key={status} value={status}>
+                                    {status}
+                                  </option>
                                 ))}
                               </select>
                             </div>
@@ -397,7 +528,7 @@ export default function ReportsPage() {
                                 Update note
                               </label>
                               <textarea
-                                value={updateMessages[report.id] || ''}
+                                value={updateMessages[report.id] || ""}
                                 onChange={(e) =>
                                   setUpdateMessages((current) => ({
                                     ...current,
@@ -413,7 +544,11 @@ export default function ReportsPage() {
                               type="button"
                               onClick={() => handleApplyStatus(report)}
                               disabled={draftStatus === report.status}
-                              title={draftStatus === report.status ? 'Select a different status to save an update.' : 'Save status update'}
+                              title={
+                                draftStatus === report.status
+                                  ? "Select a different status to save an update."
+                                  : "Save status update"
+                              }
                               className="rounded-xl bg-kmuGreen px-4 py-3 text-white font-medium transition hover:bg-kmuOrange disabled:cursor-not-allowed disabled:bg-gray-400"
                             >
                               Save status update
@@ -422,15 +557,21 @@ export default function ReportsPage() {
 
                           <div className="rounded-xl bg-gray-50 dark:bg-gray-900/30 p-4 text-sm text-gray-600 dark:text-gray-400">
                             <div className="flex items-center gap-2 mb-2">
-                              {report.category === 'disciplinary_case' ? (
-                                <ShieldAlert size={16} className="text-red-500" />
+                              {report.category === "disciplinary_case" ? (
+                                <ShieldAlert
+                                  size={16}
+                                  className="text-red-500"
+                                />
                               ) : (
                                 <Wrench size={16} className="text-blue-500" />
                               )}
-                              <span className="font-medium text-gray-900 dark:text-white">Handling notes</span>
+                              <span className="font-medium text-gray-900 dark:text-white">
+                                Handling notes
+                              </span>
                             </div>
                             <p>
-                              Use this area to move reports from new intake to review, work in progress, or resolved. The status
+                              Use this area to move reports from new intake to
+                              review, work in progress, or resolved. The status
                               timeline is visible in the student tracking view.
                             </p>
                           </div>

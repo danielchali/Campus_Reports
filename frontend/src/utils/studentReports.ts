@@ -1,19 +1,32 @@
-import { API_BASE_URL } from '../config/constants';
-import { authHeaders } from './api';
+import { API_BASE_URL } from "../config/constants";
+import { authHeaders } from "./api";
 
-export type StudentReportCategory = 'disciplinary_case' | 'maintenance_issue';
+export type StudentReportCategory = "disciplinary_case" | "maintenance_issue";
 
 export type StudentReportStatus =
-  | 'Submitted'
-  | 'Under Review'
-  | 'In Progress'
-  | 'Resolved';
+  | "Submitted"
+  | "Under Review"
+  | "In Progress"
+  | "Resolved";
 
 export interface StudentReportUpdate {
   id: string;
   status: StudentReportStatus;
   message: string;
   createdAt: string;
+}
+
+export interface StudentReportAttachment {
+  id: string;
+  originalName: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  uploadedAt: string;
+}
+
+export interface StudentReportDetails {
+  [key: string]: string;
 }
 
 export interface StudentReport {
@@ -32,6 +45,8 @@ export interface StudentReport {
   ownerName: string;
   updates: StudentReportUpdate[];
   seenBy?: string[];
+  details?: StudentReportDetails;
+  attachments?: StudentReportAttachment[];
 }
 
 export interface StudentIdentity {
@@ -47,6 +62,8 @@ export interface CreateStudentReportInput {
   anonymous: boolean;
   location: string;
   incidentDate: string;
+  details?: StudentReportDetails;
+  attachments?: File[];
 }
 
 export interface StaffIdentity {
@@ -64,11 +81,11 @@ export interface StudentReportMetrics {
 }
 
 // ─── localStorage key for migration ────────────────────────
-const STORAGE_KEY = 'student_reports_v1';
-const MIGRATION_DONE_KEY = 'student_reports_migrated_v1';
+const STORAGE_KEY = "student_reports_v1";
+const MIGRATION_DONE_KEY = "student_reports_migrated_v1";
 
 function readLocalReports(): any[] {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === "undefined") return [];
   const raw = window.localStorage.getItem(STORAGE_KEY);
   if (!raw) return [];
   try {
@@ -85,34 +102,36 @@ function readLocalReports(): any[] {
  * Migrate any localStorage reports to the backend (one-time).
  * Called on first load after the migration.
  */
-export async function migrateLocalReports(identity: StudentIdentity): Promise<number> {
-  if (typeof window === 'undefined') return 0;
+export async function migrateLocalReports(
+  identity: StudentIdentity,
+): Promise<number> {
+  if (typeof window === "undefined") return 0;
 
   // Check if already migrated
   if (window.localStorage.getItem(MIGRATION_DONE_KEY)) return 0;
 
   const localReports = readLocalReports();
   if (localReports.length === 0) {
-    window.localStorage.setItem(MIGRATION_DONE_KEY, '1');
+    window.localStorage.setItem(MIGRATION_DONE_KEY, "1");
     return 0;
   }
 
   try {
     const res = await fetch(`${API_BASE_URL}/student-reports/migrate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
       body: JSON.stringify({ reports: localReports }),
     });
 
     if (res.ok) {
       const data = await res.json();
-      window.localStorage.setItem(MIGRATION_DONE_KEY, '1');
+      window.localStorage.setItem(MIGRATION_DONE_KEY, "1");
       // Clear localStorage reports after successful migration
       window.localStorage.removeItem(STORAGE_KEY);
       return data.migrated || 0;
     }
   } catch (err) {
-    console.error('Migration failed, will retry next time:', err);
+    console.error("Migration failed, will retry next time:", err);
   }
 
   return 0;
@@ -125,15 +144,27 @@ export async function createStudentReport(
   input: CreateStudentReportInput,
   _identity: StudentIdentity,
 ): Promise<StudentReport> {
+  const formData = new FormData();
+  formData.append("title", input.title);
+  formData.append("description", input.description);
+  formData.append("category", input.category);
+  formData.append("anonymous", String(input.anonymous));
+  formData.append("location", input.location);
+  formData.append("incidentDate", input.incidentDate);
+  formData.append("details", JSON.stringify(input.details || {}));
+  (input.attachments || []).forEach((file) => {
+    formData.append("attachments", file);
+  });
+
   const res = await fetch(`${API_BASE_URL}/student-reports`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify(input),
+    method: "POST",
+    headers: { ...authHeaders() },
+    body: formData,
   });
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || 'Failed to create report');
+    throw new Error(data.error || "Failed to create report");
   }
 
   return res.json();
@@ -142,15 +173,21 @@ export async function createStudentReport(
 /**
  * Get reports for the logged-in student from the backend.
  */
-export async function getStudentReportsForUser(_identity: StudentIdentity, search?: string): Promise<StudentReport[]> {
+export async function getStudentReportsForUser(
+  _identity: StudentIdentity,
+  search?: string,
+): Promise<StudentReport[]> {
   const params = new URLSearchParams();
-  if (search) params.set('search', search);
-  const res = await fetch(`${API_BASE_URL}/student-reports/mine?${params.toString()}`, {
-    headers: { ...authHeaders() },
-  });
+  if (search) params.set("search", search);
+  const res = await fetch(
+    `${API_BASE_URL}/student-reports/mine?${params.toString()}`,
+    {
+      headers: { ...authHeaders() },
+    },
+  );
 
   if (!res.ok) {
-    console.error('Failed to fetch student reports');
+    console.error("Failed to fetch student reports");
     return [];
   }
 
@@ -160,15 +197,20 @@ export async function getStudentReportsForUser(_identity: StudentIdentity, searc
 /**
  * Get all student reports (staff view) from the backend.
  */
-export async function getAllStudentReports(search?: string): Promise<StudentReport[]> {
+export async function getAllStudentReports(
+  search?: string,
+): Promise<StudentReport[]> {
   const params = new URLSearchParams();
-  if (search) params.set('search', search);
-  const res = await fetch(`${API_BASE_URL}/student-reports?${params.toString()}`, {
-    headers: { ...authHeaders() },
-  });
+  if (search) params.set("search", search);
+  const res = await fetch(
+    `${API_BASE_URL}/student-reports?${params.toString()}`,
+    {
+      headers: { ...authHeaders() },
+    },
+  );
 
   if (!res.ok) {
-    console.error('Failed to fetch all student reports');
+    console.error("Failed to fetch all student reports");
     return [];
   }
 
@@ -178,12 +220,18 @@ export async function getAllStudentReports(search?: string): Promise<StudentRepo
 /**
  * Mark a report as seen by the current user.
  */
-export async function markStudentReportSeen(reportId: string, _viewerId: string): Promise<StudentReport | null> {
+export async function markStudentReportSeen(
+  reportId: string,
+  _viewerId: string,
+): Promise<StudentReport | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/student-reports/${reportId}/seen`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    });
+    const res = await fetch(
+      `${API_BASE_URL}/student-reports/${reportId}/seen`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+      },
+    );
 
     if (!res.ok) return null;
     return res.json();
@@ -195,21 +243,25 @@ export async function markStudentReportSeen(reportId: string, _viewerId: string)
 /**
  * Mark all reports as seen by the current user.
  */
-export async function markAllStudentReportsSeen(_viewerId: string): Promise<void> {
+export async function markAllStudentReportsSeen(
+  _viewerId: string,
+): Promise<void> {
   try {
     await fetch(`${API_BASE_URL}/student-reports/mark-all-seen`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
     });
   } catch (err) {
-    console.error('Failed to mark all as seen:', err);
+    console.error("Failed to mark all as seen:", err);
   }
 }
 
 /**
  * Get unread count for staff.
  */
-export async function getUnreadStudentReportsCount(_viewerId: string): Promise<number> {
+export async function getUnreadStudentReportsCount(
+  _viewerId: string,
+): Promise<number> {
   try {
     const res = await fetch(`${API_BASE_URL}/student-reports/unread-count`, {
       headers: { ...authHeaders() },
@@ -233,11 +285,14 @@ export async function updateStudentReportStatus(
   _staffIdentity: StaffIdentity,
 ): Promise<StudentReport | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/student-reports/${reportId}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify({ status, message }),
-    });
+    const res = await fetch(
+      `${API_BASE_URL}/student-reports/${reportId}/status`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ status, message }),
+      },
+    );
 
     if (!res.ok) return null;
     return res.json();
@@ -249,7 +304,9 @@ export async function updateStudentReportStatus(
 /**
  * Get metrics for the logged-in student.
  */
-export async function getStudentReportMetrics(_identity: StudentIdentity): Promise<StudentReportMetrics> {
+export async function getStudentReportMetrics(
+  _identity: StudentIdentity,
+): Promise<StudentReportMetrics> {
   try {
     const res = await fetch(`${API_BASE_URL}/student-reports/metrics`, {
       headers: { ...authHeaders() },
@@ -270,4 +327,38 @@ export async function getStudentReportMetrics(_identity: StudentIdentity): Promi
   } catch {
     return { total: 0, anonymous: 0, open: 0, resolved: 0, recent: [] };
   }
+}
+
+export function getStudentReportAttachmentDownloadUrl(
+  reportId: string,
+  attachmentId: string,
+): string {
+  return `${API_BASE_URL}/student-reports/${reportId}/attachments/${attachmentId}/download`;
+}
+
+export async function downloadStudentReportAttachment(
+  reportId: string,
+  attachmentId: string,
+  filename: string,
+): Promise<void> {
+  const res = await fetch(
+    getStudentReportAttachmentDownloadUrl(reportId, attachmentId),
+    {
+      headers: { ...authHeaders() },
+    },
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to download attachment");
+  }
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
 }
