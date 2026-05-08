@@ -568,9 +568,6 @@ export default function ManagementDashboard({
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Report Activity</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">Recent campus reports across maintenance, discipline, and anonymous channels.</p>
-            <div className="mt-2 inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs dark:border-emerald-800/40 dark:bg-emerald-900/20">
-              <span className="font-medium text-emerald-700 dark:text-emerald-300">Total reports</span>
-              <span className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">{summary.totalCampusReports}</span>
             <div className="mt-2 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-800/60">
               <span className="font-medium text-slate-600 dark:text-slate-300">Total reports</span>
               <span className="text-sm font-semibold text-slate-900 dark:text-white">{summary.totalCampusReports}</span>
