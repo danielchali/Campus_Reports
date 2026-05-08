@@ -47,7 +47,7 @@ export default function ForgotPassword() {
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to login
           </Link>
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">Reset Password</h1>
-          <p className="text-slate-500 dark:text-slate-400">Enter your Student or Staff ID and we'll send you a link to reset your password.</p>
+          <p className="text-slate-500 dark:text-slate-400">Enter your Student or Staff ID and we'll send a reset OTP to your email.</p>
         </div>
 
         {status === 'success' ? (
@@ -85,7 +85,7 @@ export default function ForgotPassword() {
               disabled={status === 'loading' || !username}
               className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white bg-kmuGreen hover:bg-kmuGreen-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-kmuGreen transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {status === 'loading' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Reset Link'}
+              {status === 'loading' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Reset OTP'}
             </button>
           </form>
         )}

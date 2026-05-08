@@ -29,7 +29,7 @@ const FloatingAIChatbot = lazy(() => import('../components/FloatingAIChatbot'));
 
 const LoadingFallback = () => <PageSkeleton />;
 
-function TopNavbar() {
+function TopNavbar({ showMenuButton }: { showMenuButton: boolean }) {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { setIsOpenMobile } = useSidebar();
@@ -40,13 +40,16 @@ function TopNavbar() {
     <nav className="sticky top-0 z-[40] w-full border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
       <div className="flex items-center justify-between gap-4 px-4 py-2 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <button
-            onClick={() => setIsOpenMobile(true)}
-            aria-label="Open menu"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 md:hidden"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          {showMenuButton && (
+            <button
+              onClick={() => setIsOpenMobile(true)}
+              aria-label="Open menu"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 md:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
+          <img src="/kmu_logo.svg" alt="KMU Logo" className="h-8 w-8 object-contain md:hidden" />
           <h1 className="truncate text-lg font-semibold text-kmuGreen md:hidden">Campus Reports</h1>
           <h1 className="hidden truncate text-lg font-semibold text-kmuGreen md:block">Campus Reports</h1>
         </div>
@@ -75,9 +78,12 @@ function TopNavbar() {
 
 function AppContent({ isLogin, children }: { isLogin: boolean; children: React.ReactNode }) {
   const { user } = useAuth();
+  const pathname = usePathname();
   const { sidebarWidth } = useSidebar();
   const [isMobile, setIsMobile] = useState(true); // Default to true to avoid sidebar space on mobile during hydration
   const shouldShowNav = !isLogin && user;
+  const disableSidebarForStudentMobile = !!shouldShowNav && user.role === 'student' && isMobile;
+  const showPublicChatbot = !user && (pathname === '/login' || pathname === '/anonymous-report');
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -88,7 +94,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
 
   return (
     <div className="flex min-h-screen">
-      {shouldShowNav && (
+      {shouldShowNav && !disableSidebarForStudentMobile && (
         <Suspense fallback={<LoadingFallback />}>
           <Sidebar />
         </Suspense>
@@ -98,7 +104,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
         className={clsx("relative flex flex-1 flex-col min-w-0 min-h-screen")}
         style={shouldShowNav && !isMobile ? { marginLeft: `${sidebarWidth}px` } : undefined}
       >
-        {shouldShowNav && <TopNavbar />}
+        {shouldShowNav && <TopNavbar showMenuButton={!disableSidebarForStudentMobile} />}
         <main
           className={clsx('flex-1', {
             'bg-slate-100 px-3 pb-24 pt-4 sm:px-4 md:px-6 md:pb-8 md:pt-6 dark:bg-slate-950': !isLogin,
@@ -118,7 +124,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
             </Suspense>
           </div>
         )}
-        {shouldShowNav && (
+        {(shouldShowNav || showPublicChatbot) && (
           <Suspense fallback={null}>
             <FloatingAIChatbot />
           </Suspense>

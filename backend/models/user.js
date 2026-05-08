@@ -7,6 +7,8 @@ const userSchema = new mongoose.Schema({
     role: { type: String, default: 'user' },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+    resetPasswordOTP: String,
+    resetPasswordOTPExpires: Date,
     createdAt: { type: Date, default: Date.now },
 });
 

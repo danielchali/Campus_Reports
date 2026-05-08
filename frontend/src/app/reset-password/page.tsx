@@ -11,6 +11,7 @@ import { InlineSkeleton } from '../../components/PageSkeleton';
 function ResetPasswordForm() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
   
@@ -22,14 +23,12 @@ function ResetPasswordForm() {
   useEffect(() => {
     if (!token) {
       setStatus('error');
-      setMessage('Invalid or missing reset token.');
+      setMessage('Enter the OTP sent to your email to continue.');
     }
   }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
-    
     if (password !== confirmPassword) {
       setStatus('error');
       setMessage('Passwords do not match');
@@ -47,7 +46,7 @@ function ResetPasswordForm() {
       const res = await fetch(`${API_URL}/reset-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword: password })
+        body: JSON.stringify({ token, otp, newPassword: password })
       });
       
       const data = await res.json();
@@ -84,6 +83,21 @@ function ResetPasswordForm() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="otp" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                OTP Code
+              </label>
+              <input
+                id="otp"
+                type="text"
+                required
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className={`block w-full px-4 py-3 bg-transparent border rounded-xl text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent ${theme === 'dark' ? 'border-slate-700 text-white placeholder-slate-500 focus:bg-slate-800/50' : 'border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white'}`}
+                placeholder="Enter 6-digit OTP"
+              />
+            </div>
+
             <div>
               <label htmlFor="new-password" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                 New Password
@@ -130,7 +144,7 @@ function ResetPasswordForm() {
 
             <button
               type="submit"
-              disabled={status === 'loading' || !token}
+              disabled={status === 'loading' || !otp}
               className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white bg-kmuGreen hover:bg-kmuGreen-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-kmuGreen transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {status === 'loading' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Reset Password'}

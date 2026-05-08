@@ -112,6 +112,15 @@ function normalize(text: string) {
   return text.trim().toLowerCase();
 }
 
+function getGreetingFallback(input: string) {
+  const normalized = normalize(input);
+  if (!normalized) return null;
+  const greetingPattern = /^(hi|hello|hey|good morning|good afternoon|good evening|yo|hola)\b[!.! ]*$/i;
+  if (!greetingPattern.test(normalized)) return null;
+
+  return "I'm Campus Reports AI 👋. I can help with search, reports, cases, students, and form guidance on this page.";
+}
+
 function findBestFieldElement(field: string): HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null {
   const normalizedField = normalize(field);
   const controls = Array.from(document.querySelectorAll('input, textarea, select')) as Array<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>;
@@ -221,7 +230,7 @@ export default function FloatingAIChatbot() {
     } catch {
       // Ignore invalid persisted chat records.
     }
-    setMessages([{ role: 'assistant', content: 'Hi! I can help on this page. Ask me what you want to do next.' }]);
+    setMessages([{ role: 'assistant', content: "I'm Campus Reports AI 👋. Ask me what you want to do on this page, and I’ll guide you step-by-step." }]);
   }, [key]);
 
   useEffect(() => {
@@ -259,6 +268,13 @@ export default function FloatingAIChatbot() {
     setError(null);
     setApplyResult(null);
     setPendingSuggestions([]);
+
+    const greetingFallback = getGreetingFallback(content);
+    if (greetingFallback) {
+      setMessages((current) => [...current, { role: 'assistant', content: greetingFallback }]);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -286,7 +302,7 @@ export default function FloatingAIChatbot() {
         });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to reach assistant');
+      setError(err instanceof Error ? err.message : 'Unable to reach Campus Reports AI');
       setMessages((current) => {
         const updated = [...current];
         const last = updated[updated.length - 1];
@@ -309,7 +325,7 @@ export default function FloatingAIChatbot() {
 
   const clearHistory = () => {
     localStorage.removeItem(key);
-    setMessages([{ role: 'assistant', content: 'Chat history cleared for this page.' }]);
+    setMessages([{ role: 'assistant', content: "I'm Campus Reports AI. Chat history cleared for this page." }]);
     setPendingSuggestions([]);
     setApplyResult(null);
   };
@@ -382,7 +398,7 @@ export default function FloatingAIChatbot() {
           <header className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
             <div className="flex items-center gap-2">
               <Bot className="h-4 w-4 text-indigo-500" />
-              <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">AI Assistant</div>
+              <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">Campus Reports AI</div>
             </div>
             <button
               type="button"
