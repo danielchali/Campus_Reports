@@ -6,7 +6,6 @@ import { useAuth } from "../../../context/AuthContext";
 
 import Link from "next/link";
 import { API_BASE_URL } from '../../../config/constants';
-import { authHeaders } from '../../../utils/api';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
 
@@ -46,6 +45,7 @@ interface Case {
     createdBy?: string;
     createdAt: string;
     updatedAt: string;
+    student_case_process?: any;
 }
 
 export default function CaseDetailsPage({ params }: { params: { id: string } }) {
@@ -208,6 +208,91 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
         }
     };
 
+
+    const handlePrintSummonCallout = () => {
+        if (!caseData) return;
+        const summon = caseData.student_case_process?.summon || {};
+        const accused = caseData.student_case_process?.occurrenceCover?.accusedPeople || [];
+        if (accused.length === 0) {
+            setActionMessage({ type: 'error', text: 'No accused persons found for callout printing.' });
+            return;
+        }
+
+        const reportTime = summon.reportTime || '....................';
+        const reportDate = summon.reportDate || '....................';
+        const appointment = summon.appointment || '........................................................';
+
+        const calloutsHtml = accused.map((person: any, i: number) => {
+            const signature = summon.studentSignatures?.[String(i)] || '................................................................';
+            return `<div class="callout-card">
+`
+                + `<div class="logo"><img src="${window.location.origin}/kmu_logo.svg" alt="KMU Logo"/></div>
+`
+                + `<div class="title">KAPASA MAKASA UNIVERSITY</div>
+`
+                + `<div class="subtitle">SECURITY DEPARTMENT</div>
+`
+                + `<div class="callout">CALL OUT</div>
+
+`
+                + `<p><strong>Full Names:</strong> ${person?.fullName || '................................................................'}</p>
+`
+                + `<p><strong>Sex:</strong> ${person?.sex || '....................'} &nbsp;&nbsp;&nbsp; <strong>Age:</strong> ${person?.age || '....................'} &nbsp;&nbsp;&nbsp; <strong>SIN:</strong> ${person?.sin || '........................................'}</p>
+`
+                + `<p><strong>Program of study:</strong> ${person?.programOfStudy || person?.program || '........................................................'} &nbsp;&nbsp;&nbsp; <strong>Year of study:</strong> ${person?.yearOfStudy || '....................'}</p>
+`
+                + `<p><strong>Residential Address:</strong> ${person?.residentialAddress || '........................................................'} &nbsp;&nbsp;&nbsp; <strong>Phone No:</strong> ${person?.phoneNo || '........................................'}</p>
+`
+                + `<p>You are required to report to the Security Officer's office at <strong>${reportTime}</strong> hours (Time)<br/>on <strong>${reportDate}</strong> (Day & Date) without fail.</p>
+
+`
+                + `<p><strong>Appointment:</strong> ${appointment}</p>
+`
+                + `<p><strong>Signature:</strong> ${signature}</p>
+`
+                + `</div>`;
+        }).join('<div class="page-break"></div>');
+
+        const html = `<!DOCTYPE html><html><head><title>Call Out</title><style>
+            body{font-family:Arial,sans-serif;padding:16px;background:#fff;}
+            .callout-card{max-width:800px;margin:0 auto;border:2px solid #111;padding:24px 28px;}
+            .logo{text-align:center;margin-bottom:10px;}
+            .logo img{height:64px;}
+            .title,.subtitle,.callout{text-align:center;font-weight:700;}
+            .title{font-size:22px;letter-spacing:.4px;}
+            .subtitle{font-size:18px;margin-top:2px;}
+            .callout{font-size:22px;margin:10px 0 18px;}
+            p{font-size:16px;line-height:1.5;margin:10px 0;}
+            .page-break{page-break-before:always;margin-top:20px;}
+            @media print { body{padding:0;} .callout-card{border:2px solid #000;} }
+        </style></head><body>${calloutsHtml}</body></html>`;
+
+        const printWindow = window.open('', '_blank', 'width=1000,height=900');
+        if (!printWindow) return;
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+    };
+
+    const handleExportCaseDocx = async () => {
+        if (!caseData) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/cases/${params.id}/export-docx-full`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `case_${caseData.caseId || caseData._id}.docx`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (err: any) {
+            setActionMessage({ type: 'error', text: err.message || 'Failed to export case DOCX' });
+        }
+    };
     if (loading) {
         return (
             <DetailPageSkeleton />
@@ -268,6 +353,12 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold text-kmuGreen">Case Details</h1>
+                <div className="flex flex-wrap gap-2 ml-4">
+                    <Link href={`/cases/new?cloneFrom=${params.id}&doc=statement`} className="px-3 py-1 text-sm bg-white border rounded">+ Statement</Link>
+                    <Link href={`/cases/new?cloneFrom=${params.id}&doc=callout`} className="px-3 py-1 text-sm bg-white border rounded">+ Callout</Link>
+                    <Link href={`/cases/new?cloneFrom=${params.id}&doc=accused`} className="px-3 py-1 text-sm bg-white border rounded">+ Accused Add/Remove</Link>
+                    <Link href={`/cases/new?cloneFrom=${params.id}&doc=warn-caution`} className="px-3 py-1 text-sm bg-white border rounded">+ Warn & Caution</Link>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -576,6 +667,20 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                                 Back to Cases
                             </Link>
                             
+                            <button
+                                onClick={handlePrintSummonCallout}
+                                className="block w-full text-center px-4 py-2 bg-kmuOrange text-white rounded hover:opacity-90 transition"
+                            >
+                                Print Summon Callout
+                            </button>
+
+                            <button
+                                onClick={handleExportCaseDocx}
+                                className="block w-full text-center px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition"
+                            >
+                                Export Full Case DOCX
+                            </button>
+
                             <button
                                 onClick={() => router.push(`/cases/new?${isStudentCase ? 'studentId' : 'staffId'}=${personId}`)}
                                 className="block w-full text-center px-4 py-2 bg-kmuGreen text-white rounded hover:bg-kmuOrange transition"
