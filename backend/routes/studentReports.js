@@ -249,6 +249,9 @@ router.patch('/:id/status', authenticate, authorize(['admin', 'chief_security_of
         if (!report) {
             return res.status(404).json({ error: 'Report not found' });
         }
+        if (report.status === status) {
+            return res.status(409).json({ error: `Report is already in "${status}" status.` });
+        }
 
         if (req.user.role === 'dean_of_students' && report.owner_role !== 'student') {
             return res.status(403).json({ error: 'Dean can only handle student reports.' });
