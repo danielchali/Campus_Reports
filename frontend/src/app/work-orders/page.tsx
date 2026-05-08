@@ -112,6 +112,31 @@ export default function WorkOrdersPage() {
     };
   }, [user, search, statusFilter, priorityFilter]);
 
+  useEffect(() => {
+    if (!workOrders.length) {
+      return;
+    }
+
+    setSignatures((current) => {
+      const next = { ...current };
+      for (const workOrder of workOrders) {
+        next[`${workOrder.id}:part-c-signature`] =
+          current[`${workOrder.id}:part-c-signature`] ||
+          workOrder.signatures?.partC ||
+          "";
+        next[`${workOrder.id}:part-d-signature`] =
+          current[`${workOrder.id}:part-d-signature`] ||
+          workOrder.signatures?.partD ||
+          "";
+        next[`${workOrder.id}:part-e-signature`] =
+          current[`${workOrder.id}:part-e-signature`] ||
+          workOrder.signatures?.partE ||
+          "";
+      }
+      return next;
+    });
+  }, [workOrders]);
+
   if (!authLoading && !token) router.replace("/login");
   if (!token || !user) return <PageSkeleton />;
   if (!canAccessPage(user.role, "workOrders"))
@@ -140,6 +165,11 @@ export default function WorkOrdersPage() {
       status,
       note,
       workOrder.assignedTo,
+      {
+        partC: signatures[`${workOrder.id}:part-c-signature`] || "",
+        partD: signatures[`${workOrder.id}:part-d-signature`] || "",
+        partE: signatures[`${workOrder.id}:part-e-signature`] || "",
+      },
     );
     setSavingId(null);
 

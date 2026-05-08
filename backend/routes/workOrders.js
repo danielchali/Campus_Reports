@@ -47,6 +47,11 @@ function mapWorkOrder(doc) {
     createdBy: obj.created_by,
     createdByRole: obj.created_by_role,
     attachments: obj.attachments || [],
+    signatures: {
+      partC: obj.signatures?.partC || "",
+      partD: obj.signatures?.partD || "",
+      partE: obj.signatures?.partE || "",
+    },
     updates: (obj.updates || []).map((update) => ({
       id: String(update._id),
       status: update.status,
@@ -222,7 +227,7 @@ router.post("/", async (req, res) => {
 
 router.patch("/:id/status", async (req, res) => {
   try {
-    const { status, message, assignedTo } = req.body;
+    const { status, message, assignedTo, signatures } = req.body;
     if (!WORK_ORDER_STATUSES.includes(status))
       return res.status(400).json({ error: "Invalid work order status" });
 
@@ -232,6 +237,13 @@ router.patch("/:id/status", async (req, res) => {
 
     workOrder.status = status;
     if (assignedTo !== undefined) workOrder.assigned_to = assignedTo;
+    if (signatures && typeof signatures === "object") {
+      workOrder.signatures = {
+        partC: String(signatures.partC || ""),
+        partD: String(signatures.partD || ""),
+        partE: String(signatures.partE || ""),
+      };
+    }
     workOrder.updates.unshift({
       status,
       message: message?.trim() || `Work order updated to ${status}.`,
