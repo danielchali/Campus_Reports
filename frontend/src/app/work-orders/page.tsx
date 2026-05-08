@@ -26,6 +26,8 @@ const statusOptions: Array<"all" | WorkOrderStatus> = [
 ];
 const priorityOptions = ["all", "Low", "Normal", "High", "Urgent safety risk"];
 
+const WORK_ORDER_SIGNATURES_STORAGE_KEY = "work-order-signatures-v1";
+
 export default function WorkOrdersPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -46,6 +48,40 @@ export default function WorkOrdersPage() {
   useEffect(() => {
     if (!authLoading && !token) router.replace("/login");
   }, [authLoading, token, router]);
+
+  useEffect(() => {
+    try {
+      const storedSignatures = window.localStorage.getItem(
+        WORK_ORDER_SIGNATURES_STORAGE_KEY,
+      );
+
+      if (!storedSignatures) {
+        return;
+      }
+
+      const parsedSignatures = JSON.parse(storedSignatures) as Record<
+        string,
+        string
+      >;
+
+      if (parsedSignatures && typeof parsedSignatures === "object") {
+        setSignatures(parsedSignatures);
+      }
+    } catch {
+      setSignatures({});
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        WORK_ORDER_SIGNATURES_STORAGE_KEY,
+        JSON.stringify(signatures),
+      );
+    } catch {
+      // ignore storage failures and keep in-memory signatures available
+    }
+  }, [signatures]);
 
   useEffect(() => {
     if (!user || !canAccessPage(user.role, "workOrders")) return;
