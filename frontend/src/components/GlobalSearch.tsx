@@ -1,5 +1,37 @@
 "use client";
 
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FileText, Search, User, type LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { API_URL } from "../config/constants";
+import { useAuth } from "../context/AuthContext";
+
+type SearchResult = {
+  _id: string;
+  [key: string]: string | undefined;
+};
+
+type SearchResults = {
+  students: SearchResult[];
+  cases: SearchResult[];
+  reports: SearchResult[];
+};
+
+type SearchSection = {
+  key: keyof SearchResults;
+  title: string;
+  icon: LucideIcon;
+  iconClassName: string;
+  href: (item: SearchResult) => string;
+  primaryText: (item: SearchResult) => string;
+  secondaryText: (item: SearchResult) => string;
+};
+
+const EMPTY_RESULTS: SearchResults = { students: [], cases: [], reports: [] };
+
+export default function GlobalSearch() {
+  const { user } = useAuth();
+  const [query, setQuery] = useState("");
 import { useState, useEffect, useRef } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
@@ -137,7 +169,10 @@ export default function GlobalSearch() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -149,6 +184,29 @@ export default function GlobalSearch() {
     const trimmedQuery = query.trim();
 
     const delayDebounceFn = setTimeout(async () => {
+      if (query.length >= 2) {
+        try {
+          const res = await fetch(
+            `${API_URL}/search?q=${encodeURIComponent(query)}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            },
+          );
+          if (res.ok) {
+            const data = await res.json();
+            setResults({
+              students: data.students || [],
+              cases: data.cases || [],
+              reports: data.reports || [],
+            });
+            setIsOpen(true);
+          }
+        } catch (err) {
+          console.error("Search failed", err);
+        }
+      } else {
       if (!user || !token || trimmedQuery.length < 2) {
         setResults(EMPTY_RESULTS);
         setIsOpen(false);
@@ -350,6 +408,87 @@ export default function GlobalSearch() {
     },
   ];
 
+  const hasResults =
+    results.students.length > 0 ||
+    results.cases.length > 0 ||
+    results.reports.length > 0;
+  const canViewStudents = [
+    "admin",
+    "security_officer",
+    "chief_security_officer",
+    "dean_of_students",
+    "assistant_dean",
+    "secretary",
+    "registrar",
+  ].includes(user?.role || "");
+  const canViewCases = [
+    "admin",
+    "security_officer",
+    "chief_security_officer",
+    "dean_of_students",
+    "assistant_dean",
+    "secretary",
+    "registrar",
+  ].includes(user?.role || "");
+  const canViewReports = [
+    "admin",
+    "chief_security_officer",
+    "dean_of_students",
+    "assistant_dean",
+    "secretary",
+    "registrar",
+    "maintenance",
+  ].includes(user?.role || "");
+
+  const visibleSections = useMemo<SearchSection[]>(() => {
+    const sections: SearchSection[] = [];
+
+    if (canViewStudents && results.students.length > 0) {
+      sections.push({
+        key: "students",
+        title: "Students",
+        icon: User,
+        iconClassName: "text-blue-500",
+        href: (student) => `/students/${student.studentId || student._id}`,
+        primaryText: (student) => student.fullName || "Unnamed student",
+        secondaryText: (student) =>
+          [student.studentId, student.program].filter(Boolean).join(" • "),
+      });
+    }
+
+    if (canViewCases && results.cases.length > 0) {
+      sections.push({
+        key: "cases",
+        title: "Cases",
+        icon: FileText,
+        iconClassName: "text-kmuOrange",
+        href: (caseItem) => `/cases/${caseItem._id}`,
+        primaryText: (caseItem) => caseItem.offense_type || "Case report",
+        secondaryText: (caseItem) => caseItem.description || "",
+      });
+    }
+
+    if (canViewReports && results.reports.length > 0) {
+      sections.push({
+        key: "reports",
+        title: "Anonymous Reports",
+        icon: FileText,
+        iconClassName: "text-purple-500",
+        href: () => "/reports",
+        primaryText: (report) => report.title || "Anonymous report",
+        secondaryText: (report) => report.tracking_code || "",
+      });
+    }
+
+    return sections;
+  }, [
+    canViewCases,
+    canViewReports,
+    canViewStudents,
+    results.cases,
+    results.reports,
+    results.students,
+  ]);
   const hasResults = results.students.length > 0 || results.cases.length > 0 || results.reports.length > 0;
   const canViewStudents = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar'].includes(user?.role || '');
   const canViewCases = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar'].includes(user?.role || '');
@@ -370,6 +509,13 @@ export default function GlobalSearch() {
       </div>
 
       {isOpen && (
+        <div className="absolute top-full right-0 mt-2 w-[400px] max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2">
+          {!hasResults && query.length >= 2 ? (
+            <div className="p-4 text-center text-sm text-slate-500">
+              No results found for &quot;{query}&quot;
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
         <div className="absolute top-full right-0 mt-2 w-[440px] max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2">
           {isSearching && !hasResults ? (
             <div className="p-4 text-center text-sm text-slate-500">Searching...</div>
@@ -387,6 +533,24 @@ export default function GlobalSearch() {
 
                 return (
                   <div key={section.key}>
+                    <h3 className="px-3 py-1.5 text-xs font-semibold uppercase text-slate-500">
+                      {section.title}
+                    </h3>
+                    {results[section.key].map((item) => (
+                      <Link
+                        key={item._id}
+                        href={section.href(item)}
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        <Icon size={16} className={section.iconClassName} />
+                        <div>
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                            {section.primaryText(item)}
+                          </p>
+                          <p className="text-xs text-slate-500 truncate">
+                            {section.secondaryText(item)}
+                          </p>
                     <h3 className="px-3 py-1.5 text-xs font-semibold uppercase text-slate-500">{section.title}</h3>
                     {section.items.map((item) => (
                       <Link

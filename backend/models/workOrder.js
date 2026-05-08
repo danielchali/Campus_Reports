@@ -37,6 +37,8 @@ const workOrderSchema = new mongoose.Schema({
     default: "Open",
   },
   assigned_to: { type: String, default: "", trim: true },
+  requested_by_name: { type: String, default: "", trim: true },
+  requesting_department: { type: String, default: "", trim: true },
   created_by: { type: String, default: "" },
   created_by_role: { type: String, default: "" },
   attachments: { type: [workOrderAttachmentSchema], default: [] },

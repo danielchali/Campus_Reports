@@ -31,6 +31,8 @@ export interface WorkOrder {
   accessInstructions: string;
   status: WorkOrderStatus;
   assignedTo: string;
+  requestedByName: string;
+  requestingDepartment: string;
   createdBy: string;
   createdByRole: string;
   createdAt: string;

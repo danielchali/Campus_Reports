@@ -276,6 +276,7 @@ export default function WorkOrdersPage() {
                           {workOrder.accessInstructions}
                         </p>
                       )}
+                      <WorkOrderJobCard workOrder={workOrder} />
                     </div>
 
                     <div className="w-full rounded-2xl border border-gray-200 dark:border-gray-700 p-4 lg:w-80">
@@ -342,6 +343,161 @@ export default function WorkOrdersPage() {
       )}
     </>
   );
+}
+
+function DashedLine({ value }: { value?: string }) {
+  return (
+    <span className="inline-flex min-h-[1.5rem] min-w-[9rem] flex-1 items-end border-b border-dashed border-slate-400 px-2 pb-0.5 text-sm font-medium text-slate-900 dark:border-slate-500 dark:text-slate-100">
+      {value || ""}
+    </span>
+  );
+}
+
+function WorkOrderJobCard({ workOrder }: { workOrder: WorkOrder }) {
+  const formattedCreatedDate = new Date(
+    workOrder.createdAt,
+  ).toLocaleDateString();
+  const latestCompletedUpdate = workOrder.updates.find(
+    (update) => update.status === "Completed",
+  );
+
+  return (
+    <div className="mt-5 rounded-2xl border border-slate-300 bg-slate-50 p-4 text-slate-900 shadow-inner dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 print:bg-white">
+      <div className="border-b border-slate-300 pb-3 text-center dark:border-slate-700">
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
+          Kapasa Makasa University
+        </p>
+        <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
+          <h3 className="text-lg font-bold uppercase">
+            Maintenance Request & Job Card
+          </h3>
+          <span className="rounded-md border border-red-200 bg-white px-2 py-1 text-sm font-semibold text-red-600 dark:border-red-900 dark:bg-slate-900">
+            No. {workOrder.workOrderId}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-4 space-y-4 text-sm">
+        <section>
+          <h4 className="font-bold uppercase">
+            Part A - To be completed by tenant or requesting department
+          </h4>
+          <div className="mt-2 grid gap-2 md:grid-cols-2">
+            <label className="flex items-end gap-2">
+              Department
+              <NameOrDepartment value={workOrder.requestingDepartment} />
+            </label>
+            <label className="flex items-end gap-2">
+              Name
+              <DashedLine
+                value={workOrder.requestedByName || workOrder.createdBy}
+              />
+            </label>
+            <label className="flex items-end gap-2">
+              Address / Location
+              <DashedLine value={workOrder.location} />
+            </label>
+            <label className="flex items-end gap-2">
+              Date
+              <DashedLine value={formattedCreatedDate} />
+            </label>
+          </div>
+          <label className="mt-2 flex items-end gap-2">
+            Nature of complaint/request
+            <DashedLine value={workOrder.description} />
+          </label>
+          <label className="mt-2 flex items-end gap-2">
+            Affected asset
+            <DashedLine
+              value={workOrder.affectedAsset || workOrder.issueType}
+            />
+          </label>
+        </section>
+
+        <section>
+          <h4 className="font-bold uppercase">
+            Part B - Artisan's inspection report
+          </h4>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Materials needed / inspection notes:
+          </p>
+          <div className="mt-2 space-y-2">
+            <DashedLine />
+            <DashedLine />
+          </div>
+        </section>
+
+        <section>
+          <h4 className="font-bold uppercase">
+            Part C - Section supervisor approval
+          </h4>
+          <div className="mt-2 grid gap-2 md:grid-cols-3">
+            <label className="flex items-end gap-2">
+              Approved by
+              <DashedLine />
+            </label>
+            <label className="flex items-end gap-2">
+              Signature
+              <DashedLine />
+            </label>
+            <label className="flex items-end gap-2">
+              Date
+              <DashedLine />
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h4 className="font-bold uppercase">Part D - Completion of job</h4>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Tenant / Head of Department confirmation:
+          </p>
+          <div className="mt-2 grid gap-2 md:grid-cols-3">
+            <label className="flex items-end gap-2">
+              Name
+              <DashedLine />
+            </label>
+            <label className="flex items-end gap-2">
+              Signature
+              <DashedLine />
+            </label>
+            <label className="flex items-end gap-2">
+              Date
+              <DashedLine />
+            </label>
+          </div>
+        </section>
+
+        <section>
+          <h4 className="font-bold uppercase">
+            Part E - Completed report (maintenance officer / foreman)
+          </h4>
+          <label className="mt-2 flex items-end gap-2">
+            Work done
+            <DashedLine value={latestCompletedUpdate?.message} />
+          </label>
+          <div className="mt-2 grid gap-2 md:grid-cols-3">
+            <label className="flex items-end gap-2">
+              Name
+              <DashedLine />
+            </label>
+            <label className="flex items-end gap-2">
+              Signature
+              <DashedLine />
+            </label>
+            <label className="flex items-end gap-2">
+              Date
+              <DashedLine />
+            </label>
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+function NameOrDepartment({ value }: { value?: string }) {
+  return <DashedLine value={value} />;
 }
 
 function SummaryCard({

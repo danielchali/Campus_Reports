@@ -1,6 +1,7 @@
 import express from "express";
 import WorkOrderModel from "../models/workOrder.js";
 import StudentReportModel from "../models/studentReport.js";
+import UserModel from "../models/user.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification } from "../utils/notifications.js";
 
@@ -41,6 +42,8 @@ function mapWorkOrder(doc) {
     accessInstructions: obj.access_instructions,
     status: obj.status,
     assignedTo: obj.assigned_to,
+    requestedByName: obj.requested_by_name || obj.created_by || "",
+    requestingDepartment: obj.requesting_department || "",
     createdBy: obj.created_by,
     createdByRole: obj.created_by_role,
     attachments: obj.attachments || [],
@@ -54,6 +57,42 @@ function mapWorkOrder(doc) {
     })),
     createdAt: obj.createdAt?.toISOString?.() || obj.createdAt,
     updatedAt: obj.updatedAt?.toISOString?.() || obj.updatedAt,
+  };
+}
+
+function getDepartmentForRole(role = "") {
+  const departmentByRole = {
+    dean_of_students: "Dean of Students",
+    assistant_dean: "Assistant Dean, Student Affairs",
+    registrar: "Registrar",
+    secretary: "Registrar",
+    maintenance: "Maintenance Department",
+    admin: "Administration",
+  };
+  return (
+    departmentByRole[role] || role.replace(/_/g, " ") || "Requesting Department"
+  );
+}
+
+async function getRequesterInfo(user = {}) {
+  let displayName = user.name || user.username || "System";
+  if (user.id) {
+    try {
+      const dbUser = await UserModel.findById(user.id, "name username role");
+      if (dbUser) {
+        displayName = dbUser.name || dbUser.username || displayName;
+      }
+    } catch (err) {
+      console.warn(
+        "Unable to resolve work order requester profile:",
+        err.message,
+      );
+    }
+  }
+
+  return {
+    requestedByName: displayName,
+    requestingDepartment: getDepartmentForRole(user.role),
   };
 }
 
@@ -74,6 +113,7 @@ async function createWorkOrderFromReport(
   if (existing) return existing;
 
   const details = report.details || {};
+  const requesterInfo = await getRequesterInfo(user);
   const workOrder = await WorkOrderModel.create({
     work_order_id: generateWorkOrderId(),
     source_report_id: String(report._id),
@@ -86,6 +126,8 @@ async function createWorkOrderFromReport(
     affected_asset: details.affectedAsset || "",
     access_instructions: details.accessInstructions || "",
     status: "Open",
+    requested_by_name: requesterInfo.requestedByName,
+    requesting_department: requesterInfo.requestingDepartment,
     created_by: user.username || user.name || "system",
     created_by_role: user.role || "system",
     attachments: report.attachments || [],
