@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { getProfile, updateProfile } from '../../utils/api';
 import { useRouter } from "next/navigation";
 import { ProfilePageSkeleton } from '../../components/PageSkeleton';
+import { getAvailableYearsForProgram, PROGRAM_OPTIONS } from '../../config/constants';
 
 type StudentProfile = {
   studentId?: string;
@@ -124,6 +125,9 @@ export default function ProfilePage() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const isStudent = profile?.role === 'student';
+  const DELIVERY_MODES = ['Full Time', 'Part Time', 'Distance'];
+  const MARITAL_STATUSES = ['Single', 'Married', 'Divorced', 'Widowed'];
+  const GENDERS = ['Male', 'Female', 'Other'];
 
   useEffect(() => {
     if (!token) {
@@ -155,6 +159,15 @@ export default function ProfilePage() {
     setSuccess(null);
     try {
       if (isStudent) {
+        if (!form.studentProfile.program) throw new Error('Program is required.');
+        if (!form.studentProfile.year) throw new Error('Year is required.');
+        if (!form.studentProfile.personalInfo.firstName.trim()) throw new Error('First name is required.');
+        if (!form.studentProfile.personalInfo.surName.trim()) throw new Error('Surname is required.');
+        if (!form.studentProfile.personalInfo.gender) throw new Error('Gender is required.');
+        if (!form.studentProfile.personalInfo.dateOfBirth) throw new Error('Date of birth is required.');
+        if (!form.studentProfile.addressInfo.email.trim()) throw new Error('Email is required.');
+        if (!form.studentProfile.addressInfo.phone.trim()) throw new Error('Phone is required.');
+        if (!form.studentProfile.addressInfo.address.trim()) throw new Error('Address is required.');
         await updateProfile({
           name: `${form.studentProfile.personalInfo.firstName} ${form.studentProfile.personalInfo.surName}`.trim(),
           studentProfile: form.studentProfile,
@@ -296,30 +309,36 @@ export default function ProfilePage() {
                           </div>
                           <div>
                             <label className="block text-gray-700 dark:text-gray-300 mb-1">Program</label>
-                            <input
-                              type="text"
+                            <select
                               value={form.studentProfile.program}
                               onChange={e => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, program: e.target.value } }))}
-                              className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                            />
+                              className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                            >
+                              <option value="">Select program</option>
+                              {PROGRAM_OPTIONS.map((program) => <option key={program} value={program}>{program}</option>)}
+                            </select>
                           </div>
                           <div>
                             <label className="block text-gray-700 dark:text-gray-300 mb-1">Year</label>
-                            <input
-                              type="text"
+                            <select
                               value={form.studentProfile.year}
                               onChange={e => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, year: e.target.value } }))}
-                              className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                            />
+                              className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                            >
+                              <option value="">Select year</option>
+                              {getAvailableYearsForProgram(form.studentProfile.program).map((year) => <option key={year} value={year}>{year}</option>)}
+                            </select>
                           </div>
                           <div>
                             <label className="block text-gray-700 dark:text-gray-300 mb-1">Delivery Mode</label>
-                            <input
-                              type="text"
+                            <select
                               value={form.studentProfile.deliveryMode}
                               onChange={e => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, deliveryMode: e.target.value } }))}
-                              className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                            />
+                              className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                            >
+                              <option value="">Select mode</option>
+                              {DELIVERY_MODES.map((mode) => <option key={mode} value={mode}>{mode}</option>)}
+                            </select>
                           </div>
                         </div>
                       </div>
@@ -329,10 +348,22 @@ export default function ProfilePage() {
                         <div className="grid gap-4 md:grid-cols-2">
                           <InputField label="First Name" value={form.studentProfile.personalInfo.firstName} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, personalInfo: { ...current.studentProfile.personalInfo, firstName: value } } }))} />
                           <InputField label="Surname" value={form.studentProfile.personalInfo.surName} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, personalInfo: { ...current.studentProfile.personalInfo, surName: value } } }))} />
-                          <InputField label="Gender" value={form.studentProfile.personalInfo.gender} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, personalInfo: { ...current.studentProfile.personalInfo, gender: value } } }))} />
+                          <div>
+                            <label className="block text-gray-700 dark:text-gray-300 mb-1">Gender</label>
+                            <select value={form.studentProfile.personalInfo.gender} onChange={(e) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, personalInfo: { ...current.studentProfile.personalInfo, gender: e.target.value } } }))} className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                              <option value="">Select gender</option>
+                              {GENDERS.map((gender) => <option key={gender} value={gender}>{gender}</option>)}
+                            </select>
+                          </div>
                           <InputField label="Date of Birth" type="date" value={form.studentProfile.personalInfo.dateOfBirth} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, personalInfo: { ...current.studentProfile.personalInfo, dateOfBirth: value } } }))} />
                           <InputField label="Nationality" value={form.studentProfile.personalInfo.nationality} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, personalInfo: { ...current.studentProfile.personalInfo, nationality: value } } }))} />
-                          <InputField label="Marital Status" value={form.studentProfile.personalInfo.maritalStatus} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, personalInfo: { ...current.studentProfile.personalInfo, maritalStatus: value } } }))} />
+                          <div>
+                            <label className="block text-gray-700 dark:text-gray-300 mb-1">Marital Status</label>
+                            <select value={form.studentProfile.personalInfo.maritalStatus} onChange={(e) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, personalInfo: { ...current.studentProfile.personalInfo, maritalStatus: e.target.value } } }))} className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                              <option value="">Select marital status</option>
+                              {MARITAL_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
+                            </select>
+                          </div>
                           <InputField label="NRC" value={form.studentProfile.personalInfo.nrc} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, personalInfo: { ...current.studentProfile.personalInfo, nrc: value } } }))} />
                           <InputField label="Passport" value={form.studentProfile.personalInfo.passport} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, personalInfo: { ...current.studentProfile.personalInfo, passport: value } } }))} />
                         </div>

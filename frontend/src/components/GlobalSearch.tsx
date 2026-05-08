@@ -3,8 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, FileText, User } from 'lucide-react';
 import Link from 'next/link';
+import { API_URL } from '../config/constants';
+import { useAuth } from '../context/AuthContext';
 
 export default function GlobalSearch() {
+  const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<{ students: any[], cases: any[], reports: any[] }>({ students: [], cases: [], reports: [] });
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +27,7 @@ export default function GlobalSearch() {
     const delayDebounceFn = setTimeout(async () => {
       if (query.length >= 2) {
         try {
-          const res = await fetch(`http://localhost:5000/api/search?q=${encodeURIComponent(query)}`, {
+          const res = await fetch(`${API_URL}/search?q=${encodeURIComponent(query)}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
           });
           if (res.ok) {
@@ -44,6 +47,9 @@ export default function GlobalSearch() {
   }, [query]);
 
   const hasResults = results.students.length > 0 || results.cases.length > 0 || results.reports.length > 0;
+  const canViewStudents = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary'].includes(user?.role || '');
+  const canViewCases = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary'].includes(user?.role || '');
+  const canViewReports = ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'maintenance'].includes(user?.role || '');
 
   return (
     <div ref={wrapperRef} className="relative hidden md:block min-w-[260px]">
@@ -63,7 +69,7 @@ export default function GlobalSearch() {
             <div className="p-4 text-center text-sm text-slate-500">No results found for "{query}"</div>
           ) : (
             <div className="flex flex-col gap-4">
-              {results.students.length > 0 && (
+              {canViewStudents && results.students.length > 0 && (
                 <div>
                   <h3 className="px-3 py-1.5 text-xs font-semibold uppercase text-slate-500">Students</h3>
                   {results.students.map((s) => (
@@ -77,7 +83,7 @@ export default function GlobalSearch() {
                   ))}
                 </div>
               )}
-              {results.cases.length > 0 && (
+              {canViewCases && results.cases.length > 0 && (
                 <div>
                   <h3 className="px-3 py-1.5 text-xs font-semibold uppercase text-slate-500">Cases</h3>
                   {results.cases.map((c) => (
@@ -91,7 +97,7 @@ export default function GlobalSearch() {
                   ))}
                 </div>
               )}
-              {results.reports.length > 0 && (
+              {canViewReports && results.reports.length > 0 && (
                 <div>
                   <h3 className="px-3 py-1.5 text-xs font-semibold uppercase text-slate-500">Anonymous Reports</h3>
                   {results.reports.map((r) => (

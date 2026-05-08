@@ -2,7 +2,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { getAll, register, update, remove, exportDocx, exportExcel } from '../../../utils/api';
+import { getAll, register, update, remove, exportDocx, exportExcel, authHeaders } from '../../../utils/api';
+import { API_BASE_URL } from '../../../config/constants';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, TableSkeleton } from '../../../components/PageSkeleton';
 
@@ -143,6 +144,29 @@ export default function UserManagementPage() {
     } catch (err: unknown) {
       console.error('Error deleting user:', err);
       setError(getErrorMessage(err, 'Failed to delete user'));
+    }
+  }
+
+  async function handleAdminResetPassword(id: string) {
+    const newPassword = window.prompt('Enter a temporary password (min 6 chars):');
+    if (!newPassword) return;
+    if (newPassword.length < 6) {
+      setError('Temporary password must be at least 6 characters.');
+      return;
+    }
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await fetch(`${API_BASE_URL}/users/${id}/reset-password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to reset password');
+      setSuccess('Password reset successfully.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Failed to reset password'));
     }
   }
 
@@ -392,6 +416,7 @@ export default function UserManagementPage() {
                             </div>
                             <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                               <button type="button" className="bg-blue-500 text-white px-3 py-2 rounded text-xs hover:bg-blue-600 transition" onClick={() => startEdit(u)}>Edit</button>
+                              <button type="button" className="bg-amber-600 text-white px-3 py-2 rounded text-xs hover:bg-amber-700 transition" onClick={() => handleAdminResetPassword(userId)}>Reset Password</button>
                               <button type="button" className="bg-red-600 text-white px-3 py-2 rounded text-xs hover:bg-red-700 transition" onClick={() => handleDelete(userId)}>Delete</button>
                             </div>
                           </>
@@ -502,6 +527,12 @@ export default function UserManagementPage() {
                                   onClick={() => handleDelete(userId)}
                                 >
                                   Delete
+                                </button>
+                                <button
+                                  className="bg-amber-600 text-white px-2 py-1 rounded text-xs hover:bg-amber-700 transition"
+                                  onClick={() => handleAdminResetPassword(userId)}
+                                >
+                                  Reset Password
                                 </button>
                               </div>
                             </td>

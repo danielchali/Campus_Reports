@@ -167,6 +167,10 @@ export default function ReportsPage() {
     }
 
     const nextStatus = statusDrafts[report.id] || report.status;
+    if (nextStatus === report.status) {
+      showNotification('info', `Report ${report.trackingCode} is already marked as ${report.status}.`);
+      return;
+    }
     const message =
       updateMessages[report.id]?.trim() ||
       `Status updated to ${nextStatus} by ${user.name || user.username}.`;
@@ -408,7 +412,9 @@ export default function ReportsPage() {
                             <button
                               type="button"
                               onClick={() => handleApplyStatus(report)}
-                              className="rounded-xl bg-kmuGreen px-4 py-3 text-white font-medium hover:bg-kmuOrange transition"
+                              disabled={draftStatus === report.status}
+                              title={draftStatus === report.status ? 'Select a different status to save an update.' : 'Save status update'}
+                              className="rounded-xl bg-kmuGreen px-4 py-3 text-white font-medium transition hover:bg-kmuOrange disabled:cursor-not-allowed disabled:bg-gray-400"
                             >
                               Save status update
                             </button>
