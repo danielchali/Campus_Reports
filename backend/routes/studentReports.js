@@ -5,6 +5,7 @@ import multer from "multer";
 import StudentReportModel from "../models/studentReport.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification } from "../utils/notifications.js";
+import { createWorkOrderFromReport } from "./workOrders.js";
 
 const router = express.Router();
 const REPORT_ATTACHMENT_DIR = path.join(
@@ -61,6 +62,7 @@ function mapReport(doc) {
     ownerRole: obj.owner_role,
     routedToMaintenance: !!obj.routed_to_maintenance,
     routedByRole: obj.routed_by_role || "",
+    maintenanceWorkOrderId: obj.maintenance_work_order_id || "",
     seenBy: obj.seen_by || [],
     details: obj.details || {},
     attachments: (obj.attachments || []).map((attachment) => ({
@@ -480,24 +482,19 @@ router.patch(
         (report.owner_role !== "general_user" ||
           report.category !== "maintenance_issue")
       ) {
-        return res
-          .status(403)
-          .json({
-            error:
-              "Registrar can only handle general-user maintenance requests.",
-          });
+        return res.status(403).json({
+          error: "Registrar can only handle general-user maintenance requests.",
+        });
       }
       if (req.user.role === "maintenance") {
         if (
           report.category !== "maintenance_issue" ||
           !report.routed_to_maintenance
         ) {
-          return res
-            .status(403)
-            .json({
-              error:
-                "Maintenance can only handle routed maintenance work orders.",
-            });
+          return res.status(403).json({
+            error:
+              "Maintenance can only handle routed maintenance work orders.",
+          });
         }
       }
 
@@ -514,13 +511,21 @@ router.patch(
         createdByRole: req.user.role,
       });
       if (
-        (req.user.role === "dean_of_students" ||
-          req.user.role === "secretary") &&
+        ["admin", "dean_of_students", "assistant_dean", "secretary"].includes(
+          req.user.role,
+        ) &&
         report.category === "maintenance_issue" &&
         status === "In Progress"
       ) {
+        const workOrder = await createWorkOrderFromReport(
+          report,
+          req.user,
+          message.trim() ||
+            "Work order created when maintenance issue moved to In Progress.",
+        );
         report.routed_to_maintenance = true;
         report.routed_by_role = req.user.role;
+        report.maintenance_work_order_id = workOrder.work_order_id;
       }
       report.updatedAt = new Date();
 

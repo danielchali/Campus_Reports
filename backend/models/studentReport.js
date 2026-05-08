@@ -49,6 +49,7 @@ const studentReportSchema = new mongoose.Schema({
   },
   routed_to_maintenance: { type: Boolean, default: false },
   routed_by_role: { type: String, default: "" },
+  maintenance_work_order_id: { type: String, default: "" },
   seen_by: { type: [String], default: [] },
   updates: { type: [studentReportUpdateSchema], default: [] },
   createdAt: { type: Date, default: Date.now },

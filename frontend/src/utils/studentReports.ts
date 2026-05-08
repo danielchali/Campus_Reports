@@ -47,6 +47,7 @@ export interface StudentReport {
   seenBy?: string[];
   details?: StudentReportDetails;
   attachments?: StudentReportAttachment[];
+  maintenanceWorkOrderId?: string;
 }
 
 export interface StudentIdentity {

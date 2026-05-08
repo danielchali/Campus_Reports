@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-react';
+import type { LucideIcon } from "lucide-react";
 import {
   Briefcase,
   Clipboard,
@@ -17,7 +17,7 @@ import {
   User,
   UserCog,
   Wrench,
-} from 'lucide-react';
+} from "lucide-react";
 
 export type NavLink = {
   icon: LucideIcon;
@@ -31,6 +31,8 @@ const navIcons = {
   dashboard: LayoutDashboard,
   cases: FileText,
   reports: ClipboardList,
+  maintenanceIssues: Wrench,
+  workOrders: Clipboard,
   myReports: ClipboardList,
   makeReport: FilePenLine,
   evidence: Paperclip,
@@ -51,125 +53,257 @@ const navIcons = {
 } as const;
 
 export function getNavLinksForRole(role?: string): NavLink[] {
-  if (role === 'admin') {
+  if (role === "admin") {
     return [
-      { icon: navIcons.admin, label: 'Dashboard', path: '/admin' },
-      { icon: navIcons.users, label: 'Manage Users', path: '/admin/users' },
-      { icon: navIcons.cases, label: 'Cases', path: '/cases' },
-      { icon: navIcons.reports, label: 'Reports', path: '/reports' },
-      { icon: navIcons.students, label: 'Students', path: '/students' },
-      { icon: navIcons.evidence, label: 'Evidence', path: '/evidence' },
-      { icon: navIcons.newcase, label: 'New Case', path: '/cases/new' },
-      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
-      { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
-      { icon: navIcons.help, label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+      { icon: navIcons.admin, label: "Dashboard", path: "/admin" },
+      { icon: navIcons.users, label: "Manage Users", path: "/admin/users" },
+      { icon: navIcons.cases, label: "Cases", path: "/cases" },
+      { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      {
+        icon: navIcons.maintenanceIssues,
+        label: "Maintenance Issues",
+        path: "/maintenance-issues",
+      },
+      { icon: navIcons.workOrders, label: "Work Orders", path: "/work-orders" },
+      { icon: navIcons.students, label: "Students", path: "/students" },
+      { icon: navIcons.evidence, label: "Evidence", path: "/evidence" },
+      { icon: navIcons.newcase, label: "New Case", path: "/cases/new" },
+      { icon: navIcons.audit, label: "Audit/Logs", path: "/audit" },
+      { icon: navIcons.profile, label: "Profile & Settings", path: "/profile" },
+      { icon: navIcons.help, label: "Help", path: "/help" },
+      {
+        icon: navIcons.logout,
+        label: "Logout",
+        path: "/logout",
+        danger: true,
+        mobileOnly: true,
+      },
     ];
   }
 
-  if (role === 'security_officer') {
+  if (role === "security_officer") {
     return [
-      { icon: navIcons.dashboard, label: 'Dashboard', path: '/security-dashboard' },
-      { icon: navIcons.cases, label: 'Cases', path: '/cases' },
-      { icon: navIcons.evidence, label: 'Evidence', path: '/evidence' },
-      { icon: navIcons.students, label: 'Students', path: '/students' },
-      { icon: navIcons.newcase, label: 'New Case', path: '/cases/new' },
-      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
-      { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
-      { icon: navIcons.help, label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+      {
+        icon: navIcons.dashboard,
+        label: "Dashboard",
+        path: "/security-dashboard",
+      },
+      { icon: navIcons.cases, label: "Cases", path: "/cases" },
+      { icon: navIcons.evidence, label: "Evidence", path: "/evidence" },
+      { icon: navIcons.students, label: "Students", path: "/students" },
+      { icon: navIcons.newcase, label: "New Case", path: "/cases/new" },
+      { icon: navIcons.audit, label: "Audit/Logs", path: "/audit" },
+      { icon: navIcons.profile, label: "Profile & Settings", path: "/profile" },
+      { icon: navIcons.help, label: "Help", path: "/help" },
+      {
+        icon: navIcons.logout,
+        label: "Logout",
+        path: "/logout",
+        danger: true,
+        mobileOnly: true,
+      },
     ];
   }
 
-  if (role === 'chief_security_officer') {
+  if (role === "chief_security_officer") {
     return [
-      { icon: navIcons.security, label: 'Dashboard', path: '/chief-security-officer-dashboard' },
-      { icon: navIcons.cases, label: 'Cases', path: '/cases' },
-      { icon: navIcons.reports, label: 'Reports', path: '/reports' },
-      { icon: navIcons.students, label: 'Students', path: '/students' },
-      { icon: navIcons.evidence, label: 'Evidence', path: '/evidence' },
-      { icon: navIcons.newcase, label: 'New Case', path: '/cases/new' },
-      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
-      { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
-      { icon: navIcons.help, label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+      {
+        icon: navIcons.security,
+        label: "Dashboard",
+        path: "/chief-security-officer-dashboard",
+      },
+      { icon: navIcons.cases, label: "Cases", path: "/cases" },
+      { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      { icon: navIcons.students, label: "Students", path: "/students" },
+      { icon: navIcons.evidence, label: "Evidence", path: "/evidence" },
+      { icon: navIcons.newcase, label: "New Case", path: "/cases/new" },
+      { icon: navIcons.audit, label: "Audit/Logs", path: "/audit" },
+      { icon: navIcons.profile, label: "Profile & Settings", path: "/profile" },
+      { icon: navIcons.help, label: "Help", path: "/help" },
+      {
+        icon: navIcons.logout,
+        label: "Logout",
+        path: "/logout",
+        danger: true,
+        mobileOnly: true,
+      },
     ];
   }
 
-  if (role === 'dean_of_students') {
+  if (role === "dean_of_students") {
     return [
-      { icon: navIcons.dean, label: 'Dashboard', path: '/dean-of-students-dashboard' },
-      { icon: navIcons.students, label: 'Students', path: '/students' },
-      { icon: navIcons.cases, label: 'Cases', path: '/cases' },
-      { icon: navIcons.reports, label: 'Reports', path: '/reports' },
-      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
-      { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
-      { icon: navIcons.help, label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+      {
+        icon: navIcons.dean,
+        label: "Dashboard",
+        path: "/dean-of-students-dashboard",
+      },
+      { icon: navIcons.students, label: "Students", path: "/students" },
+      { icon: navIcons.cases, label: "Cases", path: "/cases" },
+      { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      {
+        icon: navIcons.maintenanceIssues,
+        label: "Maintenance Issues",
+        path: "/maintenance-issues",
+      },
+      { icon: navIcons.workOrders, label: "Work Orders", path: "/work-orders" },
+      { icon: navIcons.audit, label: "Audit/Logs", path: "/audit" },
+      { icon: navIcons.profile, label: "Profile & Settings", path: "/profile" },
+      { icon: navIcons.help, label: "Help", path: "/help" },
+      {
+        icon: navIcons.logout,
+        label: "Logout",
+        path: "/logout",
+        danger: true,
+        mobileOnly: true,
+      },
     ];
   }
 
-  if (role === 'assistant_dean') {
+  if (role === "assistant_dean") {
     return [
-      { icon: navIcons.assistant, label: 'Dashboard', path: '/assistant-dean-dashboard' },
-      { icon: navIcons.students, label: 'Students', path: '/students' },
-      { icon: navIcons.cases, label: 'Cases', path: '/cases' },
-      { icon: navIcons.reports, label: 'Reports', path: '/reports' },
-      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
-      { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
-      { icon: navIcons.help, label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+      {
+        icon: navIcons.assistant,
+        label: "Dashboard",
+        path: "/assistant-dean-dashboard",
+      },
+      { icon: navIcons.students, label: "Students", path: "/students" },
+      { icon: navIcons.cases, label: "Cases", path: "/cases" },
+      { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      {
+        icon: navIcons.maintenanceIssues,
+        label: "Maintenance Issues",
+        path: "/maintenance-issues",
+      },
+      { icon: navIcons.workOrders, label: "Work Orders", path: "/work-orders" },
+      { icon: navIcons.audit, label: "Audit/Logs", path: "/audit" },
+      { icon: navIcons.profile, label: "Profile & Settings", path: "/profile" },
+      { icon: navIcons.help, label: "Help", path: "/help" },
+      {
+        icon: navIcons.logout,
+        label: "Logout",
+        path: "/logout",
+        danger: true,
+        mobileOnly: true,
+      },
     ];
   }
 
-  if (role === 'secretary') {
+  if (role === "secretary") {
     return [
-      { icon: navIcons.secretary, label: 'Dashboard', path: '/registrar-dashboard' },
-      { icon: navIcons.students, label: 'Students', path: '/students' },
-      { icon: navIcons.cases, label: 'Cases', path: '/cases' },
-      { icon: navIcons.reports, label: 'Reports', path: '/reports' },
-      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
-      { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
-      { icon: navIcons.help, label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+      {
+        icon: navIcons.secretary,
+        label: "Dashboard",
+        path: "/registrar-dashboard",
+      },
+      { icon: navIcons.students, label: "Students", path: "/students" },
+      { icon: navIcons.cases, label: "Cases", path: "/cases" },
+      { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      {
+        icon: navIcons.maintenanceIssues,
+        label: "Maintenance Issues",
+        path: "/maintenance-issues",
+      },
+      { icon: navIcons.workOrders, label: "Work Orders", path: "/work-orders" },
+      { icon: navIcons.audit, label: "Audit/Logs", path: "/audit" },
+      { icon: navIcons.profile, label: "Profile & Settings", path: "/profile" },
+      { icon: navIcons.help, label: "Help", path: "/help" },
+      {
+        icon: navIcons.logout,
+        label: "Logout",
+        path: "/logout",
+        danger: true,
+        mobileOnly: true,
+      },
     ];
   }
 
-  if (role === 'maintenance') {
+  if (role === "maintenance") {
     return [
-      { icon: navIcons.maintenance, label: 'Dashboard', path: '/maintenance-dashboard' },
-      { icon: navIcons.reports, label: 'Reports', path: '/reports' },
-      { icon: navIcons.staff, label: 'Staff', path: '/staff' },
-      { icon: navIcons.audit, label: 'Audit/Logs', path: '/audit' },
-      { icon: navIcons.profile, label: 'Profile & Settings', path: '/profile' },
-      { icon: navIcons.help, label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+      {
+        icon: navIcons.maintenance,
+        label: "Dashboard",
+        path: "/maintenance-dashboard",
+      },
+      { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      {
+        icon: navIcons.maintenanceIssues,
+        label: "Maintenance Issues",
+        path: "/maintenance-issues",
+      },
+      { icon: navIcons.workOrders, label: "Work Orders", path: "/work-orders" },
+      { icon: navIcons.staff, label: "Staff", path: "/staff" },
+      { icon: navIcons.audit, label: "Audit/Logs", path: "/audit" },
+      { icon: navIcons.profile, label: "Profile & Settings", path: "/profile" },
+      { icon: navIcons.help, label: "Help", path: "/help" },
+      {
+        icon: navIcons.logout,
+        label: "Logout",
+        path: "/logout",
+        danger: true,
+        mobileOnly: true,
+      },
     ];
   }
 
-  if (role === 'student') {
+  if (role === "student") {
     return [
-      { icon: navIcons.dashboard, label: 'Dashboard', path: '/student-dashboard' },
-      { icon: navIcons.myReports, label: 'My Reports', path: '/my-reports' },
-      { icon: navIcons.makeReport, label: 'Make a Report', path: '/make-report' },
-      { icon: navIcons.profile, label: 'My Profile', path: '/profile' },
-      { icon: navIcons.help, label: 'Help', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+      {
+        icon: navIcons.dashboard,
+        label: "Dashboard",
+        path: "/student-dashboard",
+      },
+      { icon: navIcons.myReports, label: "My Reports", path: "/my-reports" },
+      {
+        icon: navIcons.makeReport,
+        label: "Make a Report",
+        path: "/make-report",
+      },
+      { icon: navIcons.profile, label: "My Profile", path: "/profile" },
+      { icon: navIcons.help, label: "Help", path: "/help" },
+      {
+        icon: navIcons.logout,
+        label: "Logout",
+        path: "/logout",
+        danger: true,
+        mobileOnly: true,
+      },
     ];
   }
 
-  if (role === 'general_user') {
+  if (role === "general_user") {
     return [
-      { icon: navIcons.dashboard, label: 'Dashboard', path: '/general-dashboard' },
-      { icon: navIcons.myReports, label: 'My Reports', path: '/my-reports' },
-      { icon: navIcons.makeReport, label: 'New Report', path: '/make-report' },
-      { icon: navIcons.maintenance, label: 'Maintenance Request', path: '/make-report?category=maintenance_issue' },
-      { icon: navIcons.help, label: 'Knowledge Base', path: '/help' },
-      { icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true },
+      {
+        icon: navIcons.dashboard,
+        label: "Dashboard",
+        path: "/general-dashboard",
+      },
+      { icon: navIcons.myReports, label: "My Reports", path: "/my-reports" },
+      { icon: navIcons.makeReport, label: "New Report", path: "/make-report" },
+      {
+        icon: navIcons.maintenance,
+        label: "Maintenance Request",
+        path: "/make-report?category=maintenance_issue",
+      },
+      { icon: navIcons.help, label: "Knowledge Base", path: "/help" },
+      {
+        icon: navIcons.logout,
+        label: "Logout",
+        path: "/logout",
+        danger: true,
+        mobileOnly: true,
+      },
     ];
   }
 
-  return [{ icon: navIcons.logout, label: 'Logout', path: '/logout', danger: true, mobileOnly: true }];
+  return [
+    {
+      icon: navIcons.logout,
+      label: "Logout",
+      path: "/logout",
+      danger: true,
+      mobileOnly: true,
+    },
+  ];
 }
 
 export function splitNavLinksForMobile(navLinks: NavLink[]) {
@@ -177,16 +311,16 @@ export function splitNavLinksForMobile(navLinks: NavLink[]) {
   const sidebarNav: NavLink[] = [];
 
   const settingsLabels = [
-    'Manage Users',
-    'Audit/Logs',
-    'Help',
-    'Admin Panel',
-    'Logout',
+    "Manage Users",
+    "Audit/Logs",
+    "Help",
+    "Admin Panel",
+    "Logout",
   ];
 
   for (const link of navLinks) {
     // Skip profile links entirely (they are in the top navbar)
-    if (link.label === 'Profile & Settings' || link.label === 'My Profile') {
+    if (link.label === "Profile & Settings" || link.label === "My Profile") {
       continue;
     }
 
