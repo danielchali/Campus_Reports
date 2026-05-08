@@ -2,7 +2,9 @@ import express from 'express';
 import { listCases, getCase, createCase, updateCase, deleteCase } from '../controllers/casesController.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import ExcelJS from 'exceljs';
-import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, AlignmentType } from 'docx';
+import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, AlignmentType, ImageRun, PageBreak } from 'docx';
+import fs from 'fs';
+import path from 'path';
 const router = express.Router();
 
 router.use(authenticate, authorize(['admin', 'academic_office', 'security_officer']));
@@ -12,6 +14,51 @@ router.get('/:id', getCase);
 router.post('/', createCase);
 router.put('/:id', updateCase);
 router.delete('/:id', deleteCase);
+
+
+router.get('/:id/export-docx-full', async(req, res) => {
+    try {
+        const CaseModel = (await import('../models/case.js')).default;
+        const caseItem = await CaseModel.findById(req.params.id).lean();
+        if (!caseItem) return res.status(404).json({ error: 'Case not found' });
+
+        const logoPath = path.resolve(process.cwd(), '../frontend/public/kmu_logo.png');
+        const logoBuffer = fs.existsSync(logoPath) ? fs.readFileSync(logoPath) : null;
+        const logo = logoBuffer ? new Paragraph({ alignment: AlignmentType.CENTER, children: [new ImageRun({ data: logoBuffer, transformation: { width: 110, height: 55 } })] }) : new Paragraph('');
+
+        const sectionTitle = (title) => ([logo, new Paragraph({ text: title, heading: 'Heading1', alignment: AlignmentType.CENTER, spacing: { after: 220 } })]);
+        const kv = (k, v) => new Paragraph({ children: [new TextRun({ text: `${k}: `, bold: true }), new TextRun(String(v || 'N/A'))] });
+
+        const occ = caseItem.student_case_process?.occurrenceCover || {};
+        const summon = caseItem.student_case_process?.summon || {};
+        const statement = caseItem.student_case_process?.statementPad || {};
+        const warn = caseItem.student_case_process?.warnAndCaution || {};
+
+        const children = [
+            ...sectionTitle('Case Overview'),
+            kv('Case ID', caseItem.case_id), kv('Offense', caseItem.offense_type), kv('Incident Date', caseItem.incident_date), kv('Severity', caseItem.severity), kv('Status', caseItem.status), kv('Description', caseItem.description),
+            new Paragraph({ children: [new PageBreak()] }),
+            ...sectionTitle('Occurrence Cover'), kv('Investigating Officer', occ.investigatingOfficer), kv('Reported At', occ.reportedAt), kv('Complainant', occ.complainant?.name),
+            new Paragraph({ children: [new PageBreak()] }),
+            ...sectionTitle('Summon / Callout'), kv('Report Time', summon.reportTime), kv('Report Date', summon.reportDate), kv('Appointment', summon.appointment),
+            ...((occ.accusedPeople || []).map((a, i) => kv(`Accused ${i+1}`, a.fullName))),
+            new Paragraph({ children: [new PageBreak()] }),
+            ...sectionTitle('Statement'), kv('Role', statement.statementRole), kv('Full Name', statement.fullName), kv('Statement', statement.statementText),
+            new Paragraph({ children: [new PageBreak()] }),
+            ...sectionTitle('Warn and Caution'), kv('Full Names', warn.fullNames), kv('Case Name', warn.caseName), kv('Taken Date', warn.takenDate), kv('Taken Time', warn.takenTime),
+        ];
+
+        const doc = new Document({ sections: [{ children }] });
+        const buffer = await Packer.toBuffer(doc);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename=case_${caseItem.case_id || caseItem._id}.docx`);
+        res.send(buffer);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Export failed' });
+    }
+});
+
 
 // Excel export
 router.get('/export-excel', async(req, res) => {

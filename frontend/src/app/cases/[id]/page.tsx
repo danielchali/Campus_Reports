@@ -46,6 +46,7 @@ interface Case {
     createdBy?: string;
     createdAt: string;
     updatedAt: string;
+    student_case_process?: any;
 }
 
 export default function CaseDetailsPage({ params }: { params: { id: string } }) {
@@ -208,6 +209,42 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
         }
     };
 
+
+    const handlePrintSummonCallout = () => {
+        const summon = caseData.student_case_process?.summon;
+        const accused = caseData.student_case_process?.occurrenceCover?.accusedPeople || [];
+        if (!summon || accused.length === 0) {
+            setActionMessage({ type: 'error', text: 'No summon callout data found for this case.' });
+            return;
+        }
+
+        const html = `<!DOCTYPE html><html><head><title>Summon Callout</title><style>body{font-family:Arial,sans-serif;padding:24px;} .card{border:2px solid #0a7f3f;border-radius:10px;padding:20px;max-width:760px;margin:0 auto;} .logo{text-align:center;margin-bottom:12px;} .label{font-weight:700;} .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;} h1{font-size:22px;margin:4px 0 16px;color:#0a7f3f;text-align:center;} </style></head><body><div class="card"><div class="logo"><img src="${window.location.origin}/kmu_logo.png" alt="KMU Logo" style="height:64px;"/></div><h1>Summon Callout</h1>${accused.map((person: any, i: number) => `<h3>Callout ${i+1}</h3><div class="grid"><div><span class="label">Sign:</span> ${summon.studentSignatures?.[String(i)] || '________________'}</div><div><span class="label">Accused:</span> ${person?.fullName || ''}</div><div><span class="label">Date:</span> ${summon.reportDate || ''}</div><div><span class="label">Time:</span> ${summon.reportTime || ''}</div><div><span class="label">Appointment:</span> ${summon.appointment || ''}</div><div><span class="label">Officer Sign:</span> ${summon.officerSignature || ''}</div></div><hr style="margin:12px 0;"/>`).join('')}</div></body></html>`;
+
+        const printWindow = window.open('', '_blank', 'width=900,height=800');
+        if (!printWindow) return;
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+    };
+
+    const handleExportCaseDocx = async () => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/cases/${params.id}/export-docx-full`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `case_${caseData.caseId || caseData._id}.docx`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch (err: any) {
+            setActionMessage({ type: 'error', text: err.message || 'Failed to export case DOCX' });
+        }
+    };
     if (loading) {
         return (
             <DetailPageSkeleton />
@@ -268,6 +305,12 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold text-kmuGreen">Case Details</h1>
+                <div className="flex flex-wrap gap-2 ml-4">
+                    <Link href={`/cases/new?cloneFrom=${params.id}&doc=statement`} className="px-3 py-1 text-sm bg-white border rounded">+ Statement</Link>
+                    <Link href={`/cases/new?cloneFrom=${params.id}&doc=callout`} className="px-3 py-1 text-sm bg-white border rounded">+ Callout</Link>
+                    <Link href={`/cases/new?cloneFrom=${params.id}&doc=accused`} className="px-3 py-1 text-sm bg-white border rounded">+ Accused Add/Remove</Link>
+                    <Link href={`/cases/new?cloneFrom=${params.id}&doc=warn-caution`} className="px-3 py-1 text-sm bg-white border rounded">+ Warn & Caution</Link>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -576,6 +619,20 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                                 Back to Cases
                             </Link>
                             
+                            <button
+                                onClick={handlePrintSummonCallout}
+                                className="block w-full text-center px-4 py-2 bg-kmuOrange text-white rounded hover:opacity-90 transition"
+                            >
+                                Print Summon Callout
+                            </button>
+
+                            <button
+                                onClick={handleExportCaseDocx}
+                                className="block w-full text-center px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition"
+                            >
+                                Export Full Case DOCX
+                            </button>
+
                             <button
                                 onClick={() => router.push(`/cases/new?${isStudentCase ? 'studentId' : 'staffId'}=${personId}`)}
                                 className="block w-full text-center px-4 py-2 bg-kmuGreen text-white rounded hover:bg-kmuOrange transition"
