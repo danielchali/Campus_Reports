@@ -17,17 +17,12 @@ export default function BottomNav() {
   const { bottomNav } = splitNavLinksForMobile(allNavLinks);
   const isStudent = user.role === 'student';
   const navItems = isStudent
-    ? allNavLinks
-      .filter((link) => ['Dashboard', 'My Reports', 'Make a Report', 'Help'].includes(link.label))
-      .slice(0, 4)
-  const navItems = user.role === 'student'
-    ? bottomNav.filter((link) => link.label !== 'Logout').slice(0, 4)
+    ? allNavLinks.filter((link) => ['Dashboard', 'My Reports', 'Make a Report', 'Help'].includes(link.label)).slice(0, 4)
     : bottomNav;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-200 bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-gray-900/95 md:hidden">
-      <div className={isStudent ? "grid grid-cols-4 gap-1 px-1 py-1.5 sm:px-2 sm:py-2" : "flex overflow-x-auto px-1 py-1.5 sm:px-2 sm:py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"}>
-      <div className="flex overflow-x-auto px-1 sm:px-2 py-1.5 sm:py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className={isStudent ? 'grid grid-cols-4 gap-1 px-1 py-1.5 sm:px-2 sm:py-2' : 'flex overflow-x-auto px-1 py-1.5 sm:px-2 sm:py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'}>
         {navItems.map((link) => {
           const Icon = link.icon;
           const isActive = pathname === link.path;
