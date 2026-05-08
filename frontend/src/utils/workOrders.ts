@@ -17,6 +17,12 @@ export interface WorkOrderUpdate {
   createdAt: string;
 }
 
+export interface WorkOrderSignatures {
+  partC: string;
+  partD: string;
+  partE: string;
+}
+
 export interface WorkOrder {
   id: string;
   workOrderId: string;
@@ -38,6 +44,7 @@ export interface WorkOrder {
   createdAt: string;
   updatedAt: string;
   updates: WorkOrderUpdate[];
+  signatures: WorkOrderSignatures;
 }
 
 export async function getWorkOrders(
@@ -83,11 +90,12 @@ export async function updateWorkOrderStatus(
   status: WorkOrderStatus,
   message: string,
   assignedTo?: string,
+  signatures?: WorkOrderSignatures,
 ): Promise<WorkOrder | null> {
   const res = await fetch(`${API_BASE_URL}/work-orders/${workOrderId}/status`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...authHeaders() },
-    body: JSON.stringify({ status, message, assignedTo }),
+    body: JSON.stringify({ status, message, assignedTo, signatures }),
   });
 
   if (!res.ok) return null;

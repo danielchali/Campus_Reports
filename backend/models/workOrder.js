@@ -43,6 +43,11 @@ const workOrderSchema = new mongoose.Schema({
   created_by_role: { type: String, default: "" },
   attachments: { type: [workOrderAttachmentSchema], default: [] },
   updates: { type: [workOrderUpdateSchema], default: [] },
+  signatures: {
+    partC: { type: String, default: "" },
+    partD: { type: String, default: "" },
+    partE: { type: String, default: "" },
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
