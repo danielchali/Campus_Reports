@@ -172,9 +172,10 @@ export default function AnonymousReportPage() {
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-xl shadow-purple-500/20 mb-2">
             <Ghost className="w-10 h-10" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#002d62] dark:text-white tracking-tight">Anonymous Reporting</h1>
-          <p className="text-sm md:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-            Your voice matters. Submit reports confidentially without an account. Your identity remains 100% protected.
+          <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">Anonymous Reporting</h1>
+          <p className="mt-2 text-slate-600 dark:text-slate-400 max-w-xl mx-auto text-base leading-relaxed">
+            Your voice matters. Submit reports confidentially without an account. 
+            <span className="block mt-1 font-medium text-kmuGreen">Your identity remains 100% protected.</span>
           </p>
         </div>
 
