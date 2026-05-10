@@ -24,27 +24,75 @@ import workOrdersRouter from "./routes/workOrders.js";
 const app = express();
 const API_V1_BASE = "/api/v1";
 
-// CORS configuration - flexible for any deployment environment
-const corsOrigin = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
-// Handle multiple origins if provided as comma-separated values
-let origins;
-if (Array.isArray(corsOrigin)) {
-  origins = corsOrigin;
-} else if (typeof corsOrigin === "string") {
-  // Split by comma for multiple origins, or use as single origin
-  origins = corsOrigin.includes(",")
-    ? corsOrigin.split(",").map((origin) => origin.trim())
-    : corsOrigin;
-} else {
-  origins = "http://localhost:3000";
+const DEFAULT_CORS_ORIGINS = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "https://campusreports.vercel.app",
+];
+
+function normalizeCorsOrigin(origin) {
+  const trimmedOrigin = origin.trim().replace(/\/+$/, "");
+
+  if (!trimmedOrigin) {
+    return "";
+  }
+
+  if (trimmedOrigin === "*" || /^https?:\/\//i.test(trimmedOrigin)) {
+    return trimmedOrigin;
+  }
+
+  if (/^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(trimmedOrigin)) {
+    return `http://${trimmedOrigin}`;
+  }
+
+  return `https://${trimmedOrigin}`;
 }
 
-app.use(
-  cors({
-    origin: origins,
-    credentials: true,
-  }),
+function parseCorsOrigins(...originValues) {
+  const parsedOrigins = originValues
+    .flatMap((originValue) => {
+      if (Array.isArray(originValue)) {
+        return originValue;
+      }
+
+      if (typeof originValue === "string") {
+        return originValue.split(",");
+      }
+
+      return [];
+    })
+    .map((origin) => normalizeCorsOrigin(origin))
+    .filter(Boolean);
+
+  return [...new Set([...DEFAULT_CORS_ORIGINS, ...parsedOrigins])];
+}
+
+const allowedCorsOrigins = parseCorsOrigins(
+  process.env.CORS_ORIGIN,
+  process.env.FRONTEND_URL,
 );
+const allowAllCorsOrigins = allowedCorsOrigins.includes("*");
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowAllCorsOrigins) {
+      callback(null, true);
+      return;
+    }
+
+    const normalizedOrigin = normalizeCorsOrigin(origin);
+    if (allowedCorsOrigins.includes(normalizedOrigin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
+  credentials: true,
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 function mountRoutes(basePath) {

@@ -22,7 +22,6 @@ export default function RegistrarDashboard() {
         { href: "/anonymous-report", label: "Open Anonymous Reports" },
         { href: "/staff", label: "Open Staff" },
         { href: "/reports", label: "Open Reports" },
-        { href: "/registrar-issues", label: "Registrar Issues" },
         { href: "/profile", label: "Profile & Settings" },
       ]}
     />
