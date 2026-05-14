@@ -29,6 +29,9 @@ const DEFAULT_CORS_ORIGINS = [
   "http://127.0.0.1:3000",
   "https://campusreports.vercel.app",
 ];
+const DEFAULT_CORS_ORIGIN_PATTERNS = [
+  /^https:\/\/campusreports(?:-[a-z0-9-]+)?\.vercel\.app$/i,
+];
 
 function normalizeCorsOrigin(origin) {
   const trimmedOrigin = origin.trim().replace(/\/+$/, "");
@@ -73,15 +76,23 @@ const allowedCorsOrigins = parseCorsOrigins(
 );
 const allowAllCorsOrigins = allowedCorsOrigins.includes("*");
 
+function isCorsOriginAllowed(origin) {
+  if (!origin || allowAllCorsOrigins) {
+    return true;
+  }
+
+  const normalizedOrigin = normalizeCorsOrigin(origin);
+  return (
+    allowedCorsOrigins.includes(normalizedOrigin) ||
+    DEFAULT_CORS_ORIGIN_PATTERNS.some((pattern) =>
+      pattern.test(normalizedOrigin),
+    )
+  );
+}
+
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowAllCorsOrigins) {
-      callback(null, true);
-      return;
-    }
-
-    const normalizedOrigin = normalizeCorsOrigin(origin);
-    if (allowedCorsOrigins.includes(normalizedOrigin)) {
+    if (isCorsOriginAllowed(origin)) {
       callback(null, true);
       return;
     }
@@ -89,10 +100,13 @@ const corsOptions = {
     callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 function mountRoutes(basePath) {
