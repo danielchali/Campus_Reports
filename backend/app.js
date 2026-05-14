@@ -24,10 +24,9 @@ import workOrdersRouter from "./routes/workOrders.js";
 const app = express();
 const API_V1_BASE = "/api/v1";
 
-const DEFAULT_CORS_ORIGINS = [
+const LOCAL_CORS_ORIGINS = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
-  "https://campusreports.vercel.app",
 ];
 
 function normalizeCorsOrigin(origin) {
@@ -64,24 +63,41 @@ function parseCorsOrigins(...originValues) {
     .map((origin) => normalizeCorsOrigin(origin))
     .filter(Boolean);
 
-  return [...new Set([...DEFAULT_CORS_ORIGINS, ...parsedOrigins])];
+  return [...new Set([...LOCAL_CORS_ORIGINS, ...parsedOrigins])];
+}
+
+function parseCorsOriginPatterns(originPatterns = "") {
+  return originPatterns
+    .split(",")
+    .map((pattern) => pattern.trim())
+    .filter(Boolean)
+    .map((pattern) => new RegExp(pattern, "i"));
 }
 
 const allowedCorsOrigins = parseCorsOrigins(
   process.env.CORS_ORIGIN,
   process.env.FRONTEND_URL,
 );
+const allowedCorsOriginPatterns = parseCorsOriginPatterns(
+  process.env.CORS_ORIGIN_PATTERNS,
+);
 const allowAllCorsOrigins = allowedCorsOrigins.includes("*");
+
+function isCorsOriginAllowed(origin) {
+  if (!origin || allowAllCorsOrigins) {
+    return true;
+  }
+
+  const normalizedOrigin = normalizeCorsOrigin(origin);
+  return (
+    allowedCorsOrigins.includes(normalizedOrigin) ||
+    allowedCorsOriginPatterns.some((pattern) => pattern.test(normalizedOrigin))
+  );
+}
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowAllCorsOrigins) {
-      callback(null, true);
-      return;
-    }
-
-    const normalizedOrigin = normalizeCorsOrigin(origin);
-    if (allowedCorsOrigins.includes(normalizedOrigin)) {
+    if (isCorsOriginAllowed(origin)) {
       callback(null, true);
       return;
     }
@@ -89,10 +105,13 @@ const corsOptions = {
     callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 function mountRoutes(basePath) {
