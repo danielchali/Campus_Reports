@@ -90,6 +90,11 @@ function parseCorsOriginPatterns(originPatterns = "") {
         return [];
       }
     });
+  return originPatterns
+    .split(",")
+    .map((pattern) => pattern.trim())
+    .filter(Boolean)
+    .map((pattern) => new RegExp(pattern, "i"));
 }
 
 const allowedCorsOrigins = parseCorsOrigins(
