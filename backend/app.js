@@ -24,9 +24,10 @@ import workOrdersRouter from "./routes/workOrders.js";
 const app = express();
 const API_V1_BASE = "/api/v1";
 
-const LOCAL_CORS_ORIGINS = [
+const DEFAULT_CORS_ORIGINS = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
+  "https://campusreports.vercel.app",
 ];
 
 function splitCorsValues(value) {
@@ -73,7 +74,7 @@ function parseCorsOrigins(...originValues) {
     .map((origin) => normalizeCorsOrigin(origin))
     .filter(Boolean);
 
-  return [...new Set([...LOCAL_CORS_ORIGINS, ...parsedOrigins])];
+  return [...new Set([...DEFAULT_CORS_ORIGINS, ...parsedOrigins])];
 }
 
 function parseCorsOriginPatterns(originPatterns = "") {
@@ -90,11 +91,6 @@ function parseCorsOriginPatterns(originPatterns = "") {
         return [];
       }
     });
-  return originPatterns
-    .split(",")
-    .map((pattern) => pattern.trim())
-    .filter(Boolean)
-    .map((pattern) => new RegExp(pattern, "i"));
 }
 
 const allowedCorsOrigins = parseCorsOrigins(

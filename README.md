@@ -117,8 +117,8 @@ The backend expects these environment variables in `backend/.env`:
 - `PORT`
 - `JWT_SECRET`
 - `MONGODB_URI`
-- `CORS_ORIGIN`
-- `FRONTEND_URL`
+- `CORS_ORIGIN` — comma- or whitespace-separated frontend origins allowed by CORS. The backend also allows `https://campusreports.vercel.app` and local development origins by default.
+- `FRONTEND_URL` — primary frontend URL; also added to the CORS allow-list when set.
 - `EMAIL_ENABLED`
 - `GMAIL_USER`
 - `GMAIL_APP_PASSWORD`
