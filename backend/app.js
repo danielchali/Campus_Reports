@@ -29,37 +29,47 @@ const LOCAL_CORS_ORIGINS = [
   "http://127.0.0.1:3000",
 ];
 
+function splitCorsValues(value) {
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => splitCorsValues(item));
+  }
+
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  return value.split(/[\s,]+/);
+}
+
 function normalizeCorsOrigin(origin) {
-  const trimmedOrigin = origin.trim().replace(/\/+$/, "");
+  const trimmedOrigin = String(origin || "")
+    .trim()
+    .replace(/[/:]+$/, "");
 
   if (!trimmedOrigin) {
     return "";
   }
 
-  if (trimmedOrigin === "*" || /^https?:\/\//i.test(trimmedOrigin)) {
+  if (trimmedOrigin === "*") {
     return trimmedOrigin;
   }
 
-  if (/^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(trimmedOrigin)) {
-    return `http://${trimmedOrigin}`;
-  }
+  const originWithProtocol = /^https?:\/\//i.test(trimmedOrigin)
+    ? trimmedOrigin
+    : /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(trimmedOrigin)
+      ? `http://${trimmedOrigin}`
+      : `https://${trimmedOrigin}`;
 
-  return `https://${trimmedOrigin}`;
+  try {
+    return new URL(originWithProtocol).origin;
+  } catch {
+    return originWithProtocol.replace(/\/+$/, "");
+  }
 }
 
 function parseCorsOrigins(...originValues) {
   const parsedOrigins = originValues
-    .flatMap((originValue) => {
-      if (Array.isArray(originValue)) {
-        return originValue;
-      }
-
-      if (typeof originValue === "string") {
-        return originValue.split(",");
-      }
-
-      return [];
-    })
+    .flatMap((originValue) => splitCorsValues(originValue))
     .map((origin) => normalizeCorsOrigin(origin))
     .filter(Boolean);
 
@@ -67,6 +77,19 @@ function parseCorsOrigins(...originValues) {
 }
 
 function parseCorsOriginPatterns(originPatterns = "") {
+  return splitCorsValues(originPatterns)
+    .filter(Boolean)
+    .flatMap((pattern) => {
+      try {
+        return [new RegExp(pattern, "i")];
+      } catch (err) {
+        console.warn(
+          `Ignoring invalid CORS origin pattern "${pattern}":`,
+          err.message,
+        );
+        return [];
+      }
+    });
   return originPatterns
     .split(",")
     .map((pattern) => pattern.trim())
