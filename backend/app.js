@@ -24,64 +24,98 @@ import workOrdersRouter from "./routes/workOrders.js";
 const app = express();
 const API_V1_BASE = "/api/v1";
 
-const DEFAULT_CORS_ORIGINS = [
+const LOCAL_CORS_ORIGINS = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
-  "https://campusreports.vercel.app",
 ];
 
+function splitCorsValues(value) {
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => splitCorsValues(item));
+  }
+
+  if (typeof value !== "string") {
+    return [];
+  }
+
+  return value.split(/[\s,]+/);
+}
+
 function normalizeCorsOrigin(origin) {
-  const trimmedOrigin = origin.trim().replace(/\/+$/, "");
+  const trimmedOrigin = String(origin || "")
+    .trim()
+    .replace(/[/:]+$/, "");
 
   if (!trimmedOrigin) {
     return "";
   }
 
-  if (trimmedOrigin === "*" || /^https?:\/\//i.test(trimmedOrigin)) {
+  if (trimmedOrigin === "*") {
     return trimmedOrigin;
   }
 
-  if (/^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(trimmedOrigin)) {
-    return `http://${trimmedOrigin}`;
-  }
+  const originWithProtocol = /^https?:\/\//i.test(trimmedOrigin)
+    ? trimmedOrigin
+    : /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(trimmedOrigin)
+      ? `http://${trimmedOrigin}`
+      : `https://${trimmedOrigin}`;
 
-  return `https://${trimmedOrigin}`;
+  try {
+    return new URL(originWithProtocol).origin;
+  } catch {
+    return originWithProtocol.replace(/\/+$/, "");
+  }
 }
 
 function parseCorsOrigins(...originValues) {
   const parsedOrigins = originValues
-    .flatMap((originValue) => {
-      if (Array.isArray(originValue)) {
-        return originValue;
-      }
-
-      if (typeof originValue === "string") {
-        return originValue.split(",");
-      }
-
-      return [];
-    })
+    .flatMap((originValue) => splitCorsValues(originValue))
     .map((origin) => normalizeCorsOrigin(origin))
     .filter(Boolean);
 
-  return [...new Set([...DEFAULT_CORS_ORIGINS, ...parsedOrigins])];
+  return [...new Set([...LOCAL_CORS_ORIGINS, ...parsedOrigins])];
+}
+
+function parseCorsOriginPatterns(originPatterns = "") {
+  return splitCorsValues(originPatterns)
+    .filter(Boolean)
+    .flatMap((pattern) => {
+      try {
+        return [new RegExp(pattern, "i")];
+      } catch (err) {
+        console.warn(
+          `Ignoring invalid CORS origin pattern "${pattern}":`,
+          err.message,
+        );
+        return [];
+      }
+    });
 }
 
 const allowedCorsOrigins = parseCorsOrigins(
   process.env.CORS_ORIGIN,
   process.env.FRONTEND_URL,
 );
+const allowedCorsOriginPatterns = parseCorsOriginPatterns(
+  process.env.CORS_ORIGIN_PATTERNS,
+);
 const allowAllCorsOrigins = allowedCorsOrigins.includes("*");
+
+function isCorsOriginAllowed(origin) {
+  if (!origin || allowAllCorsOrigins) {
+    return true;
+  }
+
+  const normalizedOrigin = normalizeCorsOrigin(origin);
+  return (
+    allowedCorsOrigins.includes(normalizedOrigin) ||
+    allowedCorsOriginPatterns.some((pattern) => pattern.test(normalizedOrigin))
+  );
+}
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowAllCorsOrigins) {
-      callback(null, true);
-      return;
-    }
-
-    const normalizedOrigin = normalizeCorsOrigin(origin);
-    if (allowedCorsOrigins.includes(normalizedOrigin)) {
+    if (isCorsOriginAllowed(origin)) {
       callback(null, true);
       return;
     }
@@ -89,10 +123,13 @@ const corsOptions = {
     callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   optionsSuccessStatus: 204,
 };
 
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 app.use(express.json());
 
 function mountRoutes(basePath) {
