@@ -41,25 +41,7 @@ function getTodayDateInputValue() {
 }
 
 function buildLocationFromProfile(profile: ReporterProfile | null) {
-  const roomNumber = profile?.studentProfile?.accommodation?.roomNumber?.trim();
-  const addressInfo = profile?.studentProfile?.addressInfo;
-  const addressParts = [
-    addressInfo?.address,
-    addressInfo?.town,
-    addressInfo?.province,
-  ]
-    .map((part) => part?.trim())
-    .filter(Boolean);
-
-  if (roomNumber && addressParts.length > 0) {
-    return `Room ${roomNumber}, ${addressParts.join(", ")}`;
-  }
-
-  if (roomNumber) {
-    return `Room ${roomNumber}`;
-  }
-
-  return addressParts.join(", ");
+  return profile?.studentProfile?.accommodation?.roomNumber?.trim() || "";
 }
 
 const categoryOptions: Array<{
@@ -135,7 +117,7 @@ export default function MakeReportPage() {
         if (defaultLocation) {
           setLocation((current) => current || defaultLocation);
           setAutoFillNotice(
-            "We pre-filled your incident date and saved profile location. You can edit them before submitting.",
+            "We pre-filled your incident date and room number. You can edit them before submitting.",
           );
         } else {
           setAutoFillNotice(

@@ -7,6 +7,30 @@ import { clearLoginAttempts, recordFailedLoginAttempt } from '../middleware/logi
 
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 
+
+function getStudentFullName(student) {
+    const obj = student?.toObject ? student.toObject({ virtuals: true }) : student;
+    const fullName = obj?.fullName || [obj?.personalInfo?.firstName, obj?.personalInfo?.surName].filter(Boolean).join(' ').trim();
+    return String(fullName || '').trim();
+}
+
+async function resolveUserDisplayName(user) {
+    if (user.role !== 'student') {
+        return String(user.name || '').trim();
+    }
+
+    const student = await StudentModel.findOne({ studentId: user.username });
+    const studentFullName = getStudentFullName(student);
+    const displayName = studentFullName || String(user.name || '').trim() || user.username;
+
+    if (displayName && displayName !== user.name) {
+        user.name = displayName;
+        await user.save();
+    }
+
+    return displayName;
+}
+
 function normalizeStudentStatus(status) {
     const normalized = String(status || '').trim().toLowerCase();
     if (normalized === 'suspended') return 'Suspended';
@@ -134,7 +158,8 @@ export async function login(req, res) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        const payload = { id: user._id || user.id, role: user.role, username: user.username };
+        const displayName = await resolveUserDisplayName(user);
+        const payload = { id: user._id || user.id, role: user.role, username: user.username, name: displayName };
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
         await logAudit({
