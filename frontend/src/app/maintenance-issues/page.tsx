@@ -18,7 +18,7 @@ import {
   getAllStudentReports,
   type StudentReport,
 } from "../../utils/studentReports";
-import { createWorkOrder } from "../../utils/workOrders";
+import { createManualWorkOrder, createWorkOrder } from "../../utils/workOrders";
 
 const statusOptions = [
   "all",
@@ -27,6 +27,19 @@ const statusOptions = [
   "In Progress",
   "Resolved",
 ];
+
+const priorityOptions = ["Low", "Normal", "High", "Urgent safety risk"];
+
+const INITIAL_MANUAL_ISSUE = {
+  title: "",
+  description: "",
+  location: "",
+  issueType: "Other",
+  priority: "Normal" as const,
+  affectedAsset: "",
+  accessInstructions: "",
+  assignedTo: "",
+};
 
 export default function MaintenanceIssuesPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -38,6 +51,9 @@ export default function MaintenanceIssuesPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [creatingId, setCreatingId] = useState<string | null>(null);
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualIssue, setManualIssue] = useState(INITIAL_MANUAL_ISSUE);
+  const [creatingManual, setCreatingManual] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !token) router.replace("/login");
@@ -80,6 +96,37 @@ export default function MaintenanceIssuesPage() {
       (report) => statusFilter === "all" || report.status === statusFilter,
     );
   }, [reports, statusFilter]);
+
+
+  async function handleCreateManualWorkOrder(event: React.FormEvent) {
+    event.preventDefault();
+    if (!manualIssue.title.trim() || !manualIssue.description.trim() || !manualIssue.location.trim()) {
+      showNotification("error", "Title, description, and location are required.");
+      return;
+    }
+
+    try {
+      setCreatingManual(true);
+      const workOrder = await createManualWorkOrder({
+        ...manualIssue,
+        title: manualIssue.title.trim(),
+        description: manualIssue.description.trim(),
+        location: manualIssue.location.trim(),
+        affectedAsset: manualIssue.affectedAsset.trim(),
+        accessInstructions: manualIssue.accessInstructions.trim(),
+        assignedTo: manualIssue.assignedTo.trim(),
+        message: "Manual maintenance issue and work order created by staff.",
+      });
+      setManualIssue(INITIAL_MANUAL_ISSUE);
+      setShowManualForm(false);
+      showNotification("success", `Manual work order ${workOrder.workOrderId} created.`);
+      router.push("/work-orders");
+    } catch (err: any) {
+      showNotification("error", err?.message || "Failed to create manual work order.");
+    } finally {
+      setCreatingManual(false);
+    }
+  }
 
   async function handleCreateWorkOrder(report: StudentReport) {
     try {
@@ -126,15 +173,121 @@ export default function MaintenanceIssuesPage() {
                 and create dedicated work orders for maintenance follow-up.
               </p>
             </div>
-            <Link
-              href="/work-orders"
-              className="inline-flex items-center gap-2 rounded-xl bg-kmuGreen px-4 py-3 text-sm font-semibold text-white hover:bg-kmuOrange"
-            >
-              <ClipboardList size={18} />
-              View Work Orders
-            </Link>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setShowManualForm((current) => !current)}
+                className="inline-flex items-center gap-2 rounded-xl bg-kmuGreen px-4 py-3 text-sm font-semibold text-white hover:bg-kmuOrange"
+              >
+                <PlusCircle size={18} />
+                {showManualForm ? "Cancel Manual Issue" : "Create Manual Issue"}
+              </button>
+              <Link
+                href="/work-orders"
+                className="inline-flex items-center gap-2 rounded-xl border border-kmuGreen px-4 py-3 text-sm font-semibold text-kmuGreen hover:bg-kmuGreen/10"
+              >
+                <ClipboardList size={18} />
+                View Work Orders
+              </Link>
+            </div>
           </div>
         </div>
+
+
+        {showManualForm && (
+          <form onSubmit={handleCreateManualWorkOrder} className="rounded-2xl bg-white p-5 shadow dark:bg-gray-800">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create maintenance issue and work order</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Use this for issues found by staff or administrators without a submitted user report.</p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Title *</span>
+                <input
+                  value={manualIssue.title}
+                  onChange={(event) => setManualIssue((current) => ({ ...current, title: event.target.value }))}
+                  className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Location *</span>
+                <input
+                  value={manualIssue.location}
+                  onChange={(event) => setManualIssue((current) => ({ ...current, location: event.target.value }))}
+                  className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  placeholder="Building, room, hostel, office..."
+                  required
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Issue type</span>
+                <input
+                  value={manualIssue.issueType}
+                  onChange={(event) => setManualIssue((current) => ({ ...current, issueType: event.target.value }))}
+                  className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  placeholder="Electrical, Plumbing, Carpentry..."
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Priority</span>
+                <select
+                  value={manualIssue.priority}
+                  onChange={(event) => setManualIssue((current) => ({ ...current, priority: event.target.value as typeof manualIssue.priority }))}
+                  className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  {priorityOptions.map((priority) => <option key={priority} value={priority}>{priority}</option>)}
+                </select>
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Affected asset</span>
+                <input
+                  value={manualIssue.affectedAsset}
+                  onChange={(event) => setManualIssue((current) => ({ ...current, affectedAsset: event.target.value }))}
+                  className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  placeholder="Door lock, sink, light fixture..."
+                />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Assigned to</span>
+                <input
+                  value={manualIssue.assignedTo}
+                  onChange={(event) => setManualIssue((current) => ({ ...current, assignedTo: event.target.value }))}
+                  className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  placeholder="Technician/team name"
+                />
+              </label>
+              <label className="space-y-1 md:col-span-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Description *</span>
+                <textarea
+                  value={manualIssue.description}
+                  onChange={(event) => setManualIssue((current) => ({ ...current, description: event.target.value }))}
+                  className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  rows={3}
+                  required
+                />
+              </label>
+              <label className="space-y-1 md:col-span-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Access instructions</span>
+                <textarea
+                  value={manualIssue.accessInstructions}
+                  onChange={(event) => setManualIssue((current) => ({ ...current, accessInstructions: event.target.value }))}
+                  className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  rows={2}
+                />
+              </label>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                type="submit"
+                disabled={creatingManual}
+                className="rounded-xl bg-kmuGreen px-4 py-2 text-sm font-semibold text-white hover:bg-kmuOrange disabled:opacity-60"
+              >
+                {creatingManual ? "Creating..." : "Create Issue & Work Order"}
+              </button>
+            </div>
+          </form>
+        )}
 
         <div className="rounded-2xl bg-white dark:bg-gray-800 p-5 shadow">
           <div className="grid gap-3 md:grid-cols-[1fr_220px]">

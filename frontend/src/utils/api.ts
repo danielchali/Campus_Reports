@@ -51,13 +51,24 @@ export async function login(username: string, password: string) {
   }
 }
 
-export async function register(username: string, password: string, name?: string, role?: string) {
+export async function register(username: string, password: string, name: string | undefined, role: string | undefined, email: string) {
   const res = await fetch(`${API_BASE_URL}/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify({ username, password, name, role })
+    body: JSON.stringify({ username, password, name, role, email })
   });
   if (!res.ok) throw new Error((await res.json()).error || 'Register failed');
+  return res.json();
+}
+
+
+export async function registerGeneralUser(userData: { username: string; password: string; name: string; email: string; profile?: { houseNumber?: string } }) {
+  const res = await fetch(`${API_BASE_URL}/general-signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(userData)
+  });
+  if (!res.ok) throw new Error((await res.json()).error || 'General user signup failed');
   return res.json();
 }
 

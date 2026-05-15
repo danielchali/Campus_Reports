@@ -11,6 +11,7 @@ import { saveAs } from 'file-saver';
 import Notification, { useNotification } from '../../components/Notification';
 import { canAccessPage } from '../../utils/access';
 import { PageSkeleton, TableSkeleton } from '../../components/PageSkeleton';
+import { useAlertDialog, useConfirmDialog } from '../../components/AppDialog';
 
 interface Student {
   _id: string;
@@ -82,6 +83,8 @@ export default function CasesPage() {
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const { apiCall, isLoading: apiLoading, error: apiError } = useOfflineApi();
   const { notification, showNotification, hideNotification } = useNotification();
+  const { confirm, confirmDialog } = useConfirmDialog();
+  const { showAlert, alertDialog } = useAlertDialog();
 
   const searchParams = useSearchParams();
   const studentIdFilter = searchParams?.get('studentId') || '';
@@ -185,7 +188,13 @@ export default function CasesPage() {
   }
 
   async function handleBulkDelete() {
-    if (!window.confirm('Delete selected cases?')) return;
+    const confirmed = await confirm({
+      title: 'Delete selected cases?',
+      message: `This will permanently delete ${selected.length} selected case(s).`,
+      confirmLabel: 'Delete Selected',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     for (const id of selected) {
       await remove('cases', id);
     }
@@ -204,7 +213,7 @@ export default function CasesPage() {
   // Enhanced export functions
   const handleExportSelected = async (format: 'docx' | 'xlsx') => {
     if (selected.length === 0) {
-      alert('Please select items to export');
+      showAlert({ title: 'No cases selected', message: 'Please select items to export.', tone: 'warning' });
       return;
     }
     
@@ -262,7 +271,7 @@ export default function CasesPage() {
       const blob = await res.blob();
       saveAs(blob, 'cases_list.docx');
     } catch (err) {
-      alert('Failed to export cases list.');
+      showAlert({ title: 'Export failed', message: 'Failed to export cases list.', tone: 'danger' });
     }
   };
 
@@ -658,6 +667,8 @@ export default function CasesPage() {
           )}
         </div>
       </section>
+      {confirmDialog}
+      {alertDialog}
     </>
   );
 }

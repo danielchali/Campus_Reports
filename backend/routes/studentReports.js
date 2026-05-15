@@ -6,7 +6,6 @@ import StudentReportModel from "../models/studentReport.js";
 import StudentModel from "../models/student.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification } from "../utils/notifications.js";
-import { createWorkOrderFromReport } from "./workOrders.js";
 import { getUploadDirectory } from "../utils/uploadPaths.js";
 
 const router = express.Router();
@@ -596,23 +595,6 @@ router.patch(
         createdBy: req.user.username || req.user.name,
         createdByRole: req.user.role,
       });
-      if (
-        ["admin", "dean_of_students", "assistant_dean", "secretary", "registrar"].includes(
-          req.user.role,
-        ) &&
-        report.category === "maintenance_issue" &&
-        status === "In Progress"
-      ) {
-        const workOrder = await createWorkOrderFromReport(
-          report,
-          req.user,
-          message.trim() ||
-            "Work order created when maintenance issue moved to In Progress.",
-        );
-        report.routed_to_maintenance = true;
-        report.routed_by_role = req.user.role;
-        report.maintenance_work_order_id = workOrder.work_order_id;
-      }
       report.updatedAt = new Date();
 
       await report.save();

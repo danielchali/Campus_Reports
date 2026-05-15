@@ -24,7 +24,7 @@ function buildStudentProfileUpdate(body = {}) {
             dateOfBirth: studentProfile.personalInfo?.dateOfBirth ?? studentProfile.dateOfBirth ?? ''
         },
         accommodation: {
-            roomNumber: studentProfile.accommodation?.roomNumber ?? studentProfile.roomNumber ?? ''
+            roomNumber: String(studentProfile.accommodation?.roomNumber ?? studentProfile.roomNumber ?? '').trim()
         },
         addressInfo: {
             province: studentProfile.addressInfo?.province ?? studentProfile.province ?? '',
@@ -46,7 +46,8 @@ export async function listUsers(req, res) {
             const regex = { $regex: search, $options: 'i' };
             query.$or = [
                 { username: regex },
-                { name: regex }
+                { name: regex },
+                { email: regex }
             ];
         }
 
@@ -77,7 +78,17 @@ export async function createUser(req, res) {
 
 export async function updateUser(req, res) {
     try {
-        const result = await UserModel.findByIdAndUpdate(req.params.id, req.body, { new: true, select: '-password' });
+        const currentUser = await UserModel.findById(req.params.id, '-password');
+        if (!currentUser) return res.status(404).json({ error: 'User not found' });
+
+        const updateData = { ...req.body };
+        delete updateData.password;
+        if (updateData.email !== undefined) updateData.email = String(updateData.email || '').trim().toLowerCase();
+
+        const effectiveEmail = updateData.email !== undefined ? updateData.email : currentUser.email;
+        if (!effectiveEmail) return res.status(400).json({ error: 'Email is required' });
+
+        const result = await UserModel.findByIdAndUpdate(req.params.id, updateData, { new: true, select: '-password' });
         res.json(result);
     } catch (err) {
         res.status(500).json({ error: 'Server error' });
@@ -133,6 +144,12 @@ export async function updateOwnProfile(req, res) {
         const updateData = {};
         if (req.body.name !== undefined) updateData.name = req.body.name;
         if (req.body.username !== undefined) updateData.username = req.body.username;
+        if (req.body.email !== undefined) updateData.email = String(req.body.email || '').trim().toLowerCase();
+        if (req.body.profile !== undefined) {
+            updateData.profile = {
+                houseNumber: String(req.body.profile?.houseNumber || '').trim()
+            };
+        }
 
         let id = req.user.id;
         if (id && typeof id === 'string' && id.length === 24 && /^[a-fA-F0-9]+$/.test(id)) {
@@ -149,11 +166,24 @@ export async function updateOwnProfile(req, res) {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        const submittedUserEmail = updateData.email !== undefined ? updateData.email : currentUser.email;
+
+        if (currentUser.role !== 'student' && !submittedUserEmail) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+
         if (currentUser.role === 'student') {
             delete updateData.username;
 
             if (req.body.studentProfile) {
                 const studentUpdate = buildStudentProfileUpdate(req.body);
+                if (!studentUpdate.accommodation.roomNumber) {
+                    return res.status(400).json({ error: 'Room number is required' });
+                }
+                if (!String(studentUpdate.addressInfo.email || '').trim()) {
+                    return res.status(400).json({ error: 'Email is required' });
+                }
+                updateData.email = String(studentUpdate.addressInfo.email || '').trim().toLowerCase();
                 await StudentModel.findOneAndUpdate(
                     { studentId: currentUser.username },
                     {
@@ -173,6 +203,10 @@ export async function updateOwnProfile(req, res) {
                     updateData.name = fullName;
                 }
             }
+        }
+
+        if (currentUser.role === 'student' && !req.body.studentProfile && !submittedUserEmail) {
+            return res.status(400).json({ error: 'Email is required' });
         }
 
         const result = await UserModel.findByIdAndUpdate(id, updateData, { new: true, select: '-password' });

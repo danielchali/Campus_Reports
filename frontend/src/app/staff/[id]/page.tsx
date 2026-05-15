@@ -8,6 +8,7 @@ import { API_BASE_URL } from '../../../config/constants';
 import { authHeaders } from '../../../utils/api';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
+import { useConfirmDialog } from '../../../components/AppDialog';
 
 interface Staff {
     staffId: string;
@@ -41,6 +42,7 @@ interface Case {
 export default function StaffDetailsPage({ params }: { params: { id: string } }) {
     const { token, user, loading: authLoading } = useAuth();
     const router = useRouter();
+    const { confirm, confirmDialog } = useConfirmDialog();
     
     // Handle authentication like profile page - only on client side
     if (typeof window !== 'undefined') {
@@ -96,7 +98,13 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
     }, [token, params.id]);
 
     async function handleDelete() {
-        if (!window.confirm('Are you sure you want to delete this staff member?')) return;
+        const confirmed = await confirm({
+            title: 'Delete staff member?',
+            message: 'Are you sure you want to delete this staff member? This action cannot be undone.',
+            confirmLabel: 'Delete Staff',
+            tone: 'danger',
+        });
+        if (!confirmed) return;
         try {
             const res = await fetch(`${API_BASE_URL}/staff/${params.id}`, {
                 method: 'DELETE',
@@ -395,6 +403,7 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
                     </>
                 )}
             </div>
+            {confirmDialog}
         </section>
     );
 }

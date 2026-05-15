@@ -23,6 +23,21 @@ export interface WorkOrderSignatures {
   partE: string;
 }
 
+
+export interface ManualWorkOrderInput {
+  title: string;
+  description: string;
+  location: string;
+  issueType?: string;
+  priority?: WorkOrder["priority"];
+  affectedAsset?: string;
+  accessInstructions?: string;
+  assignedTo?: string;
+  requestedByName?: string;
+  requestingDepartment?: string;
+  message?: string;
+}
+
 export interface WorkOrder {
   id: string;
   workOrderId: string;
@@ -75,6 +90,24 @@ export async function createWorkOrder(
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ reportId, message }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to create work order");
+  }
+
+  return res.json();
+}
+
+
+export async function createManualWorkOrder(
+  workOrderData: ManualWorkOrderInput,
+): Promise<WorkOrder> {
+  const res = await fetch(`${API_BASE_URL}/work-orders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(workOrderData),
   });
 
   if (!res.ok) {

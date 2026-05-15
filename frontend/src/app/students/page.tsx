@@ -11,6 +11,7 @@ import * as XLSX from 'xlsx';
 import { canAccessPage } from '../../utils/access';
 import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
 import CreateStudentModal from '../../components/CreateStudentModal';
+import { useAlertDialog, useConfirmDialog } from '../../components/AppDialog';
 
 // Type for a student
 interface Student {
@@ -27,6 +28,8 @@ const GENDERS = ['Male', 'Female', 'Other'];
 export default function StudentsPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { confirm, confirmDialog } = useConfirmDialog();
+  const { showAlert, alertDialog } = useAlertDialog();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -325,7 +328,13 @@ export default function StudentsPage() {
     setSelected([]);
   }
   async function handleBulkDelete() {
-    if (!window.confirm('Delete selected students?')) return;
+    const confirmed = await confirm({
+      title: 'Delete selected students?',
+      message: `This will permanently delete ${selected.length} selected student record(s).`,
+      confirmLabel: 'Delete Selected',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     for (const id of selected) {
       await remove('students', id);
     }
@@ -362,7 +371,7 @@ export default function StudentsPage() {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err) {
-      alert('Failed to export students list.');
+      showAlert({ title: 'Export failed', message: 'Failed to export students list.', tone: 'danger' });
     }
   }
 
@@ -637,6 +646,9 @@ export default function StudentsPage() {
           </div>
         </div>
       </div>
+
+      {confirmDialog}
+      {alertDialog}
 
       <CreateStudentModal
         isOpen={isCreateModalOpen}

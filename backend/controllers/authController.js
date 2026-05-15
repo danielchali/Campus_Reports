@@ -88,7 +88,7 @@ function normalizeStudentSignupPayload(payload = {}) {
             dateOfBirth: payload.personalInfo?.dateOfBirth || payload.dateOfBirth || ''
         },
         accommodation: {
-            roomNumber: payload.accommodation?.roomNumber || payload.roomNumber || ''
+            roomNumber: String(payload.accommodation?.roomNumber || payload.roomNumber || '').trim()
         },
         addressInfo: {
             province: payload.addressInfo?.province || payload.province || '',
@@ -98,6 +98,31 @@ function normalizeStudentSignupPayload(payload = {}) {
             email: payload.addressInfo?.email || payload.email || ''
         }
     };
+}
+
+
+function normalizeGeneralUserSignupPayload(payload = {}) {
+    return {
+        username: String(payload.username || '').trim(),
+        password: String(payload.password || ''),
+        name: String(payload.name || payload.fullName || '').trim(),
+        email: String(payload.email || payload.profile?.email || '').trim().toLowerCase(),
+        profile: {
+            houseNumber: String(payload.profile?.houseNumber || payload.houseNumber || '').trim()
+        }
+    };
+}
+
+function validateGeneralUserSignupPayload(payload = {}) {
+    const errors = [];
+
+    if (!String(payload.username || '').trim()) errors.push('Username is required');
+    if (!String(payload.password || '').trim()) errors.push('Password is required');
+    if (String(payload.password || '').length < 6) errors.push('Password must be at least 6 characters');
+    if (!String(payload.name || payload.fullName || '').trim()) errors.push('Full name is required');
+    if (!String(payload.email || payload.profile?.email || '').trim()) errors.push('Email is required');
+
+    return errors;
 }
 
 function validateStudentSignupPayload(payload = {}) {
@@ -110,6 +135,7 @@ function validateStudentSignupPayload(payload = {}) {
     if (!String(payload.personalInfo?.firstName || payload.firstName || '').trim()) errors.push('First name is required');
     if (!String(payload.personalInfo?.surName || payload.surName || '').trim()) errors.push('Surname is required');
     if (!String(payload.addressInfo?.email || payload.email || '').trim()) errors.push('Email is required');
+    if (!String(payload.accommodation?.roomNumber || payload.roomNumber || '').trim()) errors.push('Room number is required');
 
     return errors;
 }
@@ -185,12 +211,15 @@ export async function login(req, res) {
 
 export async function register(req, res) {
     const { username, password, name, role } = req.body;
+    const email = String(req.body.email || '').trim().toLowerCase();
     try {
+        if (!email) return res.status(400).json({ error: 'Email is required' });
+
         const exists = await UserModel.findOne({ username });
         if (exists) return res.status(409).json({ error: 'Username already exists' });
 
         const hashed = await bcrypt.hash(password, 10);
-        const user = await UserModel.create({ username, password: hashed, name, role });
+        const user = await UserModel.create({ username, password: hashed, name, email, role });
 
         await ensureStudentProfileForUser({
             username,
@@ -205,6 +234,7 @@ export async function register(req, res) {
             user: username,
             details: {
                 name,
+                email,
                 role: role || 'user',
                 timestamp: new Date().toISOString()
             },
@@ -214,6 +244,61 @@ export async function register(req, res) {
 
         res.json({ success: true, user });
     } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+
+export async function registerGeneralUser(req, res) {
+    try {
+        const validationErrors = validateGeneralUserSignupPayload(req.body);
+        if (validationErrors.length > 0) {
+            return res.status(400).json({ error: validationErrors[0], details: validationErrors });
+        }
+
+        const userPayload = normalizeGeneralUserSignupPayload(req.body);
+        const exists = await UserModel.findOne({ username: userPayload.username });
+        if (exists) return res.status(409).json({ error: 'Username already exists' });
+
+        const hashed = await bcrypt.hash(userPayload.password, 10);
+        const user = await UserModel.create({
+            username: userPayload.username,
+            password: hashed,
+            name: userPayload.name,
+            email: userPayload.email,
+            role: 'general_user',
+            profile: userPayload.profile
+        });
+
+        await logAudit({
+            action: 'general_user_self_registered',
+            entity: 'user',
+            entityId: user._id || user.id,
+            user: user.username,
+            details: {
+                name: user.name,
+                role: user.role,
+                houseNumberProvided: Boolean(userPayload.profile.houseNumber),
+                timestamp: new Date().toISOString()
+            },
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'General user account created successfully',
+            user: {
+                id: user._id,
+                username: user.username,
+                role: user.role,
+                name: user.name,
+                email: user.email,
+                profile: user.profile
+            }
+        });
+    } catch (err) {
+        console.error('General user signup error:', err);
         res.status(500).json({ error: 'Server error' });
     }
 }
@@ -245,7 +330,8 @@ export async function registerStudent(req, res) {
             username,
             password: hashed,
             name: fullName,
-            role: 'student'
+            role: 'student',
+            email: String(studentPayload.addressInfo.email || '').trim().toLowerCase()
         });
 
         const student = await StudentModel.create(studentPayload);
@@ -272,7 +358,8 @@ export async function registerStudent(req, res) {
                 id: user._id,
                 username: user.username,
                 role: user.role,
-                name: user.name
+                name: user.name,
+                email: user.email
             }
         });
     } catch (err) {
@@ -296,11 +383,11 @@ export async function forgotPassword(req, res) {
         }
 
         // Find email based on role
-        let email = null;
-        if (user.role === 'student') {
+        let email = user.email || null;
+        if (!email && user.role === 'student') {
             const student = await StudentModel.findOne({ studentId: username });
             email = student?.addressInfo?.email;
-        } else {
+        } else if (!email) {
             const staff = await StaffModel.findOne({ staffId: username });
             email = staff?.email;
         }
@@ -318,7 +405,8 @@ export async function forgotPassword(req, res) {
         user.resetPasswordOTPExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
         await user.save();
 
-        const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+        const frontendUrl = process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:3000';
+        const resetUrl = `${frontendUrl.replace(/\/$/, '')}/reset-password?token=${resetToken}`;
 
         const mailOptions = {
             to: email,
@@ -333,6 +421,9 @@ export async function forgotPassword(req, res) {
             res.json({ message: 'Password reset OTP sent to your email.' });
         } catch (emailErr) {
             console.error('Email send error:', emailErr);
+            if (process.env.NODE_ENV === 'production') {
+                return res.status(502).json({ error: 'Unable to send password reset email. Please try again later or contact administration.' });
+            }
             console.log(`[Dev Fallback] Reset OTP for ${username}: ${resetOTP}; link: ${resetUrl}`);
             res.json({ message: 'Password reset OTP generated. (Check server console in development)' });
         }
@@ -345,12 +436,21 @@ export async function forgotPassword(req, res) {
 
 export async function resetPassword(req, res) {
     const { token, otp, newPassword } = req.body;
-    if ((!token && !otp) || !newPassword) return res.status(400).json({ error: 'OTP (or token) and new password are required' });
+    const normalizedToken = String(token || '').trim();
+    const normalizedOTP = String(otp || '').trim();
+    if ((!normalizedToken && !normalizedOTP) || !newPassword) return res.status(400).json({ error: 'OTP (or token) and new password are required' });
 
     try {
-        const user = otp
-            ? await UserModel.findOne({ resetPasswordOTP: otp, resetPasswordOTPExpires: { $gt: Date.now() } })
-            : await UserModel.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
+        const user = normalizedToken && normalizedOTP
+            ? await UserModel.findOne({
+                resetPasswordToken: normalizedToken,
+                resetPasswordExpires: { $gt: Date.now() },
+                resetPasswordOTP: normalizedOTP,
+                resetPasswordOTPExpires: { $gt: Date.now() }
+            })
+            : normalizedOTP
+                ? await UserModel.findOne({ resetPasswordOTP: normalizedOTP, resetPasswordOTPExpires: { $gt: Date.now() } })
+                : await UserModel.findOne({ resetPasswordToken: normalizedToken, resetPasswordExpires: { $gt: Date.now() } });
 
         if (!user) {
             return res.status(400).json({ error: 'Password reset token is invalid or has expired.' });

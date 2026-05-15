@@ -10,11 +10,18 @@ export default function HelpPage() {
   if (isStudent) {
     return (
       <section className="max-w-4xl mx-auto space-y-8">
-        <div className="rounded-3xl bg-white dark:bg-gray-800 p-8 shadow">
-          <h1 className="text-4xl font-bold text-kmuGreen">Help</h1>
-          <p className="mt-3 text-gray-600 dark:text-gray-400 text-lg">
-            Everything you need to submit reports confidently and track them from your student dashboard.
-          </p>
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
+                <LifeBuoy size={18} />
+              </div>
+              <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Help</h1>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 md:text-right">
+              Everything you need to submit reports confidently and track them from your student dashboard.
+            </p>
+          </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -73,11 +80,18 @@ export default function HelpPage() {
 
   return (
     <section className="max-w-4xl mx-auto">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-4 text-kmuGreen">Help & Documentation</h1>
-        <p className="text-gray-700 dark:text-gray-300 text-lg">
-          Welcome to Campus Reports. Use this guide to navigate the system and complete your daily work.
-        </p>
+      <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
+              <LifeBuoy size={18} />
+            </div>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Help & Documentation</h1>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 md:text-right">
+            Welcome to Campus Reports. Use this guide to navigate the system and complete your daily work.
+          </p>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">

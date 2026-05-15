@@ -11,6 +11,7 @@ import SignatureField from "../../components/SignatureField";
 import Notification, { useNotification } from "../../components/Notification";
 import { canAccessPage } from "../../utils/access";
 import {
+  createManualWorkOrder,
   getWorkOrders,
   updateWorkOrderStatus,
   type WorkOrder,
@@ -29,6 +30,17 @@ const priorityOptions = ["all", "Low", "Normal", "High", "Urgent safety risk"];
 
 const WORK_ORDER_SIGNATURES_STORAGE_KEY = "work-order-signatures-v1";
 
+const INITIAL_MANUAL_WORK_ORDER = {
+  title: "",
+  description: "",
+  location: "",
+  issueType: "Other",
+  priority: "Normal" as const,
+  affectedAsset: "",
+  accessInstructions: "",
+  assignedTo: "",
+};
+
 export default function WorkOrdersPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -45,6 +57,9 @@ export default function WorkOrdersPage() {
   const [updateNotes, setUpdateNotes] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [signatures, setSignatures] = useState<Record<string, string>>({});
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualWorkOrder, setManualWorkOrder] = useState(INITIAL_MANUAL_WORK_ORDER);
+  const [creatingManual, setCreatingManual] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !token) router.replace("/login");
@@ -156,6 +171,37 @@ export default function WorkOrdersPage() {
     return { total: workOrders.length, open, inProgress, completed };
   }, [workOrders]);
 
+
+  async function handleCreateManualWorkOrder(event: React.FormEvent) {
+    event.preventDefault();
+    if (!manualWorkOrder.title.trim() || !manualWorkOrder.description.trim() || !manualWorkOrder.location.trim()) {
+      showNotification("error", "Title, description, and location are required.");
+      return;
+    }
+
+    try {
+      setCreatingManual(true);
+      const workOrder = await createManualWorkOrder({
+        ...manualWorkOrder,
+        title: manualWorkOrder.title.trim(),
+        description: manualWorkOrder.description.trim(),
+        location: manualWorkOrder.location.trim(),
+        affectedAsset: manualWorkOrder.affectedAsset.trim(),
+        accessInstructions: manualWorkOrder.accessInstructions.trim(),
+        assignedTo: manualWorkOrder.assignedTo.trim(),
+        message: "Manual maintenance work order created by staff.",
+      });
+      setWorkOrders((current) => [workOrder, ...current]);
+      setManualWorkOrder(INITIAL_MANUAL_WORK_ORDER);
+      setShowManualForm(false);
+      showNotification("success", `Manual work order ${workOrder.workOrderId} created.`);
+    } catch (err: any) {
+      showNotification("error", err?.message || "Failed to create manual work order.");
+    } finally {
+      setCreatingManual(false);
+    }
+  }
+
   async function saveStatus(workOrder: WorkOrder) {
     const status = draftStatuses[workOrder.id] || workOrder.status;
     const note =
@@ -204,15 +250,76 @@ export default function WorkOrdersPage() {
                 maintenance issues.
               </p>
             </div>
-            <Link
-              href="/maintenance-issues"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-kmuGreen px-4 py-3 text-sm font-semibold text-white transition hover:bg-kmuOrange"
-            >
-              <PlusCircle size={18} />
-              New Work Order
-            </Link>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => setShowManualForm((current) => !current)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-kmuGreen px-4 py-3 text-sm font-semibold text-white transition hover:bg-kmuOrange"
+              >
+                <PlusCircle size={18} />
+                {showManualForm ? "Cancel New Work Order" : "New Work Order"}
+              </button>
+              <Link
+                href="/maintenance-issues"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-kmuGreen px-4 py-3 text-sm font-semibold text-kmuGreen transition hover:bg-kmuGreen/10"
+              >
+                <Wrench size={18} />
+                Maintenance Issues
+              </Link>
+            </div>
           </div>
         </div>
+
+
+        {showManualForm && (
+          <form onSubmit={handleCreateManualWorkOrder} className="rounded-2xl bg-white p-5 shadow dark:bg-gray-800">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create work order without a submitted report</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Use this for staff-observed maintenance issues or verbal/offline requests.</p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Title *</span>
+                <input value={manualWorkOrder.title} onChange={(event) => setManualWorkOrder((current) => ({ ...current, title: event.target.value }))} className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" required />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Location *</span>
+                <input value={manualWorkOrder.location} onChange={(event) => setManualWorkOrder((current) => ({ ...current, location: event.target.value }))} className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" required />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Issue type</span>
+                <input value={manualWorkOrder.issueType} onChange={(event) => setManualWorkOrder((current) => ({ ...current, issueType: event.target.value }))} className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Priority</span>
+                <select value={manualWorkOrder.priority} onChange={(event) => setManualWorkOrder((current) => ({ ...current, priority: event.target.value as typeof manualWorkOrder.priority }))} className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                  {priorityOptions.filter((priority) => priority !== "all").map((priority) => <option key={priority} value={priority}>{priority}</option>)}
+                </select>
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Affected asset</span>
+                <input value={manualWorkOrder.affectedAsset} onChange={(event) => setManualWorkOrder((current) => ({ ...current, affectedAsset: event.target.value }))} className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Assigned to</span>
+                <input value={manualWorkOrder.assignedTo} onChange={(event) => setManualWorkOrder((current) => ({ ...current, assignedTo: event.target.value }))} className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+              </label>
+              <label className="space-y-1 md:col-span-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Description *</span>
+                <textarea value={manualWorkOrder.description} onChange={(event) => setManualWorkOrder((current) => ({ ...current, description: event.target.value }))} rows={3} className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" required />
+              </label>
+              <label className="space-y-1 md:col-span-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Access instructions</span>
+                <textarea value={manualWorkOrder.accessInstructions} onChange={(event) => setManualWorkOrder((current) => ({ ...current, accessInstructions: event.target.value }))} rows={2} className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+              </label>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button type="submit" disabled={creatingManual} className="rounded-xl bg-kmuGreen px-4 py-2 text-sm font-semibold text-white hover:bg-kmuOrange disabled:opacity-60">
+                {creatingManual ? "Creating..." : "Create Work Order"}
+              </button>
+            </div>
+          </form>
+        )}
 
         <div className="grid gap-4 md:grid-cols-4">
           <SummaryCard

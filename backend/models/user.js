@@ -4,7 +4,11 @@ const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     name: String,
+    email: { type: String, trim: true, lowercase: true },
     role: { type: String, default: 'user' },
+    profile: {
+        houseNumber: String
+    },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
     resetPasswordOTP: String,

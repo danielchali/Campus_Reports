@@ -6,6 +6,7 @@ import { getAll, register, update, remove, exportDocx, exportExcel, authHeaders 
 import { API_BASE_URL } from '../../../config/constants';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, TableSkeleton } from '../../../components/PageSkeleton';
+import { useConfirmDialog } from '../../../components/AppDialog';
 
 
 
@@ -15,6 +16,7 @@ type UserAccount = {
   username: string;
   name: string;
   role: string;
+  email?: string;
 };
 
 type ApiError = {
@@ -43,6 +45,7 @@ const ROLES = [
 export default function UserManagementPage() {
   const { token, user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { confirm, confirmDialog } = useConfirmDialog();
   
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,11 +53,15 @@ export default function UserManagementPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editUser, setEditUser] = useState<UserAccount | null>(null);
-  const [newUser, setNewUser] = useState({ username: '', name: '', password: '', role: 'security_officer' });
+  const [newUser, setNewUser] = useState({ username: '', name: '', email: '', password: '', role: 'security_officer' });
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
+  const [resetPasswordUser, setResetPasswordUser] = useState<UserAccount | null>(null);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetPasswordConfirm, setResetPasswordConfirm] = useState('');
+  const [resettingPassword, setResettingPassword] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !token) {
@@ -91,10 +98,10 @@ export default function UserManagementPage() {
     setError(null);
     setSuccess(null);
     try {
-      await register(newUser.username, newUser.password, newUser.name, newUser.role);
+      await register(newUser.username, newUser.password, newUser.name, newUser.role, newUser.email.trim());
       setSuccess('User created successfully!');
       setShowCreate(false);
-      setNewUser({ username: '', name: '', password: '', role: 'security_officer' });
+      setNewUser({ username: '', name: '', email: '', password: '', role: 'security_officer' });
       fetchUsers();
     } catch (err: unknown) {
       console.error('Error creating user:', err);
@@ -121,7 +128,8 @@ export default function UserManagementPage() {
       await update('users', targetUserId, {
         username: editUser.username,
         name: editUser.name,
-        role: editUser.role
+        role: editUser.role,
+        email: editUser.email?.trim() || ''
       });
       setSuccess('User updated successfully!');
       setEditUser(null);
@@ -134,7 +142,13 @@ export default function UserManagementPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    const confirmed = await confirm({
+      title: 'Delete user?',
+      message: 'Are you sure you want to delete this user? This action cannot be undone.',
+      confirmLabel: 'Delete User',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     setError(null);
     setSuccess(null);
     try {
@@ -147,26 +161,59 @@ export default function UserManagementPage() {
     }
   }
 
-  async function handleAdminResetPassword(id: string) {
-    const newPassword = window.prompt('Enter a temporary password (min 6 chars):');
-    if (!newPassword) return;
-    if (newPassword.length < 6) {
+  function openResetPasswordDialog(userAccount: UserAccount) {
+    setResetPasswordUser(userAccount);
+    setResetPassword('');
+    setResetPasswordConfirm('');
+    setError(null);
+    setSuccess(null);
+  }
+
+  function closeResetPasswordDialog() {
+    if (resettingPassword) return;
+    setResetPasswordUser(null);
+    setResetPassword('');
+    setResetPasswordConfirm('');
+  }
+
+  async function handleAdminResetPassword(e: React.FormEvent) {
+    e.preventDefault();
+    const targetUserId = resetPasswordUser?.id || resetPasswordUser?._id;
+
+    if (!targetUserId) {
+      setError('Selected user has no identifier.');
+      return;
+    }
+
+    if (resetPassword.length < 6) {
       setError('Temporary password must be at least 6 characters.');
       return;
     }
+
+    if (resetPassword !== resetPasswordConfirm) {
+      setError('Temporary passwords do not match.');
+      return;
+    }
+
     setError(null);
     setSuccess(null);
+    setResettingPassword(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/users/${id}/reset-password`, {
+      const res = await fetch(`${API_BASE_URL}/users/${targetUserId}/reset-password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        body: JSON.stringify({ newPassword }),
+        body: JSON.stringify({ newPassword: resetPassword }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to reset password');
-      setSuccess('Password reset successfully.');
+      setSuccess(`Password reset successfully for ${resetPasswordUser?.username || 'user'}.`);
+      setResetPasswordUser(null);
+      setResetPassword('');
+      setResetPasswordConfirm('');
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Failed to reset password'));
+    } finally {
+      setResettingPassword(false);
     }
   }
 
@@ -193,7 +240,13 @@ export default function UserManagementPage() {
   }
 
   async function handleBulkDelete() {
-    if (!window.confirm('Delete selected users?')) return;
+    const confirmed = await confirm({
+      title: 'Delete selected users?',
+      message: `This will permanently delete ${selected.length} selected user(s).`,
+      confirmLabel: 'Delete Selected',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     for (const id of selected) {
       await remove('users', id);
     }
@@ -254,109 +307,120 @@ export default function UserManagementPage() {
           ))}
         </div>
 
-        {/* Create User Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
-          <button 
-            className="mb-4 bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition" 
-            onClick={() => setShowCreate(!showCreate)}
-          >
-            {showCreate ? 'Cancel' : 'Add New User'}
-          </button>
-          {showCreate && (
-            <form className="mb-6 space-y-4" onSubmit={handleCreate}>
-              <div>
-                <label className="block text-gray-700 dark:text-gray-300 mb-1">Username</label>
-                <input 
-                  type="text" 
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
-                  value={newUser.username} 
-                  onChange={e => setNewUser(u => ({ ...u, username: e.target.value }))} 
-                  required 
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 dark:text-gray-300 mb-1">Name</label>
-                <input 
-                  type="text" 
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
-                  value={newUser.name} 
-                  onChange={e => setNewUser(u => ({ ...u, name: e.target.value }))} 
-                  required 
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 dark:text-gray-300 mb-1">Password</label>
-                <input 
-                  type="password" 
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
-                  value={newUser.password} 
-                  onChange={e => setNewUser(u => ({ ...u, password: e.target.value }))} 
-                  required 
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 dark:text-gray-300 mb-1">Role</label>
-                <select 
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
-                  value={newUser.role} 
-                  onChange={e => setNewUser(u => ({ ...u, role: e.target.value }))} 
-                  required
-                >
-                  {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-                </select>
-              </div>
-              <button type="submit" className="bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition">
-                Create User
-              </button>
-            </form>
-          )}
-        </div>
-
         {/* Messages */}
         {success && <div className="text-kmuGreen text-sm mb-2 bg-green-100 dark:bg-green-900/20 p-2 rounded">{success}</div>}
         {error && <div className="text-red-600 text-sm mb-2 bg-red-100 dark:bg-red-900/20 p-2 rounded">{error}</div>}
 
         {/* Filters and Actions */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6 mb-6">
-          <div className="mb-4 grid grid-cols-1 gap-3 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="mb-4 space-y-3">
+            <div className="grid grid-cols-1 gap-2 lg:grid-cols-[minmax(220px,1fr)_180px_auto_auto_auto]">
               <input
                 type="text"
-                placeholder="Search by username or name"
+                placeholder="Search by username, name, or email"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
-              <select 
-                value={roleFilter} 
-                onChange={e => setRoleFilter(e.target.value)} 
-                className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+              <select
+                value={roleFilter}
+                onChange={e => setRoleFilter(e.target.value)}
+                className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               >
                 <option value="">All Roles</option>
                 {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
               </select>
-            </div>
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              <button type="button" className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600" onClick={selectAll}>
+              <button type="button" className="rounded bg-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" onClick={selectAll}>
                 Select All
               </button>
-              <button type="button" className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-sm hover:bg-gray-300 dark:hover:bg-gray-600" onClick={clearSelected}>
+              <button type="button" className="rounded bg-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" onClick={clearSelected}>
                 Clear
               </button>
-              {selected.length > 0 && (
-                <>
-                  <button type="button" className="bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700" onClick={handleBulkDelete}>
-                    Delete Selected
-                  </button>
-                  <button type="button" className="bg-kmuGreen text-white px-3 py-2 rounded text-sm hover:bg-kmuOrange" onClick={handleBulkExport}>
-                    Export Selected (Word)
-                  </button>
-                  <button type="button" className="bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700" onClick={handleBulkExportExcel}>
-                    Export Selected (Excel)
-                  </button>
-                </>
-              )}
+              <button
+                type="button"
+                className="rounded bg-kmuGreen px-4 py-2 text-sm font-semibold text-white transition hover:bg-kmuOrange"
+                onClick={() => setShowCreate(!showCreate)}
+              >
+                {showCreate ? 'Cancel New User' : 'Add New User'}
+              </button>
             </div>
+
+            {selected.length > 0 && (
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                <button type="button" className="rounded bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-700" onClick={handleBulkDelete}>
+                  Delete Selected
+                </button>
+                <button type="button" className="rounded bg-kmuGreen px-3 py-2 text-sm text-white hover:bg-kmuOrange" onClick={handleBulkExport}>
+                  Export Selected (Word)
+                </button>
+                <button type="button" className="rounded bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700" onClick={handleBulkExportExcel}>
+                  Export Selected (Excel)
+                </button>
+              </div>
+            )}
+
+            {showCreate && (
+              <form className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40" onSubmit={handleCreate}>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-gray-700 dark:text-gray-300">Username</label>
+                    <input
+                      type="text"
+                      className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      value={newUser.username}
+                      onChange={e => setNewUser(u => ({ ...u, username: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-gray-700 dark:text-gray-300">Name</label>
+                    <input
+                      type="text"
+                      className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      value={newUser.name}
+                      onChange={e => setNewUser(u => ({ ...u, name: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-gray-700 dark:text-gray-300">Email</label>
+                    <input
+                      type="email"
+                      className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      value={newUser.email}
+                      onChange={e => setNewUser(u => ({ ...u, email: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-gray-700 dark:text-gray-300">Password</label>
+                    <input
+                      type="password"
+                      className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      value={newUser.password}
+                      onChange={e => setNewUser(u => ({ ...u, password: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-gray-700 dark:text-gray-300">Role</label>
+                    <select
+                      className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      value={newUser.role}
+                      onChange={e => setNewUser(u => ({ ...u, role: e.target.value }))}
+                      required
+                    >
+                      {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <button type="submit" className="rounded bg-kmuGreen px-4 py-2 text-white transition hover:bg-kmuOrange">
+                    Create User
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
 
           {/* Users Table */}
@@ -393,6 +457,12 @@ export default function UserManagementPage() {
                               value={editUser.name}
                               onChange={e => setEditUser((eu: any) => ({ ...eu, name: e.target.value }))}
                             />
+                            <input
+                              type="email"
+                              className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                              value={editUser.email || ''}
+                              onChange={e => setEditUser((eu: any) => ({ ...eu, email: e.target.value }))}
+                            />
                             <select
                               className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                               value={editUser.role}
@@ -409,6 +479,7 @@ export default function UserManagementPage() {
                           <>
                             <div className="font-medium text-gray-900 dark:text-white">{u.username}</div>
                             <div className="text-sm text-gray-600 dark:text-gray-400">{u.name}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{u.email || 'No email set'}</div>
                             <div className="mt-2">
                               <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
                                 {u.role}
@@ -416,7 +487,7 @@ export default function UserManagementPage() {
                             </div>
                             <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                               <button type="button" className="bg-blue-500 text-white px-3 py-2 rounded text-xs hover:bg-blue-600 transition" onClick={() => startEdit(u)}>Edit</button>
-                              <button type="button" className="bg-amber-600 text-white px-3 py-2 rounded text-xs hover:bg-amber-700 transition" onClick={() => handleAdminResetPassword(userId)}>Reset Password</button>
+                              <button type="button" className="bg-amber-600 text-white px-3 py-2 rounded text-xs hover:bg-amber-700 transition" onClick={() => openResetPasswordDialog(u)}>Reset Password</button>
                               <button type="button" className="bg-red-600 text-white px-3 py-2 rounded text-xs hover:bg-red-700 transition" onClick={() => handleDelete(userId)}>Delete</button>
                             </div>
                           </>
@@ -440,6 +511,7 @@ export default function UserManagementPage() {
                     </th>
                     <th className="py-2 px-2 md:px-4 text-left">Username</th>
                     <th className="py-2 px-2 md:px-4 text-left hidden sm:table-cell">Name</th>
+                    <th className="py-2 px-2 md:px-4 text-left hidden lg:table-cell">Email</th>
                     <th className="py-2 px-2 md:px-4 text-left">Role</th>
                     <th className="py-2 px-2 md:px-4 text-left">Actions</th>
                   </tr>
@@ -476,6 +548,14 @@ export default function UserManagementPage() {
                                 onChange={e => setEditUser((eu: any) => ({ ...eu, name: e.target.value }))} 
                               />
                             </td>
+                            <td className="py-2 px-2 md:px-4 hidden lg:table-cell">
+                              <input
+                                type="email"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                value={editUser.email || ''}
+                                onChange={e => setEditUser((eu: any) => ({ ...eu, email: e.target.value }))}
+                              />
+                            </td>
                             <td className="py-2 px-2 md:px-4">
                               <select 
                                 className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" 
@@ -507,8 +587,10 @@ export default function UserManagementPage() {
                             <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white">
                               <div className="font-medium">{u.username}</div>
                               <div className="text-xs text-gray-500 dark:text-gray-400 sm:hidden">{u.name}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 lg:hidden">{u.email || 'No email set'}</div>
                             </td>
                             <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white hidden sm:table-cell">{u.name}</td>
+                            <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white hidden lg:table-cell">{u.email || 'No email set'}</td>
                             <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white">
                               <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
                                 {u.role}
@@ -530,7 +612,7 @@ export default function UserManagementPage() {
                                 </button>
                                 <button
                                   className="bg-amber-600 text-white px-2 py-1 rounded text-xs hover:bg-amber-700 transition"
-                                  onClick={() => handleAdminResetPassword(userId)}
+                                  onClick={() => openResetPasswordDialog(u)}
                                 >
                                   Reset Password
                                 </button>
@@ -547,6 +629,67 @@ export default function UserManagementPage() {
             </>
           )}
         </div>
+
+        {confirmDialog}
+
+        {resetPasswordUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
+            <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-gray-700 dark:bg-gray-900">
+              <div className="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Reset Password</h2>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Set a new temporary password for <span className="font-semibold text-gray-700 dark:text-gray-200">{resetPasswordUser.username}</span>.
+                </p>
+              </div>
+              <form onSubmit={handleAdminResetPassword} className="space-y-4 px-6 py-5">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Temporary Password</label>
+                  <input
+                    type="password"
+                    value={resetPassword}
+                    onChange={(e) => setResetPassword(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-kmuGreen focus:outline-none focus:ring-2 focus:ring-kmuGreen/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    placeholder="Minimum 6 characters"
+                    minLength={6}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm Temporary Password</label>
+                  <input
+                    type="password"
+                    value={resetPasswordConfirm}
+                    onChange={(e) => setResetPasswordConfirm(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-kmuGreen focus:outline-none focus:ring-2 focus:ring-kmuGreen/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    placeholder="Re-enter temporary password"
+                    minLength={6}
+                    required
+                  />
+                </div>
+                <div className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+                  Share this temporary password securely. The user can change it after signing in.
+                </div>
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={closeResetPasswordDialog}
+                    disabled={resettingPassword}
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={resettingPassword}
+                    className="rounded-lg bg-kmuGreen px-4 py-2 text-sm font-semibold text-white transition hover:bg-kmuOrange disabled:opacity-60"
+                  >
+                    {resettingPassword ? 'Resetting...' : 'Reset Password'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
   );
 }

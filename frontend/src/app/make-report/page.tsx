@@ -236,20 +236,19 @@ export default function MakeReportPage() {
 
   return (
     <section className="max-w-4xl mx-auto space-y-6 md:space-y-8">
-      <div className="rounded-2xl md:rounded-3xl bg-white dark:bg-gray-800 p-4 md:p-8 shadow">
-        <div className="flex flex-col sm:flex-row sm:items-start gap-3 md:gap-4">
-          <div className="rounded-lg md:rounded-2xl bg-kmuGreen/10 p-2 md:p-3 text-kmuGreen flex-shrink-0">
-            <FilePenLine size={22} />
-          </div>
-          <div>
-            <h1 className="text-2xl md:text-4xl font-bold text-kmuGreen">
+      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
+              <FilePenLine size={18} />
+            </div>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
               Make a Report
             </h1>
-            <p className="mt-2 md:mt-3 text-gray-600 dark:text-gray-400 text-sm md:text-lg">
-              Submit a concern, choose the type of issue, and decide whether the
-              report should be handled anonymously.
-            </p>
           </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 md:text-right">
+            Submit a concern, choose the type of issue, and decide whether the report should be handled anonymously.
+          </p>
         </div>
       </div>
 

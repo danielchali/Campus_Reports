@@ -8,6 +8,7 @@ import { useOfflineApi } from '../../hooks/useOfflineSync';
 import { canAccessPage } from '../../utils/access';
 import { PageSkeleton } from '../../components/PageSkeleton';
 import { InlineSkeleton } from '../../components/PageSkeleton';
+import { useConfirmDialog } from '../../components/AppDialog';
 
 
 interface Evidence {
@@ -55,6 +56,7 @@ export default function EvidencePage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [offlineMode, setOfflineMode] = useState(false);
   const { apiCall, isLoading: apiLoading, error: apiError } = useOfflineApi();
+  const { confirm, confirmDialog } = useConfirmDialog();
 
   useEffect(() => {
     async function fetchEvidence() {
@@ -161,7 +163,13 @@ export default function EvidencePage() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm('Are you sure you want to delete this evidence?')) return;
+    const confirmed = await confirm({
+      title: 'Delete evidence?',
+      message: 'Are you sure you want to delete this evidence? This action cannot be undone.',
+      confirmLabel: 'Delete Evidence',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     setError(null);
     setSuccess(null);
     try {
@@ -227,6 +235,7 @@ export default function EvidencePage() {
   const safeEvidence = Array.isArray(evidence) ? evidence : [];
 
   return (
+    <>
       <div className="max-w-6xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -368,5 +377,7 @@ export default function EvidencePage() {
           )}
         </div>
       </div>
+      {confirmDialog}
+    </>
   );
 } 

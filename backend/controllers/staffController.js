@@ -63,7 +63,9 @@ export async function getStaff(req, res) {
 
 export async function createStaff(req, res) {
     try {
-        const staff = await StaffModel.create(req.body);
+        const staffData = { ...req.body, email: String(req.body.email || '').trim().toLowerCase() };
+        if (!staffData.email) return res.status(400).json({ error: 'Email is required' });
+        const staff = await StaffModel.create(staffData);
         await logAudit({
             action: 'staff_created',
             entity: 'staff',
@@ -91,14 +93,17 @@ export async function createStaff(req, res) {
 
 export async function updateStaff(req, res) {
     try {
-        const staff = await StaffModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const staffData = { ...req.body };
+        if (staffData.email !== undefined) staffData.email = String(staffData.email || '').trim().toLowerCase();
+        if (staffData.email !== undefined && !staffData.email) return res.status(400).json({ error: 'Email is required' });
+        const staff = await StaffModel.findByIdAndUpdate(req.params.id, staffData, { new: true, runValidators: true });
         await logAudit({
             action: 'staff_updated',
             entity: 'staff',
             entityId: req.params.id,
             user: req.user && req.user.username,
             details: {
-                changes: req.body,
+                changes: staffData,
                 timestamp: new Date().toISOString()
             },
             ipAddress: req.ip,
