@@ -34,6 +34,7 @@ interface AuthContextType {
   loading: boolean;
   isOnline: boolean;
   preloadData: () => Promise<void>;
+  refreshUserProfile: () => Promise<void>;
   isPreloading: boolean;
 }
 
@@ -178,6 +179,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return atob(encryptedData);
     } catch {
       return '';
+    }
+  };
+
+  const refreshUserProfile = async (): Promise<void> => {
+    if (!token || token === 'offline_token' || !user) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) return;
+
+      const profile = (await response.json()) as ProfileResponse;
+      const refreshedUser = {
+        ...user,
+        name: getProfileDisplayName(profile, user),
+      };
+
+      localStorage.setItem('auth_user', JSON.stringify(refreshedUser));
+      setUser(refreshedUser);
+    } catch (error) {
+      console.warn('Unable to refresh user profile:', error);
     }
   };
 
@@ -393,6 +417,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       isOnline,
       preloadData,
+      refreshUserProfile,
       isPreloading
     }}>
       {children}

@@ -112,7 +112,7 @@ function buildForm(data: ProfileResponse): ProfileForm {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { token, changePassword } = useAuth();
+  const { token, changePassword, refreshUserProfile } = useAuth();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -179,6 +179,7 @@ export default function ProfilePage() {
       setSuccess('Profile updated successfully!');
       setEditMode(false);
       await fetchProfile();
+      await refreshUserProfile();
     } catch (err: any) {
       setFormError(err.message || 'Failed to update profile');
     }
