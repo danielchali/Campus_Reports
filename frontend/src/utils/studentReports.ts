@@ -307,6 +307,31 @@ export async function updateStudentReportStatus(
 }
 
 /**
+ * Reroute a report to the correct category (staff action).
+ */
+export async function updateStudentReportCategory(
+  reportId: string,
+  category: StudentReportCategory,
+  message?: string,
+): Promise<StudentReport | null> {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/student-reports/${reportId}/category`,
+      {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ category, message }),
+      },
+    );
+
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Get metrics for the logged-in student.
  */
 export async function getStudentReportMetrics(

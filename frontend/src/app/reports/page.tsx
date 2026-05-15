@@ -23,8 +23,10 @@ import {
   getUnreadStudentReportsCount,
   markAllStudentReportsSeen,
   markStudentReportSeen,
+  updateStudentReportCategory,
   updateStudentReportStatus,
   type StudentReport,
+  type StudentReportCategory,
   type StudentReportStatus,
 } from "../../utils/studentReports";
 import { getDisplayFullName } from "../../utils/userDisplay";
@@ -69,6 +71,9 @@ export default function ReportsPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusDrafts, setStatusDrafts] = useState<
     Record<string, StudentReportStatus>
+  >({});
+  const [categoryDrafts, setCategoryDrafts] = useState<
+    Record<string, StudentReportCategory>
   >({});
   const [updateMessages, setUpdateMessages] = useState<Record<string, string>>(
     {},
@@ -187,6 +192,34 @@ export default function ReportsPage() {
     await markAllStudentReportsSeen(user.id);
     await refreshReports();
     showNotification("success", "All student reports marked as seen.");
+  }
+
+  async function handleApplyCategory(report: StudentReport) {
+    const nextCategory = categoryDrafts[report.id] || report.category;
+    if (nextCategory === report.category) {
+      showNotification(
+        "info",
+        `Report ${report.trackingCode} is already marked as ${categoryLabels[report.category]}.`,
+      );
+      return;
+    }
+
+    const updatedReport = await updateStudentReportCategory(
+      report.id,
+      nextCategory,
+      `Category corrected to ${categoryLabels[nextCategory]}.`,
+    );
+
+    if (!updatedReport) {
+      showNotification("error", "Failed to reroute report category.");
+      return;
+    }
+
+    await refreshReports();
+    showNotification(
+      "success",
+      `Report ${report.trackingCode} rerouted to ${categoryLabels[nextCategory]}.`,
+    );
   }
 
   async function handleApplyStatus(report: StudentReport) {
@@ -322,6 +355,8 @@ export default function ReportsPage() {
               const isSeen = !!user && (report.seenBy || []).includes(user.id);
               const isExpanded = expandedId === report.id;
               const draftStatus = statusDrafts[report.id] || report.status;
+              const draftCategory =
+                categoryDrafts[report.id] || report.category;
 
               return (
                 <article
@@ -554,6 +589,45 @@ export default function ReportsPage() {
                             >
                               Save status update
                             </button>
+                          </div>
+
+                          <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 dark:border-amber-900/50 dark:bg-amber-950/20">
+                            <h4 className="font-semibold text-gray-900 dark:text-white">
+                              Correct report category
+                            </h4>
+                            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                              If this report was submitted to the wrong queue,
+                              reroute it so the proper office can handle it.
+                            </p>
+                            <div className="mt-3 grid gap-3">
+                              <select
+                                value={draftCategory}
+                                onChange={(e) =>
+                                  setCategoryDrafts((current) => ({
+                                    ...current,
+                                    [report.id]: e.target
+                                      .value as StudentReportCategory,
+                                  }))
+                                }
+                                className="w-full rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white"
+                              >
+                                {Object.entries(categoryLabels).map(
+                                  ([value, label]) => (
+                                    <option key={value} value={value}>
+                                      {label}
+                                    </option>
+                                  ),
+                                )}
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => handleApplyCategory(report)}
+                                disabled={draftCategory === report.category}
+                                className="rounded-xl bg-amber-600 px-4 py-3 text-white font-medium transition hover:bg-kmuOrange disabled:cursor-not-allowed disabled:bg-gray-400"
+                              >
+                                Reroute category
+                              </button>
+                            </div>
                           </div>
 
                           <div className="rounded-xl bg-gray-50 dark:bg-gray-900/30 p-4 text-sm text-gray-600 dark:text-gray-400">

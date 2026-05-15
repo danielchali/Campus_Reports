@@ -1,6 +1,7 @@
 import express from "express";
 import WorkOrderModel from "../models/workOrder.js";
 import StudentReportModel from "../models/studentReport.js";
+import AnonymousReportModel from "../models/anonymousReport.js";
 import UserModel from "../models/user.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification } from "../utils/notifications.js";
@@ -65,6 +66,30 @@ function mapWorkOrder(doc) {
   };
 }
 
+function mapMaintenanceIssue(doc, source) {
+  const obj = doc.toObject ? doc.toObject() : doc;
+  const details = obj.details || {};
+  return {
+    id: String(obj._id),
+    source,
+    trackingCode: obj.tracking_code,
+    title: obj.title,
+    description: obj.description,
+    location: obj.location,
+    incidentDate: obj.incident_date,
+    submittedAt: obj.createdAt?.toISOString?.() || obj.createdAt,
+    status: obj.status,
+    issueType: details.issueType || "Other",
+    priority: details.priority || "Normal",
+    affectedAsset: details.affectedAsset || "",
+    accessInstructions: details.accessInstructions || "",
+    maintenanceWorkOrderId: obj.maintenance_work_order_id || "",
+    routedToMaintenance: !!obj.routed_to_maintenance,
+    canCreateWorkOrder:
+      source === "student_report" && !obj.maintenance_work_order_id,
+  };
+}
+
 function getDepartmentForRole(role = "") {
   const departmentByRole = {
     dean_of_students: "Dean of Students",
@@ -101,7 +126,6 @@ async function getRequesterInfo(user = {}) {
   };
 }
 
-
 function normalizeManualWorkOrderPayload(body = {}) {
   return {
     title: String(body.title || "").trim(),
@@ -109,12 +133,22 @@ function normalizeManualWorkOrderPayload(body = {}) {
     location: String(body.location || "").trim(),
     issueType: String(body.issueType || body.issue_type || "Other").trim(),
     priority: String(body.priority || "Normal").trim(),
-    affectedAsset: String(body.affectedAsset || body.affected_asset || "").trim(),
-    accessInstructions: String(body.accessInstructions || body.access_instructions || "").trim(),
+    affectedAsset: String(
+      body.affectedAsset || body.affected_asset || "",
+    ).trim(),
+    accessInstructions: String(
+      body.accessInstructions || body.access_instructions || "",
+    ).trim(),
     assignedTo: String(body.assignedTo || body.assigned_to || "").trim(),
-    requestedByName: String(body.requestedByName || body.requested_by_name || "").trim(),
-    requestingDepartment: String(body.requestingDepartment || body.requesting_department || "").trim(),
-    message: String(body.message || "Manual maintenance issue and work order created.").trim(),
+    requestedByName: String(
+      body.requestedByName || body.requested_by_name || "",
+    ).trim(),
+    requestingDepartment: String(
+      body.requestingDepartment || body.requesting_department || "",
+    ).trim(),
+    message: String(
+      body.message || "Manual maintenance issue and work order created.",
+    ).trim(),
   };
 }
 
@@ -124,7 +158,11 @@ async function createManualWorkOrder(payload, user) {
   if (!normalized.title) errors.push("Title is required");
   if (!normalized.description) errors.push("Description is required");
   if (!normalized.location) errors.push("Location is required");
-  if (!["Low", "Normal", "High", "Urgent safety risk"].includes(normalized.priority)) {
+  if (
+    !["Low", "Normal", "High", "Urgent safety risk"].includes(
+      normalized.priority,
+    )
+  ) {
     errors.push("Invalid priority");
   }
   if (errors.length > 0) {
@@ -148,15 +186,19 @@ async function createManualWorkOrder(payload, user) {
     access_instructions: normalized.accessInstructions,
     status: normalized.assignedTo ? "Assigned" : "Open",
     assigned_to: normalized.assignedTo,
-    requested_by_name: normalized.requestedByName || requesterInfo.requestedByName,
-    requesting_department: normalized.requestingDepartment || requesterInfo.requestingDepartment,
+    requested_by_name:
+      normalized.requestedByName || requesterInfo.requestedByName,
+    requesting_department:
+      normalized.requestingDepartment || requesterInfo.requestingDepartment,
     created_by: user.username || user.name || "system",
     created_by_role: user.role || "system",
     attachments: [],
     updates: [
       {
         status: normalized.assignedTo ? "Assigned" : "Open",
-        message: normalized.message || "Manual maintenance issue and work order created.",
+        message:
+          normalized.message ||
+          "Manual maintenance issue and work order created.",
         createdBy: user.username || user.name || "system",
         createdByRole: user.role || "system",
       },
@@ -228,6 +270,64 @@ async function createWorkOrderFromReport(
 }
 
 router.use(authenticate, authorize(WORK_ORDER_ROLES));
+
+router.get("/maintenance-issues", async (req, res) => {
+  try {
+    const { search, status, source } = req.query;
+    const buildSearch = () => {
+      if (!search) return {};
+      const regex = { $regex: search, $options: "i" };
+      return {
+        $or: [
+          { tracking_code: regex },
+          { title: regex },
+          { description: regex },
+          { location: regex },
+        ],
+      };
+    };
+
+    const statusFilter = status ? { status } : {};
+    const searchFilter = buildSearch();
+    const studentQuery = {
+      category: "maintenance_issue",
+      ...statusFilter,
+      ...searchFilter,
+    };
+    const anonymousQuery = {
+      category: "maintenance_issue",
+      ...statusFilter,
+      ...searchFilter,
+    };
+
+    const [studentIssues, anonymousIssues] = await Promise.all([
+      source === "anonymous"
+        ? []
+        : StudentReportModel.find(studentQuery).sort({ createdAt: -1 }),
+      source === "student_report"
+        ? []
+        : AnonymousReportModel.find(anonymousQuery).sort({ createdAt: -1 }),
+    ]);
+
+    const issues = [
+      ...studentIssues.map((issue) =>
+        mapMaintenanceIssue(issue, "student_report"),
+      ),
+      ...anonymousIssues.map((issue) =>
+        mapMaintenanceIssue(issue, "anonymous_report"),
+      ),
+    ].sort(
+      (a, b) =>
+        new Date(b.submittedAt || 0).getTime() -
+        new Date(a.submittedAt || 0).getTime(),
+    );
+
+    res.json(issues);
+  } catch (err) {
+    console.error("Fetch maintenance issues error:", err);
+    res.status(500).json({ error: "Failed to fetch maintenance issues" });
+  }
+});
 
 router.get("/", async (req, res) => {
   try {
@@ -318,7 +418,9 @@ router.patch("/:id/status", async (req, res) => {
     workOrder.updatedAt = new Date();
     await workOrder.save();
 
-    const hasSourceReport = /^[a-fA-F0-9]{24}$/.test(String(workOrder.source_report_id || ""));
+    const hasSourceReport = /^[a-fA-F0-9]{24}$/.test(
+      String(workOrder.source_report_id || ""),
+    );
     if (hasSourceReport) {
       const reportStatus = status === "Completed" ? "Resolved" : "In Progress";
       await StudentReportModel.findByIdAndUpdate(workOrder.source_report_id, {

@@ -10,6 +10,11 @@ import { getUploadDirectory } from "../utils/uploadPaths.js";
 
 const router = express.Router();
 const REPORT_ATTACHMENT_DIR = getUploadDirectory("student-reports");
+const REPORT_CATEGORIES = ["disciplinary_case", "maintenance_issue"];
+const CATEGORY_LABELS = {
+  disciplinary_case: "Disciplinary Case",
+  maintenance_issue: "Maintenance Issue",
+};
 
 const attachmentUpload = multer({
   storage: multer.diskStorage({
@@ -79,9 +84,10 @@ function mapReport(doc, ownerNameOverride = "") {
   };
 }
 
-
 function getStudentFullName(student) {
-  const obj = student?.toObject ? student.toObject({ virtuals: true }) : student;
+  const obj = student?.toObject
+    ? student.toObject({ virtuals: true })
+    : student;
   return String(
     obj?.fullName ||
       [obj?.personalInfo?.firstName, obj?.personalInfo?.surName]
@@ -247,6 +253,9 @@ router.post(
 
       if (!title || !description || !category || !location || !incidentDate) {
         return res.status(400).json({ error: "Missing required fields" });
+      }
+      if (!REPORT_CATEGORIES.includes(category)) {
+        return res.status(400).json({ error: "Invalid report category" });
       }
 
       const ownerDisplayName =
@@ -504,6 +513,76 @@ router.patch(
     } catch (err) {
       console.error("Mark all seen error:", err);
       res.status(500).json({ error: "Failed to mark all as seen" });
+    }
+  },
+);
+
+// PATCH /:id/category — Staff reroutes a report to the correct category
+router.patch(
+  "/:id/category",
+  authenticate,
+  authorize([
+    "admin",
+    "chief_security_officer",
+    "dean_of_students",
+    "assistant_dean",
+    "secretary",
+    "registrar",
+    "security_officer",
+  ]),
+  async (req, res) => {
+    try {
+      const { category, message } = req.body;
+      if (!REPORT_CATEGORIES.includes(category)) {
+        return res.status(400).json({ error: "Invalid report category" });
+      }
+
+      const report = await StudentReportModel.findById(req.params.id);
+      if (!report) {
+        return res.status(404).json({ error: "Report not found" });
+      }
+      if (!canViewReport(req.user, report)) {
+        return res
+          .status(403)
+          .json({ error: "Not authorized to reroute this report" });
+      }
+      if (report.category === category) {
+        return res
+          .status(409)
+          .json({
+            error: `Report is already marked as ${CATEGORY_LABELS[category]}.`,
+          });
+      }
+
+      const previousCategory = report.category;
+      report.category = category;
+      report.routed_by_role = req.user.role || report.routed_by_role || "";
+      if (category !== "maintenance_issue") {
+        report.routed_to_maintenance = false;
+        report.maintenance_work_order_id = "";
+      }
+      report.updates.unshift({
+        status: report.status,
+        message:
+          message?.trim() ||
+          `Report category rerouted from ${CATEGORY_LABELS[previousCategory] || previousCategory} to ${CATEGORY_LABELS[category] || category}.`,
+        createdBy: req.user.username || req.user.name || "system",
+        createdByRole: req.user.role,
+      });
+      report.updatedAt = new Date();
+      await report.save();
+
+      await createNotification({
+        userId: report.owner_id,
+        type: "report_update",
+        message: `Your report "${report.title}" was rerouted to ${CATEGORY_LABELS[category] || category}.`,
+        link: "/my-reports",
+      });
+
+      res.json(mapReport(report));
+    } catch (err) {
+      console.error("Reroute report category error:", err);
+      res.status(500).json({ error: "Failed to reroute report category" });
     }
   },
 );
