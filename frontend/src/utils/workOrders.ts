@@ -8,6 +8,27 @@ export type WorkOrderStatus =
   | "Completed"
   | "Cancelled";
 
+export type MaintenanceIssueSource = "student_report" | "anonymous_report";
+
+export interface MaintenanceIssue {
+  id: string;
+  source: MaintenanceIssueSource;
+  trackingCode: string;
+  title: string;
+  description: string;
+  location: string;
+  incidentDate?: string;
+  submittedAt?: string;
+  status: "Submitted" | "Under Review" | "In Progress" | "Resolved";
+  issueType: string;
+  priority: "Low" | "Normal" | "High" | "Urgent safety risk" | string;
+  affectedAsset: string;
+  accessInstructions: string;
+  maintenanceWorkOrderId: string;
+  routedToMaintenance: boolean;
+  canCreateWorkOrder: boolean;
+}
+
 export interface WorkOrderUpdate {
   id: string;
   status: WorkOrderStatus;
@@ -22,7 +43,6 @@ export interface WorkOrderSignatures {
   partD: string;
   partE: string;
 }
-
 
 export interface ManualWorkOrderInput {
   title: string;
@@ -82,6 +102,31 @@ export async function getWorkOrders(
   return res.json();
 }
 
+export async function getMaintenanceIssues(
+  filters: {
+    search?: string;
+    status?: string;
+    source?: MaintenanceIssueSource;
+  } = {},
+): Promise<MaintenanceIssue[]> {
+  const params = new URLSearchParams();
+  if (filters.search) params.set("search", filters.search);
+  if (filters.status && filters.status !== "all")
+    params.set("status", filters.status);
+  if (filters.source) params.set("source", filters.source);
+
+  const query = params.toString();
+  const res = await fetch(
+    `${API_BASE_URL}/work-orders/maintenance-issues${query ? `?${query}` : ""}`,
+    {
+      headers: { ...authHeaders() },
+    },
+  );
+
+  if (!res.ok) return [];
+  return res.json();
+}
+
 export async function createWorkOrder(
   reportId: string,
   message?: string,
@@ -99,7 +144,6 @@ export async function createWorkOrder(
 
   return res.json();
 }
-
 
 export async function createManualWorkOrder(
   workOrderData: ManualWorkOrderInput,
