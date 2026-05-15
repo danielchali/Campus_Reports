@@ -405,7 +405,8 @@ export async function forgotPassword(req, res) {
         user.resetPasswordOTPExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
         await user.save();
 
-        const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+        const frontendUrl = process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:3000';
+        const resetUrl = `${frontendUrl.replace(/\/$/, '')}/reset-password?token=${resetToken}`;
 
         const mailOptions = {
             to: email,
@@ -420,6 +421,9 @@ export async function forgotPassword(req, res) {
             res.json({ message: 'Password reset OTP sent to your email.' });
         } catch (emailErr) {
             console.error('Email send error:', emailErr);
+            if (process.env.NODE_ENV === 'production') {
+                return res.status(502).json({ error: 'Unable to send password reset email. Please try again later or contact administration.' });
+            }
             console.log(`[Dev Fallback] Reset OTP for ${username}: ${resetOTP}; link: ${resetUrl}`);
             res.json({ message: 'Password reset OTP generated. (Check server console in development)' });
         }
@@ -432,12 +436,21 @@ export async function forgotPassword(req, res) {
 
 export async function resetPassword(req, res) {
     const { token, otp, newPassword } = req.body;
-    if ((!token && !otp) || !newPassword) return res.status(400).json({ error: 'OTP (or token) and new password are required' });
+    const normalizedToken = String(token || '').trim();
+    const normalizedOTP = String(otp || '').trim();
+    if ((!normalizedToken && !normalizedOTP) || !newPassword) return res.status(400).json({ error: 'OTP (or token) and new password are required' });
 
     try {
-        const user = otp
-            ? await UserModel.findOne({ resetPasswordOTP: otp, resetPasswordOTPExpires: { $gt: Date.now() } })
-            : await UserModel.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } });
+        const user = normalizedToken && normalizedOTP
+            ? await UserModel.findOne({
+                resetPasswordToken: normalizedToken,
+                resetPasswordExpires: { $gt: Date.now() },
+                resetPasswordOTP: normalizedOTP,
+                resetPasswordOTPExpires: { $gt: Date.now() }
+            })
+            : normalizedOTP
+                ? await UserModel.findOne({ resetPasswordOTP: normalizedOTP, resetPasswordOTPExpires: { $gt: Date.now() } })
+                : await UserModel.findOne({ resetPasswordToken: normalizedToken, resetPasswordExpires: { $gt: Date.now() } });
 
         if (!user) {
             return res.status(400).json({ error: 'Password reset token is invalid or has expired.' });
