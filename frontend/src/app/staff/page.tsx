@@ -10,6 +10,7 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { canAccessPage } from '../../utils/access';
 import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
+import { useConfirmDialog } from '../../components/AppDialog';
 
 // Type for a staff member
 interface Staff {
@@ -63,6 +64,7 @@ export default function StaffPage() {
   const [total, setTotal] = useState(0);
   const [offlineMode, setOfflineMode] = useState(false);
   const { apiCall, isLoading: apiLoading, error: apiError } = useOfflineApi();
+  const { confirm, confirmDialog } = useConfirmDialog();
 
   async function loadStaff(pageNum = page) {
     setLoading(true);
@@ -310,7 +312,13 @@ export default function StaffPage() {
   }
 
   async function handleDelete(staffId: string) {
-    if (!window.confirm('Are you sure you want to delete this staff member?')) return;
+    const confirmed = await confirm({
+      title: 'Delete staff member?',
+      message: 'Are you sure you want to delete this staff member? This action cannot be undone.',
+      confirmLabel: 'Delete Staff',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -339,7 +347,13 @@ export default function StaffPage() {
 
   async function handleBulkDelete() {
     if (selected.length === 0) return;
-    if (!window.confirm(`Are you sure you want to delete ${selected.length} staff member(s)?`)) return;
+    const confirmed = await confirm({
+      title: 'Delete selected staff?',
+      message: `Are you sure you want to delete ${selected.length} staff member(s)? This action cannot be undone.`,
+      confirmLabel: 'Delete Selected',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -737,6 +751,7 @@ export default function StaffPage() {
           </div>
         </div>
       </div>
+      {confirmDialog}
     </section>
   );
 }

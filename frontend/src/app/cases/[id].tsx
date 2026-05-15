@@ -6,10 +6,12 @@ import { API_BASE_URL } from '../../config/constants';
 import { OFFENSE_TYPES, SEVERITY_LEVELS, CASE_STATUSES } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
 import { InlineSkeleton } from '../../components/PageSkeleton';
+import { useConfirmDialog } from '../../components/AppDialog';
 
 export default function CaseDetailsPage() {
   const { user, token } = useAuth();
   const router = useRouter();
+  const { confirm, confirmDialog } = useConfirmDialog();
   const params = useParams();
   const caseId = params?.id as string;
   const [caseData, setCaseData] = useState<any>(null);
@@ -115,7 +117,13 @@ export default function CaseDetailsPage() {
   }
 
   async function handleDelete() {
-    if (!window.confirm('Are you sure you want to delete this case?')) return;
+    const confirmed = await confirm({
+      title: 'Delete case?',
+      message: 'Are you sure you want to delete this case? This action cannot be undone.',
+      confirmLabel: 'Delete Case',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     setSuccess(null);
     setError(null);
     try {
@@ -255,6 +263,7 @@ export default function CaseDetailsPage() {
           </ul>
         )}
       </div>
+      {confirmDialog}
     </section>
   );
 } 

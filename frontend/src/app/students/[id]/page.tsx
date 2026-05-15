@@ -11,6 +11,7 @@ import { authHeaders } from '../../../utils/api';
 import { saveAs } from 'file-saver';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
+import { useAlertDialog } from '../../../components/AppDialog';
 
 
 
@@ -52,6 +53,7 @@ interface StatementRequest {
 export default function StudentDetailsPage({ params }: { params: { id: string } }) {
     const { token, user, loading: authLoading } = useAuth();
     const router = useRouter();
+    const { showAlert, alertDialog } = useAlertDialog();
     if (typeof window !== 'undefined') {
         if (!authLoading && !token) {
             router.replace('/login');
@@ -244,7 +246,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
             const blob = await res.blob();
             saveAs(blob, `student_${student.studentId}_cases.docx`);
         } catch (err) {
-            alert('Failed to export records.');
+            showAlert({ title: 'Export failed', message: 'Failed to export records.', tone: 'danger' });
         }
     };
 
@@ -259,7 +261,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
             const blob = await res.blob();
             saveAs(blob, `students_list.docx`);
         } catch (err) {
-            alert('Failed to export students list.');
+            showAlert({ title: 'Export failed', message: 'Failed to export students list.', tone: 'danger' });
         }
     };
 
@@ -720,6 +722,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                     </div>
                 </div>
             </div>
+            {alertDialog}
         </ProtectedRoute>
     );
 }

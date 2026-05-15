@@ -6,6 +6,7 @@ import { getAll, register, update, remove, exportDocx, exportExcel, authHeaders 
 import { API_BASE_URL } from '../../../config/constants';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, TableSkeleton } from '../../../components/PageSkeleton';
+import { useConfirmDialog } from '../../../components/AppDialog';
 
 
 
@@ -43,6 +44,7 @@ const ROLES = [
 export default function UserManagementPage() {
   const { token, user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { confirm, confirmDialog } = useConfirmDialog();
   
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,7 +140,13 @@ export default function UserManagementPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    const confirmed = await confirm({
+      title: 'Delete user?',
+      message: 'Are you sure you want to delete this user? This action cannot be undone.',
+      confirmLabel: 'Delete User',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     setError(null);
     setSuccess(null);
     try {
@@ -230,7 +238,13 @@ export default function UserManagementPage() {
   }
 
   async function handleBulkDelete() {
-    if (!window.confirm('Delete selected users?')) return;
+    const confirmed = await confirm({
+      title: 'Delete selected users?',
+      message: `This will permanently delete ${selected.length} selected user(s).`,
+      confirmLabel: 'Delete Selected',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     for (const id of selected) {
       await remove('users', id);
     }
@@ -585,6 +599,8 @@ export default function UserManagementPage() {
             </>
           )}
         </div>
+
+        {confirmDialog}
 
         {resetPasswordUser && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
