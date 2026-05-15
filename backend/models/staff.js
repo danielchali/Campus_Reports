@@ -5,7 +5,7 @@ const staffSchema = new mongoose.Schema({
     fullName: { type: String, required: true },
     department: String,
     position: String,
-    email: String,
+    email: { type: String, trim: true, lowercase: true },
     phone: String,
     hireDate: Date,
     lastSelected: Date,

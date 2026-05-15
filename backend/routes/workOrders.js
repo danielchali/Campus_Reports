@@ -318,24 +318,27 @@ router.patch("/:id/status", async (req, res) => {
     workOrder.updatedAt = new Date();
     await workOrder.save();
 
-    const reportStatus = status === "Completed" ? "Resolved" : "In Progress";
-    await StudentReportModel.findByIdAndUpdate(workOrder.source_report_id, {
-      status: reportStatus,
-      updatedAt: new Date(),
-      $push: {
-        updates: {
-          $each: [
-            {
-              status: reportStatus,
-              message: `Maintenance work order ${workOrder.work_order_id} is ${status}.`,
-              createdBy: req.user.username || req.user.name,
-              createdByRole: req.user.role,
-            },
-          ],
-          $position: 0,
+    const hasSourceReport = /^[a-fA-F0-9]{24}$/.test(String(workOrder.source_report_id || ""));
+    if (hasSourceReport) {
+      const reportStatus = status === "Completed" ? "Resolved" : "In Progress";
+      await StudentReportModel.findByIdAndUpdate(workOrder.source_report_id, {
+        status: reportStatus,
+        updatedAt: new Date(),
+        $push: {
+          updates: {
+            $each: [
+              {
+                status: reportStatus,
+                message: `Maintenance work order ${workOrder.work_order_id} is ${status}.`,
+                createdBy: req.user.username || req.user.name,
+                createdByRole: req.user.role,
+              },
+            ],
+            $position: 0,
+          },
         },
-      },
-    });
+      });
+    }
 
     res.json(mapWorkOrder(workOrder));
   } catch (err) {

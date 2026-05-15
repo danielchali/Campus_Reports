@@ -115,7 +115,12 @@ export default function StaffPage() {
     setError(null);
     setSuccess(null);
     try {
-      const staffMember: Staff = { staffId, fullName, department, position, email, phone, hireDate };
+      if (!email.trim()) {
+        setError('Email is required.');
+        setLoading(false);
+        return;
+      }
+      const staffMember: Staff = { staffId, fullName, department, position, email: email.trim(), phone, hireDate };
       await create('staff', staffMember);
       setStaffId(''); setFullName(''); setDepartment(''); setPosition(''); setEmail(''); setPhone(''); setHireDate('');
       setSuccess('Staff member added successfully!');
@@ -456,7 +461,7 @@ export default function StaffPage() {
               </div>
               
               <div>
-                <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
+                <label htmlFor="email" className="block text-sm font-medium mb-1">Email *</label>
                 <input
                   id="email"
                   type="email"
@@ -464,6 +469,7 @@ export default function StaffPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="staff@kmu.ac.zm"
+                  required
                 />
               </div>
               

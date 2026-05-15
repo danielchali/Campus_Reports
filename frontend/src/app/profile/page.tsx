@@ -41,6 +41,7 @@ type ProfileResponse = {
   username?: string;
   name?: string;
   role?: string;
+  email?: string;
   createdAt?: string;
   studentProfile?: StudentProfile | null;
   profile?: {
@@ -51,6 +52,7 @@ type ProfileResponse = {
 type ProfileForm = {
   username: string;
   name: string;
+  email: string;
   profile: {
     houseNumber: string;
   };
@@ -87,6 +89,7 @@ function buildForm(data: ProfileResponse): ProfileForm {
   return {
     username: data.username || '',
     name: data.name || '',
+    email: data.email || '',
     profile: {
       houseNumber: data.profile?.houseNumber || '',
     },
@@ -185,7 +188,13 @@ export default function ProfilePage() {
           studentProfile: form.studentProfile,
         });
       } else {
-        await updateProfile({ username: form.username, name: form.name, profile: { houseNumber: form.profile.houseNumber.trim() } });
+        if (!form.email.trim()) throw new Error('Email is required.');
+        await updateProfile({
+          username: form.username,
+          name: form.name,
+          email: form.email.trim(),
+          profile: { houseNumber: form.profile.houseNumber.trim() },
+        });
       }
       setSuccess('Profile updated successfully!');
       setEditMode(false);
@@ -312,6 +321,16 @@ export default function ProfilePage() {
                           className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                           value={form.name}
                           onChange={e => setForm(current => ({ ...current, name: e.target.value }))}
+                          required
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-gray-700 dark:text-gray-300 mb-1">Email *</label>
+                        <input
+                          type="email"
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          value={form.email}
+                          onChange={e => setForm(current => ({ ...current, email: e.target.value }))}
                           required
                         />
                       </div>
@@ -450,6 +469,7 @@ export default function ProfilePage() {
                     <DisplayField label="Username" value={safeProfile.username || 'Not set'} />
                     <DisplayField label="Role" value={safeProfile.role || 'Not set'} capitalize />
                     <DisplayField label="Full Name" value={safeProfile.name || 'Not set'} />
+                    {!isStudent && <DisplayField label="Email" value={safeProfile.email || 'Not set'} />}
                     {!isStudent && <DisplayField label="House Number" value={safeProfile.profile?.houseNumber || 'Not set'} />}
                     <DisplayField
                       label="Account Created"

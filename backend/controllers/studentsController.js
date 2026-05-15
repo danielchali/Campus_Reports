@@ -1,4 +1,5 @@
 import StudentModel from '../models/student.js';
+import UserModel from '../models/user.js';
 import CaseModel from '../models/case.js';
 import { logAudit } from './auditController.js';
 
@@ -107,7 +108,15 @@ export async function createStudent(req, res) {
         if (!normalizedStudent.accommodation.roomNumber) {
             return res.status(400).json({ error: 'Room number is required' });
         }
+        if (!String(normalizedStudent.addressInfo.email || '').trim()) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+        normalizedStudent.addressInfo.email = String(normalizedStudent.addressInfo.email).trim().toLowerCase();
         const student = await StudentModel.create(normalizedStudent);
+        await UserModel.findOneAndUpdate(
+            { username: normalizedStudent.studentId, role: 'student' },
+            { $set: { email: normalizedStudent.addressInfo.email } }
+        );
         await logAudit({
             action: 'student_created',
             entity: 'student',
@@ -138,7 +147,17 @@ export async function updateStudent(req, res) {
         if (!normalizedStudent.accommodation.roomNumber) {
             return res.status(400).json({ error: 'Room number is required' });
         }
+        if (!String(normalizedStudent.addressInfo.email || '').trim()) {
+            return res.status(400).json({ error: 'Email is required' });
+        }
+        normalizedStudent.addressInfo.email = String(normalizedStudent.addressInfo.email).trim().toLowerCase();
         const student = await StudentModel.findByIdAndUpdate(req.params.id, normalizedStudent, { new: true });
+        if (student?.studentId) {
+            await UserModel.findOneAndUpdate(
+                { username: student.studentId, role: 'student' },
+                { $set: { email: normalizedStudent.addressInfo.email } }
+            );
+        }
         await logAudit({
             action: 'student_updated',
             entity: 'student',

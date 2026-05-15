@@ -92,6 +92,7 @@ export default function StudentSignupPage() {
   const [accountType, setAccountType] = useState<AccountType>(null);
   const [generalUserForm, setGeneralUserForm] = useState({
     fullName: '',
+    email: '',
     username: '',
     password: '',
     confirmPassword: '',
@@ -201,6 +202,7 @@ export default function StudentSignupPage() {
     if (accountType === 'general_user') {
       if (!generalUserForm.fullName.trim()) return setError('Full name is required.');
       if (!generalUserForm.username.trim()) return setError('Username is required.');
+      if (!generalUserForm.email.trim()) return setError('Email is required.');
       if (!generalUserForm.password) return setError('Password is required.');
       if (generalUserForm.password.length < 6) return setError('Password must be at least 6 characters.');
       if (generalUserForm.password !== generalUserForm.confirmPassword) return setError('Passwords do not match.');
@@ -213,12 +215,13 @@ export default function StudentSignupPage() {
           username: generalUserForm.username.trim(),
           password: generalUserForm.password,
           name: generalUserForm.fullName.trim(),
+          email: generalUserForm.email.trim(),
           profile: {
             houseNumber: generalUserForm.houseNumber.trim(),
           },
         });
         setSuccess('Your general user account has been created. You can now sign in.');
-        setGeneralUserForm({ fullName: '', username: '', password: '', confirmPassword: '', houseNumber: '' });
+        setGeneralUserForm({ fullName: '', email: '', username: '', password: '', confirmPassword: '', houseNumber: '' });
         window.setTimeout(() => {
           router.push('/login?registered=1');
         }, 1200);
@@ -537,6 +540,10 @@ export default function StudentSignupPage() {
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Username</label>
                     <input className={inputClassName} value={generalUserForm.username} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, username: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Email Address *</label>
+                    <input type="email" className={inputClassName} value={generalUserForm.email} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, email: e.target.value }))} placeholder="you@example.com" />
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">House Number <span className="font-medium text-slate-500">(optional for non-university premises residents/workers)</span></label>

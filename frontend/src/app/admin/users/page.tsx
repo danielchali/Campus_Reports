@@ -16,6 +16,7 @@ type UserAccount = {
   username: string;
   name: string;
   role: string;
+  email?: string;
 };
 
 type ApiError = {
@@ -52,7 +53,7 @@ export default function UserManagementPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editUser, setEditUser] = useState<UserAccount | null>(null);
-  const [newUser, setNewUser] = useState({ username: '', name: '', password: '', role: 'security_officer' });
+  const [newUser, setNewUser] = useState({ username: '', name: '', email: '', password: '', role: 'security_officer' });
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
@@ -97,10 +98,10 @@ export default function UserManagementPage() {
     setError(null);
     setSuccess(null);
     try {
-      await register(newUser.username, newUser.password, newUser.name, newUser.role);
+      await register(newUser.username, newUser.password, newUser.name, newUser.role, newUser.email.trim());
       setSuccess('User created successfully!');
       setShowCreate(false);
-      setNewUser({ username: '', name: '', password: '', role: 'security_officer' });
+      setNewUser({ username: '', name: '', email: '', password: '', role: 'security_officer' });
       fetchUsers();
     } catch (err: unknown) {
       console.error('Error creating user:', err);
@@ -127,7 +128,8 @@ export default function UserManagementPage() {
       await update('users', targetUserId, {
         username: editUser.username,
         name: editUser.name,
-        role: editUser.role
+        role: editUser.role,
+        email: editUser.email?.trim() || ''
       });
       setSuccess('User updated successfully!');
       setEditUser(null);
@@ -315,7 +317,7 @@ export default function UserManagementPage() {
             <div className="grid grid-cols-1 gap-2 lg:grid-cols-[minmax(220px,1fr)_180px_auto_auto_auto]">
               <input
                 type="text"
-                placeholder="Search by username or name"
+                placeholder="Search by username, name, or email"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -377,6 +379,16 @@ export default function UserManagementPage() {
                       className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                       value={newUser.name}
                       onChange={e => setNewUser(u => ({ ...u, name: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-gray-700 dark:text-gray-300">Email</label>
+                    <input
+                      type="email"
+                      className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                      value={newUser.email}
+                      onChange={e => setNewUser(u => ({ ...u, email: e.target.value }))}
                       required
                     />
                   </div>
@@ -445,6 +457,12 @@ export default function UserManagementPage() {
                               value={editUser.name}
                               onChange={e => setEditUser((eu: any) => ({ ...eu, name: e.target.value }))}
                             />
+                            <input
+                              type="email"
+                              className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                              value={editUser.email || ''}
+                              onChange={e => setEditUser((eu: any) => ({ ...eu, email: e.target.value }))}
+                            />
                             <select
                               className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
                               value={editUser.role}
@@ -461,6 +479,7 @@ export default function UserManagementPage() {
                           <>
                             <div className="font-medium text-gray-900 dark:text-white">{u.username}</div>
                             <div className="text-sm text-gray-600 dark:text-gray-400">{u.name}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">{u.email || 'No email set'}</div>
                             <div className="mt-2">
                               <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
                                 {u.role}
@@ -492,6 +511,7 @@ export default function UserManagementPage() {
                     </th>
                     <th className="py-2 px-2 md:px-4 text-left">Username</th>
                     <th className="py-2 px-2 md:px-4 text-left hidden sm:table-cell">Name</th>
+                    <th className="py-2 px-2 md:px-4 text-left hidden lg:table-cell">Email</th>
                     <th className="py-2 px-2 md:px-4 text-left">Role</th>
                     <th className="py-2 px-2 md:px-4 text-left">Actions</th>
                   </tr>
@@ -528,6 +548,14 @@ export default function UserManagementPage() {
                                 onChange={e => setEditUser((eu: any) => ({ ...eu, name: e.target.value }))} 
                               />
                             </td>
+                            <td className="py-2 px-2 md:px-4 hidden lg:table-cell">
+                              <input
+                                type="email"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                value={editUser.email || ''}
+                                onChange={e => setEditUser((eu: any) => ({ ...eu, email: e.target.value }))}
+                              />
+                            </td>
                             <td className="py-2 px-2 md:px-4">
                               <select 
                                 className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" 
@@ -559,8 +587,10 @@ export default function UserManagementPage() {
                             <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white">
                               <div className="font-medium">{u.username}</div>
                               <div className="text-xs text-gray-500 dark:text-gray-400 sm:hidden">{u.name}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 lg:hidden">{u.email || 'No email set'}</div>
                             </td>
                             <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white hidden sm:table-cell">{u.name}</td>
+                            <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white hidden lg:table-cell">{u.email || 'No email set'}</td>
                             <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white">
                               <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
                                 {u.role}

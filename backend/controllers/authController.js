@@ -106,6 +106,7 @@ function normalizeGeneralUserSignupPayload(payload = {}) {
         username: String(payload.username || '').trim(),
         password: String(payload.password || ''),
         name: String(payload.name || payload.fullName || '').trim(),
+        email: String(payload.email || payload.profile?.email || '').trim().toLowerCase(),
         profile: {
             houseNumber: String(payload.profile?.houseNumber || payload.houseNumber || '').trim()
         }
@@ -119,6 +120,7 @@ function validateGeneralUserSignupPayload(payload = {}) {
     if (!String(payload.password || '').trim()) errors.push('Password is required');
     if (String(payload.password || '').length < 6) errors.push('Password must be at least 6 characters');
     if (!String(payload.name || payload.fullName || '').trim()) errors.push('Full name is required');
+    if (!String(payload.email || payload.profile?.email || '').trim()) errors.push('Email is required');
 
     return errors;
 }
@@ -209,12 +211,15 @@ export async function login(req, res) {
 
 export async function register(req, res) {
     const { username, password, name, role } = req.body;
+    const email = String(req.body.email || '').trim().toLowerCase();
     try {
+        if (!email) return res.status(400).json({ error: 'Email is required' });
+
         const exists = await UserModel.findOne({ username });
         if (exists) return res.status(409).json({ error: 'Username already exists' });
 
         const hashed = await bcrypt.hash(password, 10);
-        const user = await UserModel.create({ username, password: hashed, name, role });
+        const user = await UserModel.create({ username, password: hashed, name, email, role });
 
         await ensureStudentProfileForUser({
             username,
@@ -229,6 +234,7 @@ export async function register(req, res) {
             user: username,
             details: {
                 name,
+                email,
                 role: role || 'user',
                 timestamp: new Date().toISOString()
             },
@@ -259,6 +265,7 @@ export async function registerGeneralUser(req, res) {
             username: userPayload.username,
             password: hashed,
             name: userPayload.name,
+            email: userPayload.email,
             role: 'general_user',
             profile: userPayload.profile
         });
@@ -286,6 +293,7 @@ export async function registerGeneralUser(req, res) {
                 username: user.username,
                 role: user.role,
                 name: user.name,
+                email: user.email,
                 profile: user.profile
             }
         });
@@ -322,7 +330,8 @@ export async function registerStudent(req, res) {
             username,
             password: hashed,
             name: fullName,
-            role: 'student'
+            role: 'student',
+            email: String(studentPayload.addressInfo.email || '').trim().toLowerCase()
         });
 
         const student = await StudentModel.create(studentPayload);
@@ -349,7 +358,8 @@ export async function registerStudent(req, res) {
                 id: user._id,
                 username: user.username,
                 role: user.role,
-                name: user.name
+                name: user.name,
+                email: user.email
             }
         });
     } catch (err) {
@@ -373,11 +383,11 @@ export async function forgotPassword(req, res) {
         }
 
         // Find email based on role
-        let email = null;
-        if (user.role === 'student') {
+        let email = user.email || null;
+        if (!email && user.role === 'student') {
             const student = await StudentModel.findOne({ studentId: username });
             email = student?.addressInfo?.email;
-        } else {
+        } else if (!email) {
             const staff = await StaffModel.findOne({ staffId: username });
             email = staff?.email;
         }
