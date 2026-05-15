@@ -7,16 +7,10 @@ import StudentModel from "../models/student.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification } from "../utils/notifications.js";
 import { createWorkOrderFromReport } from "./workOrders.js";
+import { getUploadDirectory } from "../utils/uploadPaths.js";
 
 const router = express.Router();
-const REPORT_ATTACHMENT_DIR = path.join(
-  process.cwd(),
-  "backend",
-  "uploads",
-  "student-reports",
-);
-
-fs.mkdirSync(REPORT_ATTACHMENT_DIR, { recursive: true });
+const REPORT_ATTACHMENT_DIR = getUploadDirectory("student-reports");
 
 const attachmentUpload = multer({
   storage: multer.diskStorage({

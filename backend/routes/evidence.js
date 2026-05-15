@@ -2,13 +2,13 @@ import express from 'express';
 import { listEvidence, uploadEvidence, downloadEvidence, deleteEvidence } from '../controllers/evidenceController.js';
 import { authenticate } from '../middleware/auth.js';
 import multer from 'multer';
-import path from 'path';
+import { getUploadDirectory } from '../utils/uploadPaths.js';
 
 const router = express.Router();
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        const uploadPath = path.join(process.cwd(), 'backend', 'uploads', 'evidence');
+        const uploadPath = getUploadDirectory('evidence');
         console.log('Multer destination:', uploadPath);
         cb(null, uploadPath);
     },

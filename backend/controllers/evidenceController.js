@@ -1,6 +1,7 @@
 import EvidenceModel from '../models/evidence.js';
 import fs from 'fs';
 import path from 'path';
+import { getUploadDirectory } from '../utils/uploadPaths.js';
 import { logAudit } from './auditController.js';
 
 export async function listEvidence(req, res) {
@@ -27,7 +28,7 @@ export async function uploadEvidence(req, res) {
         if (!file) return res.status(400).json({ error: 'No file uploaded' });
         if (!caseId) return res.status(400).json({ error: 'Case ID is required' });
 
-        const uploadDir = path.join(process.cwd(), 'backend', 'uploads', 'evidence');
+        const uploadDir = getUploadDirectory('evidence');
         if (!fs.existsSync(uploadDir)) {
             console.error('Upload directory does not exist:', uploadDir);
             return res.status(500).json({ error: 'Upload directory not configured' });
@@ -78,7 +79,7 @@ export async function downloadEvidence(req, res) {
         const { id } = req.params;
         const evidence = await EvidenceModel.findById(id);
         if (!evidence) return res.status(404).json({ error: 'Evidence not found' });
-        const filePath = path.join(process.cwd(), 'backend', 'uploads', 'evidence', evidence.filename);
+        const filePath = path.join(getUploadDirectory('evidence'), evidence.filename);
         if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found' });
         res.download(filePath, evidence.filename);
     } catch (err) {
@@ -93,7 +94,7 @@ export async function deleteEvidence(req, res) {
         if (!evidence) return res.status(404).json({ error: 'Evidence not found' });
         await EvidenceModel.findByIdAndDelete(id);
 
-        const filePath = path.join(process.cwd(), 'backend', 'uploads', 'evidence', evidence.filename);
+        const filePath = path.join(getUploadDirectory('evidence'), evidence.filename);
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }

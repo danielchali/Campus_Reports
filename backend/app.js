@@ -28,6 +28,7 @@ const LOCAL_CORS_ORIGINS = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
 ];
+const DEFAULT_PRODUCTION_CORS_ORIGINS = ["https://campusreports.vercel.app"];
 
 function stripCorsValueQuotes(value) {
   return String(value || "")
@@ -77,7 +78,13 @@ function parseCorsOrigins(...originValues) {
     .map((origin) => normalizeCorsOrigin(origin))
     .filter(Boolean);
 
-  return [...new Set([...LOCAL_CORS_ORIGINS, ...parsedOrigins])];
+  return [
+    ...new Set([
+      ...LOCAL_CORS_ORIGINS,
+      ...DEFAULT_PRODUCTION_CORS_ORIGINS,
+      ...parsedOrigins,
+    ]),
+  ];
 }
 
 function parseCorsOriginPatterns(originPatterns = "") {
@@ -124,7 +131,8 @@ const corsOptions = {
       return;
     }
 
-    callback(new Error(`Not allowed by CORS: ${origin}`));
+    console.warn(`Blocked CORS origin: ${origin}`);
+    callback(null, false);
   },
   credentials: true,
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
@@ -182,6 +190,11 @@ app.use("/api/*", (req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
   console.error("Global error handler:", err);
+  if (res.headersSent) {
+    next(err);
+    return;
+  }
+
   res.status(500).json({ error: "Server error" });
 });
 
