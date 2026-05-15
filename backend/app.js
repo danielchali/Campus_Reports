@@ -29,6 +29,12 @@ const LOCAL_CORS_ORIGINS = [
   "http://127.0.0.1:3000",
 ];
 
+function stripCorsValueQuotes(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^["']+|["']+$/g, "");
+}
+
 function splitCorsValues(value) {
   if (Array.isArray(value)) {
     return value.flatMap((item) => splitCorsValues(item));
@@ -38,13 +44,11 @@ function splitCorsValues(value) {
     return [];
   }
 
-  return value.split(/[\s,]+/);
+  return value.split(/[\s,]+/).map((item) => stripCorsValueQuotes(item));
 }
 
 function normalizeCorsOrigin(origin) {
-  const trimmedOrigin = String(origin || "")
-    .trim()
-    .replace(/[/:]+$/, "");
+  const trimmedOrigin = stripCorsValueQuotes(origin).replace(/[/:]+$/, "");
 
   if (!trimmedOrigin) {
     return "";

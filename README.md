@@ -117,6 +117,7 @@ The backend expects these environment variables in `backend/.env`:
 - `PORT`
 - `JWT_SECRET`
 - `MONGODB_URI`
+- `CORS_ORIGIN` — comma- or whitespace-separated frontend origins allowed by CORS; surrounding quotes are tolerated but not required.
 - `CORS_ORIGIN` — comma- or whitespace-separated frontend origins allowed by CORS.
 - `FRONTEND_URL` — primary frontend URL; also added to the CORS allow-list when set.
 - `EMAIL_ENABLED`
