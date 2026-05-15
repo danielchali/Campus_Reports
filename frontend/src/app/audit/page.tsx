@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from '../../context/AuthContext';
+import { FileText } from 'lucide-react';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { API_BASE_URL } from '../../config/constants';
@@ -120,8 +121,17 @@ export default function AuditPage() {
   const safeLogs = Array.isArray(logs) ? logs : [];
   return (
       <section>
-        <h1 className="text-4xl font-bold mb-4 text-kmuGreen">Audit Logs</h1>
-        <p className="mb-4 text-gray-700 dark:text-gray-300">This page shows a comprehensive record of all actions taken in the system. Use search and filters to narrow audit results.</p>
+        <div className="mb-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
+                <FileText size={18} />
+              </div>
+              <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Audit Logs</h1>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 md:text-right">This page shows a comprehensive record of all actions taken in the system. Use search and filters to narrow audit results.</p>
+          </div>
+        </div>
         
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">

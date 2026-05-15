@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { UserRound } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { getProfile, updateProfile } from '../../utils/api';
 import { useRouter } from "next/navigation";
@@ -258,11 +259,18 @@ export default function ProfilePage() {
 
   return (
     <section className="max-w-[1600px] mx-auto p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-4 text-kmuGreen">Profile & Settings</h1>
-        <p className="text-gray-700 dark:text-gray-300 text-lg">
-          Manage your personal information and account settings in one place.
-        </p>
+      <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
+              <UserRound size={18} />
+            </div>
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Profile & Settings</h1>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 md:text-right">
+            Manage your personal information and account settings in one place.
+          </p>
+        </div>
       </div>
 
       {loading ? (
