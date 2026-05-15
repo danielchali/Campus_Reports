@@ -101,6 +101,69 @@ async function getRequesterInfo(user = {}) {
   };
 }
 
+
+function normalizeManualWorkOrderPayload(body = {}) {
+  return {
+    title: String(body.title || "").trim(),
+    description: String(body.description || "").trim(),
+    location: String(body.location || "").trim(),
+    issueType: String(body.issueType || body.issue_type || "Other").trim(),
+    priority: String(body.priority || "Normal").trim(),
+    affectedAsset: String(body.affectedAsset || body.affected_asset || "").trim(),
+    accessInstructions: String(body.accessInstructions || body.access_instructions || "").trim(),
+    assignedTo: String(body.assignedTo || body.assigned_to || "").trim(),
+    requestedByName: String(body.requestedByName || body.requested_by_name || "").trim(),
+    requestingDepartment: String(body.requestingDepartment || body.requesting_department || "").trim(),
+    message: String(body.message || "Manual maintenance issue and work order created.").trim(),
+  };
+}
+
+async function createManualWorkOrder(payload, user) {
+  const normalized = normalizeManualWorkOrderPayload(payload);
+  const errors = [];
+  if (!normalized.title) errors.push("Title is required");
+  if (!normalized.description) errors.push("Description is required");
+  if (!normalized.location) errors.push("Location is required");
+  if (!["Low", "Normal", "High", "Urgent safety risk"].includes(normalized.priority)) {
+    errors.push("Invalid priority");
+  }
+  if (errors.length > 0) {
+    const error = new Error(errors[0]);
+    error.status = 400;
+    throw error;
+  }
+
+  const requesterInfo = await getRequesterInfo(user);
+  const workOrderId = generateWorkOrderId();
+  return WorkOrderModel.create({
+    work_order_id: workOrderId,
+    source_report_id: `manual:${workOrderId}`,
+    source_tracking_code: "Manual maintenance issue",
+    title: normalized.title,
+    description: normalized.description,
+    location: normalized.location,
+    issue_type: normalized.issueType || "Other",
+    priority: normalized.priority || "Normal",
+    affected_asset: normalized.affectedAsset,
+    access_instructions: normalized.accessInstructions,
+    status: normalized.assignedTo ? "Assigned" : "Open",
+    assigned_to: normalized.assignedTo,
+    requested_by_name: normalized.requestedByName || requesterInfo.requestedByName,
+    requesting_department: normalized.requestingDepartment || requesterInfo.requestingDepartment,
+    created_by: user.username || user.name || "system",
+    created_by_role: user.role || "system",
+    attachments: [],
+    updates: [
+      {
+        status: normalized.assignedTo ? "Assigned" : "Open",
+        message: normalized.message || "Manual maintenance issue and work order created.",
+        createdBy: user.username || user.name || "system",
+        createdByRole: user.role || "system",
+      },
+    ],
+  });
+}
+
 async function createWorkOrderFromReport(
   report,
   user,
@@ -197,8 +260,10 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   try {
     const { reportId, message } = req.body;
-    if (!reportId)
-      return res.status(400).json({ error: "Report ID is required" });
+    if (!reportId) {
+      const workOrder = await createManualWorkOrder(req.body, req.user);
+      return res.status(201).json(mapWorkOrder(workOrder));
+    }
 
     const report = await StudentReportModel.findById(reportId);
     if (!report)
