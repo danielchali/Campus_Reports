@@ -24,7 +24,7 @@ function buildStudentProfileUpdate(body = {}) {
             dateOfBirth: studentProfile.personalInfo?.dateOfBirth ?? studentProfile.dateOfBirth ?? ''
         },
         accommodation: {
-            roomNumber: studentProfile.accommodation?.roomNumber ?? studentProfile.roomNumber ?? ''
+            roomNumber: String(studentProfile.accommodation?.roomNumber ?? studentProfile.roomNumber ?? '').trim()
         },
         addressInfo: {
             province: studentProfile.addressInfo?.province ?? studentProfile.province ?? '',
@@ -133,6 +133,11 @@ export async function updateOwnProfile(req, res) {
         const updateData = {};
         if (req.body.name !== undefined) updateData.name = req.body.name;
         if (req.body.username !== undefined) updateData.username = req.body.username;
+        if (req.body.profile !== undefined) {
+            updateData.profile = {
+                houseNumber: String(req.body.profile?.houseNumber || '').trim()
+            };
+        }
 
         let id = req.user.id;
         if (id && typeof id === 'string' && id.length === 24 && /^[a-fA-F0-9]+$/.test(id)) {
@@ -154,6 +159,9 @@ export async function updateOwnProfile(req, res) {
 
             if (req.body.studentProfile) {
                 const studentUpdate = buildStudentProfileUpdate(req.body);
+                if (!studentUpdate.accommodation.roomNumber) {
+                    return res.status(400).json({ error: 'Room number is required' });
+                }
                 await StudentModel.findOneAndUpdate(
                     { studentId: currentUser.username },
                     {

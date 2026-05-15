@@ -5,6 +5,9 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     name: String,
     role: { type: String, default: 'user' },
+    profile: {
+        houseNumber: String
+    },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
     resetPasswordOTP: String,

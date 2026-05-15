@@ -31,7 +31,7 @@ function normalizeStudentPayload(payload = {}) {
             dateOfBirth: payload.personalInfo?.dateOfBirth || payload.dateOfBirth || ''
         },
         accommodation: {
-            roomNumber: payload.accommodation?.roomNumber || payload.roomNumber || ''
+            roomNumber: String(payload.accommodation?.roomNumber || payload.roomNumber || '').trim()
         },
         addressInfo: {
             province: payload.addressInfo?.province || payload.province || '',
@@ -103,7 +103,11 @@ export async function getStudent(req, res) {
 
 export async function createStudent(req, res) {
     try {
-        const student = await StudentModel.create(normalizeStudentPayload(req.body));
+        const normalizedStudent = normalizeStudentPayload(req.body);
+        if (!normalizedStudent.accommodation.roomNumber) {
+            return res.status(400).json({ error: 'Room number is required' });
+        }
+        const student = await StudentModel.create(normalizedStudent);
         await logAudit({
             action: 'student_created',
             entity: 'student',
@@ -130,7 +134,11 @@ export async function createStudent(req, res) {
 
 export async function updateStudent(req, res) {
     try {
-        const student = await StudentModel.findByIdAndUpdate(req.params.id, normalizeStudentPayload(req.body), { new: true });
+        const normalizedStudent = normalizeStudentPayload(req.body);
+        if (!normalizedStudent.accommodation.roomNumber) {
+            return res.status(400).json({ error: 'Room number is required' });
+        }
+        const student = await StudentModel.findByIdAndUpdate(req.params.id, normalizedStudent, { new: true });
         await logAudit({
             action: 'student_updated',
             entity: 'student',

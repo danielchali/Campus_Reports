@@ -42,11 +42,17 @@ type ProfileResponse = {
   role?: string;
   createdAt?: string;
   studentProfile?: StudentProfile | null;
+  profile?: {
+    houseNumber?: string;
+  };
 };
 
 type ProfileForm = {
   username: string;
   name: string;
+  profile: {
+    houseNumber: string;
+  };
   studentProfile: {
     studentId: string;
     program: string;
@@ -80,6 +86,9 @@ function buildForm(data: ProfileResponse): ProfileForm {
   return {
     username: data.username || '',
     name: data.name || '',
+    profile: {
+      houseNumber: data.profile?.houseNumber || '',
+    },
     studentProfile: {
       studentId: data.studentProfile?.studentId || data.username || '',
       program: data.studentProfile?.program || '',
@@ -169,12 +178,13 @@ export default function ProfilePage() {
         if (!form.studentProfile.addressInfo.email.trim()) throw new Error('Email is required.');
         if (!form.studentProfile.addressInfo.phone.trim()) throw new Error('Phone is required.');
         if (!form.studentProfile.addressInfo.address.trim()) throw new Error('Address is required.');
+        if (!form.studentProfile.accommodation.roomNumber.trim()) throw new Error('Room number is required.');
         await updateProfile({
           name: `${form.studentProfile.personalInfo.firstName} ${form.studentProfile.personalInfo.surName}`.trim(),
           studentProfile: form.studentProfile,
         });
       } else {
-        await updateProfile({ username: form.username, name: form.name });
+        await updateProfile({ username: form.username, name: form.name, profile: { houseNumber: form.profile.houseNumber.trim() } });
       }
       setSuccess('Profile updated successfully!');
       setEditMode(false);
@@ -297,6 +307,16 @@ export default function ProfilePage() {
                           required
                         />
                       </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-gray-700 dark:text-gray-300 mb-1">House Number <span className="text-sm text-gray-500">(optional for non-university premises residents/workers)</span></label>
+                        <input
+                          type="text"
+                          className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          value={form.profile.houseNumber}
+                          onChange={e => setForm(current => ({ ...current, profile: { ...current.profile, houseNumber: e.target.value } }))}
+                          placeholder="e.g., Staff House 12 or Campus Block B-4"
+                        />
+                      </div>
                     </div>
                   )}
 
@@ -379,7 +399,7 @@ export default function ProfilePage() {
                       <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Accommodation & Contact</h3>
                         <div className="grid gap-4 md:grid-cols-2">
-                          <InputField label="Room Number" value={form.studentProfile.accommodation.roomNumber} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, accommodation: { roomNumber: value } } }))} />
+                          <InputField label="Room Number *" value={form.studentProfile.accommodation.roomNumber} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, accommodation: { roomNumber: value } } }))} />
                           <InputField label="Province" value={form.studentProfile.addressInfo.province} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, addressInfo: { ...current.studentProfile.addressInfo, province: value } } }))} />
                           <InputField label="Town" value={form.studentProfile.addressInfo.town} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, addressInfo: { ...current.studentProfile.addressInfo, town: value } } }))} />
                           <InputField label="Phone" value={form.studentProfile.addressInfo.phone} onChange={(value) => setForm(current => ({ ...current, studentProfile: { ...current.studentProfile, addressInfo: { ...current.studentProfile.addressInfo, phone: value } } }))} />
@@ -422,6 +442,7 @@ export default function ProfilePage() {
                     <DisplayField label="Username" value={safeProfile.username || 'Not set'} />
                     <DisplayField label="Role" value={safeProfile.role || 'Not set'} capitalize />
                     <DisplayField label="Full Name" value={safeProfile.name || 'Not set'} />
+                    {!isStudent && <DisplayField label="House Number" value={safeProfile.profile?.houseNumber || 'Not set'} />}
                     <DisplayField
                       label="Account Created"
                       value={safeProfile.createdAt ? new Date(safeProfile.createdAt).toLocaleDateString() : 'Unknown'}

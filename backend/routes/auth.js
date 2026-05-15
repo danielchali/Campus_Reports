@@ -1,5 +1,5 @@
 import express from 'express';
-import { login, register, registerStudent } from '../controllers/authController.js';
+import { login, register, registerGeneralUser, registerStudent } from '../controllers/authController.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { loginRateLimit } from '../middleware/loginRateLimit.js';
 import jwt from 'jsonwebtoken';
@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post('/login', loginRateLimit, login);
 router.post('/student-signup', registerStudent);
+router.post('/general-signup', registerGeneralUser);
 router.post('/register', authenticate, authorize(['admin']), register);
 router.post('/refresh-token', (req, res) => {
     // For now, just return an error since we don't have refresh tokens implemented

@@ -88,7 +88,7 @@ function normalizeStudentSignupPayload(payload = {}) {
             dateOfBirth: payload.personalInfo?.dateOfBirth || payload.dateOfBirth || ''
         },
         accommodation: {
-            roomNumber: payload.accommodation?.roomNumber || payload.roomNumber || ''
+            roomNumber: String(payload.accommodation?.roomNumber || payload.roomNumber || '').trim()
         },
         addressInfo: {
             province: payload.addressInfo?.province || payload.province || '',
@@ -98,6 +98,29 @@ function normalizeStudentSignupPayload(payload = {}) {
             email: payload.addressInfo?.email || payload.email || ''
         }
     };
+}
+
+
+function normalizeGeneralUserSignupPayload(payload = {}) {
+    return {
+        username: String(payload.username || '').trim(),
+        password: String(payload.password || ''),
+        name: String(payload.name || payload.fullName || '').trim(),
+        profile: {
+            houseNumber: String(payload.profile?.houseNumber || payload.houseNumber || '').trim()
+        }
+    };
+}
+
+function validateGeneralUserSignupPayload(payload = {}) {
+    const errors = [];
+
+    if (!String(payload.username || '').trim()) errors.push('Username is required');
+    if (!String(payload.password || '').trim()) errors.push('Password is required');
+    if (String(payload.password || '').length < 6) errors.push('Password must be at least 6 characters');
+    if (!String(payload.name || payload.fullName || '').trim()) errors.push('Full name is required');
+
+    return errors;
 }
 
 function validateStudentSignupPayload(payload = {}) {
@@ -110,6 +133,7 @@ function validateStudentSignupPayload(payload = {}) {
     if (!String(payload.personalInfo?.firstName || payload.firstName || '').trim()) errors.push('First name is required');
     if (!String(payload.personalInfo?.surName || payload.surName || '').trim()) errors.push('Surname is required');
     if (!String(payload.addressInfo?.email || payload.email || '').trim()) errors.push('Email is required');
+    if (!String(payload.accommodation?.roomNumber || payload.roomNumber || '').trim()) errors.push('Room number is required');
 
     return errors;
 }
@@ -214,6 +238,59 @@ export async function register(req, res) {
 
         res.json({ success: true, user });
     } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+
+export async function registerGeneralUser(req, res) {
+    try {
+        const validationErrors = validateGeneralUserSignupPayload(req.body);
+        if (validationErrors.length > 0) {
+            return res.status(400).json({ error: validationErrors[0], details: validationErrors });
+        }
+
+        const userPayload = normalizeGeneralUserSignupPayload(req.body);
+        const exists = await UserModel.findOne({ username: userPayload.username });
+        if (exists) return res.status(409).json({ error: 'Username already exists' });
+
+        const hashed = await bcrypt.hash(userPayload.password, 10);
+        const user = await UserModel.create({
+            username: userPayload.username,
+            password: hashed,
+            name: userPayload.name,
+            role: 'general_user',
+            profile: userPayload.profile
+        });
+
+        await logAudit({
+            action: 'general_user_self_registered',
+            entity: 'user',
+            entityId: user._id || user.id,
+            user: user.username,
+            details: {
+                name: user.name,
+                role: user.role,
+                houseNumberProvided: Boolean(userPayload.profile.houseNumber),
+                timestamp: new Date().toISOString()
+            },
+            ipAddress: req.ip,
+            userAgent: req.get('User-Agent')
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'General user account created successfully',
+            user: {
+                id: user._id,
+                username: user.username,
+                role: user.role,
+                name: user.name,
+                profile: user.profile
+            }
+        });
+    } catch (err) {
+        console.error('General user signup error:', err);
         res.status(500).json({ error: 'Server error' });
     }
 }

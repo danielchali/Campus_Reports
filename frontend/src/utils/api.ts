@@ -61,6 +61,17 @@ export async function register(username: string, password: string, name?: string
   return res.json();
 }
 
+
+export async function registerGeneralUser(userData: { username: string; password: string; name: string; profile?: { houseNumber?: string } }) {
+  const res = await fetch(`${API_BASE_URL}/general-signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(userData)
+  });
+  if (!res.ok) throw new Error((await res.json()).error || 'General user signup failed');
+  return res.json();
+}
+
 export async function registerStudent(studentData: any) {
   const res = await fetch(`${API_BASE_URL}/student-signup`, {
     method: 'POST',

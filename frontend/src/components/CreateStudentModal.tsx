@@ -132,6 +132,7 @@ export default function CreateStudentModal({ isOpen, onClose, onSuccess }: Creat
       if (!form.addressInfo.email.trim()) return 'Email is required.';
       if (!form.addressInfo.phone.trim()) return 'Phone number is required.';
       if (!form.addressInfo.address.trim()) return 'Address is required.';
+      if (!form.accommodation.roomNumber.trim()) return 'Room number is required.';
       return '';
     }
 
@@ -436,7 +437,7 @@ export default function CreateStudentModal({ isOpen, onClose, onSuccess }: Creat
           {step === 2 && (
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium">Room Number</label>
+                <label className="mb-1 block text-sm font-medium">Room Number *</label>
                 <input
                   type="text"
                   value={form.accommodation.roomNumber}
