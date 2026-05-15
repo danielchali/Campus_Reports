@@ -139,7 +139,7 @@ export default function Sidebar() {
                 key={link.path}
                 href={link.path}
                 onClick={() => setIsOpenMobile(false)}
-                className={`${linkBase} ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
+                className={`${linkBase} ${link.mobileOnly ? 'md:hidden' : ''} ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
               >
                 <span className={`flex h-5 w-5 items-center justify-center ${pathname === link.path ? 'text-kmuGreen dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} aria-hidden="true">
                   <Icon size={16} />

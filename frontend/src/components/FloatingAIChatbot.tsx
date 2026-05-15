@@ -375,6 +375,10 @@ export default function FloatingAIChatbot() {
     dragStateRef.current.moved = false;
   };
 
+  if (!isHydrated) {
+    return null;
+  }
+
   return (
     <>
       {isOpen && <button type="button" aria-label="Close AI assistant overlay" onClick={() => setIsOpen(false)} className="fixed inset-0 z-30 bg-transparent md:hidden" />}

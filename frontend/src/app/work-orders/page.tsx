@@ -2,8 +2,9 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ClipboardList, Search, Wrench } from "lucide-react";
+import { CheckCircle2, ClipboardList, PlusCircle, Search, Wrench } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { PageSkeleton, InlineSkeleton } from "../../components/PageSkeleton";
 import SignatureField from "../../components/SignatureField";
@@ -192,14 +193,25 @@ export default function WorkOrdersPage() {
     <>
       <section className="max-w-6xl mx-auto space-y-6">
         <div className="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow">
-          <div className="flex items-center gap-3 text-kmuGreen">
-            <ClipboardList size={28} />
-            <h1 className="text-3xl font-bold">Work Orders</h1>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="flex items-center gap-3 text-kmuGreen">
+                <ClipboardList size={28} />
+                <h1 className="text-3xl font-bold">Work Orders</h1>
+              </div>
+              <p className="mt-2 text-gray-600 dark:text-gray-400">
+                Track dedicated maintenance work orders created from approved
+                maintenance issues.
+              </p>
+            </div>
+            <Link
+              href="/maintenance-issues"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-kmuGreen px-4 py-3 text-sm font-semibold text-white transition hover:bg-kmuOrange"
+            >
+              <PlusCircle size={18} />
+              New Work Order
+            </Link>
           </div>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Track dedicated maintenance work orders created from approved
-            maintenance issues.
-          </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-4">

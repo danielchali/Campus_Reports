@@ -12,6 +12,18 @@ interface User {
   name?: string;
 }
 
+
+interface ProfileResponse {
+  name?: string;
+  studentProfile?: {
+    fullName?: string;
+    personalInfo?: {
+      firstName?: string;
+      surName?: string;
+    };
+  } | null;
+}
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -22,6 +34,7 @@ interface AuthContextType {
   loading: boolean;
   isOnline: boolean;
   preloadData: () => Promise<void>;
+  refreshUserProfile: () => Promise<void>;
   isPreloading: boolean;
 }
 
@@ -38,6 +51,31 @@ function decodeJwtPayload(token: string) {
   } catch {
     return null;
   }
+}
+
+
+function getStudentProfileFullName(profile: ProfileResponse | null) {
+  return (
+    profile?.studentProfile?.fullName ||
+    [
+      profile?.studentProfile?.personalInfo?.firstName,
+      profile?.studentProfile?.personalInfo?.surName,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .trim()
+  );
+}
+
+function getProfileDisplayName(profile: ProfileResponse | null, fallbackUser: User) {
+  const studentProfileName =
+    fallbackUser.role === 'student' ? getStudentProfileFullName(profile) : '';
+  return (
+    studentProfileName ||
+    String(profile?.name || '').trim() ||
+    String(fallbackUser.name || '').trim() ||
+    fallbackUser.username
+  );
 }
 
 function isTokenExpired(token: string) {
@@ -95,8 +133,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
           
+          const parsedUser = JSON.parse(storedUser);
           setToken(storedToken);
-          setUser(JSON.parse(storedUser));
+          setUser(parsedUser);
+
+          if (storedToken !== 'offline_token' && navigator.onLine) {
+            fetch(`${API_BASE_URL}/users/me`, {
+              headers: { Authorization: `Bearer ${storedToken}` },
+            })
+              .then((response) => (response.ok ? response.json() : null))
+              .then((profile) => {
+                if (!profile) return;
+                const refreshedUser = {
+                  ...parsedUser,
+                  name: getProfileDisplayName(profile, parsedUser),
+                };
+                localStorage.setItem('auth_user', JSON.stringify(refreshedUser));
+                setUser(refreshedUser);
+              })
+              .catch((error) => {
+                console.warn('Unable to refresh stored user profile:', error);
+              });
+          }
         } catch (error) {
           console.error('Error parsing stored auth data:', error);
           localStorage.removeItem('auth_token');
@@ -121,6 +179,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return atob(encryptedData);
     } catch {
       return '';
+    }
+  };
+
+  const refreshUserProfile = async (): Promise<void> => {
+    if (!token || token === 'offline_token' || !user) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) return;
+
+      const profile = (await response.json()) as ProfileResponse;
+      const refreshedUser = {
+        ...user,
+        name: getProfileDisplayName(profile, user),
+      };
+
+      localStorage.setItem('auth_user', JSON.stringify(refreshedUser));
+      setUser(refreshedUser);
+    } catch (error) {
+      console.warn('Unable to refresh user profile:', error);
     }
   };
 
@@ -336,6 +417,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       isOnline,
       preloadData,
+      refreshUserProfile,
       isPreloading
     }}>
       {children}

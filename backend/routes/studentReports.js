@@ -3,19 +3,14 @@ import fs from "fs";
 import path from "path";
 import multer from "multer";
 import StudentReportModel from "../models/studentReport.js";
+import StudentModel from "../models/student.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification } from "../utils/notifications.js";
 import { createWorkOrderFromReport } from "./workOrders.js";
+import { getUploadDirectory } from "../utils/uploadPaths.js";
 
 const router = express.Router();
-const REPORT_ATTACHMENT_DIR = path.join(
-  process.cwd(),
-  "backend",
-  "uploads",
-  "student-reports",
-);
-
-fs.mkdirSync(REPORT_ATTACHMENT_DIR, { recursive: true });
+const REPORT_ATTACHMENT_DIR = getUploadDirectory("student-reports");
 
 const attachmentUpload = multer({
   storage: multer.diskStorage({
@@ -43,7 +38,7 @@ function generateTrackingCode() {
 }
 
 // Helper: map DB doc to frontend shape
-function mapReport(doc) {
+function mapReport(doc, ownerNameOverride = "") {
   const obj = doc.toObject ? doc.toObject() : doc;
   return {
     id: String(obj._id),
@@ -58,7 +53,7 @@ function mapReport(doc) {
     status: obj.status,
     ownerId: obj.owner_id,
     ownerUsername: obj.owner_username,
-    ownerName: obj.owner_name,
+    ownerName: ownerNameOverride || obj.owner_name,
     ownerRole: obj.owner_role,
     studentInvolved: !!obj.student_involved,
     routedToMaintenance: !!obj.routed_to_maintenance,
@@ -83,6 +78,50 @@ function mapReport(doc) {
       createdAt: u.createdAt?.toISOString?.() || u.createdAt,
     })),
   };
+}
+
+
+function getStudentFullName(student) {
+  const obj = student?.toObject ? student.toObject({ virtuals: true }) : student;
+  return String(
+    obj?.fullName ||
+      [obj?.personalInfo?.firstName, obj?.personalInfo?.surName]
+        .filter(Boolean)
+        .join(" "),
+  ).trim();
+}
+
+async function getStudentDisplayNameByUsername(username) {
+  const studentId = String(username || "").trim();
+  if (!studentId) return "";
+  const student = await StudentModel.findOne({ studentId });
+  return getStudentFullName(student);
+}
+
+async function mapReportsWithStudentNames(reports) {
+  const studentIds = [
+    ...new Set(
+      reports
+        .filter((report) => report.owner_role === "student")
+        .map((report) => report.owner_username)
+        .filter(Boolean),
+    ),
+  ];
+
+  if (studentIds.length === 0) {
+    return reports.map((report) => mapReport(report));
+  }
+
+  const students = await StudentModel.find({ studentId: { $in: studentIds } });
+  const studentNames = new Map(
+    students
+      .map((student) => [student.studentId, getStudentFullName(student)])
+      .filter(([, fullName]) => fullName),
+  );
+
+  return reports.map((report) =>
+    mapReport(report, studentNames.get(report.owner_username) || ""),
+  );
 }
 
 function parseDetails(rawDetails) {
@@ -211,6 +250,11 @@ router.post(
         return res.status(400).json({ error: "Missing required fields" });
       }
 
+      const ownerDisplayName =
+        req.user.role === "student"
+          ? await getStudentDisplayNameByUsername(req.user.username)
+          : "";
+
       const report = await StudentReportModel.create({
         tracking_code: generateTrackingCode(),
         title: title.trim(),
@@ -224,7 +268,7 @@ router.post(
         status: "Submitted",
         owner_id: String(req.user.id || req.user._id),
         owner_username: req.user.username,
-        owner_name: req.user.name || req.user.username,
+        owner_name: ownerDisplayName || req.user.name || req.user.username,
         owner_role: req.user.role,
         student_involved: hasStudentInvolved,
         seen_by: [],
@@ -282,7 +326,7 @@ router.get(
         createdAt: -1,
       });
 
-      res.json(reports.map(mapReport));
+      res.json(await mapReportsWithStudentNames(reports));
     } catch (err) {
       console.error("Fetch my reports error:", err);
       res.status(500).json({ error: "Failed to fetch reports" });
@@ -342,7 +386,7 @@ router.get(
       const reports = await StudentReportModel.find(query).sort({
         createdAt: -1,
       });
-      res.json(reports.map(mapReport));
+      res.json(await mapReportsWithStudentNames(reports));
     } catch (err) {
       console.error("Fetch all reports error:", err);
       res.status(500).json({ error: "Failed to fetch reports" });
