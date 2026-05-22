@@ -378,7 +378,7 @@ router.post("/", async (req, res) => {
     await createNotification({
       userId: report.owner_id,
       type: "report_update",
-      message: `A maintenance work order has been created for "${report.title}".`,
+      message: "Your report has been sent to maintenance.",
       link: "/my-reports",
     });
 
