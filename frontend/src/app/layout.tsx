@@ -84,6 +84,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
   const shouldShowNav = !isLogin && user;
   const disableSidebarForStudentMobile = !!shouldShowNav && user.role === 'student' && isMobile;
   const showPublicChatbot = !user && [
+    '/',
     '/login',
     '/anonymous-report',
     '/forgot-password',
