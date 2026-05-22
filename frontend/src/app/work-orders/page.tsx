@@ -14,6 +14,7 @@ import {
   createManualWorkOrder,
   getWorkOrders,
   updateWorkOrderStatus,
+  exportWorkOrderDocx,
   type WorkOrder,
   type WorkOrderStatus,
 } from "../../utils/workOrders";
@@ -463,6 +464,7 @@ export default function WorkOrdersPage() {
                           {workOrder.accessInstructions}
                         </p>
                       )}
+                      <div className="mt-4 flex justify-end"><button type="button" onClick={() => exportWorkOrderDocx(workOrder.id)} className="rounded-lg border border-kmuGreen px-3 py-1.5 text-xs font-semibold text-kmuGreen hover:bg-kmuGreen/10">Export DOCX</button></div>
                       <WorkOrderJobCard
                         workOrder={workOrder}
                         signatures={signatures}
@@ -569,9 +571,7 @@ function WorkOrderJobCard({
           Kapasa Makasa University
         </p>
         <div className="mt-1 flex flex-wrap items-center justify-center gap-3">
-          <h3 className="text-lg font-bold uppercase">
-            Maintenance Request & Job Card
-          </h3>
+          <div className="flex items-center gap-3"><img src="/kmu_logo.svg" alt="KMU Logo" className="h-10 w-10" /><h3 className="text-lg font-bold uppercase">Maintenance Request & Job Card</h3></div>
           <span className="rounded-md border border-red-200 bg-white px-2 py-1 text-sm font-semibold text-red-600 dark:border-red-900 dark:bg-slate-900">
             No. {workOrder.workOrderId}
           </span>
@@ -623,8 +623,8 @@ function WorkOrderJobCard({
             Materials needed / inspection notes:
           </p>
           <div className="mt-2 space-y-2">
-            <DashedLine />
-            <DashedLine />
+            <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
+            <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
           </div>
         </section>
 
@@ -635,7 +635,7 @@ function WorkOrderJobCard({
           <div className="mt-2 grid gap-2 md:grid-cols-3">
             <label className="flex items-end gap-2">
               Approved by
-              <DashedLine />
+              <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
                           <SignatureField
                 label="Signature"
@@ -647,7 +647,7 @@ function WorkOrderJobCard({
               />
             <label className="flex items-end gap-2">
               Date
-              <DashedLine />
+              <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
           </div>
         </section>
@@ -660,7 +660,7 @@ function WorkOrderJobCard({
           <div className="mt-2 grid gap-2 md:grid-cols-3">
             <label className="flex items-end gap-2">
               Name
-              <DashedLine />
+              <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
                           <SignatureField
                 label="Signature"
@@ -672,7 +672,7 @@ function WorkOrderJobCard({
               />
             <label className="flex items-end gap-2">
               Date
-              <DashedLine />
+              <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
           </div>
         </section>
@@ -688,7 +688,7 @@ function WorkOrderJobCard({
           <div className="mt-2 grid gap-2 md:grid-cols-3">
             <label className="flex items-end gap-2">
               Name
-              <DashedLine />
+              <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
                           <SignatureField
                 label="Signature"
@@ -700,7 +700,7 @@ function WorkOrderJobCard({
               />
             <label className="flex items-end gap-2">
               Date
-              <DashedLine />
+              <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
           </div>
         </section>
