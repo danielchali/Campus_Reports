@@ -331,7 +331,7 @@ export default function CasesPage() {
       <section className="max-w-6xl mx-auto p-4">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-kmuGreen">Cases</h1>
+            <h1 className="text-2xl font-bold text-kmuGreen">Discipline Cases</h1>
             {offlineMode && (
               <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded">
                 Offline Mode
@@ -407,7 +407,7 @@ export default function CasesPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search cases..."
+                placeholder="Search discipline cases..."
                 className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
@@ -503,7 +503,7 @@ export default function CasesPage() {
         <div className="space-y-4 md:hidden">
           {filteredCases.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 text-center text-gray-500 dark:text-gray-400">
-              No cases found
+              No discipline cases found
             </div>
           ) : (
             filteredCases.map((s) => {
@@ -585,7 +585,7 @@ export default function CasesPage() {
                 {filteredCases.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="py-8 px-4 text-center text-gray-500 dark:text-gray-400">
-                      No cases found
+                      No discipline cases found
                     </td>
                   </tr>
                 ) : (
