@@ -57,7 +57,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
     return [
       { icon: navIcons.admin, label: "Dashboard", path: "/admin" },
       { icon: navIcons.users, label: "Manage Users", path: "/admin/users" },
-      { icon: navIcons.cases, label: "Cases", path: "/cases" },
+      { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
       { icon: navIcons.reports, label: "Reports", path: "/reports" },
       {
         icon: navIcons.maintenanceIssues,
@@ -88,7 +88,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         label: "Dashboard",
         path: "/security-dashboard",
       },
-      { icon: navIcons.cases, label: "Cases", path: "/cases" },
+      { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
       { icon: navIcons.evidence, label: "Evidence", path: "/evidence" },
       { icon: navIcons.students, label: "Students", path: "/students" },
       { icon: navIcons.newcase, label: "New Case", path: "/cases/new" },
@@ -112,7 +112,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         label: "Dashboard",
         path: "/chief-security-officer-dashboard",
       },
-      { icon: navIcons.cases, label: "Cases", path: "/cases" },
+      { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
       { icon: navIcons.reports, label: "Reports", path: "/reports" },
       { icon: navIcons.students, label: "Students", path: "/students" },
       { icon: navIcons.evidence, label: "Evidence", path: "/evidence" },
@@ -138,7 +138,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         path: "/dean-of-students-dashboard",
       },
       { icon: navIcons.students, label: "Students", path: "/students" },
-      { icon: navIcons.cases, label: "Cases", path: "/cases" },
+      { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
       { icon: navIcons.reports, label: "Reports", path: "/reports" },
       {
         icon: navIcons.maintenanceIssues,
@@ -167,7 +167,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         path: "/assistant-dean-dashboard",
       },
       { icon: navIcons.students, label: "Students", path: "/students" },
-      { icon: navIcons.cases, label: "Cases", path: "/cases" },
+      { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
       { icon: navIcons.reports, label: "Reports", path: "/reports" },
       {
         icon: navIcons.maintenanceIssues,
@@ -196,7 +196,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         path: "/registrar-dashboard",
       },
       { icon: navIcons.students, label: "Students", path: "/students" },
-      { icon: navIcons.cases, label: "Cases", path: "/cases" },
+      { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
       { icon: navIcons.reports, label: "Reports", path: "/reports" },
       {
         icon: navIcons.maintenanceIssues,
@@ -254,9 +254,14 @@ export function getNavLinksForRole(role?: string): NavLink[] {
       },
       { icon: navIcons.myReports, label: "My Reports", path: "/my-reports" },
       {
+        icon: navIcons.maintenance,
+        label: "Maintenance Request",
+        path: "/maintenance-request",
+      },
+      {
         icon: navIcons.makeReport,
-        label: "Make a Report",
-        path: "/make-report",
+        label: "Security/Disciplinary Issue",
+        path: "/file-security-disciplinary-issue",
       },
       { icon: navIcons.profile, label: "My Profile", path: "/profile" },
       { icon: navIcons.help, label: "Help", path: "/help" },
@@ -278,11 +283,15 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         path: "/general-dashboard",
       },
       { icon: navIcons.myReports, label: "My Reports", path: "/my-reports" },
-      { icon: navIcons.makeReport, label: "New Report", path: "/make-report" },
       {
         icon: navIcons.maintenance,
         label: "Maintenance Request",
-        path: "/make-report?category=maintenance_issue",
+        path: "/maintenance-request",
+      },
+      {
+        icon: navIcons.makeReport,
+        label: "Security/Disciplinary Issue",
+        path: "/file-security-disciplinary-issue",
       },
       { icon: navIcons.help, label: "Knowledge Base", path: "/help" },
       {

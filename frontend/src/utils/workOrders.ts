@@ -178,3 +178,23 @@ export async function updateWorkOrderStatus(
   if (!res.ok) return null;
   return res.json();
 }
+
+export async function exportWorkOrderDocx(workOrderId: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/work-orders/${workOrderId}/export-docx`, {
+    headers: { ...authHeaders() },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to export work order");
+  }
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "work_order.docx";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}

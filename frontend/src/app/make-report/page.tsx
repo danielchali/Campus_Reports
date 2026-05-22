@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   Camera,
@@ -66,12 +66,18 @@ const categoryOptions: Array<{
 export default function MakeReportPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [incidentDate, setIncidentDate] = useState("");
   const [category, setCategory] =
     useState<StudentReportCategory>("disciplinary_case");
+  const forcedCategory = searchParams.get("category");
+  const lockedCategory: StudentReportCategory | null =
+    forcedCategory === "maintenance_issue" || forcedCategory === "disciplinary_case"
+      ? forcedCategory
+      : null;
   const [anonymous, setAnonymous] = useState(false);
   const [peopleInvolved, setPeopleInvolved] = useState("");
   const [witnesses, setWitnesses] = useState("");
@@ -96,6 +102,12 @@ export default function MakeReportPage() {
     user?.role === "general_user" && !isMaintenanceRequest;
   const reportInvolvesStudent =
     user?.role === "student" || (!isMaintenanceRequest && studentInvolved);
+
+  useEffect(() => {
+    if (lockedCategory) {
+      setCategory(lockedCategory);
+    }
+  }, [lockedCategory]);
 
   useEffect(() => {
     if (!user || (user.role !== "student" && user.role !== "general_user")) {
@@ -281,7 +293,7 @@ export default function MakeReportPage() {
         </div>
 
         {/* Mobile dropdown */}
-        <div className="md:hidden">
+        {!lockedCategory && <div className="md:hidden">
           <select
             value={category}
             onChange={(e) =>
@@ -298,10 +310,10 @@ export default function MakeReportPage() {
           <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
             {categoryOptions.find((o) => o.value === category)?.description}
           </p>
-        </div>
+        </div>}
 
         {/* Desktop cards */}
-        <div className="hidden md:grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
+        {!lockedCategory && <div className="hidden md:grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2">
           {categoryOptions.map((option) => (
             <label
               key={option.value}
@@ -336,7 +348,7 @@ export default function MakeReportPage() {
               </div>
             </label>
           ))}
-        </div>
+        </div>}
 
         <div className="grid gap-4 md:gap-6 md:grid-cols-2">
           <div>

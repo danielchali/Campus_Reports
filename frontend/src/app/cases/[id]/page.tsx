@@ -664,7 +664,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                                 href="/cases"
                                 className="block w-full text-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 transition"
                             >
-                                Back to Cases
+                                Back to Discipline Cases
                             </Link>
                             
                             <button
