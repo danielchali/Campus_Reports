@@ -40,6 +40,8 @@ const INITIAL_MANUAL_WORK_ORDER = {
   affectedAsset: "",
   accessInstructions: "",
   assignedTo: "",
+  requestedByName: "",
+  requestingDepartment: "",
 };
 
 export default function WorkOrdersPage() {
@@ -190,6 +192,8 @@ export default function WorkOrdersPage() {
         affectedAsset: manualWorkOrder.affectedAsset.trim(),
         accessInstructions: manualWorkOrder.accessInstructions.trim(),
         assignedTo: manualWorkOrder.assignedTo.trim(),
+        requestedByName: manualWorkOrder.requestedByName.trim(),
+        requestingDepartment: manualWorkOrder.requestingDepartment.trim(),
         message: "Manual maintenance work order created by staff.",
       });
       setWorkOrders((current) => [workOrder, ...current]);
@@ -304,6 +308,14 @@ export default function WorkOrdersPage() {
               <label className="space-y-1">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Assigned to</span>
                 <input value={manualWorkOrder.assignedTo} onChange={(event) => setManualWorkOrder((current) => ({ ...current, assignedTo: event.target.value }))} className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Requested by name *</span>
+                <input value={manualWorkOrder.requestedByName} onChange={(event) => setManualWorkOrder((current) => ({ ...current, requestedByName: event.target.value }))} className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" required />
+              </label>
+              <label className="space-y-1">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Requesting department *</span>
+                <input value={manualWorkOrder.requestingDepartment} onChange={(event) => setManualWorkOrder((current) => ({ ...current, requestingDepartment: event.target.value }))} className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white" required />
               </label>
               <label className="space-y-1 md:col-span-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Description *</span>
