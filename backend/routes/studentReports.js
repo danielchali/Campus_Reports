@@ -680,7 +680,7 @@ router.patch(
       await createNotification({
         userId: report.owner_id,
         type: "report_update",
-        message: `Your report "${report.title}" is now ${status}. ${message.trim()}`,
+        message: `Your report has been updated to ${status}.`,
         link: "/my-reports",
       });
       res.json(mapReport(report));

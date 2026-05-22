@@ -237,7 +237,7 @@ export default function ReportsPage() {
     }
     const message =
       updateMessages[report.id]?.trim() ||
-      `Status updated to ${nextStatus} by ${user.name || user.username}.`;
+      `Your report has been updated to ${nextStatus}.`;
 
     await updateStudentReportStatus(report.id, nextStatus, message, {
       id: user.id,
