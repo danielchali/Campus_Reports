@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Mail, ArrowLeft, Loader2 } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from '../../context/ThemeContext';
 import { API_URL } from '../../config/constants';
@@ -51,8 +51,20 @@ export default function ForgotPassword() {
         </div>
 
         {status === 'success' ? (
-          <div className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 p-4 rounded-xl text-sm font-medium">
-            {message}
+          <div className="space-y-4">
+            <div className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 p-4 rounded-xl text-sm font-medium">
+              {message}
+            </div>
+            <Link
+              href="/reset-password"
+              className="w-full inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl shadow-lg text-sm font-bold text-white bg-kmuGreen hover:bg-kmuGreen-dark transition-all"
+            >
+              <KeyRound className="w-4 h-4" />
+              I have my OTP
+            </Link>
+            <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+              Didn't receive it? Go back and request a new OTP.
+            </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
