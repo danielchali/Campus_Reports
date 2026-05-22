@@ -26,6 +26,8 @@ const SEGMENT_LABELS: Record<string, string> = {
   settings: "Settings",
   "my-reports": "My Reports",
   "make-report": "Make a Report",
+  "maintenance-request": "Maintenance Request",
+  "file-security-disciplinary-issue": "Security/Disciplinary Issue",
   "security-dashboard": "Dashboard",
   "student-dashboard": "Dashboard",
   "general-dashboard": "Dashboard",
