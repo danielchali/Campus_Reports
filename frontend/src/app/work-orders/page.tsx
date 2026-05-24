@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, ClipboardList, PlusCircle, Search, Wrench } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { PageSkeleton, InlineSkeleton } from "../../components/PageSkeleton";
-import SignatureField from "../../components/SignatureField";
 import Notification, { useNotification } from "../../components/Notification";
 import { canAccessPage } from "../../utils/access";
 import {
@@ -649,14 +648,20 @@ function WorkOrderJobCard({
               Approved by
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
-                          <SignatureField
-                label="Signature"
+            <label className="flex items-end gap-2">
+              Signature / printed name
+              <input
                 value={signatures[`${workOrder.id}:part-c-signature`] || ""}
-                onChange={(value) =>
-                  onSignatureChange(`${workOrder.id}:part-c-signature`, value)
+                onChange={(event) =>
+                  onSignatureChange(
+                    `${workOrder.id}:part-c-signature`,
+                    event.target.value,
+                  )
                 }
-                helperText="Draw section supervisor signature."
+                placeholder="Type name"
+                className="w-full border-0 border-b border-slate-400 bg-transparent px-1 py-1 text-sm outline-none focus:border-kmuOrange"
               />
+            </label>
             <label className="flex items-end gap-2">
               Date
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
@@ -674,14 +679,20 @@ function WorkOrderJobCard({
               Name
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
-                          <SignatureField
-                label="Signature"
+            <label className="flex items-end gap-2">
+              Signature / printed name
+              <input
                 value={signatures[`${workOrder.id}:part-d-signature`] || ""}
-                onChange={(value) =>
-                  onSignatureChange(`${workOrder.id}:part-d-signature`, value)
+                onChange={(event) =>
+                  onSignatureChange(
+                    `${workOrder.id}:part-d-signature`,
+                    event.target.value,
+                  )
                 }
-                helperText="Draw tenant or head of department signature."
+                placeholder="Type name"
+                className="w-full border-0 border-b border-slate-400 bg-transparent px-1 py-1 text-sm outline-none focus:border-kmuOrange"
               />
+            </label>
             <label className="flex items-end gap-2">
               Date
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
@@ -702,14 +713,20 @@ function WorkOrderJobCard({
               Name
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
-                          <SignatureField
-                label="Signature"
+            <label className="flex items-end gap-2">
+              Signature / printed name
+              <input
                 value={signatures[`${workOrder.id}:part-e-signature`] || ""}
-                onChange={(value) =>
-                  onSignatureChange(`${workOrder.id}:part-e-signature`, value)
+                onChange={(event) =>
+                  onSignatureChange(
+                    `${workOrder.id}:part-e-signature`,
+                    event.target.value,
+                  )
                 }
-                helperText="Draw maintenance officer or foreman signature."
+                placeholder="Type name"
+                className="w-full border-0 border-b border-slate-400 bg-transparent px-1 py-1 text-sm outline-none focus:border-kmuOrange"
               />
+            </label>
             <label className="flex items-end gap-2">
               Date
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
