@@ -53,6 +53,15 @@ const studentReportSchema = new mongoose.Schema({
   maintenance_work_order_id: { type: String, default: "" },
   seen_by: { type: [String], default: [] },
   updates: { type: [studentReportUpdateSchema], default: [] },
+  ai_summary: { type: String, default: "" },
+  ai_priority: {
+    type: String,
+    enum: ["Low", "Medium", "High", "Critical"],
+    default: "Medium",
+  },
+  ai_priority_score: { type: Number, default: 50 },
+  ai_keywords: { type: [String], default: [] },
+  ai_analyzed_at: { type: Date, default: null },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

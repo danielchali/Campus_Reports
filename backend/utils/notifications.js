@@ -4,7 +4,7 @@ import StudentModel from '../models/student.js';
 import StaffModel from '../models/staff.js';
 import { sendEmail } from './emailService.js';
 
-async function getNotificationEmail(userId) {
+export async function getNotificationEmail(userId) {
     try {
         const user = await UserModel.findById(userId, 'username role email');
         if (!user) return '';

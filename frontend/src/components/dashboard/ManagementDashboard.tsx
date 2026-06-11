@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PageSkeleton } from '../PageSkeleton';
@@ -30,6 +30,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
+import { useDashboardRealtime } from '../../hooks/useDashboardRealtime';
+import DashboardAIInsights from './DashboardAIInsights';
 
 ChartJS.register(ArcElement, CategoryScale, Filler, Legend, LineElement, LinearScale, PointElement, Tooltip);
 
@@ -237,6 +239,20 @@ export default function ManagementDashboard({
   const [statementRequests, setStatementRequests] = useState<StatementRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState(0);
+  const [liveUpdatedAt, setLiveUpdatedAt] = useState<string | null>(null);
+
+  const handleRealtimeRefresh = useCallback(() => {
+    setRefreshToken((current) => current + 1);
+    setLiveUpdatedAt(new Date().toLocaleTimeString());
+  }, []);
+
+  useDashboardRealtime(handleRealtimeRefresh, Boolean(token), [
+    'all',
+    'student-reports',
+    'anonymous-reports',
+    'cases',
+  ]);
 
   useEffect(() => {
     if (!authLoading && !token) {
@@ -307,7 +323,7 @@ export default function ManagementDashboard({
     return () => {
       active = false;
     };
-  }, [role, token]);
+  }, [role, token, refreshToken]);
 
   const summary = useMemo(() => {
     const totalCases = cases.length;
@@ -549,9 +565,16 @@ export default function ManagementDashboard({
             </div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h1>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
+          <div className="flex flex-col items-start gap-1 md:items-end">
+            <p className="text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
+            {liveUpdatedAt && (
+              <p className="text-[11px] font-medium text-kmuGreen">Live update at {liveUpdatedAt}</p>
+            )}
+          </div>
         </div>
       </section>
+
+      <DashboardAIInsights refreshToken={refreshToken} />
 
       {error && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-200">

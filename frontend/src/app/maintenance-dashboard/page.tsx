@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Doughnut, Line } from "react-chartjs-2";
@@ -32,6 +32,8 @@ import {
   type MaintenanceIssue,
   type WorkOrder,
 } from "../../utils/workOrders";
+import { useDashboardRealtime } from "../../hooks/useDashboardRealtime";
+import DashboardAIInsights from "../../components/dashboard/DashboardAIInsights";
 
 ChartJS.register(
   ArcElement,
@@ -89,6 +91,20 @@ export default function MaintenanceDashboard() {
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState(0);
+  const [liveUpdatedAt, setLiveUpdatedAt] = useState<string | null>(null);
+
+  const handleRealtimeRefresh = useCallback(() => {
+    setRefreshToken((current) => current + 1);
+    setLiveUpdatedAt(new Date().toLocaleTimeString());
+  }, []);
+
+  useDashboardRealtime(handleRealtimeRefresh, Boolean(token), [
+    "all",
+    "work-orders",
+    "student-reports",
+    "anonymous-reports",
+  ]);
 
   useEffect(() => {
     if (!authLoading && !token) {
@@ -134,7 +150,7 @@ export default function MaintenanceDashboard() {
     return () => {
       active = false;
     };
-  }, [token]);
+  }, [token, refreshToken]);
 
   const maintenanceRequests = useMemo<MaintenanceRequestItem[]>(() => {
     const workOrderItems = workOrders.map(
@@ -343,9 +359,14 @@ export default function MaintenanceDashboard() {
               Maintenance Dashboard
             </h1>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Monitor maintenance requests and track completion status.
-          </p>
+          <div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Monitor maintenance requests and track completion status.
+            </p>
+            {liveUpdatedAt && (
+              <p className="text-[11px] font-medium text-kmuGreen">Live update at {liveUpdatedAt}</p>
+            )}
+          </div>
         </div>
       </section>
 
@@ -354,6 +375,8 @@ export default function MaintenanceDashboard() {
           {error}
         </div>
       )}
+
+      <DashboardAIInsights refreshToken={refreshToken} />
 
       <section className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 xl:grid-cols-5">
         {[

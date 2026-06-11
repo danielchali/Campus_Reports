@@ -5,6 +5,7 @@ import AnonymousReportModel from "../models/anonymousReport.js";
 import UserModel from "../models/user.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification } from "../utils/notifications.js";
+import { emitDashboardRefresh } from "../utils/socket.js";
 import { AlignmentType, Document, Packer, Paragraph, TextRun } from "docx";
 import { kmuLogoParagraph, signatureParagraphs } from "../utils/docxExport.js";
 
@@ -414,6 +415,7 @@ router.post("/", async (req, res) => {
     const { reportId, message } = req.body;
     if (!reportId) {
       const workOrder = await createManualWorkOrder(req.body, req.user);
+      emitDashboardRefresh("work-orders");
       return res.status(201).json(mapWorkOrder(workOrder));
     }
 
@@ -433,6 +435,8 @@ router.post("/", async (req, res) => {
       link: "/my-reports",
     });
 
+    emitDashboardRefresh("work-orders");
+    emitDashboardRefresh("student-reports");
     res.status(201).json(mapWorkOrder(workOrder));
   } catch (err) {
     console.error("Create work order error:", err);

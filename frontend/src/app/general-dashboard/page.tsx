@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BookOpen,
@@ -19,6 +19,7 @@ import { useAuth } from '../../context/AuthContext';
 import { PageSkeleton } from '../../components/PageSkeleton';
 import { getStudentReportsForUser, type StudentReport } from '../../utils/studentReports';
 import { getDisplayFirstName } from '../../utils/userDisplay';
+import { useDashboardRealtime } from '../../hooks/useDashboardRealtime';
 
 const categoryLabels = {
   disciplinary_case: 'Incident',
@@ -44,6 +45,13 @@ export default function GeneralDashboardPage() {
   const router = useRouter();
   const [reports, setReports] = useState<StudentReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  const handleRealtimeRefresh = useCallback(() => {
+    setRefreshToken((current) => current + 1);
+  }, []);
+
+  useDashboardRealtime(handleRealtimeRefresh, Boolean(token), ['student-reports']);
 
   useEffect(() => {
     if (!authLoading && !token) {
@@ -75,7 +83,7 @@ export default function GeneralDashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, refreshToken]);
 
   const summary = useMemo(() => {
     const total = reports.length;

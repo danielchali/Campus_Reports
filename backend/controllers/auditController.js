@@ -1,4 +1,5 @@
 import AuditModel from '../models/audit.js';
+import { emitAuditLog } from '../utils/socket.js';
 
 export async function listAuditLogs(req, res) {
     try {
@@ -59,7 +60,7 @@ export async function listAuditLogs(req, res) {
 
 export async function logAudit({ action, entity, entityId, user, details, ipAddress, userAgent }) {
     try {
-        await AuditModel.create({
+        const entry = await AuditModel.create({
             action,
             entity,
             entityId,
@@ -69,7 +70,11 @@ export async function logAudit({ action, entity, entityId, user, details, ipAddr
             userAgent,
             date: new Date(),
         });
+        const payload = entry.toObject ? entry.toObject() : entry;
+        emitAuditLog(payload);
+        return payload;
     } catch (err) {
         console.error('Error logging audit:', err);
+        return null;
     }
 }

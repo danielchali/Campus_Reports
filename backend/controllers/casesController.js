@@ -1,6 +1,7 @@
 import CaseModel from '../models/case.js';
 import CounterModel from '../models/counter.js';
 import { logAudit } from './auditController.js';
+import { emitDashboardRefresh } from '../utils/socket.js';
 
 function formatCaseId(value) {
     return String(value).padStart(4, '0');
@@ -238,6 +239,8 @@ export async function createCase(req, res) {
             ipAddress: req.ip,
             userAgent: req.get('User-Agent')
         });
+
+        emitDashboardRefresh('cases');
 
         res.json(caseItem);
     } catch (err) {

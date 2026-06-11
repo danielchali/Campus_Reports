@@ -325,3 +325,44 @@ export async function streamChatWithAssistant(
 
   return fullText;
 }
+
+export type DashboardPriorityItem = {
+  id: string;
+  source: 'student' | 'anonymous';
+  trackingCode?: string;
+  title: string;
+  category?: string;
+  status?: string;
+  location?: string;
+  summary: string;
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  priorityScore: number;
+  submittedAt?: string;
+};
+
+export type DashboardInsights = {
+  metrics: {
+    totalCampusReports: number;
+    pendingReviewReports: number;
+    highPriorityReports: number;
+    maintenanceReports: number;
+    disciplinaryReports: number;
+  };
+  executiveSummary: string;
+  recommendations: string[];
+  alerts: string[];
+  topPriorities: DashboardPriorityItem[];
+  generatedAt: string;
+  aiEnabled: boolean;
+};
+
+export async function getDashboardInsights(): Promise<DashboardInsights> {
+  const response = await fetch(`${API_BASE_URL}/dashboard/insights`, {
+    headers: { ...authHeaders() },
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data?.error || 'Failed to load dashboard insights');
+  }
+  return data as DashboardInsights;
+}

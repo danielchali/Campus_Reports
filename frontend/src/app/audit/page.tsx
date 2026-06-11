@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { FileText } from 'lucide-react';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { API_BASE_URL } from '../../config/constants';
+import { API_BASE_URL, SOCKET_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
 import { useRouter } from "next/navigation";
 import { canAccessPage } from '../../utils/access';
@@ -101,7 +101,7 @@ export default function AuditPage() {
   useEffect(() => {
     if (!user || !canAccessPage(user.role, 'audit')) return;
     if (!socketRef.current) {
-      const socket = io(API_BASE_URL.replace('/api', ''), { transports: ['websocket'] });
+      const socket = io(SOCKET_BASE_URL, { transports: ['websocket', 'polling'] });
       socketRef.current = socket;
       socket.on('connect', () => {
         socket.emit('joinAdmin');

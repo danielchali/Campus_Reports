@@ -5,8 +5,14 @@ import multer from "multer";
 import StudentReportModel from "../models/studentReport.js";
 import StudentModel from "../models/student.js";
 import { authenticate, authorize } from "../middleware/auth.js";
-import { createNotification } from "../utils/notifications.js";
+import { createNotification, getNotificationEmail } from "../utils/notifications.js";
 import { getUploadDirectory } from "../utils/uploadPaths.js";
+import {
+  isEmailEnabled,
+  sendStudentReporterConfirmation,
+} from "../utils/emailService.js";
+import { applyNlpToDocument } from "../utils/nlpAnalytics.js";
+import { emitDashboardRefresh } from "../utils/socket.js";
 
 const router = express.Router();
 const REPORT_ATTACHMENT_DIR = getUploadDirectory("student-reports");
@@ -81,6 +87,10 @@ function mapReport(doc, ownerNameOverride = "") {
       createdByRole: u.createdByRole || "",
       createdAt: u.createdAt?.toISOString?.() || u.createdAt,
     })),
+    aiSummary: obj.ai_summary || "",
+    aiPriority: obj.ai_priority || "Medium",
+    aiPriorityScore: obj.ai_priority_score ?? 50,
+    aiKeywords: obj.ai_keywords || [],
   };
 }
 
@@ -290,6 +300,29 @@ router.post(
           },
         ],
       });
+
+      const ownerId = String(req.user.id || req.user._id);
+      if (isEmailEnabled()) {
+        getNotificationEmail(ownerId)
+          .then((email) => {
+            if (email) {
+              return sendStudentReporterConfirmation(report, email);
+            }
+            return null;
+          })
+          .catch((err) => {
+            console.error("Failed to send student reporter confirmation email:", err);
+          });
+      }
+
+      applyNlpToDocument(StudentReportModel, report._id, report)
+        .then(() => emitDashboardRefresh("student-reports"))
+        .catch((err) => {
+          console.error("Failed NLP analysis for student report:", err);
+          emitDashboardRefresh("student-reports");
+        });
+
+      emitDashboardRefresh("student-reports");
 
       res.status(201).json(mapReport(report));
     } catch (err) {
@@ -579,6 +612,7 @@ router.patch(
         link: "/my-reports",
       });
 
+      emitDashboardRefresh("student-reports");
       res.json(mapReport(report));
     } catch (err) {
       console.error("Reroute report category error:", err);
@@ -683,6 +717,7 @@ router.patch(
         message: `Your report has been updated to ${status}.`,
         link: "/my-reports",
       });
+      emitDashboardRefresh("student-reports");
       res.json(mapReport(report));
     } catch (err) {
       console.error("Update status error:", err);

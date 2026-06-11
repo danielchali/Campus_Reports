@@ -10,6 +10,8 @@ import {
   sendAnonymousReporterStatusUpdate,
   sendAnonymousReporterCategoryUpdate,
 } from "../utils/emailService.js";
+import { applyNlpToDocument } from "../utils/nlpAnalytics.js";
+import { emitDashboardRefresh } from "../utils/socket.js";
 
 const router = express.Router();
 const ANONYMOUS_REPORT_CATEGORIES = [
@@ -125,6 +127,15 @@ router.post("/", async (req, res) => {
         });
       }
     }
+
+    applyNlpToDocument(AnonymousReportModel, report._id, report)
+      .then(() => emitDashboardRefresh("anonymous-reports"))
+      .catch((err) => {
+        console.error("Failed NLP analysis for anonymous report:", err);
+        emitDashboardRefresh("anonymous-reports");
+      });
+
+    emitDashboardRefresh("anonymous-reports");
 
     res.status(201).json({
       message: "Report submitted successfully.",
@@ -257,6 +268,7 @@ router.patch(
         });
       }
 
+      emitDashboardRefresh("anonymous-reports");
       res.json(report);
     } catch (err) {
       res.status(500).json({ error: "Failed to reroute category." });
@@ -312,6 +324,7 @@ router.patch(
         });
       }
 
+      emitDashboardRefresh("anonymous-reports");
       res.json(report);
     } catch (err) {
       res.status(500).json({ error: "Failed to update status." });

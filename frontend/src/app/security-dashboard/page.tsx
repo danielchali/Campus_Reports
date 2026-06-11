@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PageSkeleton } from '../../components/PageSkeleton';
@@ -17,6 +17,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL, OFFENSE_TYPES, SEVERITY_LEVELS } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
+import { useDashboardRealtime } from '../../hooks/useDashboardRealtime';
+import DashboardAIInsights from '../../components/dashboard/DashboardAIInsights';
 import SmartStudentSearch from '../../components/SmartStudentSearch';
 import SmartStaffSearch from '../../components/SmartStaffSearch';
 
@@ -93,6 +95,15 @@ export default function SecurityDashboard() {
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [refreshToken, setRefreshToken] = useState(0);
+  const [liveUpdatedAt, setLiveUpdatedAt] = useState<string | null>(null);
+
+  const handleRealtimeRefresh = useCallback(() => {
+    setRefreshToken((current) => current + 1);
+    setLiveUpdatedAt(new Date().toLocaleTimeString());
+  }, []);
+
+  useDashboardRealtime(handleRealtimeRefresh, Boolean(token), ['all', 'cases', 'student-reports', 'anonymous-reports']);
 
   useEffect(() => {
     if (!authLoading && !token) {
@@ -142,7 +153,7 @@ export default function SecurityDashboard() {
     return () => {
       active = false;
     };
-  }, [token]);
+  }, [token, refreshToken]);
 
   useEffect(() => {
     if (!success) return;
@@ -279,7 +290,12 @@ export default function SecurityDashboard() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
               <Shield size={18} />
             </div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Security Dashboard</h1>
+            <div>
+              <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Security Dashboard</h1>
+              {liveUpdatedAt && (
+                <p className="text-[11px] font-medium text-kmuGreen">Live update at {liveUpdatedAt}</p>
+              )}
+            </div>
           </div>
           <div className="flex min-w-[240px] items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-800 dark:bg-slate-950 md:max-w-xs">
             <UserRound size={16} className="text-kmuGreen" />
@@ -298,6 +314,8 @@ export default function SecurityDashboard() {
           {error || success}
         </div>
       )}
+
+      <DashboardAIInsights refreshToken={refreshToken} />
 
       <section className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 xl:grid-cols-6">
         {summaryCards.map((card) => {

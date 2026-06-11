@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
 import {
@@ -20,6 +20,7 @@ import { getStudentReportMetrics, type StudentReport, type StudentReportMetrics 
 import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
 import { getDisplayFirstName } from '../../utils/userDisplay';
+import { useDashboardRealtime } from '../../hooks/useDashboardRealtime';
 
 type StatementRequest = {
   _id: string;
@@ -69,6 +70,13 @@ export default function StudentDashboardPage() {
   }, [authLoading, token, router]);
 
   const [reportMetrics, setReportMetrics] = useState<StudentReportMetrics>({ total: 0, anonymous: 0, open: 0, resolved: 0, recent: [] as StudentReport[] });
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  const handleRealtimeRefresh = useCallback(() => {
+    setRefreshToken((current) => current + 1);
+  }, []);
+
+  useDashboardRealtime(handleRealtimeRefresh, Boolean(token), ['student-reports']);
 
   useEffect(() => {
     if (!user || user.role !== 'student') return;
@@ -89,7 +97,7 @@ export default function StudentDashboardPage() {
 
     fetchMetrics();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, refreshToken]);
 
   const metrics = reportMetrics;
 

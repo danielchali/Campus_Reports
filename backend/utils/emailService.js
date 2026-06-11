@@ -300,6 +300,73 @@ const sendAnonymousReporterCategoryUpdate = async (report, { previousCategory, n
   return sendEmail({ to, subject, text, html });
 };
 
+const STUDENT_CATEGORY_LABELS = {
+  disciplinary_case: 'Disciplinary Case',
+  maintenance_issue: 'Maintenance Issue',
+};
+
+/**
+ * Confirmation email to a logged-in reporter after initial submission.
+ */
+const sendStudentReporterConfirmation = async (report, recipientEmail) => {
+  const to = normalizeContactEmail(recipientEmail);
+  if (!to) return null;
+
+  const frontendUrl = getFrontendUrl();
+  const myReportsUrl = frontendUrl ? `${frontendUrl}/my-reports` : '';
+  const categoryLabel = STUDENT_CATEGORY_LABELS[report.category] || report.category;
+  const subject = `Report received — ${report.tracking_code || report.trackingCode}`;
+  const trackingCode = report.tracking_code || report.trackingCode;
+  const title = report.title;
+  const status = report.status || 'Submitted';
+  const anonymousNote = report.anonymous
+    ? 'Your report is marked anonymous. Staff will not see your identity.'
+    : 'Staff can see your account details to follow up if needed.';
+
+  const text = [
+    'Your campus report has been received.',
+    '',
+    `Tracking code: ${trackingCode}`,
+    `Title: ${title}`,
+    `Category: ${categoryLabel}`,
+    `Status: ${status}`,
+    '',
+    anonymousNote,
+    '',
+    myReportsUrl ? `View your reports at: ${myReportsUrl}` : 'Sign in to Campus Reports and open My Reports to track progress.',
+  ].join('\n');
+
+  const html = emailShell('Report Received', `
+    <p style="font-size: 16px; line-height: 1.6;">
+      Thank you for submitting your report. It has been received and will be reviewed by the appropriate office.
+    </p>
+    <p style="font-size: 14px; line-height: 1.6; color: #475569;">${escapeHtml(anonymousNote)}</p>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+      <tr>
+        <td style="padding: 8px 0; font-weight: bold; width: 140px;">Tracking code:</td>
+        <td style="padding: 8px 0; color: #059669; font-family: monospace; font-size: 18px;">${escapeHtml(trackingCode)}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; font-weight: bold;">Title:</td>
+        <td style="padding: 8px 0;">${escapeHtml(title)}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; font-weight: bold;">Category:</td>
+        <td style="padding: 8px 0;">${escapeHtml(categoryLabel)}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; font-weight: bold;">Status:</td>
+        <td style="padding: 8px 0;">${escapeHtml(status)}</td>
+      </tr>
+    </table>
+    ${myReportsUrl
+      ? `<p style="margin-top: 24px;"><a href="${escapeHtml(myReportsUrl)}" style="color: #059669; font-weight: 700;">View my reports</a></p>`
+      : ''}
+  `);
+
+  return sendEmail({ to, subject, text, html });
+};
+
 export {
   sendEmail,
   isEmailEnabled,
@@ -309,4 +376,5 @@ export {
   sendAnonymousReporterConfirmation,
   sendAnonymousReporterStatusUpdate,
   sendAnonymousReporterCategoryUpdate,
+  sendStudentReporterConfirmation,
 };

@@ -10,6 +10,7 @@ import http from 'http';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import User from '../models/user.js';
+import { initSocket } from '../utils/socket.js';
 
 //const debug = debugLib('backend:server');
 
@@ -25,6 +26,7 @@ app.set('port', port);
  */
 
 const server = http.createServer(app);
+initSocket(server);
 
 /**
  * Listen on provided port, on all network interfaces.
