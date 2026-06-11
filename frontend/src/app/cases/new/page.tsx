@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { useAuth } from "../../../context/AuthContext";
 import ProtectedRoute from "../../(protected)/ProtectedRoute";
 import { API_BASE_URL, OFFENSE_TYPES, SEVERITY_LEVELS } from "../../../config/constants";
@@ -1498,13 +1500,30 @@ export default function NewCasePage() {
 
   return (
     <ProtectedRoute>
-      <section className="mx-auto w-full max-w-5xl px-4 py-2 sm:px-6">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-kmuGreen">Create New Case</h1>
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-100 dark:bg-slate-950 print:static print:z-auto print:overflow-visible print:bg-white">
+        <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 print:hidden">
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 md:px-8">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-kmuGreen">
+                Kapasa Makasa University
+              </p>
+              <h1 className="truncate text-lg font-bold text-slate-900 dark:text-white md:text-xl">
+                Create New Case
+              </h1>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="shrink-0 rounded-xl border border-slate-300 p-2 text-slate-600 transition hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+              aria-label="Close new case form"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
-        <div className="mx-auto max-w-4xl">
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-8">
+        <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 pb-28 md:px-8 md:py-8">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-8">
               <div className="mb-6">
                 <QuickCaseTemplates onTemplateSelect={handleTemplateSelect} className="w-full sm:w-auto" />
               </div>
@@ -1612,40 +1631,42 @@ export default function NewCasePage() {
                     {error && <div className="text-sm text-red-600">{error}</div>}
                     {success && <div className="text-sm text-kmuGreen">{success}</div>}
 
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <button
-                        type="button"
-                        onClick={studentCaseStep === 0 ? () => router.back() : handleStudentStepBack}
-                        className="rounded bg-gray-500 px-6 py-2 text-white transition hover:bg-gray-600"
-                      >
-                        {studentCaseStep === 0 ? "Cancel" : "Back"}
-                      </button>
-
-                      <div className="flex flex-wrap items-center gap-2">
+                    <div className="sticky bottom-0 -mx-6 mt-6 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur dark:border-slate-700 dark:bg-gray-800/95 print:static print:border-0 print:bg-transparent print:px-0">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <button
                           type="button"
-                          onClick={() => saveCase(true)}
-                          disabled={loading}
-                          className="rounded border border-kmuGreen px-6 py-2 text-kmuGreen transition hover:bg-kmuGreen/10 disabled:opacity-50"
+                          onClick={studentCaseStep === 0 ? () => router.back() : handleStudentStepBack}
+                          className="rounded-xl bg-gray-500 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-600"
                         >
-                          {loading ? "Saving..." : "Save Draft"}
+                          {studentCaseStep === 0 ? "Cancel" : "Back"}
                         </button>
-                        <button
-                          type="submit"
-                          disabled={loading}
-                          className="rounded bg-kmuGreen px-6 py-2 text-white transition hover:bg-kmuOrange disabled:opacity-50"
-                        >
-                          {loading ? "Creating..." : "Create Case"}
-                        </button>
-                        {studentCaseStep < STUDENT_CASE_STEPS.length - 1 && (
+
+                        <div className="flex flex-wrap items-center gap-2">
                           <button
                             type="button"
-                            onClick={handleStudentStepNext}
-                            className="rounded bg-kmuOrange px-6 py-2 text-white transition hover:bg-kmuOrange/90"
+                            onClick={() => saveCase(true)}
+                            disabled={loading}
+                            className="rounded-xl border border-kmuGreen px-5 py-2.5 text-sm font-semibold text-kmuGreen transition hover:bg-kmuGreen/10 disabled:opacity-50"
                           >
-                            Continue
+                            {loading ? "Saving..." : "Save Draft"}
                           </button>
-                        )}
+                          <button
+                            type="submit"
+                            disabled={loading}
+                            className="rounded-xl bg-kmuGreen px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-kmuOrange disabled:opacity-50"
+                          >
+                            {loading ? "Creating..." : "Create Case"}
+                          </button>
+                          {studentCaseStep < STUDENT_CASE_STEPS.length - 1 && (
+                            <button
+                              type="button"
+                              onClick={handleStudentStepNext}
+                              className="rounded-xl bg-kmuOrange px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-kmuOrange/90"
+                            >
+                              Continue
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </>
@@ -1701,28 +1722,30 @@ export default function NewCasePage() {
                     {error && <div className="text-sm text-red-600">{error}</div>}
                     {success && <div className="text-sm text-kmuGreen">{success}</div>}
 
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full rounded bg-kmuGreen px-6 py-2 text-white transition hover:bg-kmuOrange disabled:opacity-50"
-                      >
-                        {loading ? "Creating..." : "Create Case"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => router.back()}
-                        className="w-full rounded bg-gray-500 px-6 py-2 text-white transition hover:bg-gray-600"
-                      >
-                        Cancel
-                      </button>
+                    <div className="sticky bottom-0 -mx-6 mt-6 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur dark:border-slate-700 dark:bg-gray-800/95">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <button
+                          type="submit"
+                          disabled={loading}
+                          className="w-full rounded-xl bg-kmuGreen px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-kmuOrange disabled:opacity-50"
+                        >
+                          {loading ? "Creating..." : "Create Case"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => router.back()}
+                          className="w-full rounded-xl bg-gray-500 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
                     </div>
                   </>
                 )}
               </form>
-            </div>
           </div>
-      </section>
+        </div>
+      </div>
     </ProtectedRoute>
   );
 }
