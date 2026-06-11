@@ -15,15 +15,18 @@ export default function SignatureDisplay({
   imageClassName = "inline-block h-[1.1em] max-w-[10rem] align-middle object-contain",
   placeholder = "____________________",
 }: SignatureDisplayProps) {
-  const line = isSignatureDataUrl(value) ? (
+  const raw = value ?? "";
+  const textValue = raw.trim();
+
+  const line = isSignatureDataUrl(raw) ? (
     <img
-      src={value}
+      src={raw}
       alt={label || "Signature"}
       className={imageClassName}
     />
   ) : (
     <span className="inline-block min-w-[8rem] border-b border-black align-bottom leading-none">
-      {value?.trim() || placeholder}
+      {textValue || placeholder}
     </span>
   );
 

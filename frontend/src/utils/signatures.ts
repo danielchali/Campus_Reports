@@ -1,4 +1,4 @@
-export function isSignatureDataUrl(value?: string | null): value is string {
+export function isSignatureDataUrl(value?: string | null): boolean {
   return Boolean(value && value.startsWith("data:image/"));
 }
 
@@ -6,14 +6,16 @@ export function signaturePrintHtml(
   value?: string | null,
   label = "Signature",
 ): string {
-  if (isSignatureDataUrl(value)) {
+  const raw = value ?? "";
+
+  if (isSignatureDataUrl(raw)) {
     return (
       `<p class="signature-line"><strong>${label}:</strong> `
-      + `<img src="${value}" alt="${label}" class="signature-img" /></p>`
+      + `<img src="${raw}" alt="${label}" class="signature-img" /></p>`
     );
   }
 
-  const display = value?.trim() || "................................................................";
+  const display = raw.trim() || "................................................................";
   return `<p class="signature-line"><strong>${label}:</strong> ${display}</p>`;
 }
 
