@@ -44,6 +44,36 @@ export interface WorkOrderSignatures {
   partE: string;
 }
 
+export interface WorkOrderJobCard {
+  partBNotes: [string, string];
+  partCApprovedBy: string;
+  partCDate: string;
+  partDName: string;
+  partDDate: string;
+  partEName: string;
+  partEDate: string;
+  partEWorkDone: string;
+}
+
+export interface WorkOrderJobCardUpdate {
+  partA?: {
+    title?: string;
+    description?: string;
+    location?: string;
+    requestingDepartment?: string;
+    requestedByName?: string;
+    affectedAsset?: string;
+    issueType?: string;
+    priority?: WorkOrder["priority"];
+    accessInstructions?: string;
+  };
+  jobCard?: Partial<WorkOrderJobCard>;
+  signatures?: Partial<WorkOrderSignatures>;
+  status?: WorkOrderStatus;
+  message?: string;
+  assignedTo?: string;
+}
+
 export interface ManualWorkOrderInput {
   title: string;
   description: string;
@@ -80,6 +110,7 @@ export interface WorkOrder {
   updatedAt: string;
   updates: WorkOrderUpdate[];
   signatures: WorkOrderSignatures;
+  jobCard: WorkOrderJobCard;
 }
 
 export async function getWorkOrders(
@@ -157,6 +188,24 @@ export async function createManualWorkOrder(
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || "Failed to create work order");
+  }
+
+  return res.json();
+}
+
+export async function updateWorkOrderJobCard(
+  workOrderId: string,
+  payload: WorkOrderJobCardUpdate,
+): Promise<WorkOrder | null> {
+  const res = await fetch(`${API_BASE_URL}/work-orders/${workOrderId}/job-card`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to update work order job card");
   }
 
   return res.json();

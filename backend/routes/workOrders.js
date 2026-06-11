@@ -25,6 +25,55 @@ const WORK_ORDER_STATUSES = [
   "Cancelled",
 ];
 
+const PART_EDIT_ROLES = {
+  partA: [
+    "admin",
+    "secretary",
+    "registrar",
+    "dean_of_students",
+    "assistant_dean",
+    "chief_security_officer",
+  ],
+  partB: ["admin", "maintenance"],
+  partC: [
+    "admin",
+    "secretary",
+    "registrar",
+    "dean_of_students",
+    "assistant_dean",
+    "chief_security_officer",
+  ],
+  partD: [
+    "admin",
+    "secretary",
+    "registrar",
+    "dean_of_students",
+    "assistant_dean",
+    "chief_security_officer",
+  ],
+  partE: ["admin", "maintenance"],
+};
+
+function canEditWorkOrderPart(role, part) {
+  if (!role) return false;
+  if (role === "admin") return true;
+  return PART_EDIT_ROLES[part]?.includes(role) || false;
+}
+
+function mapJobCard(obj = {}) {
+  const notes = Array.isArray(obj.part_b_notes) ? obj.part_b_notes : ["", ""];
+  return {
+    partBNotes: [String(notes[0] || ""), String(notes[1] || "")],
+    partCApprovedBy: obj.part_c_approved_by || "",
+    partCDate: obj.part_c_date || "",
+    partDName: obj.part_d_name || "",
+    partDDate: obj.part_d_date || "",
+    partEName: obj.part_e_name || "",
+    partEDate: obj.part_e_date || "",
+    partEWorkDone: obj.part_e_work_done || "",
+  };
+}
+
 function generateWorkOrderId() {
   return `WO-${new Date().getFullYear()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 }
@@ -55,6 +104,7 @@ function mapWorkOrder(doc) {
       partD: obj.signatures?.partD || "",
       partE: obj.signatures?.partE || "",
     },
+    jobCard: mapJobCard(obj.job_card),
     updates: (obj.updates || []).map((update) => ({
       id: String(update._id),
       status: update.status,
@@ -457,6 +507,156 @@ router.get("/:id/export-docx", async (req, res) => {
   }
 });
 
+router.patch("/:id/job-card", async (req, res) => {
+  try {
+    const {
+      partA,
+      jobCard,
+      signatures,
+      status,
+      message,
+      assignedTo,
+    } = req.body;
+    const role = req.user?.role || "";
+
+    const workOrder = await WorkOrderModel.findById(req.params.id);
+    if (!workOrder) {
+      return res.status(404).json({ error: "Work order not found" });
+    }
+
+    if (partA && canEditWorkOrderPart(role, "partA")) {
+      if (partA.requestingDepartment !== undefined) {
+        workOrder.requesting_department = String(partA.requestingDepartment || "");
+      }
+      if (partA.requestedByName !== undefined) {
+        workOrder.requested_by_name = String(partA.requestedByName || "");
+      }
+      if (partA.location !== undefined) {
+        workOrder.location = String(partA.location || "");
+      }
+      if (partA.description !== undefined) {
+        workOrder.description = String(partA.description || "");
+      }
+      if (partA.affectedAsset !== undefined) {
+        workOrder.affected_asset = String(partA.affectedAsset || "");
+      }
+      if (partA.title !== undefined) {
+        workOrder.title = String(partA.title || "");
+      }
+      if (partA.issueType !== undefined) {
+        workOrder.issue_type = String(partA.issueType || "");
+      }
+      if (partA.priority !== undefined) {
+        workOrder.priority = String(partA.priority || workOrder.priority);
+      }
+      if (partA.accessInstructions !== undefined) {
+        workOrder.access_instructions = String(partA.accessInstructions || "");
+      }
+    }
+
+    if (jobCard && canEditWorkOrderPart(role, "partB")) {
+      workOrder.job_card = workOrder.job_card || {};
+      if (Array.isArray(jobCard.partBNotes)) {
+        workOrder.job_card.part_b_notes = [
+          String(jobCard.partBNotes[0] || ""),
+          String(jobCard.partBNotes[1] || ""),
+        ];
+      }
+    }
+
+    if (jobCard && canEditWorkOrderPart(role, "partC")) {
+      workOrder.job_card = workOrder.job_card || {};
+      if (jobCard.partCApprovedBy !== undefined) {
+        workOrder.job_card.part_c_approved_by = String(jobCard.partCApprovedBy || "");
+      }
+      if (jobCard.partCDate !== undefined) {
+        workOrder.job_card.part_c_date = String(jobCard.partCDate || "");
+      }
+    }
+
+    if (jobCard && canEditWorkOrderPart(role, "partD")) {
+      workOrder.job_card = workOrder.job_card || {};
+      if (jobCard.partDName !== undefined) {
+        workOrder.job_card.part_d_name = String(jobCard.partDName || "");
+      }
+      if (jobCard.partDDate !== undefined) {
+        workOrder.job_card.part_d_date = String(jobCard.partDDate || "");
+      }
+    }
+
+    if (jobCard && canEditWorkOrderPart(role, "partE")) {
+      workOrder.job_card = workOrder.job_card || {};
+      if (jobCard.partEName !== undefined) {
+        workOrder.job_card.part_e_name = String(jobCard.partEName || "");
+      }
+      if (jobCard.partEDate !== undefined) {
+        workOrder.job_card.part_e_date = String(jobCard.partEDate || "");
+      }
+      if (jobCard.partEWorkDone !== undefined) {
+        workOrder.job_card.part_e_work_done = String(jobCard.partEWorkDone || "");
+      }
+    }
+
+    if (signatures && typeof signatures === "object") {
+      const nextSignatures = {
+        partC: workOrder.signatures?.partC || "",
+        partD: workOrder.signatures?.partD || "",
+        partE: workOrder.signatures?.partE || "",
+      };
+
+      if (signatures.partC !== undefined) {
+        if (!canEditWorkOrderPart(role, "partC")) {
+          return res.status(403).json({ error: "Not authorised to sign Part C." });
+        }
+        nextSignatures.partC = String(signatures.partC || "");
+      }
+      if (signatures.partD !== undefined) {
+        if (!canEditWorkOrderPart(role, "partD")) {
+          return res.status(403).json({ error: "Not authorised to sign Part D." });
+        }
+        nextSignatures.partD = String(signatures.partD || "");
+      }
+      if (signatures.partE !== undefined) {
+        if (!canEditWorkOrderPart(role, "partE")) {
+          return res.status(403).json({ error: "Not authorised to sign Part E." });
+        }
+        nextSignatures.partE = String(signatures.partE || "");
+      }
+
+      workOrder.signatures = nextSignatures;
+    }
+
+    if (status && WORK_ORDER_STATUSES.includes(status)) {
+      workOrder.status = status;
+      workOrder.updates.unshift({
+        status,
+        message: message?.trim() || `Work order updated to ${status}.`,
+        createdBy: req.user.username || req.user.name,
+        createdByRole: role,
+      });
+    } else if (message?.trim()) {
+      workOrder.updates.unshift({
+        status: workOrder.status,
+        message: message.trim(),
+        createdBy: req.user.username || req.user.name,
+        createdByRole: role,
+      });
+    }
+
+    if (assignedTo !== undefined) {
+      workOrder.assigned_to = String(assignedTo || "");
+    }
+
+    workOrder.updatedAt = new Date();
+    await workOrder.save();
+
+    res.json(mapWorkOrder(workOrder));
+  } catch (err) {
+    console.error("Update work order job card error:", err);
+    res.status(500).json({ error: "Failed to update work order job card" });
+  }
+});
+
 router.patch("/:id/status", async (req, res) => {
   try {
     const { status, message, assignedTo, signatures } = req.body;
@@ -467,14 +667,34 @@ router.patch("/:id/status", async (req, res) => {
     if (!workOrder)
       return res.status(404).json({ error: "Work order not found" });
 
+    const role = req.user?.role || "";
     workOrder.status = status;
     if (assignedTo !== undefined) workOrder.assigned_to = assignedTo;
     if (signatures && typeof signatures === "object") {
-      workOrder.signatures = {
-        partC: String(signatures.partC || ""),
-        partD: String(signatures.partD || ""),
-        partE: String(signatures.partE || ""),
+      const nextSignatures = {
+        partC: workOrder.signatures?.partC || "",
+        partD: workOrder.signatures?.partD || "",
+        partE: workOrder.signatures?.partE || "",
       };
+      if (signatures.partC !== undefined) {
+        if (!canEditWorkOrderPart(role, "partC")) {
+          return res.status(403).json({ error: "Not authorised to sign Part C." });
+        }
+        nextSignatures.partC = String(signatures.partC || "");
+      }
+      if (signatures.partD !== undefined) {
+        if (!canEditWorkOrderPart(role, "partD")) {
+          return res.status(403).json({ error: "Not authorised to sign Part D." });
+        }
+        nextSignatures.partD = String(signatures.partD || "");
+      }
+      if (signatures.partE !== undefined) {
+        if (!canEditWorkOrderPart(role, "partE")) {
+          return res.status(403).json({ error: "Not authorised to sign Part E." });
+        }
+        nextSignatures.partE = String(signatures.partE || "");
+      }
+      workOrder.signatures = nextSignatures;
     }
     workOrder.updates.unshift({
       status,

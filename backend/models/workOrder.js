@@ -48,6 +48,16 @@ const workOrderSchema = new mongoose.Schema({
     partD: { type: String, default: "" },
     partE: { type: String, default: "" },
   },
+  job_card: {
+    part_b_notes: { type: [String], default: ["", ""] },
+    part_c_approved_by: { type: String, default: "" },
+    part_c_date: { type: String, default: "" },
+    part_d_name: { type: String, default: "" },
+    part_d_date: { type: String, default: "" },
+    part_e_name: { type: String, default: "" },
+    part_e_date: { type: String, default: "" },
+    part_e_work_done: { type: String, default: "" },
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

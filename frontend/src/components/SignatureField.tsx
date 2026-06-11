@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Check, Pencil } from "lucide-react";
 import type SignaturePad from "signature_pad";
+import { isSignatureDataUrl } from "../utils/signatures";
 
 const SIGNATURE_LINE_HEIGHT = 44;
 
@@ -10,27 +12,42 @@ type SignatureFieldProps = {
   value: string;
   onChange: (value: string) => void;
   helperText?: string;
-  /** When true, label and pad sit on one line like a paper form. */
   inline?: boolean;
+  /** When true, drawing is locked until the user taps the pen icon. */
+  requireEditToSign?: boolean;
+  /** Role lock — shows the value but prevents signing. */
+  disabled?: boolean;
 };
 
 export default function SignatureField({
   label,
   value,
   onChange,
-  helperText = "Sign on the line.",
+  helperText = "Tap the pen icon to sign on the line.",
   inline = true,
+  requireEditToSign = true,
+  disabled = false,
 }: SignatureFieldProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const signaturePadRef = useRef<SignaturePad | null>(null);
   const latestValueRef = useRef(value);
   const [ready, setReady] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     latestValueRef.current = value;
   }, [value]);
 
+  const shouldMountPad = !disabled && (!requireEditToSign || editing);
+
   useEffect(() => {
+    if (!shouldMountPad) {
+      signaturePadRef.current?.off();
+      signaturePadRef.current = null;
+      setReady(false);
+      return;
+    }
+
     let mounted = true;
     let pad: SignaturePad | null = null;
 
@@ -89,11 +106,11 @@ export default function SignatureField({
       signaturePadRef.current?.off();
       signaturePadRef.current = null;
     };
-  }, [onChange]);
+  }, [shouldMountPad, onChange]);
 
   useEffect(() => {
     const pad = signaturePadRef.current;
-    if (!pad) {
+    if (!pad || !editing) {
       return;
     }
 
@@ -111,22 +128,102 @@ export default function SignatureField({
         pad.clear();
       }
     }
-  }, [value]);
+  }, [editing, value]);
 
   const clearSignature = () => {
     signaturePadRef.current?.clear();
     onChange("");
   };
 
-  const pad = (
-    <div className="min-w-[10rem] flex-1 border-b border-slate-400 bg-white dark:border-slate-500 dark:bg-white">
+  const finishEditing = () => {
+    setEditing(false);
+  };
+
+  const startEditing = () => {
+    if (!disabled) {
+      setEditing(true);
+    }
+  };
+
+  const showPad = shouldMountPad;
+
+  const viewLine = (
+    <div
+      className={`min-w-[10rem] flex-1 border-b border-slate-400 bg-white dark:border-slate-500 dark:bg-white ${
+        disabled ? "opacity-70" : ""
+      }`}
+    >
+      {isSignatureDataUrl(value) ? (
+        <img
+          src={value}
+          alt={label || "Signature"}
+          className="inline-block h-11 max-w-full object-contain px-1"
+        />
+      ) : (
+        <div className="flex h-11 items-end px-1 pb-1 text-sm text-slate-400">
+          {value?.trim() || "____________________"}
+        </div>
+      )}
+    </div>
+  );
+
+  const actionButtons = (
+    <div className="flex shrink-0 items-center gap-1 pb-1">
+      {requireEditToSign && !disabled && !editing ? (
+        <button
+          type="button"
+          onClick={startEditing}
+          className="rounded-md border border-slate-300 p-1.5 text-slate-600 transition hover:border-kmuOrange hover:text-kmuOrange dark:border-slate-600 dark:text-slate-300"
+          aria-label={`Edit ${label || "signature"}`}
+          title="Tap to sign"
+        >
+          <Pencil size={14} />
+        </button>
+      ) : null}
+      {showPad ? (
+        <>
+          <button
+            type="button"
+            onClick={clearSignature}
+            className="text-xs font-medium text-kmuOrange underline"
+          >
+            Clear
+          </button>
+          {requireEditToSign ? (
+            <button
+              type="button"
+              onClick={finishEditing}
+              className="rounded-md border border-kmuGreen p-1.5 text-kmuGreen transition hover:bg-kmuGreen/10"
+              aria-label="Done signing"
+              title="Done"
+            >
+              <Check size={14} />
+            </button>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+
+  const pad = showPad ? (
+    <div className="min-w-[10rem] flex-1 border-b border-kmuOrange bg-white dark:bg-white">
       <canvas
         ref={canvasRef}
         className="h-11 w-full touch-none bg-white"
         style={{ height: SIGNATURE_LINE_HEIGHT }}
       />
     </div>
+  ) : (
+    viewLine
   );
+
+  const resolvedHelper = disabled
+    ? "You are not authorised to sign this section."
+    : requireEditToSign && !editing
+      ? helperText
+      : ready
+        ? "Sign on the line."
+        : "Loading signature pad...";
 
   if (inline) {
     return (
@@ -138,17 +235,11 @@ export default function SignatureField({
             </label>
           ) : null}
           {pad}
-          <button
-            type="button"
-            onClick={clearSignature}
-            className="shrink-0 pb-1 text-xs font-medium text-kmuOrange underline"
-          >
-            Clear
-          </button>
+          {actionButtons}
         </div>
-        {helperText ? (
+        {resolvedHelper ? (
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {ready ? helperText : "Loading signature pad..."}
+            {resolvedHelper}
           </p>
         ) : null}
       </div>
@@ -163,18 +254,12 @@ export default function SignatureField({
         ) : (
           <span />
         )}
-        <button
-          type="button"
-          onClick={clearSignature}
-          className="text-xs font-medium text-kmuOrange underline"
-        >
-          Clear
-        </button>
+        {actionButtons}
       </div>
       {pad}
-      {helperText ? (
+      {resolvedHelper ? (
         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {ready ? helperText : "Loading signature pad..."}
+          {resolvedHelper}
         </p>
       ) : null}
     </div>
