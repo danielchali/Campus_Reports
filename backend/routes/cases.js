@@ -2,9 +2,8 @@ import express from 'express';
 import { listCases, getCase, createCase, updateCase, deleteCase } from '../controllers/casesController.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import ExcelJS from 'exceljs';
-import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, AlignmentType, ImageRun, PageBreak } from 'docx';
-import fs from 'fs';
-import path from 'path';
+import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, AlignmentType, PageBreak } from 'docx';
+import { kmuLogoParagraph, signatureParagraphs } from '../utils/docxExport.js';
 const router = express.Router();
 
 router.use(authenticate, authorize(['admin', 'academic_office', 'security_officer']));
@@ -20,19 +19,7 @@ router.get('/:id/export-docx-full', async(req, res) => {
         const caseItem = await CaseModel.findById(req.params.id).lean();
         if (!caseItem) return res.status(404).json({ error: 'Case not found' });
 
-        const logoSvgPath = path.resolve(process.cwd(), '../frontend/public/kmu_logo.svg');
-        const logoPngPath = path.resolve(process.cwd(), '../frontend/public/kmu_logo.png');
-        const hasSvgLogo = fs.existsSync(logoSvgPath);
-        const logoBuffer = hasSvgLogo
-            ? fs.readFileSync(logoSvgPath)
-            : (fs.existsSync(logoPngPath) ? fs.readFileSync(logoPngPath) : null);
-        const logo = logoBuffer
-            ? new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [new ImageRun({ data: logoBuffer, type: hasSvgLogo ? 'svg' : 'png', transformation: { width: 110, height: 55 } })]
-            })
-            : new Paragraph('');
-
+        const logo = kmuLogoParagraph();
         const sectionTitle = (title) => ([logo, new Paragraph({ text: title, heading: 'Heading1', alignment: AlignmentType.CENTER, spacing: { after: 220 } })]);
         const kv = (k, v) => new Paragraph({ children: [new TextRun({ text: `${k}: `, bold: true }), new TextRun(String(v || 'N/A'))] });
 
@@ -48,11 +35,18 @@ router.get('/:id/export-docx-full', async(req, res) => {
             ...sectionTitle('Occurrence Cover'), kv('Investigating Officer', occ.investigatingOfficer), kv('Reported At', occ.reportedAt), kv('Complainant', occ.complainant?.name),
             new Paragraph({ children: [new PageBreak()] }),
             ...sectionTitle('Summon / Callout'), kv('Report Time', summon.reportTime), kv('Report Date', summon.reportDate), kv('Appointment', summon.appointment),
-            ...((occ.accusedPeople || []).map((a, i) => kv(`Accused ${i+1}`, a.fullName))),
+            ...((occ.accusedPeople || []).map((a, i) => kv(`Accused ${i+1}`, a.fullName || a.name))),
+            ...signatureParagraphs('Officer Signature', summon.officerSignature),
+            ...((occ.accusedPeople || []).flatMap((a, i) => signatureParagraphs(
+                `Student Signature (${a.fullName || a.name || `Accused ${i + 1}`})`,
+                summon.studentSignatures?.[String(i)] || summon.studentSignatures?.[i],
+            ))),
             new Paragraph({ children: [new PageBreak()] }),
             ...sectionTitle('Statement'), kv('Role', statement.statementRole), kv('Full Name', statement.fullName), kv('Statement', statement.statementText),
+            ...signatureParagraphs('Signature', statement.signature),
             new Paragraph({ children: [new PageBreak()] }),
             ...sectionTitle('Warn and Caution'), kv('Full Names', warn.fullNames), kv('Case Name', warn.caseName), kv('Taken Date', warn.takenDate), kv('Taken Time', warn.takenTime),
+            ...signatureParagraphs('Signature', warn.signature),
         ];
 
         const doc = new Document({ sections: [{ children }] });

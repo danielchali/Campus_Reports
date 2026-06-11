@@ -15,7 +15,7 @@ export default function ChiefSecurityOfficerDashboard() {
       quickActions={[
         { href: '/anonymous-report', label: 'Open Anonymous Reports' },
         { href: '/evidence', label: 'Review Evidence' },
-        { href: '/reports', label: 'Open Reports' },
+        { href: '/inbox', label: 'Open Inbox' },
         { href: '/staff', label: 'Open Staff' },
       ]}
     />

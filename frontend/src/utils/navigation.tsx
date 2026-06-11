@@ -30,7 +30,7 @@ export type NavLink = {
 const navIcons = {
   dashboard: LayoutDashboard,
   cases: FileText,
-  reports: ClipboardList,
+  inbox: ClipboardList,
   maintenanceIssues: Wrench,
   workOrders: Clipboard,
   myReports: ClipboardList,
@@ -58,7 +58,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
       { icon: navIcons.admin, label: "Dashboard", path: "/admin" },
       { icon: navIcons.users, label: "Manage Users", path: "/admin/users" },
       { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
-      { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       {
         icon: navIcons.maintenanceIssues,
         label: "Maintenance Issues",
@@ -113,7 +113,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         path: "/chief-security-officer-dashboard",
       },
       { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
-      { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       { icon: navIcons.students, label: "Students", path: "/students" },
       { icon: navIcons.evidence, label: "Evidence", path: "/evidence" },
       { icon: navIcons.newcase, label: "New Case", path: "/cases/new" },
@@ -139,7 +139,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
       },
       { icon: navIcons.students, label: "Students", path: "/students" },
       { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
-      { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       {
         icon: navIcons.maintenanceIssues,
         label: "Maintenance Issues",
@@ -168,7 +168,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
       },
       { icon: navIcons.students, label: "Students", path: "/students" },
       { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
-      { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       {
         icon: navIcons.maintenanceIssues,
         label: "Maintenance Issues",
@@ -197,7 +197,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
       },
       { icon: navIcons.students, label: "Students", path: "/students" },
       { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
-      { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       {
         icon: navIcons.maintenanceIssues,
         label: "Maintenance Issues",
@@ -224,7 +224,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         label: "Dashboard",
         path: "/maintenance-dashboard",
       },
-      { icon: navIcons.reports, label: "Reports", path: "/reports" },
+      { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       {
         icon: navIcons.maintenanceIssues,
         label: "Maintenance Issues",

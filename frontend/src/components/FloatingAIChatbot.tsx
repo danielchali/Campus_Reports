@@ -44,7 +44,7 @@ const POLICY_MATRIX: Array<{
     defaultRule: 'Provide case management guidance with strict evidence-first recommendations.',
   },
   {
-    route: /^\/reports/,
+    route: /^\/inbox/,
     roleRules: {
       admin: 'Guide analytics, trend interpretation, and export quality checks.',
       'dean-of-students': 'Guide decision-ready summaries and fairness-aware interpretation.',

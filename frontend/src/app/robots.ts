@@ -18,7 +18,7 @@ export default function robots(): MetadataRoute.Robots {
         '/staff',
         '/students',
         '/cases',
-        '/reports',
+        '/inbox',
         '/my-reports',
         '/audit',
         '/evidence',

@@ -17,6 +17,7 @@ import {
   type WorkOrder,
   type WorkOrderStatus,
 } from "../../utils/workOrders";
+import SignatureField from "../../components/SignatureField";
 
 const statusOptions: Array<"all" | WorkOrderStatus> = [
   "all",
@@ -648,20 +649,19 @@ function WorkOrderJobCard({
               Approved by
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
-            <label className="flex items-end gap-2">
-              Signature / printed name
-              <input
+            <div className="md:col-span-1">
+              <SignatureField
+                label="Part C Signature"
                 value={signatures[`${workOrder.id}:part-c-signature`] || ""}
-                onChange={(event) =>
+                onChange={(value) =>
                   onSignatureChange(
                     `${workOrder.id}:part-c-signature`,
-                    event.target.value,
+                    value,
                   )
                 }
-                placeholder="Type name"
-                className="w-full border-0 border-b border-slate-400 bg-transparent px-1 py-1 text-sm outline-none focus:border-kmuOrange"
+                helperText="Draw or update the Part C signature."
               />
-            </label>
+            </div>
             <label className="flex items-end gap-2">
               Date
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
@@ -679,20 +679,19 @@ function WorkOrderJobCard({
               Name
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
-            <label className="flex items-end gap-2">
-              Signature / printed name
-              <input
+            <div className="md:col-span-1">
+              <SignatureField
+                label="Part D Signature"
                 value={signatures[`${workOrder.id}:part-d-signature`] || ""}
-                onChange={(event) =>
+                onChange={(value) =>
                   onSignatureChange(
                     `${workOrder.id}:part-d-signature`,
-                    event.target.value,
+                    value,
                   )
                 }
-                placeholder="Type name"
-                className="w-full border-0 border-b border-slate-400 bg-transparent px-1 py-1 text-sm outline-none focus:border-kmuOrange"
+                helperText="Draw or update the Part D signature."
               />
-            </label>
+            </div>
             <label className="flex items-end gap-2">
               Date
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
@@ -713,20 +712,19 @@ function WorkOrderJobCard({
               Name
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
-            <label className="flex items-end gap-2">
-              Signature / printed name
-              <input
+            <div className="md:col-span-1">
+              <SignatureField
+                label="Part E Signature"
                 value={signatures[`${workOrder.id}:part-e-signature`] || ""}
-                onChange={(event) =>
+                onChange={(value) =>
                   onSignatureChange(
                     `${workOrder.id}:part-e-signature`,
-                    event.target.value,
+                    value,
                   )
                 }
-                placeholder="Type name"
-                className="w-full border-0 border-b border-slate-400 bg-transparent px-1 py-1 text-sm outline-none focus:border-kmuOrange"
+                helperText="Draw or update the Part E signature."
               />
-            </label>
+            </div>
             <label className="flex items-end gap-2">
               Date
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />

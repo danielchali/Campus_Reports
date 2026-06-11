@@ -114,7 +114,11 @@ export default function SignatureField({
   return (
     <div>
       <div className="mb-1 flex items-center justify-between gap-3">
-        <label className="block text-sm font-medium">{label}</label>
+        {label ? (
+          <label className="block text-sm font-medium">{label}</label>
+        ) : (
+          <span />
+        )}
         <button
           type="button"
           onClick={clearSignature}

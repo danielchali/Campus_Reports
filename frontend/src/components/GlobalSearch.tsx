@@ -264,11 +264,11 @@ export default function GlobalSearch() {
     },
     {
       key: "reports",
-      title: user.role === "student" || user.role === "general_user" ? "My Reports" : "Submitted Reports",
+      title: user.role === "student" || user.role === "general_user" ? "My Reports" : "Inbox",
       icon: ClipboardList,
       iconClassName: "text-emerald-500",
       items: results.reports,
-      getHref: () => (user.role === "student" || user.role === "general_user" ? "/my-reports" : "/reports"),
+      getHref: () => (user.role === "student" || user.role === "general_user" ? "/my-reports" : "/inbox"),
       getTitle: (item) => {
         const report = item as ReportResult;
         return report.title || report.tracking_code || "Report";

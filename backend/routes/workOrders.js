@@ -5,9 +5,8 @@ import AnonymousReportModel from "../models/anonymousReport.js";
 import UserModel from "../models/user.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification } from "../utils/notifications.js";
-import { AlignmentType, Document, ImageRun, Packer, Paragraph, TextRun } from "docx";
-import fs from "fs";
-import path from "path";
+import { AlignmentType, Document, Packer, Paragraph, TextRun } from "docx";
+import { kmuLogoParagraph, signatureParagraphs } from "../utils/docxExport.js";
 
 const router = express.Router();
 const WORK_ORDER_ROLES = [
@@ -400,30 +399,8 @@ router.get("/:id/export-docx", async (req, res) => {
     if (!workOrder) return res.status(404).json({ error: "Work order not found" });
 
     const obj = mapWorkOrder(workOrder);
-    const logoSvgPath = path.resolve(process.cwd(), "../frontend/public/kmu_logo.svg");
-    const logoPngPath = path.resolve(process.cwd(), "../frontend/public/kmu_logo.png");
-    const hasSvgLogo = fs.existsSync(logoSvgPath);
-    const logoBuffer = hasSvgLogo
-      ? fs.readFileSync(logoSvgPath)
-      : fs.existsSync(logoPngPath)
-        ? fs.readFileSync(logoPngPath)
-        : null;
 
-    const docChildren = [];
-    if (logoBuffer) {
-      docChildren.push(
-        new Paragraph({
-          alignment: AlignmentType.CENTER,
-          children: [
-            new ImageRun({
-              data: logoBuffer,
-              type: hasSvgLogo ? "svg" : "png",
-              transformation: { width: 110, height: 55 },
-            }),
-          ],
-        }),
-      );
-    }
+    const docChildren = [kmuLogoParagraph()];
 
     docChildren.push(
       new Paragraph({
@@ -459,9 +436,9 @@ router.get("/:id/export-docx", async (req, res) => {
       new Paragraph("Part D - Completed by (Required): _________________ Date (Required): ______________"),
       new Paragraph("Part E - Maintenance officer name (Required): ______ Date (Required): ______________"),
       new Paragraph("Signatures / printed names:"),
-      new Paragraph(`Part C Signature: ${obj.signatures?.partC || "Pending"}`),
-      new Paragraph(`Part D Signature: ${obj.signatures?.partD || "Pending"}`),
-      new Paragraph(`Part E Signature: ${obj.signatures?.partE || "Pending"}`),
+      ...signatureParagraphs("Part C Signature", obj.signatures?.partC),
+      ...signatureParagraphs("Part D Signature", obj.signatures?.partD),
+      ...signatureParagraphs("Part E Signature", obj.signatures?.partE),
     );
 
     const doc = new Document({

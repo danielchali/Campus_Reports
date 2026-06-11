@@ -15,7 +15,7 @@ export default function AssistantDeanDashboard() {
       quickActions={[
         { href: '/anonymous-report', label: 'Open Anonymous Reports' },
         { href: '/staff', label: 'Open Staff' },
-        { href: '/reports', label: 'Open Reports' },
+        { href: '/inbox', label: 'Open Inbox' },
         { href: '/audit', label: 'Audit Logs' },
       ]}
     />

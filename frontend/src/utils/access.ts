@@ -23,7 +23,7 @@ export const PAGE_ACCESS = {
     "security_officer",
     "maintenance",
   ],
-  reports: [
+  inbox: [
     "admin",
     "chief_security_officer",
     "dean_of_students",

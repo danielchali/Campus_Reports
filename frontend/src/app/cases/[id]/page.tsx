@@ -7,6 +7,7 @@ import { useAuth } from "../../../context/AuthContext";
 import Link from "next/link";
 import { API_BASE_URL } from '../../../config/constants';
 import { canAccessPage } from '../../../utils/access';
+import { signaturePrintHtml } from '../../../utils/signatures';
 import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
 
 interface Student {
@@ -223,7 +224,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
         const appointment = summon.appointment || '........................................................';
 
         const calloutsHtml = accused.map((person: any, i: number) => {
-            const signature = summon.studentSignatures?.[String(i)] || '................................................................';
+            const studentSignature = summon.studentSignatures?.[String(i)];
             return `<div class="callout-card">
 `
                 + `<div class="logo"><img src="${window.location.origin}/kmu_logo.svg" alt="KMU Logo"/></div>
@@ -235,7 +236,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                 + `<div class="callout">CALL OUT</div>
 
 `
-                + `<p><strong>Full Names:</strong> ${person?.fullName || '................................................................'}</p>
+                + `<p><strong>Full Names:</strong> ${person?.fullName || person?.name || '................................................................'}</p>
 `
                 + `<p><strong>Sex:</strong> ${person?.sex || '....................'} &nbsp;&nbsp;&nbsp; <strong>Age:</strong> ${person?.age || '....................'} &nbsp;&nbsp;&nbsp; <strong>SIN:</strong> ${person?.sin || '........................................'}</p>
 `
@@ -248,7 +249,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
 `
                 + `<p><strong>Appointment:</strong> ${appointment}</p>
 `
-                + `<p><strong>Signature:</strong> ${signature}</p>
+                + `<div class="signatures">${signaturePrintHtml(summon.officerSignature, 'Officer Signature')}${signaturePrintHtml(studentSignature, 'Student Signature')}</div>
 `
                 + `</div>`;
         }).join('<div class="page-break"></div>');
@@ -263,6 +264,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
             .subtitle{font-size:18px;margin-top:2px;}
             .callout{font-size:22px;margin:10px 0 18px;}
             p{font-size:16px;line-height:1.5;margin:10px 0;}
+            .signatures{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:18px;}
             .page-break{page-break-before:always;margin-top:20px;}
             @media print { body{padding:0;} .callout-card{border:2px solid #000;} }
         </style></head><body>${calloutsHtml}</body></html>`;

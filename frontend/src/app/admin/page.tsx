@@ -21,7 +21,7 @@ export default function AdminPage() {
         { href: '/cases/new', label: 'Create New Case' },
         { href: '/admin/users', label: 'Manage Users' },
         { href: '/students', label: 'View Students' },
-        { href: '/reports', label: 'Open Reports' },
+        { href: '/inbox', label: 'Open Inbox' },
       ]}
     />
   );

@@ -118,7 +118,7 @@ export default function LoginView() {
       const validPaths = [
         '/admin', '/academic-dashboard', '/security-dashboard', 
         '/student-dashboard', '/my-reports', '/make-report', 
-        '/dashboard', '/cases', '/students', '/reports',
+        '/dashboard', '/cases', '/students', '/inbox',
         '/general-dashboard',
         '/maintenance-dashboard',
         '/evidence', '/audit', '/profile', '/help'

@@ -89,7 +89,7 @@ export default function NotificationBell() {
           message: `${r.anonymous ? 'Anonymous' : getDisplayFullName(r.ownerName, r.ownerUsername, 'Named reporter')} submitted ${r.title}`,
           createdAt: r.submittedAt,
           isRead: false,
-          link: '/reports',
+          link: '/inbox',
           type: 'report' as const,
           report: r,
         }));
@@ -163,7 +163,7 @@ export default function NotificationBell() {
       await markStudentReportSeen(item.report.id, user?.id || '');
       setNotifications(prev => prev.map(n => n._id === item._id ? { ...n, isRead: true } : n));
       setIsOpen(false);
-      router.push('/reports');
+      router.push('/inbox');
     }
   };
 

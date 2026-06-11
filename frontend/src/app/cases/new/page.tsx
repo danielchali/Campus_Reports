@@ -11,6 +11,7 @@ import SmartStaffSearch from "../../../components/SmartStaffSearch";
 import QuickCaseTemplates from "../../../components/QuickCaseTemplates";
 import RecentStaff from "../../../components/RecentStaff";
 import SignatureField from "../../../components/SignatureField";
+import SignatureDisplay from "../../../components/SignatureDisplay";
 import { canAccessPage } from "../../../utils/access";
 
 interface Student {
@@ -1225,6 +1226,7 @@ export default function NewCasePage() {
                   </button>
                 </div>
                 <div className="mb-2 text-center">
+                  <img src="/kmu_logo.svg" alt="KMU Logo" className="mx-auto mb-2 h-14 print:h-12" />
                   <h5 className="text-sm font-bold print:text-[11px]">KAPASA MAKASA UNIVERSITY SECURITY DEPARTMENT</h5>
                   <p className="font-semibold">CALL OUT</p>
                 </div>
@@ -1256,8 +1258,16 @@ export default function NewCasePage() {
                   />
                 </div>
                 <div className="mt-4 hidden print:grid grid-cols-2 gap-4">
-                  <div className="border-t border-black pt-2 text-center">Officer Signature</div>
-                  <div className="border-t border-black pt-2 text-center">Student Signature</div>
+                  <SignatureDisplay
+                    label="Officer Signature"
+                    value={studentCaseProcess.summon.officerSignature}
+                    imageClassName="mx-auto h-14 max-w-full object-contain"
+                  />
+                  <SignatureDisplay
+                    label="Student Signature"
+                    value={studentCaseProcess.summon.studentSignatures[String(index)] || ""}
+                    imageClassName="mx-auto h-14 max-w-full object-contain"
+                  />
                 </div>
                 <div className="mt-2 text-right text-xs text-gray-500 dark:text-gray-300">
                   Call Out {index + 1} of {studentCaseProcess.occurrenceCover.accusedPeople.length}
