@@ -2,7 +2,14 @@ import express from "express";
 import crypto from "crypto";
 import AnonymousReportModel from "../models/anonymousReport.js";
 import { authenticate, authorize } from "../middleware/auth.js";
-import { sendAnonymousReportNotification } from "../utils/emailService.js";
+import {
+  isEmailEnabled,
+  isValidContactEmail,
+  sendAnonymousReportNotification,
+  sendAnonymousReporterConfirmation,
+  sendAnonymousReporterStatusUpdate,
+  sendAnonymousReporterCategoryUpdate,
+} from "../utils/emailService.js";
 
 const router = express.Router();
 const ANONYMOUS_REPORT_CATEGORIES = [
@@ -78,6 +85,9 @@ router.post("/", async (req, res) => {
     if (!ANONYMOUS_REPORT_CATEGORIES.includes(category)) {
       return res.status(400).json({ error: "Invalid report category." });
     }
+    if (contact_email?.trim() && !isValidContactEmail(contact_email)) {
+      return res.status(400).json({ error: "Invalid contact email address." });
+    }
 
     // Generate a unique tracking code
     let tracking_code;
@@ -105,11 +115,15 @@ router.post("/", async (req, res) => {
       ip_hash,
     });
 
-    // Send email notification if enabled
-    if (process.env.EMAIL_ENABLED === "true") {
+    if (isEmailEnabled()) {
       sendAnonymousReportNotification(report).catch((err) => {
-        console.error("Failed to send email notification:", err);
+        console.error("Failed to send admin anonymous report notification:", err);
       });
+      if (report.contact_email) {
+        sendAnonymousReporterConfirmation(report).catch((err) => {
+          console.error("Failed to send anonymous reporter confirmation email:", err);
+        });
+      }
     }
 
     res.status(201).json({
@@ -229,9 +243,20 @@ router.patch(
           });
       }
 
+      const previousCategory = report.category;
       report.category = category;
       report.updatedAt = new Date();
       await report.save();
+
+      if (isEmailEnabled() && report.contact_email) {
+        sendAnonymousReporterCategoryUpdate(report, {
+          previousCategory,
+          newCategory: category,
+        }).catch((err) => {
+          console.error("Failed to send anonymous reporter category email:", err);
+        });
+      }
+
       res.json(report);
     } catch (err) {
       res.status(500).json({ error: "Failed to reroute category." });
@@ -269,9 +294,24 @@ router.patch(
             error: "Maintenance can only update anonymous maintenance issues.",
           });
       }
+      const previousStatus = report.status;
+      if (previousStatus === status) {
+        return res.status(409).json({ error: `Report is already in "${status}" status.` });
+      }
+
       report.status = status;
       report.updatedAt = new Date();
       await report.save();
+
+      if (isEmailEnabled() && report.contact_email) {
+        sendAnonymousReporterStatusUpdate(report, {
+          previousStatus,
+          newStatus: status,
+        }).catch((err) => {
+          console.error("Failed to send anonymous reporter status email:", err);
+        });
+      }
+
       res.json(report);
     } catch (err) {
       res.status(500).json({ error: "Failed to update status." });
