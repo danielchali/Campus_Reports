@@ -251,7 +251,6 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
 `
                 + signaturePrintHtml(summon.officerSignature, 'Officer Signature')
                 + signaturePrintHtml(studentSignature, 'Student Signature')
-`
                 + `</div>`;
         }).join('<div class="page-break"></div>');
 
