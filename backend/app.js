@@ -21,6 +21,7 @@ import aiAssistantRouter from "./routes/aiAssistant.js";
 import studentReportsRouter from "./routes/studentReports.js";
 import workOrdersRouter from "./routes/workOrders.js";
 import dashboardAnalyticsRouter from "./routes/dashboardAnalytics.js";
+import formSchemasRouter from "./routes/formSchemas.js";
 
 const app = express();
 const API_V1_BASE = "/api/v1";
@@ -163,6 +164,7 @@ function mountRoutes(basePath) {
   app.use(`${basePath}/student-reports`, studentReportsRouter);
   app.use(`${basePath}/work-orders`, workOrdersRouter);
   app.use(`${basePath}/dashboard`, dashboardAnalyticsRouter);
+  app.use(`${basePath}/form-schemas`, formSchemasRouter);
 }
 
 // Primary versioned API

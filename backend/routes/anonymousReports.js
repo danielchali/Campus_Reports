@@ -12,6 +12,12 @@ import {
 } from "../utils/emailService.js";
 import { applyNlpToDocument } from "../utils/nlpAnalytics.js";
 import { emitDashboardRefresh } from "../utils/socket.js";
+import InstitutionConfigModel from "../models/institutionConfig.js";
+import { DEFAULT_INSTITUTION_CONFIG } from "../data/defaultFormSchemas.js";
+import {
+  getAllowedCategoryIds,
+  validateReportSubmission,
+} from "../utils/formSchemaValidation.js";
 
 const router = express.Router();
 const ANONYMOUS_REPORT_CATEGORIES = [
@@ -19,6 +25,26 @@ const ANONYMOUS_REPORT_CATEGORIES = [
   "maintenance_issue",
   "other",
 ];
+
+function parseDetails(rawDetails) {
+  if (!rawDetails) return {};
+  if (typeof rawDetails === "object" && !Array.isArray(rawDetails)) return rawDetails;
+  try {
+    const parsed = JSON.parse(rawDetails);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+async function loadInstitutionConfig() {
+  const existing = await InstitutionConfigModel.findOne({ institutionId: "default" });
+  if (existing) return existing;
+  return InstitutionConfigModel.create({
+    ...DEFAULT_INSTITUTION_CONFIG,
+    institutionId: "default",
+  });
+}
 const CATEGORY_LABELS = {
   disciplinary_case: "Disciplinary Case",
   maintenance_issue: "Maintenance Issue",
@@ -77,14 +103,32 @@ router.post("/", async (req, res) => {
       location,
       incident_date,
       contact_email,
+      details: rawDetails,
     } = req.body;
 
-    if (!category || !title || !description || !location || !incident_date) {
-      return res
-        .status(400)
-        .json({ error: "All required fields must be provided." });
+    const institutionConfig = await loadInstitutionConfig();
+    const allowedCategories = getAllowedCategoryIds(institutionConfig, "anonymous_report");
+    const detailsInput = parseDetails(rawDetails);
+
+    const validation = validateReportSubmission({
+      institutionConfig,
+      formType: "anonymous_report",
+      category,
+      coreValues: {
+        title,
+        description,
+        location,
+        incident_date,
+        contact_email,
+      },
+      detailValues: detailsInput,
+    });
+
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error || "Invalid report submission." });
     }
-    if (!ANONYMOUS_REPORT_CATEGORIES.includes(category)) {
+
+    if (!allowedCategories.includes(category)) {
       return res.status(400).json({ error: "Invalid report category." });
     }
     if (contact_email?.trim() && !isValidContactEmail(contact_email)) {
@@ -114,6 +158,7 @@ router.post("/", async (req, res) => {
       location: location.trim(),
       incident_date,
       contact_email: contact_email ? contact_email.trim() : "",
+      details: validation.details || {},
       ip_hash,
     });
 

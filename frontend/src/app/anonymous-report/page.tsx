@@ -4,9 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Ghost,
-  Megaphone,
-  Wrench,
-  AlertTriangle,
   MapPin,
   Calendar,
   FileText,
@@ -16,41 +13,23 @@ import {
   ArrowLeft,
   ChevronRight,
   Lock,
+  AlertTriangle,
 } from 'lucide-react';
 import { API_BASE_URL } from '../../config/constants';
+import SchemaCategoryPicker from '../../components/reporting/SchemaCategoryPicker';
+import SchemaFormFields from '../../components/reporting/SchemaFormFields';
+import { useFormSchema } from '../../hooks/useFormSchema';
 import { subscribeGuidedApply } from '../../utils/guidedReportBridge';
 import { applyGuidedFieldsToAnonymousReport } from '../../utils/applyGuidedReportFields';
 import { getTodayDateInputValue } from '../../utils/dateTimeDefaults';
+import { buildDefaultDetailValues, getCategoryById } from '../../utils/formSchemas';
 
 type Category = 'disciplinary_case' | 'maintenance_issue' | 'other';
-
-const CATEGORIES = [
-  {
-    value: 'disciplinary_case' as Category,
-    label: 'Disciplinary Issue',
-    description: 'Misconduct, harassment, theft, bullying, violence, or other behaviour that needs formal review.',
-    icon: AlertTriangle,
-    color: 'rose',
-  },
-  {
-    value: 'maintenance_issue' as Category,
-    label: 'Maintenance Issue',
-    description: 'Damaged classrooms, broken equipment, lighting issues, leaks, or safety hazards around campus.',
-    icon: Wrench,
-    color: 'amber',
-  },
-  {
-    value: 'other' as Category,
-    label: 'Other / General',
-    description: 'Any other concern that does not fit the above categories.',
-    icon: Megaphone,
-    color: 'blue',
-  },
-];
 
 type Step = 'form' | 'success';
 
 export default function AnonymousReportPage() {
+  const { schema, institutionName } = useFormSchema('anonymous_report');
   const [step, setStep] = useState<Step>('form');
   const [category, setCategory] = useState<Category>('disciplinary_case');
   const [title, setTitle] = useState('');
@@ -58,6 +37,7 @@ export default function AnonymousReportPage() {
   const [location, setLocation] = useState('');
   const [incidentDate, setIncidentDate] = useState(getTodayDateInputValue);
   const [contactEmail, setContactEmail] = useState('');
+  const [details, setDetails] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [trackingCode, setTrackingCode] = useState('');
@@ -69,6 +49,14 @@ export default function AnonymousReportPage() {
   const [trackError, setTrackError] = useState('');
   const [tracking, setTracking] = useState(false);
   const [activeTab, setActiveTab] = useState<'report' | 'track'>('report');
+
+  const activeCategory = getCategoryById(schema, category);
+  const descriptionMinLength =
+    schema.commonFields.find((field) => field.id === 'description')?.minLength || 10;
+
+  useEffect(() => {
+    setDetails(buildDefaultDetailValues(schema, category));
+  }, [schema, category]);
 
   useEffect(() => {
     return subscribeGuidedApply((fields) => {
@@ -99,6 +87,7 @@ export default function AnonymousReportPage() {
           location: location.trim(),
           incident_date: incidentDate,
           contact_email: contactEmail.trim(),
+          details,
         }),
       });
 
@@ -154,8 +143,13 @@ export default function AnonymousReportPage() {
     setIncidentDate(getTodayDateInputValue());
     setContactEmail('');
     setCategory('disciplinary_case');
+    setDetails(buildDefaultDetailValues(schema, 'disciplinary_case'));
     setTrackingCode('');
     setError('');
+  };
+
+  const handleDetailChange = (fieldId: string, value: string) => {
+    setDetails((current) => ({ ...current, [fieldId]: value }));
   };
 
   const statusColors: Record<string, string> = {
@@ -176,7 +170,7 @@ export default function AnonymousReportPage() {
           </Link>
           <div className="flex items-center gap-2">
             <img src="/kmu_logo.svg" alt="KMU" className="h-8 w-8 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-            <span className="font-bold text-kmuGreen hidden sm:block">Campus Reports</span>
+            <span className="font-bold text-kmuGreen hidden sm:block">{institutionName}</span>
           </div>
         </div>
       </header>
@@ -248,60 +242,11 @@ export default function AnonymousReportPage() {
                     <h2 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">Select Category</h2>
                   </div>
 
-                  {/* Mobile dropdown */}
-                  <div className="md:hidden">
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value as Category)}
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-kmuGreen"
-                    >
-                      {CATEGORIES.map((cat) => (
-                        <option key={cat.value} value={cat.value}>{cat.label}</option>
-                      ))}
-                    </select>
-                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                      {CATEGORIES.find(c => c.value === category)?.description}
-                    </p>
-                  </div>
-
-                  {/* Desktop cards */}
-                  <div className="hidden md:grid gap-3 lg:gap-4 md:grid-cols-3">
-                    {CATEGORIES.map((cat) => {
-                      const Icon = cat.icon;
-                      const isSelected = category === cat.value;
-                      const colorClasses: Record<string, string> = {
-                        rose: 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400',
-                        amber: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
-                        blue: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-                      };
-                      return (
-                        <label
-                          key={cat.value}
-                          className={`group flex flex-col gap-2.5 p-4 lg:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
-                            isSelected
-                              ? 'border-kmuGreen bg-kmuGreen/5 dark:bg-kmuGreen/10 ring-4 ring-kmuGreen/10'
-                              : 'border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 hover:border-slate-200 dark:hover:border-slate-700'
-                          }`}
-                        >
-                          <input
-                            type="radio"
-                            name="category"
-                            value={cat.value}
-                            checked={isSelected}
-                            onChange={() => setCategory(cat.value)}
-                            className="sr-only"
-                          />
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${colorClasses[cat.color]}`}>
-                            <Icon className="w-6 h-6" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-base text-slate-900 dark:text-white">{cat.label}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{cat.description}</p>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
+                  <SchemaCategoryPicker
+                    categories={schema.categories}
+                    value={category}
+                    onChange={(nextCategory) => setCategory(nextCategory as Category)}
+                  />
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
@@ -378,8 +323,22 @@ export default function AnonymousReportPage() {
                       placeholder="Describe what happened in detail — who or what was involved, what occurred, and why this needs attention. Do NOT include your own personal information."
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-kmuGreen focus:bg-white dark:focus:bg-slate-800 transition-colors resize-none lg:min-h-[180px]"
                     />
-                    <p className="text-xs text-slate-400">{description.length} characters — aim for at least 50 for a useful report.</p>
+                    <p className="text-xs text-slate-400">
+                      {description.length} characters — aim for at least {descriptionMinLength} for a useful report.
+                    </p>
                   </div>
+
+                  {!!activeCategory?.fields?.length && (
+                    <div className="space-y-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30 p-4 md:p-5">
+                      <h3 className="font-semibold text-slate-900 dark:text-white">{activeCategory.label} Details</h3>
+                      <SchemaFormFields
+                        fields={activeCategory.fields}
+                        values={details}
+                        onChange={handleDetailChange}
+                        idPrefix="anon"
+                      />
+                    </div>
+                  )}
 
                   <div className="space-y-1.5">
                     <label htmlFor="anon-email" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
@@ -405,7 +364,7 @@ export default function AnonymousReportPage() {
 
                   <button
                     type="submit"
-                    disabled={submitting || description.length < 10}
+                    disabled={submitting || description.length < descriptionMinLength}
                     className="w-full bg-kmuGreen hover:bg-kmuGreen-dark text-white py-4 rounded-xl font-bold shadow-lg shadow-kmuGreen/20 transition-all active:scale-[0.98] disabled:opacity-60 disabled:active:scale-100 flex items-center justify-center gap-2"
                   >
                     {submitting ? (

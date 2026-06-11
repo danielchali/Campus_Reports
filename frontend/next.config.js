@@ -77,7 +77,23 @@ const nextConfig = {
     // Headers for caching and performance
     async headers() {
         return [{
-                source: '/(.*)',
+                source: '/embed/:path*',
+                headers: [{
+                        key: 'X-Content-Type-Options',
+                        value: 'nosniff',
+                    },
+                    {
+                        key: 'Content-Security-Policy',
+                        value: "frame-ancestors 'self' http://localhost:3000 https://campusreports.vercel.app *",
+                    },
+                    {
+                        key: 'X-XSS-Protection',
+                        value: '1; mode=block',
+                    },
+                ],
+            },
+            {
+                source: '/((?!embed).*)',
                 headers: [{
                         key: 'X-Content-Type-Options',
                         value: 'nosniff',

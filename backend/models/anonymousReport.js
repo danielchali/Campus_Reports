@@ -8,6 +8,7 @@ const anonymousReportSchema = new mongoose.Schema({
     location: { type: String, required: true, trim: true },
     incident_date: { type: String, required: true },
     contact_email: { type: String, trim: true, default: '' }, // optional, for follow-up
+    details: { type: mongoose.Schema.Types.Mixed, default: {} },
     status: { type: String, enum: ['Submitted', 'Under Review', 'In Progress', 'Resolved'], default: 'Submitted' },
     ip_hash: { type: String, default: '' }, // hashed for basic spam detection, not traceable
     ai_summary: { type: String, default: '' },
