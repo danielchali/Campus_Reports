@@ -1243,30 +1243,28 @@ export default function NewCasePage() {
                   <div><span className="font-semibold">Day & Date:</span> {studentCaseProcess.summon.reportDate || "____________________"}</div>
                   <div className="md:col-span-2"><span className="font-semibold">Appointment:</span> {studentCaseProcess.summon.appointment || "____________________"}</div>
                 </div>
-                <div className="mt-4 grid grid-cols-1 gap-4 print:hidden md:grid-cols-2">
+                <div className="mt-3 space-y-2 print:hidden">
                   <SignatureField
                     label="Officer Signature"
                     value={studentCaseProcess.summon.officerSignature}
                     onChange={(value) => updateSummonField("officerSignature", value)}
-                    helperText="Draw officer signature."
+                    helperText="Sign on the line."
                   />
                   <SignatureField
                     label="Student Signature"
                     value={studentCaseProcess.summon.studentSignatures[String(index)] || ""}
                     onChange={(value) => updateSummonStudentSignature(index, value)}
-                    helperText="Draw this student's signature."
+                    helperText="Sign on the line."
                   />
                 </div>
-                <div className="mt-4 hidden print:grid grid-cols-2 gap-4">
+                <div className="mt-3 hidden space-y-1 print:block">
                   <SignatureDisplay
                     label="Officer Signature"
                     value={studentCaseProcess.summon.officerSignature}
-                    imageClassName="mx-auto h-14 max-w-full object-contain"
                   />
                   <SignatureDisplay
                     label="Student Signature"
                     value={studentCaseProcess.summon.studentSignatures[String(index)] || ""}
-                    imageClassName="mx-auto h-14 max-w-full object-contain"
                   />
                 </div>
                 <div className="mt-2 text-right text-xs text-gray-500 dark:text-gray-300">

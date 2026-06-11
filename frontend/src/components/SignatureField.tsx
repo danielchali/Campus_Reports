@@ -3,18 +3,23 @@
 import { useEffect, useRef, useState } from "react";
 import type SignaturePad from "signature_pad";
 
+const SIGNATURE_LINE_HEIGHT = 44;
+
 type SignatureFieldProps = {
   label: string;
   value: string;
   onChange: (value: string) => void;
   helperText?: string;
+  /** When true, label and pad sit on one line like a paper form. */
+  inline?: boolean;
 };
 
 export default function SignatureField({
   label,
   value,
   onChange,
-  helperText = "Draw a signature in the pad below.",
+  helperText = "Sign on the line.",
+  inline = true,
 }: SignatureFieldProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const signaturePadRef = useRef<SignaturePad | null>(null);
@@ -43,16 +48,18 @@ export default function SignatureField({
 
       const canvas = canvasRef.current;
       const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      const width = canvas.offsetWidth || 560;
-      const height = 180;
+      const width = canvas.offsetWidth || 280;
+      const height = SIGNATURE_LINE_HEIGHT;
 
       canvas.width = width * ratio;
       canvas.height = height * ratio;
       canvas.getContext("2d")?.scale(ratio, ratio);
 
       pad = new SignaturePadClass(canvas, {
-        backgroundColor: "rgb(255,255,255)",
-        penColor: "rgb(17,24,39)",
+        backgroundColor: "rgb(255, 255, 255)",
+        penColor: "rgb(17, 24, 39)",
+        minWidth: 0.8,
+        maxWidth: 1.8,
       });
 
       if (latestValueRef.current) {
@@ -111,6 +118,43 @@ export default function SignatureField({
     onChange("");
   };
 
+  const pad = (
+    <div className="min-w-[10rem] flex-1 border-b border-slate-400 bg-white dark:border-slate-500 dark:bg-white">
+      <canvas
+        ref={canvasRef}
+        className="h-11 w-full touch-none bg-white"
+        style={{ height: SIGNATURE_LINE_HEIGHT }}
+      />
+    </div>
+  );
+
+  if (inline) {
+    return (
+      <div className="text-sm">
+        <div className="flex flex-wrap items-end gap-x-2 gap-y-1">
+          {label ? (
+            <label className="shrink-0 font-medium leading-none text-gray-900 dark:text-white">
+              {label}
+            </label>
+          ) : null}
+          {pad}
+          <button
+            type="button"
+            onClick={clearSignature}
+            className="shrink-0 pb-1 text-xs font-medium text-kmuOrange underline"
+          >
+            Clear
+          </button>
+        </div>
+        {helperText ? (
+          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+            {ready ? helperText : "Loading signature pad..."}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="mb-1 flex items-center justify-between gap-3">
@@ -127,15 +171,12 @@ export default function SignatureField({
           Clear
         </button>
       </div>
-      <div className="overflow-hidden rounded-lg border border-gray-300 bg-white dark:border-gray-600">
-        <canvas
-          ref={canvasRef}
-          className="h-[180px] w-full touch-none bg-white"
-        />
-      </div>
-      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-        {ready ? helperText : "Loading signature pad..."}
-      </p>
+      {pad}
+      {helperText ? (
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          {ready ? helperText : "Loading signature pad..."}
+        </p>
+      ) : null}
     </div>
   );
 }

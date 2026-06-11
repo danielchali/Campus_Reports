@@ -73,7 +73,7 @@ export function signatureParagraphs(label, value, { pendingText = 'Pending' } = 
                 new ImageRun({
                     data: parsed.buffer,
                     type: parsed.type,
-                    transformation: { width: 180, height: 60 },
+                    transformation: { width: 110, height: 28 },
                 }),
             ],
             spacing: { after: 160 },

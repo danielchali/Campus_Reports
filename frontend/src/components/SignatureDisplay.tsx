@@ -12,23 +12,27 @@ export default function SignatureDisplay({
   label,
   value,
   className = "",
-  imageClassName = "h-16 max-w-full object-contain",
+  imageClassName = "inline-block h-[1.1em] max-w-[10rem] align-middle object-contain",
   placeholder = "____________________",
 }: SignatureDisplayProps) {
+  const line = isSignatureDataUrl(value) ? (
+    <img
+      src={value}
+      alt={label || "Signature"}
+      className={imageClassName}
+    />
+  ) : (
+    <span className="inline-block min-w-[8rem] border-b border-black align-bottom leading-none">
+      {value?.trim() || placeholder}
+    </span>
+  );
+
   return (
-    <div className={className}>
+    <div className={`flex flex-wrap items-end gap-x-1 text-sm leading-snug ${className}`}>
       {label ? (
-        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
-          {label}
-        </p>
+        <span className="shrink-0 font-semibold">{label}:</span>
       ) : null}
-      {isSignatureDataUrl(value) ? (
-        <img src={value} alt={label || "Signature"} className={imageClassName} />
-      ) : (
-        <div className="min-h-[4rem] border-t border-black pt-2 text-center text-sm">
-          {value?.trim() || placeholder}
-        </div>
-      )}
+      {line}
     </div>
   );
 }

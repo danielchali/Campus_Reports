@@ -649,7 +649,7 @@ function WorkOrderJobCard({
               Approved by
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
-            <div className="md:col-span-1">
+            <div className="md:col-span-3">
               <SignatureField
                 label="Part C Signature"
                 value={signatures[`${workOrder.id}:part-c-signature`] || ""}
@@ -659,7 +659,7 @@ function WorkOrderJobCard({
                     value,
                   )
                 }
-                helperText="Draw or update the Part C signature."
+                helperText="Sign on the line."
               />
             </div>
             <label className="flex items-end gap-2">
@@ -679,7 +679,7 @@ function WorkOrderJobCard({
               Name
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
-            <div className="md:col-span-1">
+            <div className="md:col-span-3">
               <SignatureField
                 label="Part D Signature"
                 value={signatures[`${workOrder.id}:part-d-signature`] || ""}
@@ -689,7 +689,7 @@ function WorkOrderJobCard({
                     value,
                   )
                 }
-                helperText="Draw or update the Part D signature."
+                helperText="Sign on the line."
               />
             </div>
             <label className="flex items-end gap-2">
@@ -712,7 +712,7 @@ function WorkOrderJobCard({
               Name
               <input required className="w-full rounded-md border border-slate-300 bg-white px-2 py-1 text-sm" />
             </label>
-            <div className="md:col-span-1">
+            <div className="md:col-span-3">
               <SignatureField
                 label="Part E Signature"
                 value={signatures[`${workOrder.id}:part-e-signature`] || ""}
@@ -722,7 +722,7 @@ function WorkOrderJobCard({
                     value,
                   )
                 }
-                helperText="Draw or update the Part E signature."
+                helperText="Sign on the line."
               />
             </div>
             <label className="flex items-end gap-2">
