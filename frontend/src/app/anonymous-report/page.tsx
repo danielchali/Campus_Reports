@@ -166,10 +166,10 @@ export default function AnonymousReportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
+    <div className="min-h-screen flex flex-col bg-slate-100 dark:bg-slate-950">
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+        <div className="w-full px-4 md:px-8 py-3 flex items-center justify-between">
           <Link href="/login" className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-kmuGreen transition-colors">
             <ArrowLeft className="w-4 h-4" />
             Back to Login
@@ -181,52 +181,58 @@ export default function AnonymousReportPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
+      <div className="flex-1 w-full px-4 md:px-8 py-4 md:py-6 flex flex-col gap-4 md:gap-6">
 
-        {/* Page Title */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-xl shadow-purple-500/20 mb-2">
-            <Ghost className="w-10 h-10" />
+        {/* Page Title — compact two-line hero */}
+        <div className="shrink-0">
+          <div className="flex items-center justify-center gap-2.5 md:gap-3">
+            <div className="inline-flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/20 shrink-0">
+              <Ghost className="w-5 h-5 md:w-6 md:h-6" />
+            </div>
+            <h1 className="text-xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">Anonymous Reporting</h1>
           </div>
-          <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">Anonymous Reporting</h1>
-          <p className="mt-2 text-slate-600 dark:text-slate-400 max-w-xl mx-auto text-base leading-relaxed">
-            Your voice matters. Submit reports confidentially without an account. 
-            <span className="block mt-1 font-medium text-kmuGreen">Your identity remains 100% protected.</span>
-            <span className="block mt-2 text-sm">Use Campus Reports AI (bottom-right) for step-by-step guided reporting.</span>
+          <p className="mt-1.5 md:mt-2 text-center text-xs md:text-base text-slate-600 dark:text-slate-400 leading-snug md:leading-normal px-1">
+            <span className="md:hidden">Confidential &amp; anonymous — tap AI below for guided help.</span>
+            <span className="hidden md:inline">
+              Submit confidentially without an account — your identity stays protected.{' '}
+              <span className="text-slate-500">Use Campus Reports AI (bottom-right) for guided help.</span>
+            </span>
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex rounded-2xl bg-slate-200/50 dark:bg-slate-900/50 p-1.5 gap-1.5 backdrop-blur-sm">
+        <div className="flex rounded-2xl bg-slate-200/50 dark:bg-slate-900/50 p-1 gap-1 md:p-1.5 md:gap-1.5 backdrop-blur-sm shrink-0 w-full md:max-w-none">
           <button
             onClick={() => setActiveTab('report')}
-            className={`flex-1 flex items-center justify-center gap-2.5 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
+            className={`flex-1 flex items-center justify-center gap-1.5 md:gap-2.5 py-2.5 md:py-3 rounded-xl text-xs md:text-sm font-bold transition-all duration-200 ${
               activeTab === 'report'
                 ? 'bg-white dark:bg-slate-800 text-kmuGreen dark:text-white shadow-md'
                 : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
-            <FileText className="w-4.5 h-4.5" />
-            Submit a Report
+            <FileText className="w-4 h-4 md:w-4.5 md:h-4.5" />
+            <span className="sm:hidden">Submit</span>
+            <span className="hidden sm:inline">Submit a Report</span>
           </button>
           <button
             onClick={() => setActiveTab('track')}
-            className={`flex-1 flex items-center justify-center gap-2.5 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${
+            className={`flex-1 flex items-center justify-center gap-1.5 md:gap-2.5 py-2.5 md:py-3 rounded-xl text-xs md:text-sm font-bold transition-all duration-200 ${
               activeTab === 'track'
                 ? 'bg-white dark:bg-slate-800 text-kmuGreen dark:text-white shadow-md'
                 : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
             }`}
           >
-            <ChevronRight className="w-4.5 h-4.5" />
-            Track My Report
+            <ChevronRight className="w-4 h-4 md:w-4.5 md:h-4.5" />
+            <span className="hidden sm:inline">Track My Report</span>
+            <span className="sm:hidden">Track</span>
           </button>
         </div>
 
         {/* ─────────────── SUBMIT TAB ─────────────── */}
         {activeTab === 'report' && (
-          <>
+          <div className="flex-1 flex flex-col min-h-0">
             {step === 'form' && (
-              <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-200 dark:border-slate-800 p-8 md:p-12 space-y-10">
+              <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl md:rounded-[2rem] shadow-xl shadow-slate-200/50 dark:shadow-black/20 border border-slate-200 dark:border-slate-800 p-4 sm:p-6 md:p-8 lg:p-10 space-y-5 md:space-y-8">
 
                 {error && (
                   <div className="flex items-start gap-3 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 dark:bg-rose-900/20 dark:border-rose-800 dark:text-rose-400 text-sm">
@@ -236,10 +242,10 @@ export default function AnonymousReportPage() {
                 )}
 
                 {/* Category Selection */}
-                <div className="space-y-5">
+                <div className="space-y-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-1 h-6 bg-kmuGreen rounded-full"></div>
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-white">Select Category</h2>
+                    <div className="w-1 h-5 bg-kmuGreen rounded-full"></div>
+                    <h2 className="text-base md:text-lg font-bold text-slate-900 dark:text-white">Select Category</h2>
                   </div>
 
                   {/* Mobile dropdown */}
@@ -259,7 +265,7 @@ export default function AnonymousReportPage() {
                   </div>
 
                   {/* Desktop cards */}
-                  <div className="hidden md:grid gap-4 md:grid-cols-3">
+                  <div className="hidden md:grid gap-3 lg:gap-4 md:grid-cols-3">
                     {CATEGORIES.map((cat) => {
                       const Icon = cat.icon;
                       const isSelected = category === cat.value;
@@ -271,7 +277,7 @@ export default function AnonymousReportPage() {
                       return (
                         <label
                           key={cat.value}
-                          className={`group flex flex-col gap-3 p-5 rounded-[2rem] border-2 cursor-pointer transition-all duration-300 ${
+                          className={`group flex flex-col gap-2.5 p-4 lg:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
                             isSelected
                               ? 'border-kmuGreen bg-kmuGreen/5 dark:bg-kmuGreen/10 ring-4 ring-kmuGreen/10'
                               : 'border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 hover:border-slate-200 dark:hover:border-slate-700'
@@ -298,9 +304,9 @@ export default function AnonymousReportPage() {
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Title + Location */}
-                  <div className="grid gap-5 md:grid-cols-2">
+                <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
+                  {/* Title + Location + Date — three columns on large screens */}
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <div className="space-y-1.5">
                       <label htmlFor="anon-title" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
                         Report Title <span className="text-rose-500">*</span>
@@ -338,26 +344,27 @@ export default function AnonymousReportPage() {
                     </div>
                   </div>
 
-                  {/* Date */}
-                  <div className="space-y-1.5">
-                    <label htmlFor="anon-date" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      Date of Incident <span className="text-rose-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <input
-                        id="anon-date"
-                        type="date"
-                        required
-                        value={incidentDate}
-                        onChange={(e) => setIncidentDate(e.target.value)}
-                        max={new Date().toISOString().split('T')[0]}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-kmuGreen focus:bg-white dark:focus:bg-slate-800 transition-colors"
-                      />
+                    <div className="space-y-1.5">
+                      <label htmlFor="anon-date" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        Date of Incident <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input
+                          id="anon-date"
+                          type="date"
+                          required
+                          value={incidentDate}
+                          onChange={(e) => setIncidentDate(e.target.value)}
+                          max={new Date().toISOString().split('T')[0]}
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-kmuGreen focus:bg-white dark:focus:bg-slate-800 transition-colors"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Description */}
+                  {/* Description + Email — side by side on large screens */}
+                  <div className="grid gap-4 lg:grid-cols-[1fr_320px] lg:items-start">
                   <div className="space-y-1.5">
                     <label htmlFor="anon-desc" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
                       Full Description <span className="text-rose-500">*</span>
@@ -365,16 +372,15 @@ export default function AnonymousReportPage() {
                     <textarea
                       id="anon-desc"
                       required
-                      rows={6}
+                      rows={5}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Describe what happened in detail — who or what was involved, what occurred, and why this needs attention. Do NOT include your own personal information."
-                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-kmuGreen focus:bg-white dark:focus:bg-slate-800 transition-colors resize-none"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-kmuGreen focus:bg-white dark:focus:bg-slate-800 transition-colors resize-none lg:min-h-[180px]"
                     />
                     <p className="text-xs text-slate-400">{description.length} characters — aim for at least 50 for a useful report.</p>
                   </div>
 
-                  {/* Optional email */}
                   <div className="space-y-1.5">
                     <label htmlFor="anon-email" className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
                       Contact Email <span className="text-slate-400 font-normal">(optional)</span>
@@ -392,8 +398,9 @@ export default function AnonymousReportPage() {
                     </div>
                     <p className="text-xs text-slate-400 flex items-center gap-1">
                       <Lock className="w-3 h-3" />
-                      If provided, this email is only seen by authorised staff and used solely for follow-up.
+                      Only seen by authorised staff for follow-up.
                     </p>
+                  </div>
                   </div>
 
                   <button
@@ -419,7 +426,7 @@ export default function AnonymousReportPage() {
 
             {/* ─── SUCCESS STATE ─── */}
             {step === 'success' && (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 md:p-12 text-center space-y-6">
+              <div className="flex-1 flex flex-col justify-center bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 md:p-12 text-center space-y-6">
                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mx-auto">
                   <CheckCircle2 className="w-10 h-10" />
                 </div>
@@ -461,12 +468,12 @@ export default function AnonymousReportPage() {
                 </p>
               </div>
             )}
-          </>
+          </div>
         )}
 
         {/* ─────────────── TRACK TAB ─────────────── */}
         {activeTab === 'track' && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 md:p-10 space-y-6">
+          <div className="flex-1 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 md:p-10 space-y-6">
             <div>
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">Check Report Status</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">

@@ -183,9 +183,16 @@ function applyFormSuggestions(suggestions: FormFieldSuggestion[]) {
 }
 
 const FAB_SIZE = 56;
+const FAB_SIZE_DESKTOP = 64;
 const FAB_MARGIN = 20;
 const PANEL_GAP = 12;
 const PANEL_HEIGHT = 416;
+const PANEL_HEIGHT_DESKTOP = 560;
+const PANEL_WIDTH_DESKTOP = 480;
+
+function isDesktopViewport() {
+  return typeof window !== 'undefined' && window.innerWidth >= 768;
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -252,9 +259,16 @@ export default function FloatingAIChatbot() {
   const key = useMemo(() => storageKey(pathname, user?.id), [pathname, user?.id]);
   const viewportWidth = typeof window === 'undefined' ? 1440 : window.innerWidth;
   const viewportHeight = typeof window === 'undefined' ? 900 : window.innerHeight;
-  const panelWidth = isHydrated ? Math.min(viewportWidth * 0.92, 384) : 384;
-  const panelLeft = clamp(launcherPosition.x + FAB_SIZE - panelWidth, 16, Math.max(16, viewportWidth - panelWidth - 16));
-  const panelTop = clamp(launcherPosition.y - PANEL_HEIGHT - PANEL_GAP, 16, Math.max(16, viewportHeight - PANEL_HEIGHT - 16));
+  const desktop = isDesktopViewport();
+  const fabSize = desktop ? FAB_SIZE_DESKTOP : FAB_SIZE;
+  const panelHeight = desktop ? PANEL_HEIGHT_DESKTOP : PANEL_HEIGHT;
+  const panelWidth = isHydrated
+    ? desktop
+      ? Math.min(viewportWidth * 0.92, PANEL_WIDTH_DESKTOP)
+      : Math.min(viewportWidth * 0.92, 384)
+    : 384;
+  const panelLeft = clamp(launcherPosition.x + fabSize - panelWidth, 16, Math.max(16, viewportWidth - panelWidth - 16));
+  const panelTop = clamp(launcherPosition.y - panelHeight - PANEL_GAP, 16, Math.max(16, viewportHeight - panelHeight - 16));
   const visibleMessages = guided.isActive ? guided.messages : messages;
   const showGuidedLauncher = guided.enabled && !guided.isActive;
 
@@ -429,7 +443,14 @@ export default function FloatingAIChatbot() {
 
   return (
     <>
-      {isOpen && <button type="button" aria-label="Close AI assistant overlay" onClick={() => setIsOpen(false)} className="fixed inset-0 z-30 bg-transparent md:hidden" />}
+      {isOpen && (
+        <button
+          type="button"
+          aria-label="Close AI assistant overlay"
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-[2px] md:hidden"
+        />
+      )}
 
       <button
         type="button"
@@ -438,33 +459,44 @@ export default function FloatingAIChatbot() {
         onPointerUp={handleLauncherPointerUp}
         onPointerCancel={handleLauncherPointerUp}
         style={{ left: launcherPosition.x, top: launcherPosition.y }}
-        className="fixed z-40 inline-flex h-14 w-14 touch-none items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg shadow-indigo-900/30 transition hover:bg-indigo-500"
+        className={`fixed z-40 touch-none items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg shadow-indigo-900/30 transition hover:bg-indigo-500 ${
+          isOpen ? 'hidden md:inline-flex h-16 w-16' : 'inline-flex h-14 w-14'
+        }`}
         aria-label={isOpen ? 'Close AI assistant' : 'Open AI assistant'}
       >
-        {isOpen ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+        {isOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-5 w-5" />}
       </button>
 
       {isOpen && (
         <section
-          style={{ left: panelLeft, top: panelTop }}
-          className="fixed z-40 flex h-[26rem] w-[min(92vw,24rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
+          style={desktop ? { left: panelLeft, top: panelTop } : undefined}
+          className="fixed z-40 flex flex-col overflow-hidden border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900 inset-x-0 bottom-0 h-[min(88dvh,640px)] w-full rounded-t-2xl border-b-0 md:inset-auto md:bottom-auto md:h-[35rem] md:w-[min(92vw,30rem)] md:rounded-2xl md:border-b"
         >
+          <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-slate-300 dark:bg-slate-600 md:hidden" aria-hidden />
           <header className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                <Bot className="h-4 w-4 text-indigo-500" />
+                <Bot className="h-4 w-4 text-indigo-500 md:h-5 md:w-5" />
                 <div>
-                  <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                  <div className="text-sm font-semibold text-slate-800 dark:text-slate-100 md:text-base">
                     {guided.isActive ? 'Guided Reporting' : 'Campus Reports AI'}
                   </div>
                   {guided.isActive && (
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 md:text-xs">
                       Step {Math.min(guided.stepIndex + 1, guided.totalSteps)} of {guided.totalSteps} · {guided.stepLabel}
                     </div>
                   )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 md:hidden"
+                  aria-label="Close AI assistant"
+                >
+                  <X className="h-4 w-4" />
+                </button>
                 {guided.isActive && (
                   <button
                     type="button"
@@ -507,7 +539,7 @@ export default function FloatingAIChatbot() {
             {visibleMessages.map((message, index) => (
               <div
                 key={`${message.role}-${index}`}
-                className={`max-w-[92%] rounded-xl px-3 py-2 text-sm ${
+                className={`max-w-[92%] rounded-xl px-3 py-2 text-sm md:px-4 md:py-2.5 md:text-base ${
                   message.role === 'user'
                     ? 'ml-auto bg-indigo-600 text-white'
                     : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100'
