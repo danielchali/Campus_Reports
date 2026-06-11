@@ -186,6 +186,25 @@ function getReportDate(report: AnonymousReport) {
   return report.createdAt || report.incident_date || '';
 }
 
+const REPORT_ACTIVITY_PERIODS = [
+  { days: 7, label: '7 days' },
+  { days: 14, label: '14 days' },
+  { days: 28, label: '28 days' },
+] as const;
+
+function isWithinReportActivityPeriod(dateValue: string, days: number) {
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return false;
+
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - (days - 1));
+
+  const itemDate = new Date(date);
+  itemDate.setHours(0, 0, 0, 0);
+  return itemDate >= start;
+}
+
 function getCasePerson(caseItem: CaseItem) {
   if (caseItem.student?.fullName) {
     return {
@@ -241,6 +260,7 @@ export default function ManagementDashboard({
   const [error, setError] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
   const [liveUpdatedAt, setLiveUpdatedAt] = useState<string | null>(null);
+  const [activityDays, setActivityDays] = useState(7);
 
   const handleRealtimeRefresh = useCallback(() => {
     setRefreshToken((current) => current + 1);
@@ -403,6 +423,11 @@ export default function ManagementDashboard({
     return [...studentItems, ...anonymousItems].filter((item) => item.date);
   }, [anonymousReports, studentReports]);
 
+  const activityPeriodReports = useMemo(
+    () => recentCampusReports.filter((item) => isWithinReportActivityPeriod(item.date, activityDays)),
+    [activityDays, recentCampusReports]
+  );
+
   const primaryItems: Array<CaseItem | AnonymousReport> = dataset === 'cases' ? filteredCases : filteredReports;
 
   const focusItems = useMemo(() => {
@@ -450,12 +475,12 @@ export default function ManagementDashboard({
     const disciplineCounts: number[] = [];
     const anonymousCounts: number[] = [];
 
-    for (let offset = 6; offset >= 0; offset -= 1) {
+    for (let offset = activityDays - 1; offset >= 0; offset -= 1) {
       const date = new Date(today);
       date.setDate(today.getDate() - offset);
       labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
 
-      const dayItems = recentCampusReports.filter((item) => new Date(item.date).toDateString() === date.toDateString());
+      const dayItems = activityPeriodReports.filter((item) => new Date(item.date).toDateString() === date.toDateString());
       maintenanceCounts.push(dayItems.filter((item) => item.bucket === 'Maintenance').length);
       disciplineCounts.push(dayItems.filter((item) => item.bucket === 'Discipline').length);
       anonymousCounts.push(dayItems.filter((item) => item.bucket === 'Anonymous').length);
@@ -499,13 +524,13 @@ export default function ManagementDashboard({
         },
       ],
     };
-  }, [recentCampusReports]);
+  }, [activityDays, activityPeriodReports]);
 
   const breakdown = useMemo(() => {
     const counts = new Map<string, number>();
-    counts.set('Maintenance', recentCampusReports.filter((item) => item.bucket === 'Maintenance').length);
-    counts.set('Discipline', recentCampusReports.filter((item) => item.bucket === 'Discipline').length);
-    counts.set('Anonymous', recentCampusReports.filter((item) => item.bucket === 'Anonymous').length);
+    counts.set('Maintenance', activityPeriodReports.filter((item) => item.bucket === 'Maintenance').length);
+    counts.set('Discipline', activityPeriodReports.filter((item) => item.bucket === 'Discipline').length);
+    counts.set('Anonymous', activityPeriodReports.filter((item) => item.bucket === 'Anonymous').length);
 
     const entries = Array.from(counts.entries()).filter(([, value]) => value > 0);
     const palette = ['#008542', '#ff8200', '#2563eb'];
@@ -514,7 +539,7 @@ export default function ManagementDashboard({
       labels: entries.map(([label]) => label),
       datasets: [{ data: entries.map(([, value]) => value), backgroundColor: palette.slice(0, entries.length), borderWidth: 0, cutout: '68%' }],
     };
-  }, [recentCampusReports]);
+  }, [activityPeriodReports]);
 
   const totalReportSparkline = useMemo(() => {
     const dailyTotals = trendData.labels.map((_, index) =>
@@ -610,11 +635,33 @@ export default function ManagementDashboard({
       <section className="grid gap-4 xl:grid-cols-3">
         <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 xl:col-span-2">
           <div className="mb-4">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Report Activity</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Recent campus reports across maintenance, discipline, and anonymous channels.</p>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Report Activity</h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Campus reports across maintenance, discipline, and anonymous channels.
+                </p>
+              </div>
+              <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-800/60">
+                {REPORT_ACTIVITY_PERIODS.map((period) => (
+                  <button
+                    key={period.days}
+                    type="button"
+                    onClick={() => setActivityDays(period.days)}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+                      activityDays === period.days
+                        ? 'bg-white text-kmuGreen shadow-sm dark:bg-slate-900 dark:text-emerald-300'
+                        : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    {period.label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="mt-2 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs dark:border-slate-700 dark:bg-slate-800/60">
               <span className="font-medium text-slate-600 dark:text-slate-300">Total reports</span>
-              <span className="text-sm font-semibold text-slate-900 dark:text-white">{summary.totalCampusReports}</span>
+              <span className="text-sm font-semibold text-slate-900 dark:text-white">{activityPeriodReports.length}</span>
               <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${totalReportSparkline.rising ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'}`}>
                 {totalReportSparkline.rising ? '↗' : '↘'}
               </span>
@@ -655,12 +702,14 @@ export default function ManagementDashboard({
         <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Report Distribution</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">Breakdown of recent maintenance, discipline, and anonymous reports.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Breakdown for the last {activityDays} days across maintenance, discipline, and anonymous reports.
+            </p>
           </div>
           <div className="relative mx-auto h-[190px] max-w-[210px]">
             <Doughnut data={breakdown} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-semibold text-slate-900 dark:text-white">{recentCampusReports.length}</span>
+              <span className="text-2xl font-semibold text-slate-900 dark:text-white">{activityPeriodReports.length}</span>
               <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
                 Reports
               </span>
