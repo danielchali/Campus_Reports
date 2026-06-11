@@ -4,6 +4,7 @@ import { authenticate, authorize } from '../middleware/auth.js';
 import ExcelJS from 'exceljs';
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, AlignmentType, PageBreak } from 'docx';
 import { kmuLogoParagraph, signatureParagraphs } from '../utils/docxExport.js';
+import { buildCalloutsFromCase, createCalloutDocBuffer } from '../utils/calloutDocx.js';
 const router = express.Router();
 
 router.use(authenticate, authorize(['admin', 'academic_office', 'security_officer']));
@@ -12,6 +13,45 @@ router.get('/', listCases);
 router.post('/', createCase);
 router.put('/:id', updateCase);
 router.delete('/:id', deleteCase);
+
+router.post('/export-callout-docx', async(req, res) => {
+    try {
+        const { callouts } = req.body;
+        if (!Array.isArray(callouts) || callouts.length === 0) {
+            return res.status(400).json({ error: 'callouts array is required' });
+        }
+
+        const buffer = await createCalloutDocBuffer(callouts);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', 'attachment; filename=callouts.docx');
+        res.send(buffer);
+    } catch (err) {
+        console.error('Callout DOCX export error:', err);
+        res.status(500).json({ error: 'Export failed' });
+    }
+});
+
+router.get('/:id/export-callout-docx', async(req, res) => {
+    try {
+        const CaseModel = (await import('../models/case.js')).default;
+        const caseItem = await CaseModel.findById(req.params.id).lean();
+        if (!caseItem) return res.status(404).json({ error: 'Case not found' });
+
+        const callouts = buildCalloutsFromCase(caseItem);
+        if (!callouts.length) {
+            return res.status(400).json({ error: 'No callout data found for this case' });
+        }
+
+        const buffer = await createCalloutDocBuffer(callouts);
+        const filename = `callout_${caseItem.case_id || caseItem._id}.docx`;
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+        res.send(buffer);
+    } catch (err) {
+        console.error('Case callout DOCX export error:', err);
+        res.status(500).json({ error: 'Export failed' });
+    }
+});
 
 router.get('/:id/export-docx-full', async(req, res) => {
     try {

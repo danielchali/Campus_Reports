@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  .page-container {
+    @apply mx-auto w-full max-w-[1600px];
+  }
+}
+
 @layer base {
   :root {
       font-size: 15px;

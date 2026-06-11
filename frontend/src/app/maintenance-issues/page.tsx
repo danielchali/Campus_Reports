@@ -179,7 +179,7 @@ export default function MaintenanceIssuesPage() {
 
   return (
     <>
-      <section className="max-w-6xl mx-auto space-y-6">
+      <section className="w-full space-y-6">
         <div className="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>

@@ -4,7 +4,7 @@
  */
 export function PageSkeleton() {
   return (
-    <div className="mx-auto max-w-[1600px] space-y-6 animate-pulse" aria-hidden="true">
+    <div className="w-full space-y-6 animate-pulse" aria-hidden="true">
       {/* Header area */}
       <div className="rounded-[28px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-6 md:px-7">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
@@ -115,7 +115,7 @@ export function TableSkeleton({ rows = 6, cols = 4 }: { rows?: number; cols?: nu
 
 export function DetailPageSkeleton() {
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6 animate-pulse" aria-hidden="true">
+    <div className="w-full p-6 space-y-6 animate-pulse" aria-hidden="true">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="h-8 w-48 rounded-lg bg-slate-200 dark:bg-slate-700" />
@@ -161,7 +161,7 @@ export function DetailPageSkeleton() {
 
 export function ProfilePageSkeleton() {
   return (
-    <section className="max-w-4xl mx-auto p-6 animate-pulse" aria-hidden="true">
+    <section className="w-full p-6 animate-pulse" aria-hidden="true">
       {/* Title */}
       <div className="text-center mb-8 space-y-3">
         <div className="h-10 w-64 mx-auto rounded-lg bg-slate-200 dark:bg-slate-700" />

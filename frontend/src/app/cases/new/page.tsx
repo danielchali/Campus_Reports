@@ -12,8 +12,8 @@ import SmartStaffSearch from "../../../components/SmartStaffSearch";
 import QuickCaseTemplates from "../../../components/QuickCaseTemplates";
 import RecentStaff from "../../../components/RecentStaff";
 import SignatureField from "../../../components/SignatureField";
-import SignatureDisplay from "../../../components/SignatureDisplay";
 import { canAccessPage } from "../../../utils/access";
+import { exportCalloutDocx, printCallouts } from "../../../utils/calloutExport";
 
 interface Student {
   _id: string;
@@ -329,7 +329,6 @@ export default function NewCasePage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [offenseTypeDescription, setOffenseTypeDescription] = useState("");
   const [caseNumberPreview, setCaseNumberPreview] = useState("");
-  const [printOnlyCalloutIndex, setPrintOnlyCalloutIndex] = useState<number | null>(null);
   const [selectedAccusedIndex, setSelectedAccusedIndex] = useState(0);
   const [studentCaseStep, setStudentCaseStep] = useState(0);
   const [studentCaseProcess, setStudentCaseProcess] = useState<StudentCaseProcessState>(createInitialStudentCaseProcess);
@@ -660,17 +659,51 @@ export default function NewCasePage() {
     await startAudioRecording();
   };
 
-  const printAllCallouts = () => {
-    setPrintOnlyCalloutIndex(null);
-    window.print();
+  const handlePrintAllCallouts = () => {
+    try {
+      printCallouts(
+        studentCaseProcess.occurrenceCover.accusedPeople,
+        studentCaseProcess.summon,
+      );
+    } catch (err: any) {
+      setError(err?.message || "Failed to print callouts.");
+    }
   };
 
-  const printSingleCallout = (index: number) => {
-    setPrintOnlyCalloutIndex(index);
-    setTimeout(() => {
-      window.print();
-      setTimeout(() => setPrintOnlyCalloutIndex(null), 300);
-    }, 0);
+  const handlePrintSingleCallout = (index: number) => {
+    try {
+      printCallouts(
+        studentCaseProcess.occurrenceCover.accusedPeople,
+        studentCaseProcess.summon,
+        { onlyIndex: index },
+      );
+    } catch (err: any) {
+      setError(err?.message || "Failed to print callout.");
+    }
+  };
+
+  const handleExportAllCallouts = async () => {
+    try {
+      await exportCalloutDocx(
+        studentCaseProcess.occurrenceCover.accusedPeople,
+        studentCaseProcess.summon,
+        { filename: "callouts.docx" },
+      );
+    } catch (err: any) {
+      setError(err?.message || "Failed to export callout DOCX.");
+    }
+  };
+
+  const handleExportSingleCallout = async (index: number) => {
+    try {
+      await exportCalloutDocx(
+        studentCaseProcess.occurrenceCover.accusedPeople,
+        studentCaseProcess.summon,
+        { onlyIndex: index, filename: `callout_${index + 1}.docx` },
+      );
+    } catch (err: any) {
+      setError(err?.message || "Failed to export callout DOCX.");
+    }
   };
 
   const handleAddAccusedStudent = (student: Student) => {
@@ -1192,46 +1225,59 @@ export default function NewCasePage() {
         <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <h4 className="font-semibold text-kmuOrange">KAPASA MAKASA UNIVERSITY SECURITY DEPARTMENT CALL OUT</h4>
-            <button
-              type="button"
-              onClick={printAllCallouts}
-              className="rounded border border-kmuGreen px-3 py-2 text-sm font-medium text-kmuGreen transition hover:bg-kmuGreen/10 print:hidden"
-            >
-              Print Call Out(s)
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handlePrintAllCallouts}
+                className="rounded border border-kmuGreen px-3 py-2 text-sm font-medium text-kmuGreen transition hover:bg-kmuGreen/10"
+              >
+                Print Call Out(s)
+              </button>
+              <button
+                type="button"
+                onClick={handleExportAllCallouts}
+                className="rounded border border-blue-700 px-3 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-50 dark:hover:bg-blue-950/30"
+              >
+                Export Call Out DOCX
+              </button>
+            </div>
           </div>
           <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
             <Field label="Report Time" value={studentCaseProcess.summon.reportTime} onChange={(value) => updateSummonField("reportTime", value)} type="time" />
             <Field label="Day & Date" value={studentCaseProcess.summon.reportDate} onChange={(value) => updateSummonField("reportDate", value)} type="date" />
             <Field label="Appointment" value={studentCaseProcess.summon.appointment} onChange={(value) => updateSummonField("appointment", value)} />
           </div>
-          <p className="mb-4 text-sm text-gray-600 dark:text-gray-300 print:hidden">
+          <p className="mb-4 text-sm text-gray-600 dark:text-gray-300">
             Each accused student gets an individual call out auto-filled from the docket cover details.
           </p>
-          <div id="callout-print-area" className="space-y-6">
+          <div className="space-y-6">
             {studentCaseProcess.occurrenceCover.accusedPeople.map((accused, index) => (
               <div
                 key={`callout-${accused.sin || index}`}
-                data-callout-index={index}
-                className={`callout-print-sheet rounded-lg border border-gray-300 bg-white p-4 text-sm text-black shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white print:mb-2 print:rounded-md print:border-black print:p-2 print:text-[11px] print:leading-tight print:shadow-none ${
-                  printOnlyCalloutIndex !== null && printOnlyCalloutIndex !== index ? "print:hidden" : ""
-                }`}
+                className="rounded-lg border border-gray-300 bg-white p-4 text-sm text-black shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
               >
-                <div className="mb-2 flex justify-end print:hidden">
+                <div className="mb-2 flex flex-wrap justify-end gap-2">
                   <button
                     type="button"
-                    onClick={() => printSingleCallout(index)}
+                    onClick={() => handlePrintSingleCallout(index)}
                     className="rounded border border-kmuOrange px-2 py-1 text-xs font-medium text-kmuOrange transition hover:bg-kmuOrange/10"
                   >
                     Print This Callout
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => handleExportSingleCallout(index)}
+                    className="rounded border border-blue-700 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-50 dark:hover:bg-blue-950/30"
+                  >
+                    Export DOCX
+                  </button>
                 </div>
                 <div className="mb-2 text-center">
-                  <img src="/kmu_logo.svg" alt="KMU Logo" className="mx-auto mb-2 h-14 print:h-12" />
-                  <h5 className="text-sm font-bold print:text-[11px]">KAPASA MAKASA UNIVERSITY SECURITY DEPARTMENT</h5>
+                  <img src="/kmu_logo.svg" alt="KMU Logo" className="mx-auto mb-2 h-14" />
+                  <h5 className="text-sm font-bold">KAPASA MAKASA UNIVERSITY SECURITY DEPARTMENT</h5>
                   <p className="font-semibold">CALL OUT</p>
                 </div>
-                <div className="grid grid-cols-1 gap-x-4 gap-y-1 md:grid-cols-2 print:grid-cols-2">
+                <div className="grid grid-cols-1 gap-x-4 gap-y-1 md:grid-cols-2">
                   <div><span className="font-semibold">Full Names:</span> {accused.name || "____________________"}</div>
                   <div><span className="font-semibold">SIN:</span> {accused.sin || "____________________"}</div>
                   <div><span className="font-semibold">Sex:</span> {accused.sex || "____________________"}</div>
@@ -1244,7 +1290,7 @@ export default function NewCasePage() {
                   <div><span className="font-semibold">Day & Date:</span> {studentCaseProcess.summon.reportDate || "____________________"}</div>
                   <div className="md:col-span-2"><span className="font-semibold">Appointment:</span> {studentCaseProcess.summon.appointment || "____________________"}</div>
                 </div>
-                <div className="mt-3 space-y-2 print:hidden">
+                <div className="mt-3 space-y-2">
                   <SignatureField
                     label="Officer Signature"
                     value={studentCaseProcess.summon.officerSignature}
@@ -1256,16 +1302,6 @@ export default function NewCasePage() {
                     value={studentCaseProcess.summon.studentSignatures[String(index)] || ""}
                     onChange={(value) => updateSummonStudentSignature(index, value)}
                     helperText="Sign on the line."
-                  />
-                </div>
-                <div className="mt-3 hidden space-y-1 print:block">
-                  <SignatureDisplay
-                    label="Officer Signature"
-                    value={studentCaseProcess.summon.officerSignature}
-                  />
-                  <SignatureDisplay
-                    label="Student Signature"
-                    value={studentCaseProcess.summon.studentSignatures[String(index)] || ""}
                   />
                 </div>
                 <div className="mt-2 text-right text-xs text-gray-500 dark:text-gray-300">
@@ -1501,7 +1537,7 @@ export default function NewCasePage() {
     <ProtectedRoute>
       <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-100 dark:bg-slate-950 print:static print:z-auto print:overflow-visible print:bg-white">
         <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 print:hidden">
-          <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 md:px-8">
+          <div className="flex w-full items-center justify-between gap-3 px-4 py-3 md:px-8">
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-kmuGreen">
                 Kapasa Makasa University
@@ -1521,7 +1557,7 @@ export default function NewCasePage() {
           </div>
         </div>
 
-        <div className="mx-auto max-w-5xl space-y-6 px-4 py-6 pb-28 md:px-8 md:py-8">
+        <div className="w-full space-y-6 px-4 py-6 pb-28 md:px-8 md:py-8">
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-8">
               <div className="mb-6">
                 <QuickCaseTemplates onTemplateSelect={handleTemplateSelect} className="w-full sm:w-auto" />

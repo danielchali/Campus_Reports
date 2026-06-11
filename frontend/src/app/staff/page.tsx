@@ -377,7 +377,7 @@ export default function StaffPage() {
 
 
   return (
-    <section className="max-w-6xl mx-auto">
+    <section className="w-full">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-kmuGreen">Staff Management</h1>
         {offlineMode && (

@@ -119,7 +119,7 @@ export default function Breadcrumbs() {
       aria-label="Breadcrumb"
       className="sticky top-[56px] z-30 mb-2 overflow-x-auto"
     >
-      <ol className="flex min-w-max items-center gap-1 rounded-full border border-gray-200 bg-white/90 px-3 py-2 text-sm text-gray-600 shadow-sm dark:border-gray-700 dark:bg-gray-800/90 dark:text-gray-300">
+      <ol className="flex w-full min-w-0 items-center gap-1 rounded-full border border-gray-200 bg-white/90 px-3 py-2 text-sm text-gray-600 shadow-sm dark:border-gray-700 dark:bg-gray-800/90 dark:text-gray-300">
         <li className="flex items-center">
           <Home size={14} className="mr-1.5 text-kmuGreen" />
         </li>

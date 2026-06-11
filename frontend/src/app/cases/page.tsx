@@ -313,7 +313,7 @@ export default function CasesPage() {
 
   if (loading) {
     return (
-      <section className="max-w-6xl mx-auto p-4 space-y-4">
+      <section className="w-full p-4 space-y-4">
         <div className="flex items-center justify-between mb-6">
           <div className="h-8 w-32 rounded-lg bg-slate-200 dark:bg-slate-700 animate-pulse" />
           <div className="flex gap-3">
@@ -328,7 +328,7 @@ export default function CasesPage() {
 
   return (
     <>
-      <section className="max-w-6xl mx-auto p-4">
+      <section className="w-full p-4">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold text-kmuGreen">Discipline Cases</h1>

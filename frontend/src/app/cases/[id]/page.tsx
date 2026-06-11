@@ -7,7 +7,7 @@ import { useAuth } from "../../../context/AuthContext";
 import Link from "next/link";
 import { API_BASE_URL } from '../../../config/constants';
 import { canAccessPage } from '../../../utils/access';
-import { signaturePrintHtml, signaturePrintStyles } from '../../../utils/signatures';
+import { exportCaseCalloutDocx, printCallouts } from '../../../utils/calloutExport';
 import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
 
 interface Student {
@@ -214,67 +214,23 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
         if (!caseData) return;
         const summon = caseData.student_case_process?.summon || {};
         const accused = caseData.student_case_process?.occurrenceCover?.accusedPeople || [];
-        if (accused.length === 0) {
-            setActionMessage({ type: 'error', text: 'No accused persons found for callout printing.' });
-            return;
+        try {
+            printCallouts(accused, summon);
+        } catch (err: any) {
+            setActionMessage({ type: 'error', text: err?.message || 'Failed to print callouts.' });
         }
+    };
 
-        const reportTime = summon.reportTime || '....................';
-        const reportDate = summon.reportDate || '....................';
-        const appointment = summon.appointment || '........................................................';
-
-        const calloutsHtml = accused.map((person: any, i: number) => {
-            const studentSignature = summon.studentSignatures?.[String(i)];
-            return `<div class="callout-card">
-`
-                + `<div class="logo"><img src="${window.location.origin}/kmu_logo.svg" alt="KMU Logo"/></div>
-`
-                + `<div class="title">KAPASA MAKASA UNIVERSITY</div>
-`
-                + `<div class="subtitle">SECURITY DEPARTMENT</div>
-`
-                + `<div class="callout">CALL OUT</div>
-
-`
-                + `<p><strong>Full Names:</strong> ${person?.fullName || person?.name || '................................................................'}</p>
-`
-                + `<p><strong>Sex:</strong> ${person?.sex || '....................'} &nbsp;&nbsp;&nbsp; <strong>Age:</strong> ${person?.age || '....................'} &nbsp;&nbsp;&nbsp; <strong>SIN:</strong> ${person?.sin || '........................................'}</p>
-`
-                + `<p><strong>Program of study:</strong> ${person?.programOfStudy || person?.program || '........................................................'} &nbsp;&nbsp;&nbsp; <strong>Year of study:</strong> ${person?.yearOfStudy || '....................'}</p>
-`
-                + `<p><strong>Residential Address:</strong> ${person?.residentialAddress || '........................................................'} &nbsp;&nbsp;&nbsp; <strong>Phone No:</strong> ${person?.phoneNo || '........................................'}</p>
-`
-                + `<p>You are required to report to the Security Officer's office at <strong>${reportTime}</strong> hours (Time)<br/>on <strong>${reportDate}</strong> (Day & Date) without fail.</p>
-
-`
-                + `<p><strong>Appointment:</strong> ${appointment}</p>
-`
-                + signaturePrintHtml(summon.officerSignature, 'Officer Signature')
-                + signaturePrintHtml(studentSignature, 'Student Signature')
-                + `</div>`;
-        }).join('<div class="page-break"></div>');
-
-        const html = `<!DOCTYPE html><html><head><title>Call Out</title><style>
-            body{font-family:Arial,sans-serif;padding:16px;background:#fff;}
-            .callout-card{max-width:800px;margin:0 auto;border:2px solid #111;padding:24px 28px;}
-            .logo{text-align:center;margin-bottom:10px;}
-            .logo img{height:64px;}
-            .title,.subtitle,.callout{text-align:center;font-weight:700;}
-            .title{font-size:22px;letter-spacing:.4px;}
-            .subtitle{font-size:18px;margin-top:2px;}
-            .callout{font-size:22px;margin:10px 0 18px;}
-            p{font-size:16px;line-height:1.5;margin:10px 0;}
-            ${signaturePrintStyles}
-            .page-break{page-break-before:always;margin-top:20px;}
-            @media print { body{padding:0;} .callout-card{border:2px solid #000;} }
-        </style></head><body>${calloutsHtml}</body></html>`;
-
-        const printWindow = window.open('', '_blank', 'width=1000,height=900');
-        if (!printWindow) return;
-        printWindow.document.write(html);
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
+    const handleExportSummonCallout = async () => {
+        if (!caseData) return;
+        try {
+            await exportCaseCalloutDocx(
+                caseData._id,
+                `callout_${caseData.caseId || caseData._id}.docx`,
+            );
+        } catch (err: any) {
+            setActionMessage({ type: 'error', text: err?.message || 'Failed to export callout DOCX.' });
+        }
     };
 
     const handleExportCaseDocx = async () => {
@@ -351,7 +307,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
     const personYear = isStudentCase ? (caseData.student as any)?.year : undefined;
 
     return (
-        <div className="max-w-4xl mx-auto p-6">
+        <div className="w-full p-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold text-kmuGreen">Case Details</h1>
@@ -674,6 +630,13 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                                 className="block w-full text-center px-4 py-2 bg-kmuOrange text-white rounded hover:opacity-90 transition"
                             >
                                 Print Summon Callout
+                            </button>
+
+                            <button
+                                onClick={handleExportSummonCallout}
+                                className="block w-full text-center px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition"
+                            >
+                                Export Callout DOCX
                             </button>
 
                             <button

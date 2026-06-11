@@ -116,12 +116,16 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
             'bg-slate-100 px-3 pb-24 pt-4 sm:px-4 md:px-6 md:pb-8 md:pt-6 dark:bg-slate-950': !isLogin,
           })}
         >
-          {shouldShowNav && (
-            <Suspense fallback={null}>
-              <Breadcrumbs />
-            </Suspense>
+          {shouldShowNav ? (
+            <div className="page-container">
+              <Suspense fallback={null}>
+                <Breadcrumbs />
+              </Suspense>
+              <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
+            </div>
+          ) : (
+            <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
           )}
-          <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
         </main>
         {shouldShowNav && (
           <div className="md:hidden">

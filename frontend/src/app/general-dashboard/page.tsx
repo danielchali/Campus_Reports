@@ -103,7 +103,7 @@ export default function GeneralDashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1600px] space-y-4 xl:space-y-5">
+    <div className="w-full space-y-4 xl:space-y-5">
       <section>
         <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">

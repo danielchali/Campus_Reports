@@ -378,7 +378,7 @@ export default function StudentsPage() {
 
 
   return (
-    <section className="max-w-6xl mx-auto">
+    <section className="w-full">
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-kmuGreen">Students</h1>

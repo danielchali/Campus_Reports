@@ -146,7 +146,7 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
     const highSeverityCases = cases.filter(c => c.severity?.toLowerCase() === 'high' || c.severity?.toLowerCase() === 'critical').length;
 
     return (
-        <section className="max-w-4xl mx-auto">
+        <section className="w-full">
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold text-kmuGreen">Staff Details</h1>
                 <div className="flex gap-2">
