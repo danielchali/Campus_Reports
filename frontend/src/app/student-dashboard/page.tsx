@@ -138,6 +138,9 @@ export default function StudentDashboardPage() {
   if (!user) {
     return <PageSkeleton />;
   }
+  if (user.role !== 'student') {
+    return <div className="text-red-600">Access denied.</div>;
+  }
 
   const progressCount = Math.max(metrics.open - metrics.resolved, 0);
   const maintenanceCount = metrics.recent.filter((report) => report.category === 'maintenance_issue').length;

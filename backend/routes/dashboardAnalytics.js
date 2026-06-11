@@ -3,6 +3,7 @@ import StudentReportModel from '../models/studentReport.js';
 import AnonymousReportModel from '../models/anonymousReport.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { generateDashboardInsights } from '../utils/nlpAnalytics.js';
+import { getStaffReportScope } from '../utils/studentReportAccess.js';
 
 const router = express.Router();
 
@@ -40,12 +41,16 @@ router.get(
   authorize(STAFF_ROLES),
   async (req, res) => {
     try {
+      const studentScope = getStaffReportScope(req.user) || {};
+      const anonymousScope =
+        req.user.role === 'maintenance' ? { category: 'maintenance_issue' } : {};
+
       const [studentReports, anonymousReports] = await Promise.all([
-        StudentReportModel.find({})
+        StudentReportModel.find(studentScope)
           .sort({ ai_priority_score: -1, createdAt: -1 })
           .limit(40)
           .lean(),
-        AnonymousReportModel.find({})
+        AnonymousReportModel.find(anonymousScope)
           .sort({ ai_priority_score: -1, createdAt: -1 })
           .limit(40)
           .lean(),

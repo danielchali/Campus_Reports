@@ -1,9 +1,22 @@
 "use client";
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useState } from 'react';
 
 export default function TestLoginPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') {
+      router.replace('/login');
+    }
+  }, [router]);
+
+  if (process.env.NODE_ENV === 'production') {
+    return null;
+  }
   const { user, token, login, logout } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');

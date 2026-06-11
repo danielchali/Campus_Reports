@@ -64,6 +64,9 @@ export const PAGE_ACCESS = {
   caseCreate: ["admin", "security_officer"],
   makeReport: ["student", "general_user"],
   myReports: ["student", "general_user"],
+  formSettings: ["admin"],
+  studentDashboard: ["student"],
+  generalDashboard: ["general_user"],
 } as const;
 
 export type PageAccessKey = keyof typeof PAGE_ACCESS;

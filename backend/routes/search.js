@@ -9,6 +9,8 @@ import CaseModel from '../models/case.js';
 import StudentReportModel from '../models/studentReport.js';
 import AnonymousReportModel from '../models/anonymousReport.js';
 import UserModel from '../models/user.js';
+import { getStaffReportScope } from '../utils/studentReportAccess.js';
+import { mapAnonymousReportsForStaff } from '../utils/reportRedaction.js';
 
 const router = express.Router();
 
@@ -42,20 +44,6 @@ function objectIdMatch(q) {
     return mongoose.Types.ObjectId.isValid(q) ? [{ _id: new mongoose.Types.ObjectId(q) }] : [];
 }
 
-function getStaffReportScope(user) {
-    const role = user?.role;
-    if (role === 'dean_of_students') {
-        return { owner_role: 'student' };
-    }
-    if (role === 'secretary') {
-        return { owner_role: 'general_user', category: 'maintenance_issue' };
-    }
-    if (role === 'maintenance') {
-        return { category: 'maintenance_issue', routed_to_maintenance: true };
-    }
-    return {};
-}
-
 function getOwnReportScope(user) {
     return {
         $or: [
@@ -84,9 +72,9 @@ function mapStudent(student) {
     };
 }
 
-function mapReport(report) {
+function mapStudentReportSearchResult(report) {
     const obj = report.toObject ? report.toObject() : report;
-    return {
+    const result = {
         _id: obj._id,
         tracking_code: obj.tracking_code,
         title: obj.title,
@@ -94,10 +82,14 @@ function mapReport(report) {
         category: obj.category,
         status: obj.status,
         location: obj.location,
-        owner_name: obj.owner_name,
-        owner_username: obj.owner_username,
-        owner_role: obj.owner_role,
+        anonymous: !!obj.anonymous,
     };
+    if (!obj.anonymous) {
+        result.owner_name = obj.owner_name;
+        result.owner_username = obj.owner_username;
+        result.owner_role = obj.owner_role;
+    }
+    return result;
 }
 
 router.get('/', async (req, res) => {
@@ -142,18 +134,42 @@ router.get('/', async (req, res) => {
             ]
         }).limit(5) : [];
 
-        const reports = canViewReports ? await AnonymousReportModel.find({
-            $or: [
-                { title: regex },
-                { description: regex },
-                { tracking_code: regex }
-            ]
-        }).limit(5) : [];
+        const anonymousScope =
+            role === 'maintenance' ? { category: 'maintenance_issue' } : {};
+        const anonymousReports = canViewReports
+            ? mapAnonymousReportsForStaff(
+                await AnonymousReportModel.find({
+                    ...anonymousScope,
+                    $or: [
+                        { title: regex },
+                        { description: regex },
+                        { tracking_code: regex },
+                    ],
+                }).limit(5),
+                role,
+            )
+            : [];
+
+        const studentScope = getStaffReportScope(req.user) || {};
+        const canViewStudentReports = ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar', 'security_officer', 'maintenance'].includes(role);
+        const studentReportDocs = canViewStudentReports
+            ? await StudentReportModel.find({
+                ...studentScope,
+                $or: [
+                    { title: regex },
+                    { description: regex },
+                    { tracking_code: regex },
+                ],
+            }).limit(5)
+            : [];
+        const studentReports = studentReportDocs.map(mapStudentReportSearchResult);
 
         res.json({
             students,
             cases,
-            reports
+            reports: anonymousReports,
+            anonymousReports,
+            studentReports,
         });
     } catch (err) {
         console.error('Search failed:', err);

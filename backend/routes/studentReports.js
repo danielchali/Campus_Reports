@@ -13,6 +13,11 @@ import {
 } from "../utils/emailService.js";
 import { applyNlpToDocument } from "../utils/nlpAnalytics.js";
 import { emitDashboardRefresh } from "../utils/socket.js";
+import {
+  canViewReport,
+  getStaffReportScope,
+} from "../utils/studentReportAccess.js";
+import { redactStudentReportForViewer } from "../utils/reportRedaction.js";
 
 const router = express.Router();
 const REPORT_ATTACHMENT_DIR = getUploadDirectory("student-reports");
@@ -113,18 +118,25 @@ async function getStudentDisplayNameByUsername(username) {
   return getStudentFullName(student);
 }
 
-async function mapReportsWithStudentNames(reports) {
+function mapReportForViewer(doc, viewer, ownerNameOverride = "") {
+  const mapped = mapReport(doc, ownerNameOverride);
+  return redactStudentReportForViewer(mapped, doc, viewer);
+}
+
+async function mapReportsWithStudentNames(reports, viewer = null) {
   const studentIds = [
     ...new Set(
       reports
-        .filter((report) => report.owner_role === "student")
+        .filter((report) => report.owner_role === "student" && !report.anonymous)
         .map((report) => report.owner_username)
         .filter(Boolean),
     ),
   ];
 
   if (studentIds.length === 0) {
-    return reports.map((report) => mapReport(report));
+    return reports.map((report) =>
+      viewer ? mapReportForViewer(report, viewer) : mapReport(report),
+    );
   }
 
   const students = await StudentModel.find({ studentId: { $in: studentIds } });
@@ -134,9 +146,14 @@ async function mapReportsWithStudentNames(reports) {
       .filter(([, fullName]) => fullName),
   );
 
-  return reports.map((report) =>
-    mapReport(report, studentNames.get(report.owner_username) || ""),
-  );
+  return reports.map((report) => {
+    const ownerNameOverride = report.anonymous
+      ? ""
+      : studentNames.get(report.owner_username) || "";
+    return viewer
+      ? mapReportForViewer(report, viewer, ownerNameOverride)
+      : mapReport(report, ownerNameOverride);
+  });
 }
 
 function parseDetails(rawDetails) {
@@ -162,62 +179,6 @@ function mapUploadedFiles(files = []) {
   }));
 }
 
-function canViewReport(user, report) {
-  const userId = String(user.id || user._id);
-  if (report.owner_id === userId || report.owner_username === user.username)
-    return true;
-
-  const role = user?.role;
-  if (
-    [
-      "admin",
-      "chief_security_officer",
-      "assistant_dean",
-      "security_officer",
-    ].includes(role)
-  ) {
-    return true;
-  }
-  if (role === "dean_of_students") {
-    return report.owner_role === "student" || !!report.student_involved;
-  }
-  if (["secretary", "registrar"].includes(role)) {
-    return (
-      report.owner_role === "general_user" &&
-      (report.category === "maintenance_issue" || !report.student_involved)
-    );
-  }
-  if (role === "maintenance") {
-    return (
-      report.category === "maintenance_issue" && !!report.routed_to_maintenance
-    );
-  }
-  return false;
-}
-
-function getStaffReportScope(user) {
-  const role = user?.role;
-  if (role === "dean_of_students") {
-    return { $or: [{ owner_role: "student" }, { student_involved: true }] };
-  }
-  if (["secretary", "registrar"].includes(role)) {
-    return {
-      $or: [
-        { owner_role: "general_user", category: "maintenance_issue" },
-        {
-          owner_role: "general_user",
-          category: "disciplinary_case",
-          student_involved: false,
-        },
-      ],
-    };
-  }
-  if (role === "maintenance") {
-    return { category: "maintenance_issue", routed_to_maintenance: true };
-  }
-  return null;
-}
-
 function addSearchToScope(scopeQuery, search) {
   if (!search) return scopeQuery || {};
   const regex = { $regex: search, $options: "i" };
@@ -228,8 +189,8 @@ function addSearchToScope(scopeQuery, search) {
       { tracking_code: regex },
       { location: regex },
       { category: regex },
-      { owner_name: regex },
-      { owner_username: regex },
+      { $and: [{ anonymous: { $ne: true } }, { owner_name: regex }] },
+      { $and: [{ anonymous: { $ne: true } }, { owner_username: regex }] },
     ],
   };
   if (!scopeQuery || Object.keys(scopeQuery).length === 0) return searchQuery;
@@ -367,7 +328,7 @@ router.get(
         createdAt: -1,
       });
 
-      res.json(await mapReportsWithStudentNames(reports));
+      res.json(await mapReportsWithStudentNames(reports, req.user));
     } catch (err) {
       console.error("Fetch my reports error:", err);
       res.status(500).json({ error: "Failed to fetch reports" });
@@ -427,7 +388,7 @@ router.get(
       const reports = await StudentReportModel.find(query).sort({
         createdAt: -1,
       });
-      res.json(await mapReportsWithStudentNames(reports));
+      res.json(await mapReportsWithStudentNames(reports, req.user));
     } catch (err) {
       console.error("Fetch all reports error:", err);
       res.status(500).json({ error: "Failed to fetch reports" });
@@ -507,13 +468,16 @@ router.patch("/:id/seen", authenticate, async (req, res) => {
     if (!report) {
       return res.status(404).json({ error: "Report not found" });
     }
+    if (!canViewReport(req.user, report)) {
+      return res.status(403).json({ error: "Not authorized to view this report" });
+    }
 
     if (!report.seen_by.includes(userId)) {
       report.seen_by.push(userId);
       await report.save();
     }
 
-    res.json(mapReport(report));
+    res.json(mapReportForViewer(report, req.user));
   } catch (err) {
     console.error("Mark seen error:", err);
     res.status(500).json({ error: "Failed to mark as seen" });
@@ -613,7 +577,7 @@ router.patch(
       });
 
       emitDashboardRefresh("student-reports");
-      res.json(mapReport(report));
+      res.json(mapReportForViewer(report, req.user));
     } catch (err) {
       console.error("Reroute report category error:", err);
       res.status(500).json({ error: "Failed to reroute report category" });
@@ -664,36 +628,8 @@ router.patch(
           .status(409)
           .json({ error: `Report is already in "${status}" status.` });
       }
-
-      if (
-        req.user.role === "dean_of_students" &&
-        report.owner_role !== "student" &&
-        !report.student_involved
-      ) {
-        return res
-          .status(403)
-          .json({ error: "Dean can only handle reports involving students." });
-      }
-      if (
-        ["secretary", "registrar"].includes(req.user.role) &&
-        (report.owner_role !== "general_user" ||
-          (report.category !== "maintenance_issue" && report.student_involved))
-      ) {
-        return res.status(403).json({
-          error:
-            "Registrar can only handle general-user maintenance requests or non-student incidents.",
-        });
-      }
-      if (req.user.role === "maintenance") {
-        if (
-          report.category !== "maintenance_issue" ||
-          !report.routed_to_maintenance
-        ) {
-          return res.status(403).json({
-            error:
-              "Maintenance can only handle routed maintenance work orders.",
-          });
-        }
+      if (!canViewReport(req.user, report)) {
+        return res.status(403).json({ error: "Not authorized to update this report" });
       }
 
       const userId = String(req.user.id || req.user._id);
@@ -718,7 +654,7 @@ router.patch(
         link: "/my-reports",
       });
       emitDashboardRefresh("student-reports");
-      res.json(mapReport(report));
+      res.json(mapReportForViewer(report, req.user));
     } catch (err) {
       console.error("Update status error:", err);
       res.status(500).json({ error: "Failed to update status" });

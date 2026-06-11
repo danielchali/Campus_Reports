@@ -57,6 +57,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
     return [
       { icon: navIcons.admin, label: "Dashboard", path: "/admin" },
       { icon: navIcons.users, label: "Manage Users", path: "/admin/users" },
+      { icon: navIcons.workOrders, label: "Form & Portal Settings", path: "/admin/form-settings" },
       { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
       { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       {
@@ -112,11 +113,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         label: "Dashboard",
         path: "/chief-security-officer-dashboard",
       },
-      { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
       { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
-      { icon: navIcons.students, label: "Students", path: "/students" },
-      { icon: navIcons.evidence, label: "Evidence", path: "/evidence" },
-      { icon: navIcons.newcase, label: "New Case", path: "/cases/new" },
       { icon: navIcons.audit, label: "Audit/Logs", path: "/audit" },
       { icon: navIcons.profile, label: "Profile & Settings", path: "/profile" },
       { icon: navIcons.help, label: "Help", path: "/help" },
@@ -137,8 +134,6 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         label: "Dashboard",
         path: "/dean-of-students-dashboard",
       },
-      { icon: navIcons.students, label: "Students", path: "/students" },
-      { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
       { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       {
         icon: navIcons.maintenanceIssues,
@@ -166,8 +161,6 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         label: "Dashboard",
         path: "/assistant-dean-dashboard",
       },
-      { icon: navIcons.students, label: "Students", path: "/students" },
-      { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
       { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       {
         icon: navIcons.maintenanceIssues,
@@ -188,15 +181,40 @@ export function getNavLinksForRole(role?: string): NavLink[] {
     ];
   }
 
-  if (role === "registrar" || role === "secretary") {
+  if (role === "secretary") {
+    return [
+      {
+        icon: navIcons.secretary,
+        label: "Dashboard",
+        path: "/secretary-dashboard",
+      },
+      { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
+      {
+        icon: navIcons.maintenanceIssues,
+        label: "Maintenance Issues",
+        path: "/maintenance-issues",
+      },
+      { icon: navIcons.workOrders, label: "Work Orders", path: "/work-orders" },
+      { icon: navIcons.audit, label: "Audit/Logs", path: "/audit" },
+      { icon: navIcons.profile, label: "Profile & Settings", path: "/profile" },
+      { icon: navIcons.help, label: "Help", path: "/help" },
+      {
+        icon: navIcons.logout,
+        label: "Logout",
+        path: "/logout",
+        danger: true,
+        mobileOnly: true,
+      },
+    ];
+  }
+
+  if (role === "registrar") {
     return [
       {
         icon: navIcons.secretary,
         label: "Dashboard",
         path: "/registrar-dashboard",
       },
-      { icon: navIcons.students, label: "Students", path: "/students" },
-      { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
       { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       {
         icon: navIcons.maintenanceIssues,

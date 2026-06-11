@@ -1,17 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Copy, Loader2, Save, Settings2 } from 'lucide-react';
+import RoleProtectedRoute from '../../(protected)/RoleProtectedRoute';
 import { useAuth } from '../../../context/AuthContext';
 import { PageSkeleton } from '../../../components/PageSkeleton';
 import { API_BASE_URL } from '../../../config/constants';
 import type { InstitutionFormConfig } from '../../../types/formSchema';
 import { fetchPortalConfig, updateInstitutionFormConfig } from '../../../utils/formSchemas';
 
-export default function FormSettingsPage() {
-  const { token, user, loading: authLoading } = useAuth();
-  const router = useRouter();
+function FormSettingsContent() {
+  const { token } = useAuth();
   const [config, setConfig] = useState<InstitutionFormConfig | null>(null);
   const [portalMeta, setPortalMeta] = useState<InstitutionFormConfig['portal'] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -53,13 +52,8 @@ export default function FormSettingsPage() {
   }, []);
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!user || user.role !== 'admin') {
-      router.replace('/login');
-      return;
-    }
     loadConfig();
-  }, [authLoading, user, router, loadConfig]);
+  }, [loadConfig]);
 
   const handleSave = async () => {
     if (!token) return;
@@ -99,7 +93,7 @@ export default function FormSettingsPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (authLoading || loading) {
+  if (loading) {
     return <PageSkeleton />;
   }
 
@@ -238,5 +232,13 @@ export default function FormSettingsPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function FormSettingsPage() {
+  return (
+    <RoleProtectedRoute pageKey="formSettings">
+      <FormSettingsContent />
+    </RoleProtectedRoute>
   );
 }

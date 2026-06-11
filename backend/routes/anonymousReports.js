@@ -18,6 +18,10 @@ import {
   getAllowedCategoryIds,
   validateReportSubmission,
 } from "../utils/formSchemaValidation.js";
+import {
+  mapAnonymousReportForStaff,
+  mapAnonymousReportsForStaff,
+} from "../utils/reportRedaction.js";
 
 const router = express.Router();
 const ANONYMOUS_REPORT_CATEGORIES = [
@@ -249,7 +253,7 @@ router.get("/", authenticate, authorize(STAFF_ROLES), async (req, res) => {
     const reports = await AnonymousReportModel.find(query).sort({
       createdAt: -1,
     });
-    res.json(reports);
+    res.json(mapAnonymousReportsForStaff(reports, req.user.role));
   } catch (err) {
     console.error("Fetch anonymous reports error:", err);
     res.status(500).json({ error: "Failed to fetch reports." });
@@ -271,7 +275,7 @@ router.get("/:id", authenticate, authorize(STAFF_ROLES), async (req, res) => {
           error: "Maintenance can only view anonymous maintenance issues.",
         });
     }
-    res.json(report);
+    res.json(mapAnonymousReportForStaff(report, req.user.role));
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch report." });
   }
@@ -314,7 +318,7 @@ router.patch(
       }
 
       emitDashboardRefresh("anonymous-reports");
-      res.json(report);
+      res.json(mapAnonymousReportForStaff(report, req.user.role));
     } catch (err) {
       res.status(500).json({ error: "Failed to reroute category." });
     }
@@ -370,7 +374,7 @@ router.patch(
       }
 
       emitDashboardRefresh("anonymous-reports");
-      res.json(report);
+      res.json(mapAnonymousReportForStaff(report, req.user.role));
     } catch (err) {
       res.status(500).json({ error: "Failed to update status." });
     }
