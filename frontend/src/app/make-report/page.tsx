@@ -19,6 +19,8 @@ import {
   createStudentReport,
   type StudentReportCategory,
 } from "../../utils/studentReports";
+import { subscribeGuidedApply } from "../../utils/guidedReportBridge";
+import { applyGuidedFieldsToMakeReport } from "../../utils/applyGuidedReportFields";
 
 type ReporterProfile = {
   name?: string;
@@ -107,6 +109,29 @@ export default function MakeReportPage() {
     if (lockedCategory) {
       setCategory(lockedCategory);
     }
+  }, [lockedCategory]);
+
+  useEffect(() => {
+    return subscribeGuidedApply((fields) => {
+      applyGuidedFieldsToMakeReport(fields, {
+        lockedCategory,
+        setCategory,
+        setTitle,
+        setDescription,
+        setLocation,
+        setIncidentDate,
+        setAnonymous,
+        setIssueType,
+        setPriority,
+        setRiskLevel,
+        setPeopleInvolved,
+        setWitnesses,
+        setSecurityAction,
+        setAffectedAsset,
+        setAccessInstructions,
+        setStudentInvolved,
+      });
+    });
   }, [lockedCategory]);
 
   useEffect(() => {
@@ -258,9 +283,12 @@ export default function MakeReportPage() {
               Make a Report
             </h1>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 md:text-right">
-            Submit a concern, choose the type of issue, and decide whether the report should be handled anonymously.
-          </p>
+          <div className="text-xs text-slate-500 dark:text-slate-400 md:text-right">
+            <p>Submit a concern, choose the type of issue, and decide whether the report should be handled anonymously.</p>
+            <p className="mt-1 text-kmuGreen">
+              Tip: open Campus Reports AI (bottom-right) and choose <strong>Start guided report</strong>.
+            </p>
+          </div>
         </div>
       </div>
 

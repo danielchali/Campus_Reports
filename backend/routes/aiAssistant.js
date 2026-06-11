@@ -123,4 +123,106 @@ router.post('/chat/stream', async (req, res) => {
   }
 });
 
+function parseJsonFromAssistantText(text) {
+  if (!text) return null;
+  const fenced = String(text).match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = fenced ? fenced[1].trim() : String(text).trim();
+  try {
+    return JSON.parse(candidate);
+  } catch {
+    const start = candidate.indexOf('{');
+    const end = candidate.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+      try {
+        return JSON.parse(candidate.slice(start, end + 1));
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  }
+}
+
+router.post('/guided-report/extract', async (req, res) => {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const { narrative, category, mode } = req.body || {};
+
+  if (!narrative || typeof narrative !== 'string' || !narrative.trim()) {
+    return res.status(400).json({ error: 'A narrative description is required.' });
+  }
+
+  const fallback = {
+    title: narrative.trim().slice(0, 80),
+    description: narrative.trim(),
+    category: category || 'disciplinary_case',
+    location: '',
+    incidentDate: new Date().toISOString().slice(0, 10),
+  };
+
+  if (!apiKey) {
+    return res.json({ ...fallback, aiEnabled: false });
+  }
+
+  const allowedCategories =
+    mode === 'anonymous'
+      ? ['disciplinary_case', 'maintenance_issue', 'other']
+      : ['disciplinary_case', 'maintenance_issue'];
+
+  try {
+    const response = await fetch(OPENROUTER_URL, {
+      method: 'POST',
+      headers: openRouterHeaders(apiKey),
+      body: JSON.stringify({
+        model: DEFAULT_MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: [
+              'Extract structured campus report fields from a user narrative.',
+              'Return ONLY valid JSON with keys: title, description, category, location, incidentDate.',
+              `Allowed categories: ${allowedCategories.join(', ')}.`,
+              'title: max 80 chars. description: neutral factual summary. incidentDate: YYYY-MM-DD if known else empty string.',
+            ].join(' '),
+          },
+          {
+            role: 'user',
+            content: JSON.stringify({
+              narrative: narrative.trim().slice(0, 4000),
+              preferredCategory: category || '',
+            }),
+          },
+        ],
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+      }),
+    });
+
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      throw new Error(payload?.error?.message || 'OpenRouter extraction failed');
+    }
+
+    const content = payload?.choices?.[0]?.message?.content;
+    const parsed = typeof content === 'string' ? parseJsonFromAssistantText(content) : content;
+    const resolvedCategory = allowedCategories.includes(parsed?.category)
+      ? parsed.category
+      : (category || fallback.category);
+
+    return res.json({
+      title: String(parsed?.title || fallback.title).slice(0, 80),
+      description: String(parsed?.description || fallback.description).slice(0, 4000),
+      category: resolvedCategory,
+      location: String(parsed?.location || '').slice(0, 200),
+      incidentDate:
+        typeof parsed?.incidentDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(parsed.incidentDate)
+          ? parsed.incidentDate
+          : fallback.incidentDate,
+      aiEnabled: true,
+    });
+  } catch (error) {
+    console.error('Guided report extraction failed:', error);
+    return res.json({ ...fallback, aiEnabled: false });
+  }
+});
+
 export default router;

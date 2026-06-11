@@ -356,6 +356,34 @@ export type DashboardInsights = {
   aiEnabled: boolean;
 };
 
+export type GuidedReportExtraction = {
+  title: string;
+  description: string;
+  category: string;
+  location: string;
+  incidentDate: string;
+  aiEnabled?: boolean;
+};
+
+export async function extractGuidedReportFields(params: {
+  narrative: string;
+  category?: string;
+  mode: 'logged_in' | 'anonymous';
+}): Promise<GuidedReportExtraction> {
+  const response = await fetch(`${API_BASE_URL}/ai-assistant/guided-report/extract`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(params),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data?.error || 'Failed to extract report details');
+  }
+
+  return data as GuidedReportExtraction;
+}
+
 export async function getDashboardInsights(): Promise<DashboardInsights> {
   const response = await fetch(`${API_BASE_URL}/dashboard/insights`, {
     headers: { ...authHeaders() },

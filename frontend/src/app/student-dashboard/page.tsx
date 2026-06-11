@@ -238,7 +238,7 @@ export default function StudentDashboardPage() {
           <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-base font-semibold text-slate-900 dark:text-white">Quick Actions</h2>
             <div className="mt-3 grid gap-2 grid-cols-2">
-              <Link href="/make-report" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+              <Link href="/make-report?guided=true" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
                 <FilePenLine size={16} />
                 <span>New Report</span>
               </Link>

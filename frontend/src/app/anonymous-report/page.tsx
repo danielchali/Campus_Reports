@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Ghost,
@@ -18,6 +18,8 @@ import {
   Lock,
 } from 'lucide-react';
 import { API_BASE_URL } from '../../config/constants';
+import { subscribeGuidedApply } from '../../utils/guidedReportBridge';
+import { applyGuidedFieldsToAnonymousReport } from '../../utils/applyGuidedReportFields';
 
 type Category = 'disciplinary_case' | 'maintenance_issue' | 'other';
 
@@ -66,6 +68,19 @@ export default function AnonymousReportPage() {
   const [trackError, setTrackError] = useState('');
   const [tracking, setTracking] = useState(false);
   const [activeTab, setActiveTab] = useState<'report' | 'track'>('report');
+
+  useEffect(() => {
+    return subscribeGuidedApply((fields) => {
+      applyGuidedFieldsToAnonymousReport(fields, {
+        setCategory,
+        setTitle,
+        setDescription,
+        setLocation,
+        setIncidentDate,
+        setContactEmail,
+      });
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,6 +191,7 @@ export default function AnonymousReportPage() {
           <p className="mt-2 text-slate-600 dark:text-slate-400 max-w-xl mx-auto text-base leading-relaxed">
             Your voice matters. Submit reports confidentially without an account. 
             <span className="block mt-1 font-medium text-kmuGreen">Your identity remains 100% protected.</span>
+            <span className="block mt-2 text-sm">Use Campus Reports AI (bottom-right) for step-by-step guided reporting.</span>
           </p>
         </div>
 

@@ -4,7 +4,9 @@ import { FormEvent, PointerEvent as ReactPointerEvent, useEffect, useMemo, useRe
 import { usePathname } from 'next/navigation';
 import { Bot, Sparkles, MessageCircle, Send, Wand2, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useGuidedReporting } from '../hooks/useGuidedReporting';
 import { streamChatWithAssistant } from '../utils/api';
+import { getGuidedReportingSystemPrompt, isReportingRoute } from '../utils/guidedReporting';
 
 type ChatMessage = {
   role: 'user' | 'assistant';
@@ -65,6 +67,19 @@ const POLICY_MATRIX: Array<{
       admin: 'Allow account/security guidance and profile maintenance flows.',
     },
     defaultRule: 'Focus on personal account settings and safe profile maintenance.',
+  },
+  {
+    route: /^\/make-report/,
+    roleRules: {
+      student: 'Guide logged-in reporting with step-by-step intake for disciplinary or maintenance issues.',
+      general_user: 'Guide incident reporting, clarify whether a student is involved, and explain anonymous handling.',
+    },
+    defaultRule: 'Run guided reporting: category, narrative, title, location, date, category-specific details, anonymity choice, then review before submit.',
+  },
+  {
+    route: /^\/anonymous-report/,
+    roleRules: {},
+    defaultRule: 'Guide anonymous reporting step by step. Never ask for identity. Explain tracking codes and optional contact email for updates only.',
   },
 ];
 
@@ -187,10 +202,29 @@ function getDefaultLauncherPosition() {
   };
 }
 
+function getReportingWelcome(pathname: string) {
+  if (pathname === '/anonymous-report') {
+    return "I'm Campus Reports AI 👋. I can guide you through an anonymous report step by step. Tap **Start guided report** below.";
+  }
+  if (pathname === '/make-report') {
+    return "I'm Campus Reports AI 👋. I can walk you through this report and fill the form as we go. Tap **Start guided report** below.";
+  }
+  return "I'm Campus Reports AI 👋. Ask me what you want to do on this page, and I'll guide you step-by-step.";
+}
+
 export default function FloatingAIChatbot() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [isOpen, setIsOpen] = useState(false);
+  const reportingRoute = isReportingRoute(pathname || '');
+  const [autoStartGuided] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).get('guided') === 'true';
+  });
+  const guided = useGuidedReporting({
+    pathname: pathname || '',
+    autoStart: autoStartGuided,
+  });
+  const [isOpen, setIsOpen] = useState(autoStartGuided);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -209,13 +243,20 @@ export default function FloatingAIChatbot() {
     moved: false,
   });
 
-  const systemPrompt = useMemo(() => getLocationAwareSystemPrompt(pathname, user?.role), [pathname, user?.role]);
+  const systemPrompt = useMemo(() => {
+    if (reportingRoute && guided.reportingContext) {
+      return getGuidedReportingSystemPrompt(pathname || '', guided.reportingContext.mode);
+    }
+    return getLocationAwareSystemPrompt(pathname, user?.role);
+  }, [guided.reportingContext, pathname, reportingRoute, user?.role]);
   const key = useMemo(() => storageKey(pathname, user?.id), [pathname, user?.id]);
   const viewportWidth = typeof window === 'undefined' ? 1440 : window.innerWidth;
   const viewportHeight = typeof window === 'undefined' ? 900 : window.innerHeight;
   const panelWidth = isHydrated ? Math.min(viewportWidth * 0.92, 384) : 384;
   const panelLeft = clamp(launcherPosition.x + FAB_SIZE - panelWidth, 16, Math.max(16, viewportWidth - panelWidth - 16));
   const panelTop = clamp(launcherPosition.y - PANEL_HEIGHT - PANEL_GAP, 16, Math.max(16, viewportHeight - PANEL_HEIGHT - 16));
+  const visibleMessages = guided.isActive ? guided.messages : messages;
+  const showGuidedLauncher = guided.enabled && !guided.isActive;
 
   useEffect(() => {
     setIsHydrated(true);
@@ -232,8 +273,8 @@ export default function FloatingAIChatbot() {
     } catch {
       // Ignore invalid persisted chat records.
     }
-    setMessages([{ role: 'assistant', content: "I'm Campus Reports AI 👋. Ask me what you want to do on this page, and I’ll guide you step-by-step." }]);
-  }, [key]);
+    setMessages([{ role: 'assistant', content: getReportingWelcome(pathname || '') }]);
+  }, [key, pathname]);
 
   useEffect(() => {
     if (!isHydrated || !messages.length) return;
@@ -243,7 +284,7 @@ export default function FloatingAIChatbot() {
   useEffect(() => {
     if (!scrollContainerRef.current) return;
     scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-  }, [messages, isLoading, isOpen]);
+  }, [visibleMessages, isLoading, guided.isProcessing, isOpen]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -262,14 +303,20 @@ export default function FloatingAIChatbot() {
   const sendMessage = async (event: FormEvent) => {
     event.preventDefault();
     const content = input.trim();
-    if (!content || isLoading) return;
+    if (!content || isLoading || guided.isProcessing) return;
 
-    const nextMessages: ChatMessage[] = [...messages, { role: 'user', content }];
-    setMessages(nextMessages);
     setInput('');
     setError(null);
     setApplyResult(null);
     setPendingSuggestions([]);
+
+    if (guided.isActive) {
+      await guided.handleGuidedInput(content);
+      return;
+    }
+
+    const nextMessages: ChatMessage[] = [...messages, { role: 'user', content }];
+    setMessages(nextMessages);
 
     const greetingFallback = getGreetingFallback(content);
     if (greetingFallback) {
@@ -327,7 +374,8 @@ export default function FloatingAIChatbot() {
 
   const clearHistory = () => {
     localStorage.removeItem(key);
-    setMessages([{ role: 'assistant', content: "I'm Campus Reports AI. Chat history cleared for this page." }]);
+    guided.exitGuidedReporting();
+    setMessages([{ role: 'assistant', content: getReportingWelcome(pathname || '') }]);
     setPendingSuggestions([]);
     setApplyResult(null);
   };
@@ -401,22 +449,62 @@ export default function FloatingAIChatbot() {
           style={{ left: panelLeft, top: panelTop }}
           className="fixed z-40 flex h-[26rem] w-[min(92vw,24rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900"
         >
-          <header className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
-            <div className="flex items-center gap-2">
-              <Bot className="h-4 w-4 text-indigo-500" />
-              <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">Campus Reports AI</div>
+          <header className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Bot className="h-4 w-4 text-indigo-500" />
+                <div>
+                  <div className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                    {guided.isActive ? 'Guided Reporting' : 'Campus Reports AI'}
+                  </div>
+                  {guided.isActive && (
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Step {Math.min(guided.stepIndex + 1, guided.totalSteps)} of {guided.totalSteps} · {guided.stepLabel}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {guided.isActive && (
+                  <button
+                    type="button"
+                    onClick={guided.exitGuidedReporting}
+                    className="text-xs text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                  >
+                    Exit guide
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={clearHistory}
+                  className="text-xs text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                >
+                  Clear
+                </button>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={clearHistory}
-              className="text-xs text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-            >
-              Clear
-            </button>
+            {guided.isActive && (
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <div
+                  className="h-full rounded-full bg-indigo-500 transition-all"
+                  style={{ width: `${Math.max(8, ((guided.stepIndex + 1) / guided.totalSteps) * 100)}%` }}
+                />
+              </div>
+            )}
           </header>
 
           <div ref={scrollContainerRef} className="flex-1 space-y-3 overflow-y-auto px-3 py-3">
-            {messages.map((message, index) => (
+            {showGuidedLauncher && (
+              <button
+                type="button"
+                onClick={guided.startGuidedReporting}
+                className="w-full rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-left text-xs font-medium text-indigo-800 transition hover:bg-indigo-100 dark:border-indigo-800 dark:bg-indigo-950/30 dark:text-indigo-200"
+              >
+                Start guided report
+              </button>
+            )}
+
+            {visibleMessages.map((message, index) => (
               <div
                 key={`${message.role}-${index}`}
                 className={`max-w-[92%] rounded-xl px-3 py-2 text-sm ${
@@ -425,17 +513,35 @@ export default function FloatingAIChatbot() {
                     : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100'
                 }`}
               >
-                {message.content || (isLoading && index === messages.length - 1 ? '...' : '')}
+                {message.content || ((isLoading || guided.isProcessing) && index === visibleMessages.length - 1 ? '...' : '')}
               </div>
             ))}
 
-            {isLoading && (
-              <div className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
-                <Sparkles className="h-3.5 w-3.5 animate-pulse" />
-                Streaming response...
+            {guided.isActive && guided.quickReplies.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {guided.quickReplies.map((reply) => (
+                  <button
+                    key={reply}
+                    type="button"
+                    onClick={() => guided.handleQuickReply(reply)}
+                    disabled={guided.isProcessing}
+                    className="rounded-full border border-indigo-200 bg-white px-3 py-1 text-[11px] font-medium text-indigo-700 transition hover:bg-indigo-50 disabled:opacity-50 dark:border-indigo-800 dark:bg-slate-900 dark:text-indigo-200"
+                  >
+                    {reply}
+                  </button>
+                ))}
               </div>
             )}
-            {error && <div className="text-xs text-red-600 dark:text-red-400">{error}</div>}
+
+            {(isLoading || guided.isProcessing) && (
+              <div className="inline-flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+                {guided.isProcessing ? 'Drafting your report...' : 'Streaming response...'}
+              </div>
+            )}
+            {(error || guided.error) && (
+              <div className="text-xs text-red-600 dark:text-red-400">{error || guided.error}</div>
+            )}
             {!!pendingSuggestions.length && (
               <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-2 text-xs text-emerald-800 dark:border-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
                 AI suggested {pendingSuggestions.length} form values.
@@ -459,11 +565,11 @@ export default function FloatingAIChatbot() {
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 className="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-                placeholder="Ask about this page..."
+                placeholder={guided.isActive ? 'Reply to the guided step...' : 'Ask about this page...'}
               />
               <button
                 type="submit"
-                disabled={isLoading || !input.trim()}
+                disabled={isLoading || guided.isProcessing || !input.trim()}
                 className="inline-flex items-center justify-center rounded-xl bg-indigo-600 px-3 py-2 text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Send message"
               >
