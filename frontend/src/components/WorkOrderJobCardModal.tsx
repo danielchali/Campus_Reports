@@ -15,6 +15,7 @@ import {
   type WorkOrderJobCard,
   type WorkOrderStatus,
 } from "../utils/workOrders";
+import { getTodayDateInputValue } from "../utils/dateTimeDefaults";
 
 const statusOptions: WorkOrderStatus[] = [
   "Open",
@@ -54,15 +55,15 @@ function buildDraft(workOrder: WorkOrder): DraftState {
     issueType: workOrder.issueType,
     priority: workOrder.priority,
     accessInstructions: workOrder.accessInstructions,
-    jobCard: workOrder.jobCard || {
-      partBNotes: ["", ""],
-      partCApprovedBy: "",
-      partCDate: "",
-      partDName: "",
-      partDDate: "",
-      partEName: "",
-      partEDate: "",
-      partEWorkDone: "",
+    jobCard: {
+      partBNotes: workOrder.jobCard?.partBNotes || ["", ""],
+      partCApprovedBy: workOrder.jobCard?.partCApprovedBy || "",
+      partCDate: workOrder.jobCard?.partCDate || getTodayDateInputValue(),
+      partDName: workOrder.jobCard?.partDName || "",
+      partDDate: workOrder.jobCard?.partDDate || getTodayDateInputValue(),
+      partEName: workOrder.jobCard?.partEName || "",
+      partEDate: workOrder.jobCard?.partEDate || getTodayDateInputValue(),
+      partEWorkDone: workOrder.jobCard?.partEWorkDone || "",
     },
     signatures: {
       partC: workOrder.signatures?.partC || "",

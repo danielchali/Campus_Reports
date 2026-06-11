@@ -1,4 +1,5 @@
 import type { GuidedReportFields } from './guidedReportBridge';
+import { getTodayDateInputValue } from './dateTimeDefaults';
 
 export type GuidedReportMode = 'logged_in' | 'anonymous';
 
@@ -45,7 +46,7 @@ export function createEmptyDraft(lockedCategory: string | null): GuidedReportDra
     title: '',
     description: '',
     location: '',
-    incidentDate: new Date().toISOString().slice(0, 10),
+    incidentDate: getTodayDateInputValue(),
     anonymous: false,
     contactEmail: '',
     issueType: 'Electrical',
@@ -243,7 +244,7 @@ export function parseBooleanInput(input: string): boolean | null {
 export function parseDateInput(input: string): string | null {
   const normalized = input.trim().toLowerCase();
   if (normalized === 'today') {
-    return new Date().toISOString().slice(0, 10);
+    return getTodayDateInputValue();
   }
   if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
     return normalized;

@@ -11,6 +11,7 @@ import * as XLSX from 'xlsx';
 import { canAccessPage } from '../../utils/access';
 import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
 import { useConfirmDialog } from '../../components/AppDialog';
+import { getTodayDateInputValue } from '../../utils/dateTimeDefaults';
 
 // Type for a staff member
 interface Staff {
@@ -51,7 +52,7 @@ export default function StaffPage() {
   const [position, setPosition] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [hireDate, setHireDate] = useState('');
+  const [hireDate, setHireDate] = useState(getTodayDateInputValue);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -122,7 +123,7 @@ export default function StaffPage() {
       }
       const staffMember: Staff = { staffId, fullName, department, position, email: email.trim(), phone, hireDate };
       await create('staff', staffMember);
-      setStaffId(''); setFullName(''); setDepartment(''); setPosition(''); setEmail(''); setPhone(''); setHireDate('');
+      setStaffId(''); setFullName(''); setDepartment(''); setPosition(''); setEmail(''); setPhone(''); setHireDate(getTodayDateInputValue());
       setSuccess('Staff member added successfully!');
       loadStaff();
     } catch (err: any) {

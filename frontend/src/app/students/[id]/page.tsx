@@ -10,6 +10,7 @@ import { OFFENSE_TYPES, SEVERITY_LEVELS } from '../../../config/constants';
 import { authHeaders } from '../../../utils/api';
 import { saveAs } from 'file-saver';
 import { canAccessPage } from '../../../utils/access';
+import { getTodayDateInputValue } from '../../../utils/dateTimeDefaults';
 import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
 import { useAlertDialog } from '../../../components/AppDialog';
 
@@ -76,7 +77,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
     
     // New case form state
     const [newCase, setNewCase] = useState({
-        incidentDate: '',
+        incidentDate: getTodayDateInputValue(),
         description: '',
         offenseType: '',
         severity: 'medium',
@@ -171,7 +172,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
             
             setSubmitSuccess('Case created successfully!');
             setNewCase({
-                incidentDate: '',
+                incidentDate: getTodayDateInputValue(),
                 description: '',
                 offenseType: '',
                 severity: 'medium',

@@ -19,6 +19,7 @@ import { API_BASE_URL, OFFENSE_TYPES, SEVERITY_LEVELS } from '../../config/const
 import { authHeaders } from '../../utils/api';
 import { useDashboardRealtime } from '../../hooks/useDashboardRealtime';
 import DashboardAIInsights from '../../components/dashboard/DashboardAIInsights';
+import { getTodayDateInputValue } from '../../utils/dateTimeDefaults';
 import SmartStudentSearch from '../../components/SmartStudentSearch';
 import SmartStaffSearch from '../../components/SmartStaffSearch';
 
@@ -85,7 +86,7 @@ export default function SecurityDashboard() {
   const [staffId, setStaffId] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
-  const [incidentDate, setIncidentDate] = useState('');
+  const [incidentDate, setIncidentDate] = useState(getTodayDateInputValue);
   const [offenseType, setOffenseType] = useState('');
   const [severity, setSeverity] = useState('');
   const [description, setDescription] = useState('');
@@ -251,7 +252,7 @@ export default function SecurityDashboard() {
         throw new Error(await res.text());
       }
 
-      setIncidentDate('');
+      setIncidentDate(getTodayDateInputValue());
       setOffenseType('');
       setSeverity('');
       setDescription('');

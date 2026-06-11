@@ -21,6 +21,7 @@ import {
 } from "../../utils/studentReports";
 import { subscribeGuidedApply } from "../../utils/guidedReportBridge";
 import { applyGuidedFieldsToMakeReport } from "../../utils/applyGuidedReportFields";
+import { getTodayDateInputValue } from "../../utils/dateTimeDefaults";
 
 type ReporterProfile = {
   name?: string;
@@ -37,10 +38,6 @@ type ReporterProfile = {
     };
   } | null;
 };
-
-function getTodayDateInputValue() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function buildLocationFromProfile(profile: ReporterProfile | null) {
   return profile?.studentProfile?.accommodation?.roomNumber?.trim() || "";
@@ -72,7 +69,7 @@ export default function MakeReportPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
-  const [incidentDate, setIncidentDate] = useState("");
+  const [incidentDate, setIncidentDate] = useState(getTodayDateInputValue);
   const [category, setCategory] =
     useState<StudentReportCategory>("disciplinary_case");
   const forcedCategory = searchParams.get("category");

@@ -14,6 +14,10 @@ import RecentStaff from "../../../components/RecentStaff";
 import SignatureField from "../../../components/SignatureField";
 import { canAccessPage } from "../../../utils/access";
 import { exportCalloutDocx, printCallouts } from "../../../utils/calloutExport";
+import {
+  getStudentCaseProcessDateDefaults,
+  getTodayDateInputValue,
+} from "../../../utils/dateTimeDefaults";
 
 interface Student {
   _id: string;
@@ -151,11 +155,14 @@ const createBlankPerson = (): PersonParticulars => ({
   district: "",
 });
 
-const createInitialStudentCaseProcess = (): StudentCaseProcessState => ({
+const createInitialStudentCaseProcess = (): StudentCaseProcessState => {
+  const dateDefaults = getStudentCaseProcessDateDefaults();
+
+  return {
   occurrenceCover: {
     investigatingOfficer: "",
     occurrenceBookNumber: "",
-    reportedAt: "",
+    reportedAt: dateDefaults.reportedAt,
     complainant: createBlankPerson(),
     accusedPeople: [],
     offence: "",
@@ -172,8 +179,8 @@ const createInitialStudentCaseProcess = (): StudentCaseProcessState => ({
     yearOfStudy: "",
     residentialAddress: "",
     phoneNo: "",
-    reportTime: "",
-    reportDate: "",
+    reportTime: dateDefaults.reportTime,
+    reportDate: dateDefaults.reportDate,
     appointment: "",
     officerSignature: "",
     studentSignatures: {},
@@ -192,13 +199,13 @@ const createInitialStudentCaseProcess = (): StudentCaseProcessState => ({
     district: "",
     residentialAddress: "",
     businessAddress: "",
-    takenDate: "",
-    takenTime: "",
-    recallTime: "",
+    takenDate: dateDefaults.takenDate,
+    takenTime: dateDefaults.takenTime,
+    recallTime: dateDefaults.recallTime,
     statementText: "",
     signature: "",
-    signedDate: "",
-    signedTime: "",
+    signedDate: dateDefaults.signedDate,
+    signedTime: dateDefaults.signedTime,
   },
   warnAndCaution: {
     fullNames: "",
@@ -213,18 +220,19 @@ const createInitialStudentCaseProcess = (): StudentCaseProcessState => ({
     occupation: "",
     sin: "",
     phoneNo: "",
-    takenDate: "",
-    takenTime: "",
+    takenDate: dateDefaults.takenDate,
+    takenTime: dateDefaults.takenTime,
     place: "",
     caseName: "",
-    offenceDate: "",
-    offenceTime: "",
+    offenceDate: dateDefaults.offenceDate,
+    offenceTime: dateDefaults.offenceTime,
     offencePlace: "",
     signature: "",
-    signedDate: "",
-    signedTime: "",
+    signedDate: dateDefaults.signedDate,
+    signedTime: dateDefaults.signedTime,
   },
-});
+};
+};
 
 const STUDENT_CASE_STEPS = [
   {
@@ -319,7 +327,7 @@ export default function NewCasePage() {
   const [selectedStaffMembers, setSelectedStaffMembers] = useState<Staff[]>([]);
   const [studentId, setStudentId] = useState("");
   const [staffId, setStaffId] = useState("");
-  const [incidentDate, setIncidentDate] = useState("");
+  const [incidentDate, setIncidentDate] = useState(getTodayDateInputValue);
   const [offenseType, setOffenseType] = useState("");
   const [severity, setSeverity] = useState("");
   const [description, setDescription] = useState("");
@@ -942,7 +950,7 @@ export default function NewCasePage() {
     setAccusedStudents([]);
     setSelectedStaff(null);
     setSelectedStaffMembers([]);
-    setIncidentDate("");
+    setIncidentDate(getTodayDateInputValue());
     setOffenseType("");
     setSeverity("");
     setDescription("");

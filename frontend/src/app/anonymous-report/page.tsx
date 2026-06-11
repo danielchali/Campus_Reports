@@ -20,6 +20,7 @@ import {
 import { API_BASE_URL } from '../../config/constants';
 import { subscribeGuidedApply } from '../../utils/guidedReportBridge';
 import { applyGuidedFieldsToAnonymousReport } from '../../utils/applyGuidedReportFields';
+import { getTodayDateInputValue } from '../../utils/dateTimeDefaults';
 
 type Category = 'disciplinary_case' | 'maintenance_issue' | 'other';
 
@@ -55,7 +56,7 @@ export default function AnonymousReportPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
-  const [incidentDate, setIncidentDate] = useState('');
+  const [incidentDate, setIncidentDate] = useState(getTodayDateInputValue);
   const [contactEmail, setContactEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -150,7 +151,7 @@ export default function AnonymousReportPage() {
     setTitle('');
     setDescription('');
     setLocation('');
-    setIncidentDate('');
+    setIncidentDate(getTodayDateInputValue());
     setContactEmail('');
     setCategory('disciplinary_case');
     setTrackingCode('');

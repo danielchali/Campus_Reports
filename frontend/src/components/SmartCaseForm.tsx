@@ -4,6 +4,7 @@ import SmartStudentSearch from './SmartStudentSearch';
 import { API_BASE_URL } from '../config/constants';
 import { authHeaders } from '../utils/api';
 import { OFFENSE_TYPES, SEVERITY_LEVELS } from '../config/constants';
+import { getTodayDateInputValue } from '../utils/dateTimeDefaults';
 
 interface Student {
   _id: string;
@@ -22,7 +23,7 @@ interface SmartCaseFormProps {
 
 export default function SmartCaseForm({ onSubmit, loading = false }: SmartCaseFormProps) {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [incidentDate, setIncidentDate] = useState('');
+  const [incidentDate, setIncidentDate] = useState(getTodayDateInputValue);
   const [offenseType, setOffenseType] = useState('');
   const [severity, setSeverity] = useState('');
   const [description, setDescription] = useState('');
@@ -120,14 +121,13 @@ export default function SmartCaseForm({ onSubmit, loading = false }: SmartCaseFo
 
   // Auto-fill today's date
   const fillTodayDate = () => {
-    const today = new Date().toISOString().split('T')[0];
-    setIncidentDate(today);
+    setIncidentDate(getTodayDateInputValue());
   };
 
   // Clear form
   const clearForm = () => {
     setSelectedStudent(null);
-    setIncidentDate('');
+    setIncidentDate(getTodayDateInputValue());
     setOffenseType('');
     setSeverity('');
     setDescription('');
