@@ -115,7 +115,7 @@ export function TableSkeleton({ rows = 6, cols = 4 }: { rows?: number; cols?: nu
 
 export function DetailPageSkeleton() {
   return (
-    <div className="w-full p-6 space-y-6 animate-pulse" aria-hidden="true">
+    <div className="w-full space-y-6 animate-pulse" aria-hidden="true">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="h-8 w-48 rounded-lg bg-slate-200 dark:bg-slate-700" />
@@ -161,7 +161,7 @@ export function DetailPageSkeleton() {
 
 export function ProfilePageSkeleton() {
   return (
-    <section className="w-full p-6 animate-pulse" aria-hidden="true">
+    <section className="w-full space-y-8 animate-pulse" aria-hidden="true">
       {/* Title */}
       <div className="text-center mb-8 space-y-3">
         <div className="h-10 w-64 mx-auto rounded-lg bg-slate-200 dark:bg-slate-700" />

@@ -9,6 +9,7 @@ import { API_BASE_URL } from '../../../config/constants';
 import { canAccessPage } from '../../../utils/access';
 import { exportCaseCalloutDocx, printCallouts } from '../../../utils/calloutExport';
 import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
+import StatementRequestPanel from '../../../components/statementRequests/StatementRequestPanel';
 
 interface Student {
     _id: string;
@@ -89,6 +90,15 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
     const OFFENSE_TYPE_OPTIONS = ['Academic Dishonesty', 'Misconduct', 'Harassment', 'Substance Abuse', 'Property Damage', 'Other'];
     const SEVERITY_OPTIONS = ['Low', 'Medium', 'High'];
     const STATUS_OPTIONS = ['Open', 'Pending', 'Closed'];
+
+    const canRequestStatement =
+        user?.role === 'admin' ||
+        user?.role === 'security_officer' ||
+        user?.role === 'chief_security_officer' ||
+        user?.role === 'dean_of_students' ||
+        user?.role === 'assistant_dean' ||
+        user?.role === 'academic_office' ||
+        user?.role === 'secretary';
 
     useEffect(() => {
         async function fetchCase() {
@@ -307,7 +317,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
     const personYear = isStudentCase ? (caseData.student as any)?.year : undefined;
 
     return (
-        <div className="w-full p-6">
+        <div className="w-full space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold text-kmuGreen">Case Details</h1>
@@ -613,6 +623,21 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                         </div>
                     </div>
                     
+                    {isStudentCase && personId && canRequestStatement && (
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Request Signed Statement</h2>
+                            <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                                Send a statement request linked to this case. The student will see it on their dashboard.
+                            </p>
+                            <StatementRequestPanel
+                                studentId={personId}
+                                linkedCaseId={caseData._id}
+                                linkedCaseNumber={caseData.caseId}
+                                filterByCaseId={caseData._id}
+                            />
+                        </div>
+                    )}
+
                     {/* Actions */}
                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
                         <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Actions</h2>

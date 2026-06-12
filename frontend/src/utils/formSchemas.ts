@@ -1,5 +1,10 @@
 import { API_BASE_URL } from '../config/constants';
-import type { InstitutionFormConfig, PortalConfig, ReportFormSchema } from '../types/formSchema';
+import type {
+  InstitutionFormConfig,
+  InstitutionFormConfigUpdate,
+  PortalConfig,
+  ReportFormSchema,
+} from '../types/formSchema';
 
 export async function fetchFormSchema(formType: 'anonymous_report' | 'student_report'): Promise<InstitutionFormConfig> {
   const response = await fetch(`${API_BASE_URL}/form-schemas?form=${formType}`, {
@@ -27,7 +32,7 @@ export async function fetchPortalConfig(): Promise<PortalConfig> {
 
 export async function updateInstitutionFormConfig(
   token: string,
-  payload: Partial<InstitutionFormConfig>,
+  payload: InstitutionFormConfigUpdate,
 ): Promise<InstitutionFormConfig> {
   const response = await fetch(`${API_BASE_URL}/form-schemas`, {
     method: 'PUT',

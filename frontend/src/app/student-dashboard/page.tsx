@@ -29,6 +29,8 @@ type StatementRequest = {
   status: 'pending' | 'submitted' | 'expired' | 'cancelled';
   dueAt?: string;
   createdAt?: string;
+  caseMongoId?: string;
+  caseNumber?: string;
 };
 
 const categoryLabels = {
@@ -282,6 +284,7 @@ export default function StudentDashboardPage() {
                         <p className="text-[11px] text-slate-500 dark:text-slate-400">
                           {formatDate(request.createdAt)}
                           {request.dueAt ? ` • Due ${formatDate(request.dueAt)}` : ''}
+                          {request.caseNumber ? ` • Case ${request.caseNumber}` : ''}
                         </p>
                       </div>
                       <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statementStatusColors[request.status]}`}>

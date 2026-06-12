@@ -87,6 +87,7 @@ export async function getStudent(req, res) {
                 const caseObj = caseItem.toObject();
                 return {
                     ...caseObj,
+                    caseId: caseObj.case_id,
                     incidentDate: caseObj.incident_date,
                     offenseType: caseObj.offense_type,
                     createdBy: caseObj.created_by,

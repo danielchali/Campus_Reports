@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 
 const statementRequestSchema = new mongoose.Schema({
     studentId: { type: String, required: true, index: true },
+    caseMongoId: { type: String, required: false, index: true },
+    caseNumber: { type: String, required: false, trim: true },
     title: { type: String, required: true, trim: true },
     prompt: { type: String, required: true, trim: true },
     dueAt: { type: Date, required: false },

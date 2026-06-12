@@ -139,6 +139,8 @@ type StatementRequest = {
   title?: string;
   status?: string;
   studentId?: string;
+  caseMongoId?: string;
+  caseNumber?: string;
   createdAt?: string;
   dueAt?: string;
 };

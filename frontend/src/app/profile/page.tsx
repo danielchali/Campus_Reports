@@ -267,8 +267,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <section className="w-full p-6">
-      <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <section className="w-full space-y-8">
+      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">

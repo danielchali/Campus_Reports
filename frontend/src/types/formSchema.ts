@@ -61,3 +61,7 @@ export interface InstitutionFormConfig {
   };
   form?: ReportFormSchema;
 }
+
+export type InstitutionFormConfigUpdate = Partial<Omit<InstitutionFormConfig, 'portal'>> & {
+  portal?: Partial<PortalConfig>;
+};
