@@ -25,6 +25,7 @@ export type NavLink = {
   path: string;
   danger?: boolean;
   mobileOnly?: boolean;
+  children?: NavLink[];
 };
 
 const navIcons = {
@@ -58,17 +59,31 @@ export function getNavLinksForRole(role?: string): NavLink[] {
       { icon: navIcons.admin, label: "Dashboard", path: "/admin" },
       { icon: navIcons.users, label: "Manage Users", path: "/admin/users" },
       { icon: navIcons.workOrders, label: "Form & Portal Settings", path: "/admin/form-settings" },
-      { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
-      { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       {
-        icon: navIcons.maintenanceIssues,
-        label: "Maintenance Issues",
-        path: "/maintenance-issues",
+        icon: navIcons.cases,
+        label: "Disciplinary",
+        path: "/cases",
+        children: [
+          { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
+          { icon: navIcons.newcase, label: "New Case", path: "/cases/new" },
+          { icon: navIcons.evidence, label: "Evidence", path: "/evidence" },
+          { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
+        ],
       },
-      { icon: navIcons.workOrders, label: "Work Orders", path: "/work-orders" },
+      {
+        icon: navIcons.maintenance,
+        label: "Maintenance",
+        path: "/maintenance-issues",
+        children: [
+          {
+            icon: navIcons.maintenanceIssues,
+            label: "Maintenance Issues",
+            path: "/maintenance-issues",
+          },
+          { icon: navIcons.workOrders, label: "Work Orders", path: "/work-orders" },
+        ],
+      },
       { icon: navIcons.students, label: "Students", path: "/students" },
-      { icon: navIcons.evidence, label: "Evidence", path: "/evidence" },
-      { icon: navIcons.newcase, label: "New Case", path: "/cases/new" },
       { icon: navIcons.audit, label: "Audit/Logs", path: "/audit" },
       { icon: navIcons.profile, label: "Profile & Settings", path: "/profile" },
       { icon: navIcons.help, label: "Help", path: "/help" },

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PageSkeleton } from '../PageSkeleton';
+import { StatCard, StatsStrip } from '../StatsStrip';
 import { Doughnut, Line } from 'react-chartjs-2';
 import {
   ArcElement,
@@ -609,30 +610,24 @@ export default function ManagementDashboard({
         </div>
       )}
 
-      <section className={`grid grid-cols-2 gap-3 sm:grid-cols-2 ${metricDesktopColumnsClass}`}>
+      <StatsStrip desktopColumnsClass={metricDesktopColumnsClass}>
         {metricKeys.map((key) => {
           const metric = metricMap[key];
           const Icon = metric.icon;
           const tone = toneClasses[metric.tone];
 
           return (
-            <article
+            <StatCard
               key={metric.label}
-              className={`w-full rounded-xl border bg-white p-3 shadow-sm dark:bg-slate-900 ${tone.border}`}
-            >
-              <div className="flex h-full flex-col justify-between gap-3 sm:flex-row sm:items-center sm:gap-3">
-                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tone.icon}`}>
-                  <Icon size={16} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{metric.label}</p>
-                  <p className="text-lg font-bold text-slate-900 dark:text-white">{metric.value}</p>
-                </div>
-              </div>
-            </article>
+              label={metric.label}
+              value={metric.value}
+              icon={<Icon size={16} />}
+              iconClassName={tone.icon}
+              className={tone.border}
+            />
           );
         })}
-      </section>
+      </StatsStrip>
 
       <section className="grid gap-4 xl:grid-cols-3">
         <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 xl:col-span-2">

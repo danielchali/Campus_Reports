@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { PageSkeleton, InlineSkeleton } from "../../components/PageSkeleton";
+import { StatsStrip } from "../../components/StatsStrip";
 import Notification, { useNotification } from "../../components/Notification";
 import WorkOrderJobCardModal from "../../components/WorkOrderJobCardModal";
 import { canAccessPage } from "../../utils/access";
@@ -274,7 +275,7 @@ export default function WorkOrdersPage() {
           </form>
         )}
 
-        <div className="grid gap-4 md:grid-cols-4">
+        <StatsStrip desktopColumnsClass="md:grid-cols-4">
           <SummaryCard
             label="Total"
             value={summary.total}
@@ -295,7 +296,7 @@ export default function WorkOrdersPage() {
             value={summary.completed}
             icon={<CheckCircle2 size={18} />}
           />
-        </div>
+        </StatsStrip>
 
         <div className="rounded-2xl bg-white dark:bg-gray-800 p-5 shadow">
           <div className="grid gap-3 md:grid-cols-[1fr_220px_220px]">
@@ -450,14 +451,14 @@ function SummaryCard({
   icon: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-gray-800 p-5 shadow">
+    <div className="min-w-[5.6rem] rounded-lg bg-white p-2 shadow dark:bg-gray-800 md:min-w-0 md:rounded-2xl md:p-5">
       <div className="flex items-center justify-between text-kmuGreen">
-        <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+        <span className="truncate text-[9px] font-semibold uppercase leading-tight text-gray-500 dark:text-gray-400 md:text-sm md:font-medium md:normal-case">
           {label}
         </span>
-        {icon}
+        <span className="hidden md:inline-flex">{icon}</span>
       </div>
-      <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
+      <p className="mt-0.5 text-base font-bold leading-none text-gray-900 dark:text-white md:mt-2 md:text-3xl">
         {value}
       </p>
     </div>

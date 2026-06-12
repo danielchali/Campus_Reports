@@ -6,6 +6,7 @@ import { getAll, register, update, remove, exportDocx, exportExcel, authHeaders 
 import { API_BASE_URL } from '../../../config/constants';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, TableSkeleton } from '../../../components/PageSkeleton';
+import { StatsStrip } from '../../../components/StatsStrip';
 import { useConfirmDialog } from '../../../components/AppDialog';
 
 
@@ -295,16 +296,16 @@ export default function UserManagementPage() {
           <h1 className="text-lg font-semibold text-slate-900 dark:text-white">User Management</h1>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatsStrip desktopColumnsClass="lg:grid-cols-4">
           {userStats.map((stat) => (
-            <div key={stat.label} className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${stat.tone}`}>
+            <div key={stat.label} className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
+              <div className={`block truncate rounded-full px-0 py-0 text-[9px] font-semibold uppercase leading-tight md:inline-flex md:px-2.5 md:py-1 md:text-xs md:normal-case ${stat.tone}`}>
                 {stat.label}
               </div>
-              <div className="mt-3 text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</div>
+              <div className="mt-0.5 text-base font-bold leading-none text-gray-900 dark:text-white md:mt-3 md:text-2xl">{stat.value}</div>
             </div>
           ))}
-        </div>
+        </StatsStrip>
 
         {/* Messages */}
         {success && <div className="text-kmuGreen text-sm mb-2 bg-green-100 dark:bg-green-900/20 p-2 rounded">{success}</div>}

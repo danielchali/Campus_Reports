@@ -12,6 +12,7 @@ import { saveAs } from 'file-saver';
 import { canAccessPage } from '../../../utils/access';
 import { getTodayDateInputValue } from '../../../utils/dateTimeDefaults';
 import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
+import { StatsStrip } from '../../../components/StatsStrip';
 import { useAlertDialog } from '../../../components/AppDialog';
 import StatementRequestPanel from '../../../components/statementRequests/StatementRequestPanel';
 
@@ -262,24 +263,24 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                     <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Student Details</h1>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                    <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                        <div className="text-2xl font-bold text-kmuGreen">{totalCases}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Total Cases</div>
+                <StatsStrip desktopColumnsClass="lg:grid-cols-4">
+                    <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
+                        <div className="text-base font-bold leading-none text-kmuGreen md:text-2xl">{totalCases}</div>
+                        <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Total Cases</div>
                     </div>
-                    <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                        <div className="text-2xl font-bold text-red-600">{openCases}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Open Cases</div>
+                    <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
+                        <div className="text-base font-bold leading-none text-red-600 md:text-2xl">{openCases}</div>
+                        <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Open Cases</div>
                     </div>
-                    <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                        <div className="text-2xl font-bold text-green-600">{closedCases}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">Closed Cases</div>
+                    <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
+                        <div className="text-base font-bold leading-none text-green-600 md:text-2xl">{closedCases}</div>
+                        <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Closed Cases</div>
                     </div>
-                    <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                        <div className="text-2xl font-bold text-orange-600">{highSeverityCases}</div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">High Severity</div>
+                    <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
+                        <div className="text-base font-bold leading-none text-orange-600 md:text-2xl">{highSeverityCases}</div>
+                        <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">High Severity</div>
                     </div>
-                </div>
+                </StatsStrip>
 
                 <div className="w-full rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
                     <div className="border-b border-gray-200 dark:border-gray-600">

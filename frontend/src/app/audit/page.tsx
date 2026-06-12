@@ -9,6 +9,7 @@ import { authHeaders } from '../../utils/api';
 import { useRouter } from "next/navigation";
 import { canAccessPage } from '../../utils/access';
 import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
+import { StatsStrip } from '../../components/StatsStrip';
 
 interface AuditLog {
   _id?: string;
@@ -134,42 +135,42 @@ export default function AuditPage() {
         </div>
         
         {/* Summary Stats */}
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-          <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="text-2xl font-bold text-kmuGreen">{total}</div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Total Logs</div>
+        <StatsStrip desktopColumnsClass="md:grid-cols-3 lg:grid-cols-6">
+          <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
+            <div className="text-base font-bold leading-none text-kmuGreen md:text-2xl">{total}</div>
+            <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Total Logs</div>
           </div>
-          <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="text-2xl font-bold text-blue-600">
+          <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
+            <div className="text-base font-bold leading-none text-blue-600 md:text-2xl">
               {stats.case_created || 0}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Cases Created</div>
+            <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Cases Created</div>
           </div>
-          <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="text-2xl font-bold text-orange-600">
+          <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
+            <div className="text-base font-bold leading-none text-orange-600 md:text-2xl">
               {stats.status_change || 0}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Status Changes</div>
+            <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Status Changes</div>
           </div>
-          <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="text-2xl font-bold text-red-600">
+          <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
+            <div className="text-base font-bold leading-none text-red-600 md:text-2xl">
               {stats.case_deleted || 0}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Cases Deleted</div>
+            <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Cases Deleted</div>
           </div>
-          <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="text-2xl font-bold text-purple-600">
+          <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
+            <div className="text-base font-bold leading-none text-purple-600 md:text-2xl">
               {stats.user_login || 0}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">User Logins</div>
+            <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">User Logins</div>
           </div>
-          <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="text-2xl font-bold text-yellow-600">
+          <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
+            <div className="text-base font-bold leading-none text-yellow-600 md:text-2xl">
               {stats.login_failed || 0}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">Failed Logins</div>
+            <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Failed Logins</div>
           </div>
-        </div>
+        </StatsStrip>
 
         <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1.8fr)_minmax(220px,0.9fr)_repeat(2,minmax(0,0.8fr))]">

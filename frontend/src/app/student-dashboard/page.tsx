@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
+import { StatCard, StatsStrip } from '../../components/StatsStrip';
 import {
   BookOpen,
   CheckCircle2,
@@ -175,24 +176,20 @@ export default function StudentDashboardPage() {
         </div>
       </section>
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <StatsStrip desktopColumnsClass="xl:grid-cols-6">
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (
-            <article key={card.label} className="w-full rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className="flex h-full flex-col justify-between gap-3 sm:flex-row sm:items-center sm:gap-3">
-                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 dark:bg-slate-950 ${card.tone}`}>
-                  <Icon size={16} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{card.label}</p>
-                  <p className="text-lg font-bold text-slate-900 dark:text-white">{card.value}</p>
-                </div>
-              </div>
-            </article>
+            <StatCard
+              key={card.label}
+              label={card.label}
+              value={card.value}
+              icon={<Icon size={16} />}
+              iconClassName={`bg-slate-50 dark:bg-slate-950 ${card.tone}`}
+            />
           );
         })}
-      </section>
+      </StatsStrip>
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,0.95fr)]">
         <article className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">

@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { PageSkeleton } from "../../components/PageSkeleton";
+import { StatCard, StatsStrip } from "../../components/StatsStrip";
 import {
   getMaintenanceIssues,
   getWorkOrders,
@@ -378,7 +379,7 @@ export default function MaintenanceDashboard() {
 
       <DashboardAIInsights refreshToken={refreshToken} />
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <StatsStrip desktopColumnsClass="xl:grid-cols-5">
         {[
           {
             label: "Total Requests",
@@ -418,29 +419,16 @@ export default function MaintenanceDashboard() {
         ].map((card) => {
           const Icon = card.icon;
           return (
-            <article
+            <StatCard
               key={card.label}
-              className="w-full rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900"
-            >
-              <div className="flex h-full flex-col justify-between gap-3 sm:flex-row sm:items-center sm:gap-3">
-                <div
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${card.tone}`}
-                >
-                  <Icon size={16} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    {card.label}
-                  </p>
-                  <p className="text-lg font-bold text-slate-900 dark:text-white">
-                    {card.value}
-                  </p>
-                </div>
-              </div>
-            </article>
+              label={card.label}
+              value={card.value}
+              icon={<Icon size={16} />}
+              iconClassName={card.tone}
+            />
           );
         })}
-      </section>
+      </StatsStrip>
 
       <section className="grid gap-4 xl:grid-cols-3">
         <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 xl:col-span-2">

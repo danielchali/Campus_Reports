@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ChevronDown } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
-import { getNavLinksForRole, splitNavLinksForMobile } from '../utils/navigation';
+import { getNavLinksForRole, splitNavLinksForMobile, type NavLink } from '../utils/navigation';
 
 const MOBILE_SIDEBAR_WIDTH = 'min(240px, calc(100vw - 4rem))';
 const MIN_DESKTOP_SIDEBAR_WIDTH = 184;
@@ -14,6 +15,7 @@ const MAX_DESKTOP_SIDEBAR_WIDTH = 320;
 export default function Sidebar() {
   const [isResizing, setIsResizing] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const { sidebarWidth, setSidebarWidth, isOpenMobile, setIsOpenMobile } = useSidebar();
   const { user } = useAuth();
   const pathname = usePathname();
@@ -29,6 +31,97 @@ export default function Sidebar() {
     'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100';
   const linkActive =
     'bg-slate-100 dark:bg-slate-800 text-kmuGreen dark:text-emerald-400 shadow-sm';
+  const childLinkBase =
+    'ml-6 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100';
+
+  const isPathActive = (path: string) => {
+    if (pathname === path) {
+      return true;
+    }
+
+    if (path === '/cases') {
+      return /^\/cases\/(?!new(?:\/|$))/.test(pathname);
+    }
+
+    return path !== '/admin' && pathname.startsWith(`${path}/`);
+  };
+
+  const isGroupActive = (link: NavLink) =>
+    Boolean(link.children?.some((child) => isPathActive(child.path)));
+
+  const renderIcon = (Icon: NavLink['icon'], isActive: boolean) => (
+    <span className={`flex h-5 w-5 items-center justify-center ${isActive ? 'text-kmuGreen dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} aria-hidden="true">
+      <Icon size={16} />
+    </span>
+  );
+
+  const renderNavLink = (link: NavLink, extraClasses = '') => {
+    const Icon = link.icon;
+    const isActive = isPathActive(link.path);
+
+    return (
+      <Link
+        key={link.path}
+        href={link.path}
+        onClick={() => setIsOpenMobile(false)}
+        className={`${linkBase} ${extraClasses} ${isActive ? linkActive : ''} ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
+      >
+        {renderIcon(Icon, isActive)}
+        <span>{link.label}</span>
+      </Link>
+    );
+  };
+
+  const renderNavItem = (link: NavLink, extraClasses = '') => {
+    if (!link.children?.length) {
+      return renderNavLink(link, extraClasses);
+    }
+
+    const Icon = link.icon;
+    const groupIsActive = isGroupActive(link);
+    const isOpen = openGroups[link.label] ?? groupIsActive;
+
+    return (
+      <div key={link.label} className={extraClasses}>
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          onClick={() => setOpenGroups((current) => ({ ...current, [link.label]: !isOpen }))}
+          className={`${linkBase} w-full justify-between ${groupIsActive ? linkActive : ''}`}
+        >
+          <span className="flex min-w-0 items-center gap-3">
+            {renderIcon(Icon, groupIsActive)}
+            <span className="truncate">{link.label}</span>
+          </span>
+          <ChevronDown
+            size={16}
+            className={`shrink-0 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          />
+        </button>
+        {isOpen && (
+          <div className="mt-1 flex flex-col gap-1">
+            {link.children.map((child) => {
+              const ChildIcon = child.icon;
+              const childIsActive = isPathActive(child.path);
+
+              return (
+                <Link
+                  key={child.path}
+                  href={child.path}
+                  onClick={() => setIsOpenMobile(false)}
+                  className={`${childLinkBase} ${childIsActive ? linkActive : ''}`}
+                >
+                  {renderIcon(ChildIcon, childIsActive)}
+                  <span className="truncate">{child.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -116,37 +209,12 @@ export default function Sidebar() {
         </div>
         <nav className="sidebar-scroll mt-4 flex flex-1 flex-col gap-1 overflow-y-auto px-3 pb-6">
           {bottomNav.filter((link) => !link.mobileOnly).map((link) => {
-            const Icon = link.icon;
-            return (
-              <Link
-                key={link.path}
-                href={link.path}
-                onClick={() => setIsOpenMobile(false)}
-                className={`${linkBase} hidden md:flex ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
-              >
-                <span className={`flex h-5 w-5 items-center justify-center ${pathname === link.path ? 'text-kmuGreen dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} aria-hidden="true">
-                  <Icon size={16} />
-                </span>
-                <span>{link.label}</span>
-              </Link>
-            );
+            return link.children?.length
+              ? renderNavItem(link, 'hidden md:block')
+              : renderNavLink(link, 'hidden md:flex');
           })}
           {sidebarNav.map((link) => {
-            const Icon = link.icon;
-
-            return (
-              <Link
-                key={link.path}
-                href={link.path}
-                onClick={() => setIsOpenMobile(false)}
-                className={`${linkBase} ${link.mobileOnly ? 'md:hidden' : ''} ${pathname === link.path ? linkActive : ''} ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
-              >
-                <span className={`flex h-5 w-5 items-center justify-center ${pathname === link.path ? 'text-kmuGreen dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} aria-hidden="true">
-                  <Icon size={16} />
-                </span>
-                <span>{link.label}</span>
-              </Link>
-            );
+            return renderNavItem(link, link.mobileOnly ? 'md:hidden' : '');
           })}
         </nav>
         <div

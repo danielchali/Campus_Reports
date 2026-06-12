@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PageSkeleton } from '../../components/PageSkeleton';
+import { StatCard, StatsStrip } from '../../components/StatsStrip';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -318,24 +319,21 @@ export default function SecurityDashboard() {
 
       <DashboardAIInsights refreshToken={refreshToken} />
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-6">
+      <StatsStrip desktopColumnsClass="xl:grid-cols-6">
         {summaryCards.map((card) => {
           const Icon = card.icon;
           return (
-            <article key={card.label} className={`w-full rounded-xl border p-3 shadow-sm ${toneClasses[card.tone as keyof typeof toneClasses]}`}>
-              <div className="flex h-full flex-col justify-between gap-3 sm:flex-row sm:items-center sm:gap-3">
-                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${card.tone === 'green' ? 'bg-kmuGreen/10 text-kmuGreen' : card.tone === 'amber' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300' : card.tone === 'orange' ? 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}`}>
-                  <Icon size={16} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{card.label}</p>
-                  <p className="text-lg font-bold text-slate-900 dark:text-white">{card.value}</p>
-                </div>
-              </div>
-            </article>
+            <StatCard
+              key={card.label}
+              label={card.label}
+              value={card.value}
+              icon={<Icon size={16} />}
+              iconClassName={card.tone === 'green' ? 'bg-kmuGreen/10 text-kmuGreen' : card.tone === 'amber' ? 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300' : card.tone === 'orange' ? 'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'}
+              className={toneClasses[card.tone as keyof typeof toneClasses]}
+            />
           );
         })}
-      </section>
+      </StatsStrip>
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,0.82fr)]">
         <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
