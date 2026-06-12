@@ -108,7 +108,7 @@ export default function SchemaFormFields({
               />
             )}
 
-            {field.helpText && field.type !== 'toggle' && (
+            {field.helpText && (
               <p className="text-xs text-slate-400">{field.helpText}</p>
             )}
           </div>
