@@ -378,7 +378,7 @@ export default function MaintenanceDashboard() {
 
       <DashboardAIInsights refreshToken={refreshToken} />
 
-      <section className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 xl:grid-cols-5">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-5">
         {[
           {
             label: "Total Requests",
@@ -420,7 +420,7 @@ export default function MaintenanceDashboard() {
           return (
             <article
               key={card.label}
-              className="aspect-square min-w-[110px] shrink-0 rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:min-w-0 sm:aspect-auto"
+              className="w-full rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900"
             >
               <div className="flex h-full flex-col justify-between gap-3 sm:flex-row sm:items-center sm:gap-3">
                 <div

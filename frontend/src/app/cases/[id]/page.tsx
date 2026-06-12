@@ -318,14 +318,15 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
 
     return (
         <div className="w-full space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold text-kmuGreen">Case Details</h1>
-                <div className="flex flex-wrap gap-2 ml-4">
-                    <Link href={`/cases/new?cloneFrom=${params.id}&doc=statement`} className="px-3 py-1 text-sm bg-white border rounded">+ Statement</Link>
-                    <Link href={`/cases/new?cloneFrom=${params.id}&doc=callout`} className="px-3 py-1 text-sm bg-white border rounded">+ Callout</Link>
-                    <Link href={`/cases/new?cloneFrom=${params.id}&doc=accused`} className="px-3 py-1 text-sm bg-white border rounded">+ Accused Add/Remove</Link>
-                    <Link href={`/cases/new?cloneFrom=${params.id}&doc=warn-caution`} className="px-3 py-1 text-sm bg-white border rounded">+ Warn & Caution</Link>
+            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Case Details</h1>
+                    <div className="flex flex-wrap gap-2">
+                        <Link href={`/cases/new?cloneFrom=${params.id}&doc=statement`} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1 text-sm dark:border-slate-700 dark:bg-slate-800">+ Statement</Link>
+                        <Link href={`/cases/new?cloneFrom=${params.id}&doc=callout`} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1 text-sm dark:border-slate-700 dark:bg-slate-800">+ Callout</Link>
+                        <Link href={`/cases/new?cloneFrom=${params.id}&doc=accused`} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1 text-sm dark:border-slate-700 dark:bg-slate-800">+ Accused Add/Remove</Link>
+                        <Link href={`/cases/new?cloneFrom=${params.id}&doc=warn-caution`} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1 text-sm dark:border-slate-700 dark:bg-slate-800">+ Warn & Caution</Link>
+                    </div>
                 </div>
             </div>
 
@@ -333,7 +334,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                 {/* Main Case Information */}
                 <div className="lg:col-span-2 space-y-6">
                     {/* Case Overview Card */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-semibold text-kmuOrange">Case Overview</h2>
                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(caseData.status)}`}>
@@ -506,7 +507,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                     </div>
                     
                     {/* Associated Person Information */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
                         <h2 className="text-lg font-semibold mb-4 text-kmuOrange">
                             {personType} Information
                         </h2>
@@ -591,7 +592,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                 {/* Sidebar Information */}
                 <div className="space-y-6">
                     {/* Case Metadata */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
                         <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Case Metadata</h2>
                         
                         <div className="space-y-3">
@@ -624,7 +625,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                     </div>
                     
                     {isStudentCase && personId && canRequestStatement && (
-                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
                             <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Request Signed Statement</h2>
                             <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
                                 Send a statement request linked to this case. The student will see it on their dashboard.
@@ -639,7 +640,7 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                     )}
 
                     {/* Actions */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
                         <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Actions</h2>
                         
                         <div className="space-y-3">

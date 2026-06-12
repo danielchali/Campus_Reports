@@ -291,14 +291,13 @@ export default function UserManagementPage() {
 
   return (
       <div className="w-full space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-kmuGreen">User Management</h1>
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <h1 className="text-lg font-semibold text-slate-900 dark:text-white">User Management</h1>
         </div>
 
-        <div className="mb-6 flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {userStats.map((stat) => (
-            <div key={stat.label} className="min-w-[140px] shrink-0 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:min-w-0">
+            <div key={stat.label} className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${stat.tone}`}>
                 {stat.label}
               </div>
@@ -312,7 +311,7 @@ export default function UserManagementPage() {
         {error && <div className="text-red-600 text-sm mb-2 bg-red-100 dark:bg-red-900/20 p-2 rounded">{error}</div>}
 
         {/* Filters and Actions */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 md:p-6 mb-6">
+        <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
           <div className="mb-4 space-y-3">
             <div className="grid grid-cols-1 gap-2 lg:grid-cols-[minmax(220px,1fr)_180px_auto_auto_auto]">
               <input

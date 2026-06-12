@@ -125,16 +125,16 @@ export function DetailPageSkeleton() {
         </div>
       </div>
       {/* Stats cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-2">
+          <div key={i} className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-2">
             <div className="h-8 w-12 rounded bg-slate-200 dark:bg-slate-700" />
             <div className="h-3 w-20 rounded bg-slate-200 dark:bg-slate-700" />
           </div>
         ))}
       </div>
       {/* Main content card */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
+      <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6 space-y-4">
         <div className="h-6 w-40 rounded-lg bg-slate-200 dark:bg-slate-700" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -146,7 +146,7 @@ export function DetailPageSkeleton() {
         </div>
       </div>
       {/* Secondary card */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-3">
+      <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6 space-y-3">
         <div className="h-6 w-36 rounded-lg bg-slate-200 dark:bg-slate-700" />
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex items-center gap-3 py-2">
@@ -161,28 +161,25 @@ export function DetailPageSkeleton() {
 
 export function ProfilePageSkeleton() {
   return (
-    <section className="w-full space-y-8 animate-pulse" aria-hidden="true">
-      {/* Title */}
-      <div className="text-center mb-8 space-y-3">
-        <div className="h-10 w-64 mx-auto rounded-lg bg-slate-200 dark:bg-slate-700" />
-        <div className="h-5 w-96 max-w-full mx-auto rounded bg-slate-200 dark:bg-slate-700" />
+    <div
+      className="grid w-full min-w-0 gap-6 animate-pulse xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]"
+      aria-hidden="true"
+    >
+      <div className="w-full space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
+        <div className="h-7 w-48 rounded-lg bg-slate-200 dark:bg-slate-700" />
+        <div className="h-4 w-full max-w-md rounded bg-slate-200 dark:bg-slate-700" />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <div className="h-3 w-20 rounded bg-slate-200 dark:bg-slate-700" />
+            <div className="h-5 w-full rounded bg-slate-200 dark:bg-slate-700" />
+          </div>
+        ))}
+        <div className="h-10 w-32 rounded-lg bg-slate-200 dark:bg-slate-700" />
       </div>
-      {/* Two-column cards */}
-      <div className="grid md:grid-cols-2 gap-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
+      <div className="min-w-0 space-y-6">
+        <div className="w-full space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
           <div className="h-7 w-48 rounded-lg bg-slate-200 dark:bg-slate-700" />
-          <div className="h-4 w-72 rounded bg-slate-200 dark:bg-slate-700" />
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="space-y-2">
-              <div className="h-3 w-20 rounded bg-slate-200 dark:bg-slate-700" />
-              <div className="h-5 w-40 rounded bg-slate-200 dark:bg-slate-700" />
-            </div>
-          ))}
-          <div className="h-10 w-32 rounded-lg bg-slate-200 dark:bg-slate-700" />
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-4">
-          <div className="h-7 w-48 rounded-lg bg-slate-200 dark:bg-slate-700" />
-          <div className="h-4 w-72 rounded bg-slate-200 dark:bg-slate-700" />
+          <div className="h-4 w-full max-w-md rounded bg-slate-200 dark:bg-slate-700" />
           {Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="space-y-2">
               <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-700" />
@@ -191,7 +188,15 @@ export function ProfilePageSkeleton() {
           ))}
           <div className="h-10 w-40 rounded-lg bg-slate-200 dark:bg-slate-700" />
         </div>
+        <div className="w-full space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
+          <div className="h-7 w-40 rounded-lg bg-slate-200 dark:bg-slate-700" />
+          <div className="h-4 w-full rounded bg-slate-200 dark:bg-slate-700" />
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="h-10 w-full rounded-lg bg-slate-200 dark:bg-slate-700 sm:flex-1" />
+            <div className="h-10 w-full rounded-lg bg-slate-200 dark:bg-slate-700 sm:flex-1" />
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   );
 }

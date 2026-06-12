@@ -94,7 +94,7 @@ export default function HelpPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
+      <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6 mb-8">
         <h2 className="text-2xl font-semibold mb-4 text-kmuOrange">Quick Start</h2>
         <div className="grid md:grid-cols-2 gap-6">
           <div>
@@ -116,7 +116,7 @@ export default function HelpPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
         <h2 className="text-2xl font-semibold mb-4 text-kmuOrange">Key Features</h2>
         <div className="grid md:grid-cols-2 gap-6">
           <div>

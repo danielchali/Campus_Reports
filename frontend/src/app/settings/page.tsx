@@ -12,10 +12,8 @@ export default function SettingsRedirectPage() {
   }, [router]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="w-full max-w-2xl px-6">
-        <ProfilePageSkeleton />
-      </div>
-    </div>
+    <section className="w-full">
+      <ProfilePageSkeleton />
+    </section>
   );
 } 

@@ -258,33 +258,30 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
     return (
         <ProtectedRoute>
             <div className="w-full space-y-6">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold text-kmuGreen">Student Details</h1>
+                <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Student Details</h1>
                 </div>
 
-                {/* Statistics Cards */}
-                <div className="mb-6 flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 lg:grid-cols-4">
-                    <div className="min-w-[140px] shrink-0 rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:min-w-0">
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                    <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                         <div className="text-2xl font-bold text-kmuGreen">{totalCases}</div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">Total Cases</div>
                     </div>
-                    <div className="min-w-[140px] shrink-0 rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:min-w-0">
+                    <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                         <div className="text-2xl font-bold text-red-600">{openCases}</div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">Open Cases</div>
                     </div>
-                    <div className="min-w-[140px] shrink-0 rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:min-w-0">
+                    <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                         <div className="text-2xl font-bold text-green-600">{closedCases}</div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">Closed Cases</div>
                     </div>
-                    <div className="min-w-[140px] shrink-0 rounded-lg bg-white p-4 shadow dark:bg-gray-800 sm:min-w-0">
+                    <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                         <div className="text-2xl font-bold text-orange-600">{highSeverityCases}</div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">High Severity</div>
                     </div>
                 </div>
 
-                {/* Tabs */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6">
+                <div className="w-full rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
                     <div className="border-b border-gray-200 dark:border-gray-600">
                         <nav className="flex space-x-8 px-6">
                             <button
@@ -410,7 +407,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                                     <>
                                     <div className="space-y-4 md:hidden">
                                         {cases.map((caseItem) => (
-                                            <div key={caseItem._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 space-y-3">
+                                            <div key={caseItem._id} className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3">
                                                 <div className="font-mono text-xs text-gray-500 dark:text-gray-400">{caseItem._id}</div>
                                                 <div className="text-gray-900 dark:text-white">{caseItem.description || '-'}</div>
                                                 <div className="flex gap-2 flex-wrap">

@@ -237,20 +237,18 @@ export default function EvidencePage() {
   return (
     <>
       <div className="w-full space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-kmuGreen">Evidence Management</h1>
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Evidence Management</h1>
             {offlineMode && (
-              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded">
+              <span className="inline-flex w-fit rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">
                 Offline Mode
               </span>
             )}
           </div>
         </div>
 
-        {/* Upload Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+        <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
           <h2 className="text-lg font-semibold text-kmuOrange mb-4">Upload Evidence</h2>
           <form className="space-y-4" onSubmit={handleUpload} aria-label="Upload evidence form">
             <div>
@@ -300,7 +298,7 @@ export default function EvidencePage() {
         </div>
 
         {/* Evidence List */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
           <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Uploaded Evidence</h2>
           {loading ? (
             <InlineSkeleton rows={3} />

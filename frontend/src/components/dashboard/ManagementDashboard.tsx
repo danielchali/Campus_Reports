@@ -609,7 +609,7 @@ export default function ManagementDashboard({
         </div>
       )}
 
-      <section className={`flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 ${metricDesktopColumnsClass}`}>
+      <section className={`grid grid-cols-2 gap-3 sm:grid-cols-2 ${metricDesktopColumnsClass}`}>
         {metricKeys.map((key) => {
           const metric = metricMap[key];
           const Icon = metric.icon;
@@ -618,7 +618,7 @@ export default function ManagementDashboard({
           return (
             <article
               key={metric.label}
-              className={`aspect-square min-w-[110px] shrink-0 rounded-xl border bg-white p-3 shadow-sm dark:bg-slate-900 sm:min-w-0 sm:aspect-auto ${tone.border}`}
+              className={`w-full rounded-xl border bg-white p-3 shadow-sm dark:bg-slate-900 ${tone.border}`}
             >
               <div className="flex h-full flex-col justify-between gap-3 sm:flex-row sm:items-center sm:gap-3">
                 <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tone.icon}`}>

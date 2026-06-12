@@ -287,9 +287,9 @@ export default function ProfilePage() {
       ) : loadError ? (
         <div className="text-center text-red-600 dark:text-red-400">{loadError}</div>
       ) : (
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.5fr)_minmax(340px,0.9fr)]">
-          <div className="space-y-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="grid w-full min-w-0 gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+          <div className="min-w-0 space-y-6">
+            <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
               <h2 className="text-2xl font-semibold mb-4 text-kmuOrange">Profile Information</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 {isStudent ? 'Review and update your linked student profile information.' : 'Update your personal information and display name.'}
@@ -503,8 +503,8 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="space-y-8">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div className="min-w-0 space-y-6">
+            <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
               <h2 className="text-2xl font-semibold mb-4 text-kmuOrange">Account Security</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Change your password to keep your account secure.
@@ -563,17 +563,17 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
               <h2 className="text-2xl font-semibold mb-4 text-kmuOrange">Need Help?</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 If you need assistance with your account or have questions about the system,
                 check out our help documentation or contact support.
               </p>
-              <div className="flex gap-4">
-                <a href="/help" className="bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition">
+              <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+                <a href="/help" className="w-full bg-kmuGreen px-4 py-2 text-center text-white rounded transition hover:bg-kmuOrange sm:w-auto">
                   View Help Documentation
                 </a>
-                <a href="/help#contact" className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition">
+                <a href="/help#contact" className="w-full bg-gray-500 px-4 py-2 text-center text-white rounded transition hover:bg-gray-600 sm:w-auto">
                   Contact Support
                 </a>
               </div>

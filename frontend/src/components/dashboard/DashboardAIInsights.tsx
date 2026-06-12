@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, Bot, Lightbulb, Sparkles } from 'lucide-react';
+import { AlertTriangle, Bot, ChevronDown, ChevronUp, Lightbulb, Sparkles } from 'lucide-react';
 import { getDashboardInsights, type DashboardInsights } from '../../utils/api';
 
 const priorityTone: Record<string, string> = {
@@ -24,6 +24,7 @@ export default function DashboardAIInsights({
   const [insights, setInsights] = useState<DashboardInsights | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(true);
 
   useEffect(() => {
     let active = true;
@@ -49,31 +50,17 @@ export default function DashboardAIInsights({
     };
   }, [refreshToken]);
 
-  if (loading) {
-    return (
-      <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-          <Sparkles size={16} className="animate-pulse text-kmuGreen" />
-          Generating AI dashboard insights...
-        </div>
-      </article>
-    );
-  }
-
-  if (error || !insights) {
-    return (
-      <article className="rounded-[24px] border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-200">
-        {error || 'AI insights are unavailable right now.'}
-      </article>
-    );
-  }
-
-  const priorities = insights.topPriorities || [];
+  const priorities = insights?.topPriorities || [];
 
   return (
-    <article className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
+    <article className="rounded-[24px] border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <button
+        type="button"
+        onClick={() => setExpanded((current) => !current)}
+        aria-expanded={expanded}
+        className="flex w-full items-start justify-between gap-3 p-4 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40"
+      >
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
               <Bot size={16} />
@@ -84,73 +71,101 @@ export default function DashboardAIInsights({
             NLP summaries, prioritization, and recommendations for campus reports.
           </p>
         </div>
-        <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-          {insights.aiEnabled ? 'AI active' : 'Heuristic mode'}
-        </span>
-      </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {!loading && !error && insights && (
+            <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              {insights.aiEnabled ? 'AI active' : 'Heuristic mode'}
+            </span>
+          )}
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400">
+            {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </span>
+        </div>
+      </button>
 
-      <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-200">
-        {insights.executiveSummary}
-      </p>
-
-      {insights.alerts.length > 0 && (
-        <div className="mt-4 space-y-2">
-          {insights.alerts.map((alert) => (
-            <div
-              key={alert}
-              className="flex items-start gap-2 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-800 dark:border-orange-900/40 dark:bg-orange-950/30 dark:text-orange-200"
-            >
-              <AlertTriangle size={14} className="mt-0.5 shrink-0" />
-              <span>{alert}</span>
+      {expanded && (
+        <div className="border-t border-slate-200 px-4 pb-4 pt-4 dark:border-slate-800">
+          {loading && (
+            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+              <Sparkles size={16} className="animate-pulse text-kmuGreen" />
+              Generating AI dashboard insights...
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {insights.recommendations.length > 0 && (
-        <div className="mt-4">
-          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            <Lightbulb size={14} />
-            Recommendations
-          </div>
-          <ul className="space-y-2">
-            {insights.recommendations.map((item) => (
-              <li
-                key={item}
-                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
-              >
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+          {!loading && (error || !insights) && (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-200">
+              {error || 'AI insights are unavailable right now.'}
+            </p>
+          )}
 
-      {showPriorities && priorities.length > 0 && (
-        <div className="mt-4">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Top prioritized reports
-          </div>
-          <div className="space-y-2">
-            {priorities.slice(0, 5).map((item) => (
-              <Link
-                key={`${item.source}-${item.id}`}
-                href={item.source === 'student' ? '/inbox' : item.trackingCode ? `/anonymous-report?track=${encodeURIComponent(item.trackingCode)}` : '/anonymous-report'}
-                className="block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition hover:border-kmuGreen/30 dark:border-slate-800 dark:bg-slate-950"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{item.title}</p>
-                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${priorityTone[item.priority] || priorityTone.Medium}`}>
-                    {item.priority}
-                  </span>
+          {!loading && insights && (
+            <>
+              <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-200">
+                {insights.executiveSummary}
+              </p>
+
+              {insights.alerts.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {insights.alerts.map((alert) => (
+                    <div
+                      key={alert}
+                      className="flex items-start gap-2 rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-800 dark:border-orange-900/40 dark:bg-orange-950/30 dark:text-orange-200"
+                    >
+                      <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                      <span>{alert}</span>
+                    </div>
+                  ))}
                 </div>
-                <p className="mt-1 line-clamp-2 text-xs text-slate-600 dark:text-slate-300">{item.summary}</p>
-                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                  {item.trackingCode || 'No code'} • {item.category?.replace(/_/g, ' ') || 'Report'}
-                </p>
-              </Link>
-            ))}
-          </div>
+              )}
+
+              {insights.recommendations.length > 0 && (
+                <div className="mt-4">
+                  <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    <Lightbulb size={14} />
+                    Recommendations
+                  </div>
+                  <ul className="space-y-2">
+                    {insights.recommendations.map((item) => (
+                      <li
+                        key={item}
+                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {showPriorities && priorities.length > 0 && (
+                <div className="mt-4">
+                  <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Top prioritized reports
+                  </div>
+                  <div className="space-y-2">
+                    {priorities.slice(0, 5).map((item) => (
+                      <Link
+                        key={`${item.source}-${item.id}`}
+                        href={item.source === 'student' ? '/inbox' : item.trackingCode ? `/anonymous-report?track=${encodeURIComponent(item.trackingCode)}` : '/anonymous-report'}
+                        className="block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition hover:border-kmuGreen/30 dark:border-slate-800 dark:bg-slate-950"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{item.title}</p>
+                          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${priorityTone[item.priority] || priorityTone.Medium}`}>
+                            {item.priority}
+                          </span>
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-xs text-slate-600 dark:text-slate-300">{item.summary}</p>
+                        <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                          {item.trackingCode || 'No code'} • {item.category?.replace(/_/g, ' ') || 'Report'}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
     </article>

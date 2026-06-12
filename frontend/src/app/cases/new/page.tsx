@@ -1565,7 +1565,7 @@ export default function NewCasePage() {
           </div>
         </div>
 
-        <div className="w-full space-y-6 px-4 py-6 pb-28 md:px-8 md:py-8">
+        <div className="w-full space-y-6 px-3 py-6 pb-28 md:px-6 md:py-8">
           <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800 sm:p-8">
               <div className="mb-6">
                 <QuickCaseTemplates onTemplateSelect={handleTemplateSelect} className="w-full sm:w-auto" />

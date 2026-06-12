@@ -147,21 +147,23 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
 
     return (
         <section className="w-full">
-            <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl font-bold text-kmuGreen">Staff Details</h1>
-                <div className="flex gap-2">
-                    <Link 
-                        href={`/cases/new?staffId=${staff.staffId}`}
-                        className="bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition"
-                    >
-                        + New Case
-                    </Link>
-                    <Link 
-                        href="/staff"
-                        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
-                    >
-                        Back to Staff
-                    </Link>
+            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Staff Details</h1>
+                    <div className="flex flex-wrap gap-2">
+                        <Link
+                            href={`/cases/new?staffId=${staff.staffId}`}
+                            className="rounded-lg bg-kmuGreen px-4 py-2 text-sm text-white transition hover:bg-kmuOrange"
+                        >
+                            + New Case
+                        </Link>
+                        <Link
+                            href="/staff"
+                            className="rounded-lg bg-gray-500 px-4 py-2 text-sm text-white transition hover:bg-gray-600"
+                        >
+                            Back to Staff
+                        </Link>
+                    </div>
                 </div>
             </div>
 
@@ -180,7 +182,7 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {/* Staff Information */}
                 <div className="md:col-span-2">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
                         <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Staff Information</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
@@ -252,7 +254,7 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
                 
                 {/* Case Statistics */}
                 <div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
                         <h2 className="text-lg font-semibold mb-4 text-kmuOrange">Case Statistics</h2>
                         <div className="space-y-4">
                             <div className="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-gray-700">
@@ -286,7 +288,7 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
             </div>
             
             {/* Cases History */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-kmuOrange">Case History</h2>
                     {cases.length > 0 && (

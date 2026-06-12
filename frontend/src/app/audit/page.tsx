@@ -120,7 +120,7 @@ export default function AuditPage() {
 
   const safeLogs = Array.isArray(logs) ? logs : [];
   return (
-      <section>
+      <section className="w-full space-y-6">
         <div className="mb-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
@@ -134,36 +134,36 @@ export default function AuditPage() {
         </div>
         
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+          <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="text-2xl font-bold text-kmuGreen">{total}</div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Total Logs</div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="text-2xl font-bold text-blue-600">
               {stats.case_created || 0}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Cases Created</div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="text-2xl font-bold text-orange-600">
               {stats.status_change || 0}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Status Changes</div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="text-2xl font-bold text-red-600">
               {stats.case_deleted || 0}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Cases Deleted</div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="text-2xl font-bold text-purple-600">
               {stats.user_login || 0}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">User Logins</div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="w-full rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="text-2xl font-bold text-yellow-600">
               {stats.login_failed || 0}
             </div>
@@ -171,7 +171,7 @@ export default function AuditPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 mb-6">
+        <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
           <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1.8fr)_minmax(220px,0.9fr)_repeat(2,minmax(0,0.8fr))]">
             <input
               type="text"
