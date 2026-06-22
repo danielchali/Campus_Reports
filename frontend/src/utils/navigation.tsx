@@ -149,6 +149,17 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         label: "Dashboard",
         path: "/dean-of-students-dashboard",
       },
+      {
+        icon: navIcons.cases,
+        label: "Disciplinary",
+        path: "/cases",
+        children: [
+          { icon: navIcons.cases, label: "Discipline Cases", path: "/cases" },
+          { icon: navIcons.newcase, label: "New Case", path: "/cases/new" },
+          { icon: navIcons.evidence, label: "Evidence", path: "/evidence" },
+          { icon: navIcons.students, label: "Students", path: "/students" },
+        ],
+      },
       { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       {
         icon: navIcons.maintenanceIssues,
