@@ -177,7 +177,7 @@ export default function AnonymousReportPage() {
         </div>
       </header>
 
-      <div className="flex-1 w-full px-4 md:px-8 py-4 md:py-6 flex flex-col gap-4 md:gap-6">
+      <div className="relative z-10 flex-1 w-full px-4 md:px-8 py-4 md:py-6 flex flex-col gap-4 md:gap-6">
 
         {/* Page Title — compact two-line hero */}
         <div className="shrink-0">
