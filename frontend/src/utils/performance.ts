@@ -284,6 +284,7 @@ export function addResourceHints(): void {
   
   // Preload critical resources
   preloadResource('/kmu_logo.svg', 'image');
+  preloadResource('/kmu_campus.png', 'image');
   preloadResource('/manifest.json', 'fetch');
 }
 
