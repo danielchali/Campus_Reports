@@ -1,12 +1,12 @@
 export default function CampusBackground() {
   return (
-    <div className="hidden md:block absolute inset-0 -z-10 pointer-events-none" aria-hidden>
+    <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden" aria-hidden>
       <img
         src="/kmu_campus.png"
         alt=""
-        className="absolute inset-0 w-full h-full object-cover object-center opacity-[0.18] dark:opacity-[0.14]"
+        className="absolute inset-0 h-full w-full object-cover object-center opacity-35 dark:opacity-25"
       />
-      <div className="absolute inset-0 bg-slate-100/70 dark:bg-slate-950/75" />
+      <div className="absolute inset-0 bg-slate-100/45 dark:bg-slate-950/55" />
     </div>
   );
 }
