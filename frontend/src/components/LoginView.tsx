@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { performanceMonitor, addResourceHints } from '../utils/performance';
+import CampusBackground from './CampusBackground';
 import {
   User,
   Lock,
@@ -177,15 +178,7 @@ export default function LoginView() {
   return (
     <div className="h-screen relative overflow-hidden flex flex-col md:flex-row bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200 md:bg-transparent">
 
-      {/* Desktop campus background */}
-      <div className="hidden md:block absolute inset-0 z-0 pointer-events-none" aria-hidden>
-        <img
-          src="/kmu_campus.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-[0.18] dark:opacity-[0.14]"
-        />
-        <div className="absolute inset-0 bg-slate-100/70 dark:bg-slate-950/75" />
-      </div>
+      <CampusBackground />
 
       {/* Left Column - Desktop & Tablet (hidden on small mobile) */}
       <div className="hidden sm:flex md:relative md:w-[55%] lg:w-[60%] flex-col justify-between p-8 lg:p-12 h-full overflow-hidden">

@@ -23,6 +23,7 @@ import { subscribeGuidedApply } from '../../utils/guidedReportBridge';
 import { applyGuidedFieldsToAnonymousReport } from '../../utils/applyGuidedReportFields';
 import { getTodayDateInputValue } from '../../utils/dateTimeDefaults';
 import { buildDefaultDetailValues, getCategoryById } from '../../utils/formSchemas';
+import CampusBackground from '../../components/CampusBackground';
 
 type Category = 'disciplinary_case' | 'maintenance_issue' | 'other';
 
@@ -160,7 +161,8 @@ export default function AnonymousReportPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100 dark:bg-slate-950">
+    <div className="relative min-h-screen flex flex-col bg-slate-100 dark:bg-slate-950 md:bg-transparent">
+      <CampusBackground />
       {/* Header */}
       <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
         <div className="w-full px-4 md:px-8 py-3 flex items-center justify-between">

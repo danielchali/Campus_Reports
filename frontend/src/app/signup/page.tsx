@@ -8,6 +8,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import { getAvailableYearsForProgram, PROGRAM_OPTIONS } from '../../config/constants';
 import { registerGeneralUser, registerStudent } from '../../utils/api';
+import CampusBackground from '../../components/CampusBackground';
 
 type AccountType = 'student' | 'general_user' | null;
 
@@ -289,8 +290,9 @@ export default function StudentSignupPage() {
   };
 
   return (
-    <div className={`min-h-screen px-4 py-6 md:py-12 ${theme === 'dark' ? 'bg-slate-950' : 'bg-slate-100'}`}>
-      <div className="mx-auto max-w-4xl">
+    <div className="relative min-h-screen px-4 py-6 md:py-12 bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200 md:bg-transparent">
+      <CampusBackground />
+      <div className="relative z-10 mx-auto max-w-4xl">
         <div className="mb-8 md:mb-12 flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 justify-center md:justify-start">
             <Link href="/login" className="inline-flex items-center gap-2 text-kmuGreen font-semibold hover:underline">
