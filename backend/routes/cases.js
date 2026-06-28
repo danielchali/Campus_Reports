@@ -7,7 +7,7 @@ import { kmuLogoParagraph, signatureParagraphs } from '../utils/docxExport.js';
 import { buildCalloutsFromCase, createCalloutDocBuffer } from '../utils/calloutDocx.js';
 const router = express.Router();
 
-router.use(authenticate, authorize(['admin', 'academic_office', 'security_officer']));
+router.use(authenticate, authorize(['admin', 'academic_office', 'security_officer', 'dean_of_students', 'assistant_dean']));
 
 router.get('/', listCases);
 router.post('/', createCase);

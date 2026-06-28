@@ -19,7 +19,7 @@ router.use(authenticate);
 const ROLE_ACCESS = {
     students: ['admin', 'academic_office', 'security_officer'],
     staff: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'maintenance'],
-    cases: ['admin', 'academic_office', 'security_officer'],
+    cases: ['admin', 'academic_office', 'security_officer', 'dean_of_students', 'assistant_dean'],
     studentReports: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance'],
     ownReports: ['student', 'general_user'],
     anonymousReports: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance'],

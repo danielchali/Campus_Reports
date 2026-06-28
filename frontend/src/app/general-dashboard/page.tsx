@@ -19,7 +19,6 @@ import { useAuth } from '../../context/AuthContext';
 import { PageSkeleton } from '../../components/PageSkeleton';
 import { StatCard, StatsStrip } from '../../components/StatsStrip';
 import { getStudentReportsForUser, type StudentReport } from '../../utils/studentReports';
-import { getDisplayFirstName } from '../../utils/userDisplay';
 import { useDashboardRealtime } from '../../hooks/useDashboardRealtime';
 
 const categoryLabels = {
@@ -113,19 +112,6 @@ export default function GeneralDashboardPage() {
 
   return (
     <div className="w-full space-y-4 xl:space-y-5">
-      <section>
-        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-              Welcome back, {getDisplayFirstName(user.name, user.username, 'User')}
-            </h1>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Submit campus issues, request maintenance, and track your reports.
-          </p>
-        </div>
-      </section>
-
       <StatsStrip desktopColumnsClass="xl:grid-cols-5">
         {[
           { label: 'My Reports', value: summary.total, helper: 'Total submitted items', icon: ClipboardList, tone: 'text-rose-700 bg-rose-50 dark:bg-rose-900/20 dark:text-rose-300' },
