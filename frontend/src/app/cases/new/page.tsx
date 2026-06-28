@@ -1543,7 +1543,7 @@ export default function NewCasePage() {
 
   return (
     <ProtectedRoute>
-      <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-100 dark:bg-slate-950 print:static print:z-auto print:overflow-visible print:bg-white">
+      <div className="min-h-screen bg-slate-100 dark:bg-slate-950 print:bg-white">
         <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 print:hidden">
           <div className="flex w-full items-center justify-between gap-3 px-4 py-3 md:px-8">
             <div className="min-w-0">

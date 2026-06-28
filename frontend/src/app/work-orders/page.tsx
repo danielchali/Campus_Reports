@@ -165,44 +165,52 @@ export default function WorkOrdersPage() {
 
   return (
     <>
-      <section className="w-full space-y-6">
-        <div className="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="flex items-center gap-3 text-kmuGreen">
-                <ClipboardList size={28} />
-                <h1 className="text-3xl font-bold">Work Orders</h1>
+      {activeWorkOrder ? (
+        <WorkOrderJobCardModal
+          workOrder={activeWorkOrder}
+          userRole={user.role}
+          onClose={() => setActiveWorkOrderId(null)}
+          onSaved={handleJobCardSaved}
+        />
+      ) : (
+        <section className="w-full space-y-6">
+          <div className="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="flex items-center gap-3 text-kmuGreen">
+                  <ClipboardList size={28} />
+                  <h1 className="text-3xl font-bold">Work Orders</h1>
+                </div>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">
+                  Open a full-screen job card to complete each section, sign by
+                  role, and save progress.
+                </p>
               </div>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">
-                Open a full-screen job card to complete each section, sign by
-                role, and save progress.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <button
-                type="button"
-                onClick={() => setShowManualForm((current) => !current)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-kmuGreen px-4 py-3 text-sm font-semibold text-white transition hover:bg-kmuOrange"
-              >
-                <PlusCircle size={18} />
-                {showManualForm ? "Cancel New Work Order" : "New Work Order"}
-              </button>
-              <Link
-                href="/maintenance-issues"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-kmuGreen px-4 py-3 text-sm font-semibold text-kmuGreen transition hover:bg-kmuGreen/10"
-              >
-                <Wrench size={18} />
-                Maintenance Issues
-              </Link>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => setShowManualForm((current) => !current)}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-kmuGreen px-4 py-3 text-sm font-semibold text-white transition hover:bg-kmuOrange"
+                >
+                  <PlusCircle size={18} />
+                  {showManualForm ? "Cancel New Work Order" : "New Work Order"}
+                </button>
+                <Link
+                  href="/maintenance-issues"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-kmuGreen px-4 py-3 text-sm font-semibold text-kmuGreen transition hover:bg-kmuGreen/10"
+                >
+                  <Wrench size={18} />
+                  Maintenance Issues
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
 
-        {showManualForm && (
-          <form
-            onSubmit={handleCreateManualWorkOrder}
-            className="rounded-2xl bg-white p-5 shadow dark:bg-gray-800"
-          >
+          {showManualForm && (
+            <form
+              onSubmit={handleCreateManualWorkOrder}
+              className="rounded-2xl bg-white p-5 shadow dark:bg-gray-800"
+            >
             <div className="mb-4">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Create work order without a submitted report
@@ -272,8 +280,8 @@ export default function WorkOrdersPage() {
                 {creatingManual ? "Creating..." : "Create Work Order"}
               </button>
             </div>
-          </form>
-        )}
+            </form>
+          )}
 
         <StatsStrip desktopColumnsClass="md:grid-cols-4">
           <SummaryCard
@@ -418,16 +426,8 @@ export default function WorkOrdersPage() {
             ))}
           </div>
         )}
-      </section>
-
-      {activeWorkOrder ? (
-        <WorkOrderJobCardModal
-          workOrder={activeWorkOrder}
-          userRole={user.role}
-          onClose={() => setActiveWorkOrderId(null)}
-          onSaved={handleJobCardSaved}
-        />
-      ) : null}
+        </section>
+      )}
 
       {notification?.isVisible && (
         <Notification

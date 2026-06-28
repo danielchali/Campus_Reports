@@ -6,8 +6,6 @@ export default function AdminPage() {
   return (
     <ManagementDashboard
       role="admin"
-      title="Admin Dashboard"
-      subtitle="Monitor case activity, review operational load, and move into the main management tools from one place."
       focusLabel="Recent Campus Reports"
       focusEmpty="No recent incident or maintenance reports are available."
       metricKeys={['totalCampusReports', 'resolvedReports', 'pendingReviewReports', 'openReports']}

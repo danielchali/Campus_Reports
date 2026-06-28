@@ -71,8 +71,6 @@ type DatasetKey = 'cases' | 'anonymousReports';
 
 type DashboardConfig = {
   role: SupportedRole;
-  title: string;
-  subtitle: string;
   focusLabel: string;
   focusEmpty: string;
   metricKeys: MetricKey[];
@@ -242,8 +240,6 @@ function getRoleResources(role: SupportedRole) {
 
 export default function ManagementDashboard({
   role,
-  title,
-  subtitle,
   focusLabel,
   focusEmpty,
   metricKeys,
@@ -262,12 +258,10 @@ export default function ManagementDashboard({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
-  const [liveUpdatedAt, setLiveUpdatedAt] = useState<string | null>(null);
   const [activityDays, setActivityDays] = useState(7);
 
   const handleRealtimeRefresh = useCallback(() => {
     setRefreshToken((current) => current + 1);
-    setLiveUpdatedAt(new Date().toLocaleTimeString());
   }, []);
 
   useDashboardRealtime(handleRealtimeRefresh, Boolean(token), [
@@ -585,23 +579,6 @@ export default function ManagementDashboard({
 
   return (
     <div className="w-full space-y-4 xl:space-y-5">
-      <section className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
-              <Shield size={18} />
-            </div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h1>
-          </div>
-          <div className="flex flex-col items-start gap-1 md:items-end">
-            <p className="text-xs text-slate-500 dark:text-slate-400">{subtitle}</p>
-            {liveUpdatedAt && (
-              <p className="text-[11px] font-medium text-kmuGreen">Live update at {liveUpdatedAt}</p>
-            )}
-          </div>
-        </div>
-      </section>
-
       <DashboardAIInsights refreshToken={refreshToken} />
 
       {error && (

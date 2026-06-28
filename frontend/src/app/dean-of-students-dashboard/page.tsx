@@ -6,8 +6,6 @@ export default function DeanOfStudentsDashboard() {
   return (
     <ManagementDashboard
       role="dean_of_students"
-      title="Dean of Students Dashboard"
-      subtitle="Review anonymous report flow, keep statement work visible, and stay within the endpoints available to this role."
       focusLabel="Recent Campus Reports"
       focusEmpty="No recent incident or maintenance reports are available."
       metricKeys={['totalReports', 'openReports', 'pendingStatements', 'submittedStatements', 'totalStaff']}
