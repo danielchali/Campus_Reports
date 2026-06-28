@@ -1,6 +1,6 @@
 /**
  * Default modular reporting form schemas.
- * Institutions can override via admin form-settings or PUT /api/v1/form-schemas.
+ * Institutions can override via admin system settings or PUT /api/v1/form-schemas.
  */
 
 export const DEFAULT_INSTITUTION_CONFIG = {

@@ -13,7 +13,7 @@ export default function AdminPage() {
       quickActions={[
         { href: '/cases/new', label: 'Create New Case' },
         { href: '/admin/users', label: 'Manage Users' },
-        { href: '/admin/form-settings', label: 'Form & Portal Settings' },
+        { href: '/admin/system-settings', label: 'System Settings' },
         { href: '/students', label: 'View Students' },
         { href: '/inbox', label: 'Open Inbox' },
       ]}

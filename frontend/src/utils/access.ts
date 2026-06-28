@@ -65,6 +65,7 @@ export const PAGE_ACCESS = {
   makeReport: ["student", "general_user"],
   myReports: ["student", "general_user"],
   formSettings: ["admin"],
+  systemSettings: ["admin"],
   studentDashboard: ["student"],
   generalDashboard: ["general_user"],
 } as const;

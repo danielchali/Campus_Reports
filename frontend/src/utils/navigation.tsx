@@ -58,7 +58,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
     return [
       { icon: navIcons.admin, label: "Dashboard", path: "/admin" },
       { icon: navIcons.users, label: "Manage Users", path: "/admin/users" },
-      { icon: navIcons.workOrders, label: "Form & Portal Settings", path: "/admin/form-settings" },
+      { icon: navIcons.workOrders, label: "System Settings", path: "/admin/system-settings" },
       {
         icon: navIcons.cases,
         label: "Disciplinary",
@@ -365,6 +365,7 @@ export function splitNavLinksForMobile(navLinks: NavLink[]) {
 
   const settingsLabels = [
     "Manage Users",
+    "System Settings",
     "Audit/Logs",
     "Help",
     "Admin Panel",

@@ -14,6 +14,8 @@ type Crumb = {
 const SEGMENT_LABELS: Record<string, string> = {
   admin: "Admin",
   users: "Manage Users",
+  "system-settings": "System Settings",
+  "form-settings": "Form & Portal Settings",
   cases: "Discipline Cases",
   new: "New Case",
   inbox: "Inbox",
