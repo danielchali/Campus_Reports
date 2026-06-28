@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { AlertTriangle, CheckCircle2, Ghost, Loader2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Ghost, Loader2 } from '@/components/icons';
 import SchemaCategoryPicker from '../../../components/reporting/SchemaCategoryPicker';
 import SchemaFormFields from '../../../components/reporting/SchemaFormFields';
 import { API_BASE_URL } from '../../../config/constants';

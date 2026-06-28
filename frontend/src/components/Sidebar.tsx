@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronRight } from '@/components/icons';
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
 import { getNavLinksForRole, splitNavLinksForMobile, type NavLink } from '../utils/navigation';
@@ -16,19 +16,29 @@ export default function Sidebar() {
   const [isResizing, setIsResizing] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
-  const { sidebarWidth, setSidebarWidth, isOpenMobile, setIsOpenMobile } = useSidebar();
+  const {
+    sidebarWidth,
+    setSidebarWidth,
+    isCollapsedDesktop,
+    setIsCollapsedDesktop,
+    isOpenMobile,
+    setIsOpenMobile,
+  } = useSidebar();
   const { user } = useAuth();
   const pathname = usePathname();
 
   const allNavLinks = getNavLinksForRole(user?.role);
   const { bottomNav, sidebarNav } = splitNavLinksForMobile(allNavLinks);
+  const isCollapsed = isDesktop && isCollapsedDesktop;
 
-  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl transition-transform duration-300 ease-in-out ${
+  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl transition-[transform,width] duration-300 ease-in-out ${
     isOpenMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0 md:w-auto'
   }`;
 
   const linkBase =
-    'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100';
+    `flex items-center rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 ${
+      isCollapsed ? 'justify-center gap-0' : 'gap-3'
+    }`;
   const linkActive =
     'bg-slate-100 dark:bg-slate-800 text-kmuGreen dark:text-emerald-400 shadow-sm';
   const childLinkBase =
@@ -64,10 +74,12 @@ export default function Sidebar() {
         key={link.path}
         href={link.path}
         onClick={() => setIsOpenMobile(false)}
+        title={isCollapsed ? link.label : undefined}
+        aria-label={isCollapsed ? link.label : undefined}
         className={`${linkBase} ${extraClasses} ${isActive ? linkActive : ''} ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
       >
         {renderIcon(Icon, isActive)}
-        <span>{link.label}</span>
+        {!isCollapsed && <span>{link.label}</span>}
       </Link>
     );
   };
@@ -80,6 +92,10 @@ export default function Sidebar() {
     const Icon = link.icon;
     const groupIsActive = isGroupActive(link);
     const isOpen = openGroups[link.label] ?? groupIsActive;
+
+    if (isCollapsed) {
+      return renderNavLink(link, extraClasses);
+    }
 
     return (
       <div key={link.label} className={extraClasses}>
@@ -129,7 +145,7 @@ export default function Sidebar() {
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    if (!isResizing) {
+    if (!isResizing || isCollapsedDesktop) {
       return;
     }
 
@@ -189,14 +205,14 @@ export default function Sidebar() {
         className={sidebarBase}
         style={{ width: isDesktop ? `${sidebarWidth}px` : MOBILE_SIDEBAR_WIDTH }}
       >
-        <div className="px-5 pb-4 pt-6">
+        <div className={`px-5 pb-4 pt-6 ${isCollapsed ? 'px-3' : ''}`}>
           <div className="flex items-center justify-center">
             <img
               src="/kmu_logo.svg"
               alt="KMU Logo"
               width={80}
               height={80}
-              className="h-20 w-20 object-contain"
+              className={`${isCollapsed ? 'h-11 w-11' : 'h-20 w-20'} object-contain`}
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
                 const fallback = document.createElement('div');
@@ -206,6 +222,18 @@ export default function Sidebar() {
               }}
             />
           </div>
+        </div>
+        <div className="hidden px-3 pb-2 md:block">
+          <button
+            type="button"
+            onClick={() => setIsCollapsedDesktop(!isCollapsedDesktop)}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800"
+            aria-label={isCollapsedDesktop ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={isCollapsedDesktop ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsedDesktop ? <ChevronRight size={16} /> : <ChevronDown size={16} className="rotate-90" />}
+            {!isCollapsed && <span>Collapse</span>}
+          </button>
         </div>
         <nav className="sidebar-scroll mt-4 flex flex-1 flex-col gap-1 overflow-y-auto px-3 pb-6">
           {bottomNav.filter((link) => !link.mobileOnly).map((link) => {
@@ -218,7 +246,7 @@ export default function Sidebar() {
           })}
         </nav>
         <div
-          className="absolute bottom-0 right-0 top-0 hidden w-1 cursor-col-resize bg-slate-200/50 dark:bg-slate-800/50 hover:bg-kmuGreen/30 md:block"
+          className={`absolute bottom-0 right-0 top-0 hidden w-1 cursor-col-resize bg-slate-200/50 dark:bg-slate-800/50 hover:bg-kmuGreen/30 md:block ${isCollapsed ? 'md:hidden' : ''}`}
           onMouseDown={handleMouseDown}
           title="Drag to resize sidebar"
         />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Pencil } from "lucide-react";
+import { Check, Pencil } from "@/components/icons";
 import type SignaturePad from "signature_pad";
 import { isSignatureDataUrl } from "../utils/signatures";
 

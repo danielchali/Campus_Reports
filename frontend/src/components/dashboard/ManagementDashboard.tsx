@@ -27,7 +27,7 @@ import {
   GraduationCap,
   Shield,
   Users,
-} from 'lucide-react';
+} from '@/components/icons';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/constants';
 import { authHeaders } from '../../utils/api';

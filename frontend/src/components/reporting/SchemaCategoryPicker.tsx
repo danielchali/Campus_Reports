@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, Megaphone, ShieldAlert, Wrench } from 'lucide-react';
+import { AlertTriangle, Megaphone, ShieldAlert, Wrench } from '@/components/icons';
 import type { FormCategorySchema } from '../../types/formSchema';
 
 const ICONS = {

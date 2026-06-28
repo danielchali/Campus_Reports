@@ -2,7 +2,7 @@
 
 import { FormEvent, PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { Bot, Sparkles, MessageCircle, Send, Wand2, X } from 'lucide-react';
+import { Bot, Sparkles, MessageCircle, Send, Wand2, X } from '@/components/icons';
 import { useAuth } from '../context/AuthContext';
 import { useGuidedReporting } from '../hooks/useGuidedReporting';
 import { streamChatWithAssistant } from '../utils/api';

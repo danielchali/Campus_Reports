@@ -1,6 +1,6 @@
 "use client";
 
-import { FilePenLine, LifeBuoy, ShieldCheck, Wrench } from 'lucide-react';
+import { FilePenLine, LifeBuoy, ShieldCheck, Wrench } from '@/components/icons';
 import { useAuth } from '../../context/AuthContext';
 
 export default function HelpPage() {

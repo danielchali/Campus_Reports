@@ -14,7 +14,7 @@ import {
   Shield,
   UserRound,
   Users,
-} from 'lucide-react';
+} from '@/components/icons';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL, OFFENSE_TYPES, SEVERITY_LEVELS } from '../../config/constants';
 import { authHeaders } from '../../utils/api';

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from '../../context/AuthContext';
-import { FileText } from 'lucide-react';
+import { FileText } from '@/components/icons';
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { API_BASE_URL, SOCKET_BASE_URL } from '../../config/constants';

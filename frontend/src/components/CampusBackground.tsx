@@ -6,7 +6,8 @@ export default function CampusBackground() {
         alt=""
         className="absolute inset-0 h-full w-full object-cover object-center opacity-35 dark:opacity-25"
       />
-      <div className="absolute inset-0 bg-slate-100/45 dark:bg-slate-950/55" />
+      <div className="absolute inset-0 bg-white/70 dark:hidden" />
+      <div className="absolute inset-0 hidden bg-slate-950/55 dark:block" />
     </div>
   );
 }

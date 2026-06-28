@@ -9,7 +9,7 @@ import {
   FileStack,
   Paperclip,
   Search,
-} from "lucide-react";
+} from "@/components/icons";
 import { useAuth } from "../../context/AuthContext";
 import { PageSkeleton, InlineSkeleton } from "../../components/PageSkeleton";
 import {

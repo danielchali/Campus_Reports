@@ -12,7 +12,7 @@ import {
   Paperclip,
   ShieldAlert,
   Wrench,
-} from "lucide-react";
+} from "@/components/icons";
 import { useAuth } from "../../context/AuthContext";
 import Notification, { useNotification } from "../../components/Notification";
 import { canAccessPage } from "../../utils/access";

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, Bot, ChevronDown, ChevronUp, Lightbulb, Sparkles } from 'lucide-react';
+import { AlertTriangle, Bot, ChevronDown, ChevronUp, Lightbulb, Sparkles } from '@/components/icons';
 import { getDashboardInsights, type DashboardInsights } from '../../utils/api';
 
 const priorityTone: Record<string, string> = {

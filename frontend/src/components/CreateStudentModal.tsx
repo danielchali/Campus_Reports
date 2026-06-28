@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from 'react';
-import { X, AlertCircle, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { X, AlertCircle, CheckCircle2, ArrowLeft, ArrowRight } from '@/components/icons';
 import { getAvailableYearsForProgram, PROGRAM_OPTIONS } from '../config/constants';
 import { registerStudent } from '../utils/api';
 

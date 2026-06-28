@@ -14,7 +14,7 @@ import {
   ChevronRight,
   Lock,
   AlertTriangle,
-} from 'lucide-react';
+} from '@/components/icons';
 import { API_BASE_URL } from '../../config/constants';
 import SchemaCategoryPicker from '../../components/reporting/SchemaCategoryPicker';
 import SchemaFormFields from '../../components/reporting/SchemaFormFields';

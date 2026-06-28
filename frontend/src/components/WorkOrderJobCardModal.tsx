@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { FileDown, Save, X } from "lucide-react";
+import { FileDown, Save, X } from "@/components/icons";
 import SignatureField from "./SignatureField";
 import {
   canEditWorkOrderPart,

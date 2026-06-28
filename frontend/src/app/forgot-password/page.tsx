@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Mail, ArrowLeft, Loader2, KeyRound } from 'lucide-react';
+import { Mail, ArrowLeft, Loader2, KeyRound } from '@/components/icons';
 import Link from 'next/link';
 import { useTheme } from '../../context/ThemeContext';
 import { API_URL } from '../../config/constants';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Copy, Loader2, Save, Settings2 } from 'lucide-react';
+import { Copy, Loader2, Save, Settings2 } from '@/components/icons';
 import RoleProtectedRoute from '../../(protected)/RoleProtectedRoute';
 import { useAuth } from '../../../context/AuthContext';
 import { PageSkeleton } from '../../../components/PageSkeleton';

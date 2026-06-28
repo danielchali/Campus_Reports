@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Bell, Check, BellRing, FileText } from 'lucide-react';
+import { Bell, Check, BellRing, FileText } from '@/components/icons';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '../config/constants';

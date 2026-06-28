@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { User, LogOut, Settings } from 'lucide-react';
+import { User, LogOut, Settings } from '@/components/icons';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { getDisplayFullName } from '../utils/userDisplay';

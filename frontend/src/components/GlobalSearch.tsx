@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "@/components/icons";
 import {
   Briefcase,
   ClipboardList,
@@ -12,7 +12,7 @@ import {
   Shield,
   User,
   UserCog,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { API_URL } from "../config/constants";
 import { useAuth } from "../context/AuthContext";

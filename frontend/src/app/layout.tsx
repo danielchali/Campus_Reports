@@ -5,7 +5,7 @@ import { useEffect, useState, Suspense, lazy } from 'react';
 
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
-import { Menu, Moon, Sun } from 'lucide-react';
+import { Menu, Moon, Sun } from '@/components/icons';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { ThemeProvider, useTheme } from '../context/ThemeContext';
 import { SyncProvider } from '../context/SyncContext';

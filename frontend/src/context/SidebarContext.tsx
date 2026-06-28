@@ -3,10 +3,13 @@
 import { createContext, useContext, useState } from 'react';
 
 const DEFAULT_SIDEBAR_WIDTH = 224;
+const COLLAPSED_SIDEBAR_WIDTH = 76;
 
 interface SidebarContextType {
   sidebarWidth: number;
   setSidebarWidth: (width: number) => void;
+  isCollapsedDesktop: boolean;
+  setIsCollapsedDesktop: (isCollapsed: boolean) => void;
   isOpenMobile: boolean;
   setIsOpenMobile: (isOpen: boolean) => void;
 }
@@ -14,16 +17,28 @@ interface SidebarContextType {
 const SidebarContext = createContext<SidebarContextType>({
   sidebarWidth: DEFAULT_SIDEBAR_WIDTH,
   setSidebarWidth: () => {},
+  isCollapsedDesktop: false,
+  setIsCollapsedDesktop: () => {},
   isOpenMobile: false,
   setIsOpenMobile: () => {},
 });
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
+  const [isCollapsedDesktop, setIsCollapsedDesktop] = useState(false);
   const [isOpenMobile, setIsOpenMobile] = useState(false);
 
   return (
-    <SidebarContext.Provider value={{ sidebarWidth, setSidebarWidth, isOpenMobile, setIsOpenMobile }}>
+    <SidebarContext.Provider
+      value={{
+        sidebarWidth: isCollapsedDesktop ? COLLAPSED_SIDEBAR_WIDTH : sidebarWidth,
+        setSidebarWidth,
+        isCollapsedDesktop,
+        setIsCollapsedDesktop,
+        isOpenMobile,
+        setIsOpenMobile,
+      }}
+    >
       {children}
     </SidebarContext.Provider>
   );

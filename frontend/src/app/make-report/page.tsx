@@ -11,7 +11,7 @@ import {
   ShieldAlert,
   Wrench,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import { useAuth } from "../../context/AuthContext";
 import { PageSkeleton } from "../../components/PageSkeleton";
 import { getProfile } from "../../utils/api";

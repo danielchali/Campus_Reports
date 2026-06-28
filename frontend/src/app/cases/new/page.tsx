@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { X } from "@/components/icons";
 import { useAuth } from "../../../context/AuthContext";
 import ProtectedRoute from "../../(protected)/ProtectedRoute";
 import { API_BASE_URL, OFFENSE_TYPES, SEVERITY_LEVELS } from "../../../config/constants";
