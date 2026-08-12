@@ -97,6 +97,8 @@ const categoryOptions: Array<{
   },
 ];
 
+const MAX_ATTACHMENT_FILES = 3;
+const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024;
 export default function MakeReportPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -223,7 +225,26 @@ export default function MakeReportPage() {
 
   function addAttachments(files: FileList | null) {
     if (!files) return;
-    const nextFiles = [...attachments, ...Array.from(files)].slice(0, 5);
+    const validFiles = Array.from(files).filter((file) => {
+      if (file.size <= MAX_ATTACHMENT_SIZE_BYTES) {
+        return true;
+      }
+
+      showNotification(
+        "error",
+        `${file.name} is larger than the 5 MB attachment limit.`,
+      );
+      return false;
+    });
+    const nextFiles = [...attachments, ...validFiles].slice(
+      0,
+      MAX_ATTACHMENT_FILES,
+    );
+
+    if (attachments.length + validFiles.length > MAX_ATTACHMENT_FILES) {
+      showNotification("error", "You can upload up to 3 evidence files.");
+    }
+
     setAttachments(nextFiles);
   }
 
@@ -721,7 +742,7 @@ export default function MakeReportPage() {
               </h3>
               <p className="mt-1 text-xs md:text-sm text-gray-600 dark:text-gray-400">
                 Attach photos, videos, PDFs, screenshots, or other files that
-                help explain the report. You can upload up to 5 files, 10 MB
+                help explain the report. You can upload up to 3 files, 5 MB
                 each.
               </p>
             </div>

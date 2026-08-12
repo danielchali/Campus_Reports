@@ -5,6 +5,13 @@ const studentReportAttachmentSchema = new mongoose.Schema({
   filename: { type: String, required: true },
   mimeType: { type: String, default: "" },
   size: { type: Number, default: 0 },
+  storageProvider: {
+    type: String,
+    enum: ["vercel_blob", "filesystem"],
+    default: "filesystem",
+  },
+  storageUrl: { type: String, default: "" },
+  storagePath: { type: String, default: "" },
   uploadedAt: { type: Date, default: Date.now },
 });
 

@@ -22,28 +22,63 @@ import { redactStudentReportForViewer } from "../utils/reportRedaction.js";
 const router = express.Router();
 const REPORT_ATTACHMENT_DIR = getUploadDirectory("student-reports");
 const REPORT_CATEGORIES = ["disciplinary_case", "maintenance_issue"];
+const MAX_ATTACHMENT_FILES = 3;
+const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024;
 const CATEGORY_LABELS = {
   disciplinary_case: "Disciplinary Case",
   maintenance_issue: "Maintenance Issue",
 };
 
+function buildAttachmentFilename(file) {
+  const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+  const safeOriginalName = file.originalname.replace(
+    /[^a-zA-Z0-9._-]/g,
+    "_",
+  );
+  return `${uniqueSuffix}-${safeOriginalName}`;
+}
+
+async function storeAttachmentFile(file) {
+  if (!file.buffer) {
+    return {
+      filename: file.filename,
+      storageProvider: "filesystem",
+      storageUrl: "",
+      storagePath: "",
+    };
+  }
+
+  const filename = buildAttachmentFilename(file);
+
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new Error(
+      "BLOB_READ_WRITE_TOKEN is required to store report attachments",
+    );
+  }
+
+  const { put } = await import("@vercel/blob");
+  const pathname = `student-reports/${filename}`;
+  const blob = await put(pathname, file.buffer, {
+    access: "public",
+    contentType: file.mimetype,
+  });
+
+  return {
+    filename,
+    storageProvider: "vercel_blob",
+    storageUrl: blob.url,
+    storagePath: blob.pathname || pathname,
+  };
+}
+
+// Store uploads in memory for the current request, then persist the bytes to
+// Vercel Blob before the report is created. This avoids using MongoDB Atlas
+// quota for images and avoids relying on Vercel's ephemeral filesystem.
 const attachmentUpload = multer({
-  storage: multer.diskStorage({
-    destination: function (_req, _file, cb) {
-      cb(null, REPORT_ATTACHMENT_DIR);
-    },
-    filename: function (_req, file, cb) {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      const safeOriginalName = file.originalname.replace(
-        /[^a-zA-Z0-9._-]/g,
-        "_",
-      );
-      cb(null, `${uniqueSuffix}-${safeOriginalName}`);
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024,
-    files: 5,
+    fileSize: MAX_ATTACHMENT_SIZE_BYTES,
+    files: MAX_ATTACHMENT_FILES,
   },
 });
 
@@ -169,14 +204,23 @@ function parseDetails(rawDetails) {
   }
 }
 
-function mapUploadedFiles(files = []) {
-  return files.map((file) => ({
-    originalName: file.originalname,
-    filename: file.filename,
-    mimeType: file.mimetype,
-    size: file.size,
-    uploadedAt: new Date(),
-  }));
+async function mapUploadedFiles(files = []) {
+  return Promise.all(
+    files.map(async (file) => {
+      const storedFile = await storeAttachmentFile(file);
+      return {
+        originalName: file.originalname,
+        filename:
+          storedFile.filename || file.filename || buildAttachmentFilename(file),
+        storageProvider: storedFile.storageProvider,
+        storageUrl: storedFile.storageUrl,
+        storagePath: storedFile.storagePath,
+        mimeType: file.mimetype,
+        size: file.size,
+        uploadedAt: new Date(),
+      };
+    }),
+  );
 }
 
 function addSearchToScope(scopeQuery, search) {
@@ -202,7 +246,7 @@ router.post(
   "/",
   authenticate,
   authorize(["student", "general_user"]),
-  attachmentUpload.array("attachments", 5),
+  attachmentUpload.array("attachments", MAX_ATTACHMENT_FILES),
   async (req, res) => {
     try {
       const {
@@ -241,7 +285,7 @@ router.post(
         category,
         anonymous: anonymous === true || anonymous === "true",
         details,
-        attachments: mapUploadedFiles(req.files),
+        attachments: await mapUploadedFiles(req.files),
         location: location.trim(),
         incident_date: incidentDate,
         status: "Submitted",
@@ -445,6 +489,27 @@ router.get(
       const attachment = report.attachments.id(req.params.attachmentId);
       if (!attachment) {
         return res.status(404).json({ error: "Attachment not found" });
+      }
+
+      if (attachment.storageProvider === "vercel_blob" && attachment.storageUrl) {
+        const blobResponse = await fetch(attachment.storageUrl);
+        if (!blobResponse.ok || !blobResponse.body) {
+          return res.status(404).json({ error: "File not found" });
+        }
+
+        res.setHeader(
+          "Content-Type",
+          attachment.mimeType ||
+            blobResponse.headers.get("content-type") ||
+            "application/octet-stream",
+        );
+        res.setHeader(
+          "Content-Disposition",
+          `attachment; filename*=UTF-8''${encodeURIComponent(attachment.originalName)}`,
+        );
+
+        const buffer = Buffer.from(await blobResponse.arrayBuffer());
+        return res.send(buffer);
       }
 
       const filePath = path.join(REPORT_ATTACHMENT_DIR, attachment.filename);
