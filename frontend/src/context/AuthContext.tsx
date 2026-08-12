@@ -182,6 +182,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const hashOfflinePassword = async (username: string, password: string): Promise<string> => {
+    const payload = `${username.trim().toLowerCase()}:${password}`;
+    const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload));
+    return Array.from(new Uint8Array(digest))
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('');
+  };
+
   const refreshUserProfile = async (): Promise<void> => {
     if (!token || token === 'offline_token' || !user) return;
 
@@ -224,9 +232,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('auth_user', JSON.stringify(data.user));
       
       // Store encrypted offline data for offline login
+      const passwordHash = await hashOfflinePassword(username, password);
       const offlineData = encryptData(JSON.stringify({
         username,
-        password,
+        passwordHash,
         user: data.user,
         timestamp: Date.now()
       }));
@@ -272,7 +281,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const offlineData = JSON.parse(decryptedData);
       
       // Check if stored credentials match
-      if (offlineData.username === username && offlineData.password === password) {
+      const passwordHash = await hashOfflinePassword(username, password);
+      if (offlineData.username === username && offlineData.passwordHash === passwordHash) {
         // Check if data is not too old (e.g., 30 days)
         const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
         if (offlineData.timestamp < thirtyDaysAgo) {
@@ -300,6 +310,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
     localStorage.removeItem('offline_auth_data');
+    localStorage.removeItem('offline_cache_owner');
+    offlineApi.clearCache().catch(error => {
+      console.warn('Unable to clear offline cache during logout:', error);
+    });
     setToken(null);
     setUser(null);
     
@@ -332,10 +346,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const decryptedData = decryptData(storedOfflineData);
           const offlineData = JSON.parse(decryptedData);
           
-          // Update the password in offline data
+          // Update the password hash in offline data
+          const offlineUsername = offlineData.username || user?.username || '';
           const updatedOfflineData = encryptData(JSON.stringify({
             ...offlineData,
-            password: newPassword,
+            passwordHash: await hashOfflinePassword(offlineUsername, newPassword),
             timestamp: Date.now() // Update timestamp
           }));
           

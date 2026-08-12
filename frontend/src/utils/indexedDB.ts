@@ -15,7 +15,7 @@ export interface IndexedDBConfig {
 
 const DB_CONFIG: IndexedDBConfig = {
   name: 'KMUDisciplineDesk',
-  version: 1,
+  version: 2,
   stores: {
     students: {
       keyPath: '_id',
@@ -49,6 +49,15 @@ const DB_CONFIG: IndexedDBConfig = {
         { name: 'username', keyPath: 'username' },
         { name: 'role', keyPath: 'role' },
         { name: 'email', keyPath: 'email' }
+      ]
+    },
+    staff: {
+      keyPath: '_id',
+      indexes: [
+        { name: 'staffId', keyPath: 'staffId' },
+        { name: 'fullName', keyPath: 'fullName' },
+        { name: 'department', keyPath: 'department' },
+        { name: 'position', keyPath: 'position' }
       ]
     },
 
@@ -267,7 +276,7 @@ class IndexedDBService {
   async clearSyncedItems(): Promise<void> {
     const allItems = await this.getAll('syncQueue');
     const syncedItems = allItems.filter((item: any) => item.synced);
-    
+
     for (const item of syncedItems) {
       await this.delete('syncQueue', (item as any).id);
     }
@@ -322,4 +331,4 @@ class IndexedDBService {
 
 // Export singleton instance
 export const indexedDB = new IndexedDBService();
-export default indexedDB; 
+export default indexedDB;

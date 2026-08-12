@@ -1,6 +1,5 @@
 const CACHE_NAME = 'kmu-desk-v1.0.0';
 const STATIC_CACHE = 'kmu-static-v1.0.0';
-const API_CACHE = 'kmu-api-v1.0.0';
 
 // Critical resources to cache immediately
 const CRITICAL_RESOURCES = [
@@ -17,14 +16,6 @@ const STATIC_ASSETS = [
     '/_next/static/chunks/',
     '/_next/static/media/',
     '/_next/static/js/',
-];
-
-// API endpoints to cache
-const API_ENDPOINTS = [
-    '/api/health',
-    '/api/cases',
-    '/api/students',
-    '/api/reports',
 ];
 
 // Install event - cache critical resources
@@ -71,8 +62,7 @@ self.addEventListener('activate', (event) => {
             return Promise.all(
                 cacheNames.map((cacheName) => {
                     if (cacheName !== CACHE_NAME &&
-                        cacheName !== STATIC_CACHE &&
-                        cacheName !== API_CACHE) {
+                        cacheName !== STATIC_CACHE) {
                         console.log('Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
@@ -132,28 +122,15 @@ self.addEventListener('fetch', (event) => {
     );
 });
 
-// Handle API requests with cache-first strategy
+// Handle API requests without Cache Storage persistence.
+// Authenticated campus records can contain sensitive student, case, and evidence
+// data. Offline reads are handled by the app's authenticated IndexedDB layer so
+// service-worker Cache Storage does not leak one user's API response to another
+// user of the same browser profile.
 async function handleApiRequest(request) {
-    const cache = await caches.open(API_CACHE);
-
     try {
-        // Try network first
-        const response = await fetch(request);
-
-        // Cache successful responses
-        if (response.status === 200) {
-            const responseClone = response.clone();
-            cache.put(request, responseClone);
-        }
-
-        return response;
+        return await fetch(request);
     } catch (error) {
-        // Fallback to cache
-        const cachedResponse = await cache.match(request);
-        if (cachedResponse) {
-            return cachedResponse;
-        }
-
         // Return offline response for API calls
         return new Response(
             JSON.stringify({ error: 'Offline - No cached data available' }), {
