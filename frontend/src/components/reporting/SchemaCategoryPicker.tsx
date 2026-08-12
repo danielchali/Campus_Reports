@@ -22,6 +22,7 @@ type SchemaCategoryPickerProps = {
   value: string;
   onChange: (categoryId: string) => void;
   lockedCategory?: string | null;
+  compact?: boolean;
 };
 
 export default function SchemaCategoryPicker({
@@ -29,6 +30,7 @@ export default function SchemaCategoryPicker({
   value,
   onChange,
   lockedCategory = null,
+  compact = false,
 }: SchemaCategoryPickerProps) {
   if (lockedCategory) {
     const locked = categories.find((category) => category.id === lockedCategory);
@@ -66,14 +68,14 @@ export default function SchemaCategoryPicker({
         </p>
       </div>
 
-      <div className="hidden md:grid gap-3 lg:gap-4 md:grid-cols-3">
+      <div className={`hidden md:grid md:grid-cols-3 ${compact ? 'gap-2 lg:gap-3' : 'gap-3 lg:gap-4'}`}>
         {categories.map((category) => {
           const Icon = ICONS[category.icon as keyof typeof ICONS] || AlertTriangle;
           const isSelected = value === category.id;
           return (
             <label
               key={category.id}
-              className={`group flex flex-col gap-2.5 p-4 lg:p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
+              className={`group flex ${compact ? 'min-h-[94px] flex-row items-center gap-3 p-3 lg:p-3.5 rounded-xl' : 'flex-col gap-2.5 p-4 lg:p-5 rounded-2xl'} border-2 cursor-pointer transition-all duration-300 ${
                 isSelected
                   ? 'border-kmuGreen bg-kmuGreen/5 dark:bg-kmuGreen/10 ring-4 ring-kmuGreen/10'
                   : 'border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 hover:border-slate-200 dark:hover:border-slate-700'
@@ -88,15 +90,15 @@ export default function SchemaCategoryPicker({
                 className="sr-only"
               />
               <div
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${
+                className={`${compact ? 'w-9 h-9 rounded-xl shrink-0' : 'w-12 h-12 rounded-2xl'} flex items-center justify-center transition-transform group-hover:scale-110 ${
                   COLOR_CLASSES[category.color || 'slate']
                 }`}
               >
-                <Icon className="w-6 h-6" />
+                <Icon className={compact ? 'w-4.5 h-4.5' : 'w-6 h-6'} />
               </div>
               <div>
-                <p className="font-bold text-base text-slate-900 dark:text-white">{category.label}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                <p className={compact ? 'font-bold text-sm text-slate-900 dark:text-white' : 'font-bold text-base text-slate-900 dark:text-white'}>{category.label}</p>
+                <p className={compact ? 'text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug line-clamp-2' : 'text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed'}>
                   {category.description}
                 </p>
               </div>

@@ -10,8 +10,8 @@ type SchemaFormFieldsProps = {
   idPrefix?: string;
 };
 
-const inputClassName =
-  'w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-sm focus:outline-none focus:border-kmuGreen focus:bg-white dark:focus:bg-slate-800 transition-colors';
+const baseInputClassName =
+  'w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-kmuGreen focus:bg-white dark:focus:bg-slate-800 transition-colors';
 
 export default function SchemaFormFields({
   fields,
@@ -22,8 +22,10 @@ export default function SchemaFormFields({
 }: SchemaFormFieldsProps) {
   if (!fields.length) return null;
 
+  const inputClassName = `${baseInputClassName} ${compact ? 'px-3 py-2' : 'px-4 py-3'}`;
+
   return (
-    <div className={`grid gap-4 ${compact ? 'md:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
+    <div className={`grid ${compact ? 'gap-3 md:grid-cols-2' : 'gap-4 md:grid-cols-2 lg:grid-cols-3'}`}>
       {fields.map((field) => {
         const fieldId = `${idPrefix}-${field.id}`;
         const value = values[field.id] ?? field.defaultValue ?? '';
@@ -31,7 +33,7 @@ export default function SchemaFormFields({
         if (field.type === 'toggle') {
           const enabled = value === 'true';
           return (
-            <div key={field.id} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/40 p-4">
+            <div key={field.id} className={`${compact ? 'md:col-span-2 p-3' : 'md:col-span-2 p-4'} rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/40`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <label htmlFor={fieldId} className="font-semibold text-sm text-slate-900 dark:text-white">
@@ -64,7 +66,7 @@ export default function SchemaFormFields({
         return (
           <div
             key={field.id}
-            className={`space-y-1.5 ${field.type === 'textarea' ? 'md:col-span-2 lg:col-span-3' : ''}`}
+            className={`space-y-1.5 ${field.type === 'textarea' ? (compact ? 'md:col-span-2' : 'md:col-span-2 lg:col-span-3') : ''}`}
           >
             <label htmlFor={fieldId} className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
               {field.label}
