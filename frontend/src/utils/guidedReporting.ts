@@ -40,6 +40,102 @@ export type ReportingContext = {
   lockedCategory: string | null;
 };
 
+const MAINTENANCE_TERMS = [
+  'broken',
+  'not working',
+  'faulty',
+  'repair',
+  'leak',
+  'leaking',
+  'plumbing',
+  'electrical',
+  'light',
+  'stove',
+  'toilet',
+  'sink',
+  'door',
+  'window',
+  'hazard',
+  'maintenance',
+];
+
+const DISCIPLINARY_TERMS = [
+  'disciplinary',
+  'misconduct',
+  'harassment',
+  'bullying',
+  'theft',
+  'stolen',
+  'fight',
+  'violence',
+  'threat',
+  'assault',
+  'security',
+];
+
+export function inferCategoryFromText(input: string, mode: GuidedReportMode): string | null {
+  const normalized = normalize(input);
+  if (!normalized) return null;
+
+  const explicit = parseCategoryInput(input, mode);
+  if (explicit) return explicit;
+
+  if (MAINTENANCE_TERMS.some((term) => normalized.includes(term))) {
+    return 'maintenance_issue';
+  }
+
+  if (DISCIPLINARY_TERMS.some((term) => normalized.includes(term))) {
+    return 'disciplinary_case';
+  }
+
+  return null;
+}
+
+function toTitleCase(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/\b([a-z])/g, (match) => match.toUpperCase())
+    .replace(/\b([a-z]+\d+[a-z]?)\b/gi, (match) => match.toUpperCase());
+}
+
+function cleanLocation(value: string) {
+  return value
+    .trim()
+    .replace(/^[,\s-]+|[,\s.]+$/g, '')
+    .slice(0, 200);
+}
+
+export function extractLocationFromText(input: string): string {
+  const patterns = [
+    /\b([a-z]{1,4}\d{2,4}[a-z]?)\b/i,
+    /\b(?:in|at|inside|near|by|room|classroom|lab|hostel|building|block)\s+([a-z0-9][a-z0-9._/-]{1,30})\b/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = input.match(pattern);
+    if (match?.[1]) {
+      const location = cleanLocation(match[1]);
+      if (location) return location;
+    }
+  }
+
+  return '';
+}
+
+export function buildLocalExtraction(input: string, mode: GuidedReportMode, preferredCategory = '') {
+  const trimmed = input.trim();
+  const category = inferCategoryFromText(trimmed, mode) || preferredCategory;
+  const location = extractLocationFromText(trimmed);
+  const title = toTitleCase(trimmed.replace(/\s+/g, ' ')).slice(0, 80);
+
+  return {
+    title,
+    description: trimmed,
+    category,
+    location,
+  };
+}
+
 export function createEmptyDraft(lockedCategory: string | null): GuidedReportDraft {
   return {
     category: lockedCategory || '',

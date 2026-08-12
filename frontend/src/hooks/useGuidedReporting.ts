@@ -5,9 +5,9 @@ import { extractGuidedReportFields } from '../utils/api';
 import {
   dispatchGuidedApply,
   scrollToReportingForm,
-  type GuidedReportFields,
 } from '../utils/guidedReportBridge';
 import {
+  buildLocalExtraction,
   buildStepSequence,
   createEmptyDraft,
   draftToGuidedFields,
@@ -17,6 +17,7 @@ import {
   getStepPrompt,
   isReportingRoute,
   parseBooleanInput,
+  inferCategoryFromText,
   parseCategoryInput,
   parseDateInput,
   parseDisciplinaryDetails,
@@ -41,6 +42,23 @@ function isAffirmative(input: string) {
   return ['yes', 'y', 'ok', 'okay', 'confirm', 'use suggested title', 'apply', 'apply to form'].some(
     (token) => normalized === token || normalized.includes(token),
   );
+}
+
+function isCategoryOnlyInput(input: string, mode: 'logged_in' | 'anonymous') {
+  const normalized = input.trim().toLowerCase();
+  const category = parseCategoryInput(input, mode);
+  if (!category) return false;
+  return [
+    'maintenance',
+    'maintenance issue',
+    'disciplinary',
+    'disciplinary issue',
+    'disciplinary case',
+    'security',
+    'security issue',
+    'other',
+    'other / general',
+  ].includes(normalized);
 }
 
 function isSkip(input: string) {
@@ -133,7 +151,11 @@ export function useGuidedReporting({ pathname, autoStart = false }: UseGuidedRep
     if (!reportingContext) return;
     const sequence = buildStepSequence(reportingContext, nextDraft);
     const index = sequence.indexOf(step);
-    const nextStep = sequence[index + 1] || 'done';
+    let nextStep = sequence[index + 1] || 'done';
+    while (nextStep === 'location' && nextDraft.location) {
+      const nextIndex = sequence.indexOf(nextStep);
+      nextStep = sequence[nextIndex + 1] || 'done';
+    }
     goToStep(nextStep, nextDraft);
   }, [draft, goToStep, reportingContext]);
 
@@ -153,19 +175,38 @@ export function useGuidedReporting({ pathname, autoStart = false }: UseGuidedRep
       }
 
       if (currentStep === 'category') {
-        const category = parseCategoryInput(input, reportingContext.mode);
+        const category = inferCategoryFromText(input, reportingContext.mode);
         if (!category) {
-          pushAssistant('Please choose **Disciplinary**, **Maintenance**, or **Other**.');
+          pushAssistant('Please choose **Disciplinary**, **Maintenance**, or **Other**, or describe the issue in one sentence so I can infer the category.');
           return;
         }
-        const nextDraft = { ...draft, category };
+
+        const localExtraction = buildLocalExtraction(input, reportingContext.mode, category);
+        const hasNarrativeDetails = !isCategoryOnlyInput(input, reportingContext.mode);
+        const nextDraft = {
+          ...draft,
+          category,
+          ...(hasNarrativeDetails
+            ? {
+                description: localExtraction.description,
+                title: localExtraction.title,
+                location: localExtraction.location || draft.location,
+              }
+            : {}),
+        };
         setDraft(nextDraft);
+        if (hasNarrativeDetails) {
+          applyDraftToForm(nextDraft);
+          goToStep('title', nextDraft);
+          return;
+        }
         advanceFrom('category', nextDraft);
         return;
       }
 
       if (currentStep === 'narrative') {
         setIsProcessing(true);
+        const localExtraction = buildLocalExtraction(input, reportingContext.mode, draft.category);
         const extracted = await extractGuidedReportFields({
           narrative: input,
           category: draft.category || undefined,
@@ -174,11 +215,11 @@ export function useGuidedReporting({ pathname, autoStart = false }: UseGuidedRep
 
         const nextDraft = {
           ...draft,
-          description: extracted.description || input,
-          title: extracted.title || draft.title,
-          location: extracted.location || draft.location,
+          description: extracted.description || localExtraction.description || input,
+          title: extracted.title || localExtraction.title || draft.title,
+          location: extracted.location || localExtraction.location || draft.location,
           incidentDate: extracted.incidentDate || draft.incidentDate,
-          category: extracted.category || draft.category,
+          category: extracted.category || localExtraction.category || draft.category,
         };
         setDraft(nextDraft);
         applyDraftToForm({
@@ -205,7 +246,14 @@ export function useGuidedReporting({ pathname, autoStart = false }: UseGuidedRep
       }
 
       if (currentStep === 'location') {
-        const nextDraft = { ...draft, location: input };
+        if (/\b(told you|already said|mentioned|above)\b/i.test(input) && draft.location) {
+          advanceFrom('location', draft);
+          return;
+        }
+
+        const localLocation = buildLocalExtraction(input, reportingContext.mode, draft.category).location;
+        const nextLocation = localLocation || input;
+        const nextDraft = { ...draft, location: nextLocation };
         setDraft(nextDraft);
         applyDraftToForm(nextDraft);
         advanceFrom('location', nextDraft);
@@ -285,6 +333,7 @@ export function useGuidedReporting({ pathname, autoStart = false }: UseGuidedRep
   }, [
     applyDraftToForm,
     advanceFrom,
+    goToStep,
     currentStep,
     draft,
     isActive,
