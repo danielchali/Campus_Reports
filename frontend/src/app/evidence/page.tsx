@@ -109,6 +109,10 @@ export default function EvidencePage() {
       setError('Please select a case and a file.');
       return;
     }
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setError('Evidence file uploads require a secure online connection. Please reconnect and try again.');
+      return;
+    }
     setUploading(true);
     setError(null);
     setSuccess(null);
@@ -126,13 +130,10 @@ export default function EvidencePage() {
       setFile(null);
       setCaseId('');
       // Refresh evidence list
-      const updated = await fetch(`${API_BASE_URL}/evidence`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (updated.ok) {
-        const data = await updated.json();
-        setEvidence(Array.isArray(data) ? data : (data.evidence || data || []));
-      }
+      const updated = await apiCall<any>('get', '/evidence');
+      const data = updated.data;
+      setEvidence(Array.isArray(data) ? data : (data.evidence || data || []));
+      setOfflineMode(updated.offline);
     } catch (err: any) {
       console.error('Error uploading evidence:', err);
       setError(err?.message || 'Network error, please try again');
@@ -173,12 +174,8 @@ export default function EvidencePage() {
     setError(null);
     setSuccess(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/evidence/${id}`, {
-        method: 'DELETE',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-      if (!res.ok) throw new Error(await res.text());
-      setSuccess('Evidence deleted successfully!');
+      const response = await apiCall<{ success: boolean }>('delete', `/evidence/${id}`);
+      setSuccess(response.offline ? 'Evidence marked for deletion and will sync when online.' : 'Evidence deleted successfully!');
       setEvidence(evidence => evidence.filter(e => {
         const evidenceId = getEvidenceId(e);
         return evidenceId !== id;

@@ -12,6 +12,7 @@ import {
   Paperclip,
   ShieldAlert,
   Wrench,
+  X,
 } from "@/components/icons";
 import { useAuth } from "../../context/AuthContext";
 import Notification, { useNotification } from "../../components/Notification";
@@ -19,6 +20,7 @@ import { canAccessPage } from "../../utils/access";
 import { PageSkeleton, CardSkeleton } from "../../components/PageSkeleton";
 import {
   downloadStudentReportAttachment,
+  getStudentReportAttachmentDownloadUrl,
   getAllStudentReports,
   getUnreadStudentReportsCount,
   markAllStudentReportsSeen,
@@ -47,6 +49,14 @@ const detailLabels: Record<string, string> = {
   affectedAsset: "Affected Room, Fixture, or Asset",
   accessInstructions: "Access or Timing Notes",
 };
+
+function isImageAttachment(mimeType = "", filename = "") {
+  const extension = filename.split(".").pop()?.toLowerCase();
+  return (
+    mimeType.startsWith("image/") ||
+    ["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(extension || "")
+  );
+}
 
 const statusOptions: StudentReportStatus[] = [
   "Submitted",
@@ -79,6 +89,10 @@ export default function InboxPage() {
     {},
   );
   const [unreadCount, setUnreadCount] = useState(0);
+  const [attachmentPreview, setAttachmentPreview] = useState<{
+    name: string;
+    url: string;
+  } | null>(null);
 
   const filteredReports = useMemo(() => {
     return reports
@@ -169,6 +183,52 @@ export default function InboxPage() {
       cancelled = true;
     };
   }, [reports, user]);
+
+  useEffect(() => {
+    return () => {
+      if (attachmentPreview) {
+        URL.revokeObjectURL(attachmentPreview.url);
+      }
+    };
+  }, [attachmentPreview]);
+
+  function closeAttachmentPreview() {
+    if (attachmentPreview) {
+      URL.revokeObjectURL(attachmentPreview.url);
+    }
+    setAttachmentPreview(null);
+  }
+
+  async function openAttachmentPreview(
+    reportId: string,
+    attachmentId: string,
+    filename: string,
+  ) {
+    try {
+      if (attachmentPreview) {
+        URL.revokeObjectURL(attachmentPreview.url);
+      }
+
+      const response = await fetch(
+        getStudentReportAttachmentDownloadUrl(reportId, attachmentId),
+        {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to open attachment preview");
+      }
+
+      setAttachmentPreview({
+        name: filename,
+        url: URL.createObjectURL(await response.blob()),
+      });
+    } catch (error) {
+      console.error("Failed to open attachment preview:", error);
+      showNotification("error", "Failed to open attachment preview.");
+    }
+  }
 
   async function refreshReports() {
     const allReports = await getAllStudentReports(search);
@@ -472,16 +532,28 @@ export default function InboxPage() {
                                   Evidence / Files
                                 </p>
                                 <div className="mt-2 space-y-2">
-                                  {report.attachments.map((attachment) => (
+                                  {report.attachments.map((attachment) => {
+                                    const isImage = isImageAttachment(
+                                      attachment.mimeType,
+                                      attachment.originalName,
+                                    );
+
+                                    return (
                                     <button
                                       key={attachment.id}
                                       type="button"
                                       onClick={() =>
-                                        downloadStudentReportAttachment(
-                                          report.id,
-                                          attachment.id,
-                                          attachment.originalName,
-                                        )
+                                        isImage
+                                          ? openAttachmentPreview(
+                                              report.id,
+                                              attachment.id,
+                                              attachment.originalName,
+                                            )
+                                          : downloadStudentReportAttachment(
+                                              report.id,
+                                              attachment.id,
+                                              attachment.originalName,
+                                            )
                                       }
                                       className="flex w-full items-center justify-between gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 text-left text-sm text-gray-700 dark:text-gray-200 hover:border-kmuGreen"
                                     >
@@ -495,10 +567,13 @@ export default function InboxPage() {
                                         </span>
                                       </span>
                                       <span className="flex-shrink-0 text-xs text-gray-500 dark:text-gray-400">
-                                        {Math.ceil(attachment.size / 1024)} KB
+                                        {isImage
+                                          ? "Preview"
+                                          : `${Math.ceil(attachment.size / 1024)} KB`}
                                       </span>
                                     </button>
-                                  ))}
+                                    );
+                                  })}
                                 </div>
                               </div>
                             )}
@@ -660,6 +735,38 @@ export default function InboxPage() {
           )}
         </div>
       </section>
+
+      {attachmentPreview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 py-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Preview of ${attachmentPreview.name}`}
+          onClick={closeAttachmentPreview}
+        >
+          <div
+            className="relative max-h-full w-full max-w-4xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closeAttachmentPreview}
+              className="absolute right-3 top-3 rounded-full bg-slate-950/70 p-2 text-white transition hover:bg-slate-900"
+              aria-label="Close image preview"
+            >
+              <X size={20} />
+            </button>
+            <img
+              src={attachmentPreview.url}
+              alt={`Submitted attachment preview: ${attachmentPreview.name}`}
+              className="mx-auto max-h-[82vh] w-auto rounded-2xl bg-white object-contain shadow-2xl"
+            />
+            <p className="mt-3 truncate text-center text-sm font-medium text-white">
+              {attachmentPreview.name}
+            </p>
+          </div>
+        </div>
+      )}
 
       {notification?.isVisible && (
         <Notification

@@ -3,8 +3,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { API_BASE_URL } from '../../config/constants';
-import { getAll, create, remove } from '../../utils/api';
 import { useOfflineApi } from '../../hooks/useOfflineSync';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
@@ -122,9 +120,9 @@ export default function StaffPage() {
         return;
       }
       const staffMember: Staff = { staffId, fullName, department, position, email: email.trim(), phone, hireDate };
-      await create('staff', staffMember);
+      const response = await apiCall<Staff>('post', '/staff', staffMember);
       setStaffId(''); setFullName(''); setDepartment(''); setPosition(''); setEmail(''); setPhone(''); setHireDate(getTodayDateInputValue());
-      setSuccess('Staff member added successfully!');
+      setSuccess(response.offline ? 'Staff member saved offline and will sync when online.' : 'Staff member added successfully!');
       loadStaff();
     } catch (err: any) {
       setError(err?.message || 'Network error, please try again');
@@ -295,7 +293,7 @@ export default function StaffPage() {
       
       // Import staff members
       const results = await Promise.allSettled(
-        staffToImport.map(staffMember => create('staff', staffMember))
+        staffToImport.map(staffMember => apiCall<Staff>('post', '/staff', staffMember))
       );
       
       const successfulImports = results.filter(result => result.status === 'fulfilled').length;
@@ -329,8 +327,8 @@ export default function StaffPage() {
     setError(null);
     setSuccess(null);
     try {
-      await remove('staff', staffId);
-      setSuccess('Staff member deleted successfully!');
+      const response = await apiCall<{ success: boolean }>('delete', `/staff/${staffId}`);
+      setSuccess(response.offline ? 'Staff member marked for deletion and will sync when online.' : 'Staff member deleted successfully!');
       loadStaff();
     } catch (err: any) {
       setError(err?.message || 'Network error, please try again');
@@ -364,9 +362,16 @@ export default function StaffPage() {
     setError(null);
     setSuccess(null);
     try {
-      await Promise.all(selected.map(id => remove('staff', id)));
+      const results = await Promise.all(
+        selected.map(id => apiCall<{ success: boolean }>('delete', `/staff/${id}`))
+      );
+      const queuedOffline = results.some(result => result.offline);
       setSelected([]);
-      setSuccess(`${selected.length} staff member(s) deleted successfully!`);
+      setSuccess(
+        queuedOffline
+          ? `${selected.length} staff member(s) marked for deletion and will sync when online.`
+          : `${selected.length} staff member(s) deleted successfully!`
+      );
       loadStaff();
     } catch (err: any) {
       setError(err?.message || 'Network error, please try again');

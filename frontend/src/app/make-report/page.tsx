@@ -39,6 +39,41 @@ type ReporterProfile = {
   } | null;
 };
 
+function AttachmentPreview({ file }: { file: File }) {
+  const [previewUrl, setPreviewUrl] = useState("");
+  const isImage = file.type.startsWith("image/");
+
+  useEffect(() => {
+    if (!isImage) {
+      setPreviewUrl("");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [file, isImage]);
+
+  if (!isImage || !previewUrl) {
+    return (
+      <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800">
+        <Paperclip size={18} className="text-kmuGreen" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={previewUrl}
+      alt={`Preview of ${file.name}`}
+      className="h-14 w-14 flex-shrink-0 rounded-lg border border-gray-200 dark:border-gray-600 object-cover"
+    />
+  );
+}
+
 function buildLocationFromProfile(profile: ReporterProfile | null) {
   return profile?.studentProfile?.accommodation?.roomNumber?.trim() || "";
 }
@@ -88,6 +123,10 @@ export default function MakeReportPage() {
   const [affectedAsset, setAffectedAsset] = useState("");
   const [accessInstructions, setAccessInstructions] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [selectedImagePreview, setSelectedImagePreview] = useState<{
+    name: string;
+    url: string;
+  } | null>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [trackingCode, setTrackingCode] = useState("");
@@ -130,6 +169,14 @@ export default function MakeReportPage() {
       });
     });
   }, [lockedCategory]);
+
+  useEffect(() => {
+    return () => {
+      if (selectedImagePreview) {
+        URL.revokeObjectURL(selectedImagePreview.url);
+      }
+    };
+  }, [selectedImagePreview]);
 
   useEffect(() => {
     if (!user || (user.role !== "student" && user.role !== "general_user")) {
@@ -184,6 +231,26 @@ export default function MakeReportPage() {
     setAttachments((current) =>
       current.filter((_file, fileIndex) => fileIndex !== index),
     );
+  }
+
+  function openAttachmentPreview(file: File) {
+    if (!file.type.startsWith("image/")) return;
+
+    if (selectedImagePreview) {
+      URL.revokeObjectURL(selectedImagePreview.url);
+    }
+
+    setSelectedImagePreview({
+      name: file.name,
+      url: URL.createObjectURL(file),
+    });
+  }
+
+  function closeAttachmentPreview() {
+    if (selectedImagePreview) {
+      URL.revokeObjectURL(selectedImagePreview.url);
+    }
+    setSelectedImagePreview(null);
   }
 
   if (typeof window !== "undefined") {
@@ -695,9 +762,24 @@ export default function MakeReportPage() {
                   key={`${file.name}-${file.lastModified}-${index}`}
                   className="flex items-center justify-between gap-3 rounded-lg bg-gray-100 dark:bg-gray-700 px-3 py-2 text-xs md:text-sm text-gray-700 dark:text-gray-200"
                 >
-                  <span className="truncate">
-                    {file.name} ({Math.ceil(file.size / 1024)} KB)
-                  </span>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => openAttachmentPreview(file)}
+                      disabled={!file.type.startsWith("image/")}
+                      className="rounded-lg text-left disabled:cursor-default"
+                      aria-label={
+                        file.type.startsWith("image/")
+                          ? `Open preview of ${file.name}`
+                          : undefined
+                      }
+                    >
+                      <AttachmentPreview file={file} />
+                    </button>
+                    <span className="truncate">
+                      {file.name} ({Math.ceil(file.size / 1024)} KB)
+                    </span>
+                  </div>
                   <button
                     type="button"
                     onClick={() => removeAttachment(index)}
@@ -803,6 +885,37 @@ export default function MakeReportPage() {
                 Go to My Reports
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {selectedImagePreview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 px-4 py-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Preview of ${selectedImagePreview.name}`}
+          onClick={closeAttachmentPreview}
+        >
+          <div
+            className="relative max-h-full w-full max-w-4xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closeAttachmentPreview}
+              className="absolute right-3 top-3 rounded-full bg-slate-950/70 p-2 text-white transition hover:bg-slate-900"
+              aria-label="Close image preview"
+            >
+              <X size={20} />
+            </button>
+            <img
+              src={selectedImagePreview.url}
+              alt={`Attached image preview: ${selectedImagePreview.name}`}
+              className="mx-auto max-h-[82vh] w-auto rounded-2xl bg-white object-contain shadow-2xl"
+            />
+            <p className="mt-3 truncate text-center text-sm font-medium text-white">
+              {selectedImagePreview.name}
+            </p>
           </div>
         </div>
       )}
