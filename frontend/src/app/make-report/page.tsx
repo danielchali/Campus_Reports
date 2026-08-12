@@ -98,7 +98,72 @@ const categoryOptions: Array<{
 ];
 
 const MAX_ATTACHMENT_FILES = 3;
-const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_ATTACHMENT_SIZE_BYTES = 2 * 1024 * 1024;
+const IMAGE_COMPRESSION_QUALITY_STEPS = [0.82, 0.7, 0.6, 0.5];
+const IMAGE_COMPRESSION_MAX_DIMENSION = 1600;
+
+function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  mimeType: string,
+  quality: number,
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("Failed to compress image attachment."));
+        }
+      },
+      mimeType,
+      quality,
+    );
+  });
+}
+
+async function compressImageAttachment(file: File): Promise<File> {
+  if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
+    return file;
+  }
+
+  const image = await createImageBitmap(file);
+  const scale = Math.min(
+    1,
+    IMAGE_COMPRESSION_MAX_DIMENSION / Math.max(image.width, image.height),
+  );
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.width * scale));
+  canvas.height = Math.max(1, Math.round(image.height * scale));
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    image.close();
+    return file;
+  }
+
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  image.close();
+
+  const outputType = file.type === "image/png" ? "image/jpeg" : file.type;
+  for (const quality of IMAGE_COMPRESSION_QUALITY_STEPS) {
+    const blob = await canvasToBlob(canvas, outputType, quality);
+    if (blob.size <= MAX_ATTACHMENT_SIZE_BYTES || quality === 0.5) {
+      const extension =
+        outputType === "image/jpeg"
+          ? "jpg"
+          : file.name.split(".").pop() || "jpg";
+      const baseName = file.name.replace(/\.[^/.]+$/, "");
+      return new File([blob], `${baseName}.${extension}`, {
+        type: outputType,
+        lastModified: Date.now(),
+      });
+    }
+  }
+
+  return file;
+}
+
 export default function MakeReportPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -223,17 +288,25 @@ export default function MakeReportPage() {
     };
   }, [user]);
 
-  function addAttachments(files: FileList | null) {
+  async function addAttachments(files: FileList | null) {
     if (!files) return;
-    const validFiles = Array.from(files).filter((file) => {
+
+    const compressedFiles = await Promise.all(
+      Array.from(files).map(async (file) => {
+        try {
+          return await compressImageAttachment(file);
+        } catch {
+          return file;
+        }
+      }),
+    );
+
+    const validFiles = compressedFiles.filter((file) => {
       if (file.size <= MAX_ATTACHMENT_SIZE_BYTES) {
         return true;
       }
 
-      showNotification(
-        "error",
-        `${file.name} is larger than the 5 MB attachment limit.`,
-      );
+      setError(`${file.name} is larger than the 2 MB attachment limit.`);
       return false;
     });
     const nextFiles = [...attachments, ...validFiles].slice(
@@ -242,7 +315,7 @@ export default function MakeReportPage() {
     );
 
     if (attachments.length + validFiles.length > MAX_ATTACHMENT_FILES) {
-      showNotification("error", "You can upload up to 3 evidence files.");
+      setError("You can upload up to 3 evidence files.");
     }
 
     setAttachments(nextFiles);
@@ -742,8 +815,8 @@ export default function MakeReportPage() {
               </h3>
               <p className="mt-1 text-xs md:text-sm text-gray-600 dark:text-gray-400">
                 Attach photos, videos, PDFs, screenshots, or other files that
-                help explain the report. You can upload up to 3 files, 5 MB
-                each.
+                help explain the report. Images are compressed before upload.
+                You can upload up to 3 files, 2 MB each.
               </p>
             </div>
           </div>
@@ -756,7 +829,7 @@ export default function MakeReportPage() {
                 multiple
                 className="sr-only"
                 onChange={(e) => {
-                  addAttachments(e.target.files);
+                  void addAttachments(e.target.files);
                   e.currentTarget.value = "";
                 }}
               />
@@ -770,7 +843,7 @@ export default function MakeReportPage() {
                 capture="environment"
                 className="sr-only"
                 onChange={(e) => {
-                  addAttachments(e.target.files);
+                  void addAttachments(e.target.files);
                   e.currentTarget.value = "";
                 }}
               />

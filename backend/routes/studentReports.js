@@ -23,7 +23,7 @@ const router = express.Router();
 const REPORT_ATTACHMENT_DIR = getUploadDirectory("student-reports");
 const REPORT_CATEGORIES = ["disciplinary_case", "maintenance_issue"];
 const MAX_ATTACHMENT_FILES = 3;
-const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024;
+const MAX_ATTACHMENT_SIZE_BYTES = 2 * 1024 * 1024;
 const CATEGORY_LABELS = {
   disciplinary_case: "Disciplinary Case",
   maintenance_issue: "Maintenance Issue",
