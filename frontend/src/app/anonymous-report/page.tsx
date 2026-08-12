@@ -219,7 +219,7 @@ export default function AnonymousReportPage() {
             }`}
           >
             <ChevronRight className="w-4 h-4 md:w-4.5 md:h-4.5" />
-            <span className="hidden sm:inline">Track My Report</span>
+            <span className="hidden sm:inline">Track Anonymous Report</span>
             <span className="sm:hidden">Track</span>
           </button>
         </div>
@@ -424,7 +424,7 @@ export default function AnonymousReportPage() {
                 <p className="text-xs text-slate-400">
                   You can also track your report under the{' '}
                   <button onClick={() => { setActiveTab('track'); setTrackInput(trackingCode); }} className="text-kmuGreen underline">
-                    Track My Report
+                    Track Anonymous Report
                   </button>{' '}
                   tab.
                 </p>
@@ -437,9 +437,9 @@ export default function AnonymousReportPage() {
         {activeTab === 'track' && (
           <div className="flex-1 bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 md:p-10 space-y-6">
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Check Report Status</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-white">Track Anonymous Report</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                Enter the tracking code you received when you submitted your report.
+                Enter the tracking code you received when you submitted your anonymous report.
               </p>
             </div>
 
