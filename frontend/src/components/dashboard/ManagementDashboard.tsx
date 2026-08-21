@@ -86,6 +86,8 @@ type DashboardMetric = {
   helper: string;
 };
 
+type ReportActivityPeriod = 7 | 14 | 28 | 'all';
+
 type CaseItem = {
   _id?: string;
   student?: {
@@ -187,19 +189,22 @@ function getReportDate(report: AnonymousReport) {
   return report.createdAt || report.incident_date || '';
 }
 
-const REPORT_ACTIVITY_PERIODS = [
+const REPORT_ACTIVITY_PERIODS: Array<{ days: ReportActivityPeriod; label: string }> = [
   { days: 7, label: '7 days' },
   { days: 14, label: '14 days' },
   { days: 28, label: '28 days' },
-] as const;
+  { days: 'all', label: 'All' },
+];
 
-function isWithinReportActivityPeriod(dateValue: string, days: number) {
+function isWithinReportActivityPeriod(dateValue: string, period: ReportActivityPeriod) {
+  if (period === 'all') return true;
+
   const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) return false;
 
   const start = new Date();
   start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() - (days - 1));
+  start.setDate(start.getDate() - (period - 1));
 
   const itemDate = new Date(date);
   itemDate.setHours(0, 0, 0, 0);
@@ -258,7 +263,7 @@ export default function ManagementDashboard({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
-  const [activityDays, setActivityDays] = useState(7);
+  const [activityDays, setActivityDays] = useState<ReportActivityPeriod>(7);
 
   const handleRealtimeRefresh = useCallback(() => {
     setRefreshToken((current) => current + 1);
@@ -425,6 +430,8 @@ export default function ManagementDashboard({
     [activityDays, recentCampusReports]
   );
 
+  const activityPeriodLabel = activityDays === 'all' ? 'all time' : `the last ${activityDays} days`;
+
   const primaryItems: Array<CaseItem | AnonymousReport> = dataset === 'cases' ? filteredCases : filteredReports;
 
   const focusItems = useMemo(() => {
@@ -467,20 +474,45 @@ export default function ManagementDashboard({
 
   const trendData = useMemo(() => {
     const labels: string[] = [];
-    const today = new Date();
     const maintenanceCounts: number[] = [];
     const disciplineCounts: number[] = [];
     const anonymousCounts: number[] = [];
+    const validDates = activityPeriodReports
+      .map((item) => new Date(item.date))
+      .filter((date) => !Number.isNaN(date.getTime()));
 
-    for (let offset = activityDays - 1; offset >= 0; offset -= 1) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - offset);
-      labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+    if (activityDays === 'all') {
+      const today = new Date();
+      const latestMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const earliestDate = validDates.length > 0 ? new Date(Math.min(...validDates.map((date) => date.getTime()))) : latestMonth;
+      const cursor = new Date(earliestDate.getFullYear(), earliestDate.getMonth(), 1);
 
-      const dayItems = activityPeriodReports.filter((item) => new Date(item.date).toDateString() === date.toDateString());
-      maintenanceCounts.push(dayItems.filter((item) => item.bucket === 'Maintenance').length);
-      disciplineCounts.push(dayItems.filter((item) => item.bucket === 'Discipline').length);
-      anonymousCounts.push(dayItems.filter((item) => item.bucket === 'Anonymous').length);
+      while (cursor <= latestMonth) {
+        const nextMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+        const monthItems = activityPeriodReports.filter((item) => {
+          const date = new Date(item.date);
+          return !Number.isNaN(date.getTime()) && date >= cursor && date < nextMonth;
+        });
+
+        labels.push(cursor.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
+        maintenanceCounts.push(monthItems.filter((item) => item.bucket === 'Maintenance').length);
+        disciplineCounts.push(monthItems.filter((item) => item.bucket === 'Discipline').length);
+        anonymousCounts.push(monthItems.filter((item) => item.bucket === 'Anonymous').length);
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
+    } else {
+      const today = new Date();
+
+      for (let offset = activityDays - 1; offset >= 0; offset -= 1) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - offset);
+        labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+
+        const dayItems = activityPeriodReports.filter((item) => new Date(item.date).toDateString() === date.toDateString());
+        maintenanceCounts.push(dayItems.filter((item) => item.bucket === 'Maintenance').length);
+        disciplineCounts.push(dayItems.filter((item) => item.bucket === 'Discipline').length);
+        anonymousCounts.push(dayItems.filter((item) => item.bucket === 'Anonymous').length);
+      }
     }
 
     return {
@@ -677,7 +709,7 @@ export default function ManagementDashboard({
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Report Distribution</h2>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Breakdown for the last {activityDays} days across maintenance, discipline, and anonymous reports.
+              Breakdown for {activityPeriodLabel} across maintenance, discipline, and anonymous reports.
             </p>
           </div>
           <div className="relative mx-auto h-[190px] max-w-[210px]">

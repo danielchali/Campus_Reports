@@ -125,6 +125,94 @@ function stripFormSuggestion(text: string) {
   return text.replace(/<form_suggestion>[\s\S]*?<\/form_suggestion>/gi, '').trim();
 }
 
+type ChatContentBlock =
+  | { kind: 'paragraph'; lines: string[] }
+  | { kind: 'unordered-list'; items: string[] }
+  | { kind: 'ordered-list'; items: string[] };
+
+function cleanChatInlineText(text: string) {
+  return text.replace(/\*\*/g, '').replace(/__/g, '').trim();
+}
+
+function getChatContentBlocks(content: string): ChatContentBlock[] {
+  const blocks: ChatContentBlock[] = [];
+  let paragraphLines: string[] = [];
+  let activeList: Extract<ChatContentBlock, { kind: 'unordered-list' | 'ordered-list' }> | null = null;
+
+  const flushParagraph = () => {
+    if (!paragraphLines.length) return;
+    blocks.push({ kind: 'paragraph', lines: paragraphLines });
+    paragraphLines = [];
+  };
+
+  const flushList = () => {
+    if (!activeList) return;
+    blocks.push(activeList);
+    activeList = null;
+  };
+
+  content.replace(/\r\n/g, '\n').split('\n').forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed) {
+      flushParagraph();
+      flushList();
+      return;
+    }
+
+    const unorderedMatch = trimmed.match(/^[-*+]\\s+(.*)$/);
+    const orderedMatch = trimmed.match(/^\\d+[.)]\\s+(.*)$/);
+    const listKind = unorderedMatch ? 'unordered-list' : orderedMatch ? 'ordered-list' : null;
+    const itemText = unorderedMatch?.[1] || orderedMatch?.[1];
+
+    if (listKind && itemText) {
+      flushParagraph();
+      const nextList: Extract<ChatContentBlock, { kind: 'unordered-list' | 'ordered-list' }> =
+        activeList?.kind === listKind ? activeList : { kind: listKind, items: [] };
+      if (nextList !== activeList) {
+        flushList();
+      }
+      activeList = nextList;
+      nextList.items.push(cleanChatInlineText(itemText));
+      return;
+    }
+
+    flushList();
+    paragraphLines.push(cleanChatInlineText(trimmed));
+  });
+
+  flushParagraph();
+  flushList();
+  return blocks;
+}
+
+function ChatMessageContent({ content }: { content: string }) {
+  const blocks = getChatContentBlocks(content);
+
+  return (
+    <div className="space-y-2">
+      {blocks.map((block, index) => {
+        if (block.kind === 'unordered-list') {
+          return (
+            <ul key={`unordered-${index}`} className="list-disc space-y-1 pl-5">
+              {block.items.map((item, itemIndex) => <li key={`item-${itemIndex}`}>{item}</li>)}
+            </ul>
+          );
+        }
+
+        if (block.kind === 'ordered-list') {
+          return (
+            <ol key={`ordered-${index}`} className="list-decimal space-y-1 pl-5">
+              {block.items.map((item, itemIndex) => <li key={`item-${itemIndex}`}>{item}</li>)}
+            </ol>
+          );
+        }
+
+        return <p key={`paragraph-${index}`} className="whitespace-pre-wrap">{block.lines.join('\n')}</p>;
+      })}
+    </div>
+  );
+}
+
 function normalize(text: string) {
   return text.trim().toLowerCase();
 }
@@ -545,7 +633,11 @@ export default function FloatingAIChatbot() {
                     : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100'
                 }`}
               >
-                {message.content || ((isLoading || guided.isProcessing) && index === visibleMessages.length - 1 ? '...' : '')}
+                {message.role === 'assistant' ? (
+                  <ChatMessageContent content={message.content || ((isLoading || guided.isProcessing) && index === visibleMessages.length - 1 ? '...' : '')} />
+                ) : (
+                  message.content
+                )}
               </div>
             ))}
 
