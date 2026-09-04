@@ -8,6 +8,7 @@
         "build:analyze": "ANALYZE=true next build --no-lint",
         "start": "next start",
         "test": "jest --runInBand",
+        "test:coverage": "jest --runInBand --coverage",
         "lint": "next lint",
         "test:watch": "jest --watch",
         "generate-pwa-icons": "node ../scripts/generate-pwa-icons.js"
