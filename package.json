@@ -9,7 +9,10 @@
         "deploy-pwa": "node scripts/deploy-pwa.js",
         "deploy-backend": "node scripts/deploy-pwa.js --backend",
         "fix-permissions": "node scripts/fix-permissions.js",
-        "test-db": "node scripts/test-database.js"
+        "test-db": "node scripts/test-database.js",
+        "test:backend": "npm --prefix backend test",
+        "test:frontend": "npm --prefix frontend test",
+        "test": "npm run test:backend && npm run test:frontend"
     },
     "dependencies": {
         "chart.js": "^4.5.0",
