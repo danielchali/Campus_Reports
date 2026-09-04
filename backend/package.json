@@ -7,7 +7,7 @@
         "start": "node ./bin/www",
         "dev": "nodemon ./bin/www",
         "create-admin": "node create-admin.js",
-        "test": "node --test test/**/*.test.js",
+        "test": "node --test test/*.test.js",
         "test-bcrypt": "node test-bcrypt.js",
         "server": "node server.js"
     },
