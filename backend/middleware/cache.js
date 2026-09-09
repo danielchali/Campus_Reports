@@ -6,7 +6,7 @@ const CACHE_PREFIX = 'campus-reports:v1';
 let redisClient;
 let redisInitialized = false;
 
-function getRedisClient() {
+export function getRedisClient() {
   if (redisInitialized) {
     return redisClient;
   }

@@ -23,6 +23,7 @@ import workOrdersRouter from "./routes/workOrders.js";
 import dashboardAnalyticsRouter from "./routes/dashboardAnalytics.js";
 import analyticsRouter from "./routes/analytics.js";
 import formSchemasRouter from "./routes/formSchemas.js";
+import { requestRateLimit } from "./middleware/rateLimit.js";
 
 const app = express();
 const API_V1_BASE = "/api/v1";
@@ -146,6 +147,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 app.use(express.json());
+app.use("/api", requestRateLimit());
 
 function mountRoutes(basePath) {
   app.use(`${basePath}/users`, usersRouter);
