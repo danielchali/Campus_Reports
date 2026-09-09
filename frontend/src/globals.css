@@ -6,6 +6,28 @@
   .page-container {
     @apply mx-auto w-full max-w-[1600px];
   }
+
+  /* Keep authenticated pages feeling like one continuous working sheet. */
+  .page-container article[class*="rounded"][class*="border"],
+  .page-container section[class*="rounded"][class*="border"],
+  .page-container article[class*="shadow"],
+  .page-container section[class*="shadow"] {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .page-container article[class*="bg-white"],
+  .page-container section[class*="bg-white"] {
+    background-color: transparent !important;
+  }
+
+  .page-container article > [class*="border-b"],
+  .page-container section > [class*="border-b"],
+  .page-container .divide-y > * {
+    border-bottom-width: 0 !important;
+    border-top-width: 0 !important;
+  }
 }
 
 @layer base {
@@ -77,14 +99,6 @@ textarea:focus,
 select:focus {
     outline: none !important;
     box-shadow: 0 0 0 2px #10b981 !important;
-}
-
-
-/* Enhanced card elevation in light mode */
-
-:not(.dark) article.shadow-sm,
-:not(.dark) section.shadow-sm {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
 }
 
 

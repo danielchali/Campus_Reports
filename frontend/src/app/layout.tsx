@@ -113,7 +113,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
         {shouldShowNav && <TopNavbar showMenuButton={!disableSidebarForStudentMobile} />}
         <main
           className={clsx('flex-1', {
-            'bg-slate-100 px-3 pb-24 pt-4 sm:px-4 md:px-6 md:pb-8 md:pt-6 dark:bg-slate-950': !isLogin,
+            'bg-white px-3 pb-24 pt-4 sm:px-4 md:px-6 md:pb-8 md:pt-6 dark:bg-slate-950': !isLogin,
           })}
         >
           {shouldShowNav ? (
