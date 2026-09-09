@@ -13,6 +13,16 @@ export type AppRole =
 
 export const PAGE_ACCESS = {
   adminUsers: ["admin"],
+  analytics: [
+    "admin",
+    "chief_security_officer",
+    "dean_of_students",
+    "assistant_dean",
+    "secretary",
+    "registrar",
+    "security_officer",
+    "maintenance",
+  ],
   audit: [
     "admin",
     "chief_security_officer",

@@ -46,6 +46,18 @@ test("authentication API prevents non-admin users from registering users", async
   assertJsonError(response, 403, "Forbidden");
 });
 
+test("analytics API requires authentication", async () => {
+  const response = await request(app).get("/api/v1/analytics/summary");
+  assertJsonError(response, 401, "Missing or invalid token");
+});
+
+test("analytics API rejects a student token at the staff authorization boundary", async () => {
+  const response = await request(app)
+    .get("/api/v1/analytics/summary")
+    .set("Authorization", authHeader({ id: "student-1", username: "student.one", role: "student" }));
+  assertJsonError(response, 403, "Forbidden");
+});
+
 test("reports API requires authentication for listing reports", async () => {
   const response = await request(app).get("/api/v1/reports");
   assertJsonError(response, 401, "Missing or invalid token");

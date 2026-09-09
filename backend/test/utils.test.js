@@ -6,6 +6,7 @@ import {
   redactStudentReportForViewer,
 } from "../utils/reportRedaction.js";
 import { buildPortalConfig } from "../utils/formSchemaValidation.js";
+import { buildAnalyticsSummary, classifyDisciplinaryIssue, classifyMaintenanceIssue } from "../utils/analytics.js";
 
 const report = {
   owner_id: "student-1",
@@ -60,6 +61,35 @@ test("mapAnonymousReportForStaff limits contact email to approved roles", () => 
 
   assert.equal(mapAnonymousReportForStaff(doc, "maintenance").contact_email, undefined);
   assert.equal(mapAnonymousReportForStaff(doc, "admin").contact_email, "reporter@example.com");
+});
+
+test("classifies common maintenance and disciplinary issues", () => {
+  assert.equal(classifyMaintenanceIssue({ title: "Broken classroom light", description: "The bulb and socket need replacement" }), "lighting");
+  assert.equal(classifyMaintenanceIssue({ title: "Hostel leak", description: "Water is leaking from the bathroom pipe" }), "plumbing");
+  assert.equal(classifyDisciplinaryIssue({ title: "Missing laptop", description: "A laptop was stolen from the lab" }), "theft");
+  assert.equal(classifyDisciplinaryIssue({ title: "Exam cheating", description: "The student copied answers" }), "academic_integrity");
+});
+
+test("buildAnalyticsSummary aggregates report types, issue categories, and admin system metrics", () => {
+  const summary = buildAnalyticsSummary({
+    studentReports: [
+      { category: "maintenance_issue", title: "Broken light", description: "Bulb not working", status: "Submitted", createdAt: new Date() },
+      { category: "disciplinary_case", title: "Fighting", description: "Physical fight", status: "Resolved", createdAt: new Date() },
+    ],
+    anonymousReports: [{ category: "maintenance_issue", title: "Water leak", description: "Pipe leak", status: "Submitted", createdAt: new Date() }],
+    cases: [{ offense_type: "Fighting", description: "Altercation" }],
+    users: [{ role: "admin" }, { role: "student" }, { role: "student" }],
+  });
+
+  assert.deepEqual(summary.reportTypes, [
+    { label: "Maintenance", count: 2 },
+    { label: "Disciplinary / Security", count: 1 },
+  ]);
+  assert.equal(summary.maintenanceIssues[0].label, "lighting");
+  assert.equal(summary.maintenanceIssues[1].label, "plumbing");
+  assert.equal(summary.disciplinaryIssues[0].label, "violence");
+  assert.equal(summary.system.totalUsers, 3);
+  assert.deepEqual(summary.system.usersByRole[0], { label: "student", count: 2 });
 });
 
 test("buildPortalConfig merges environment and institution origins without duplicates", () => {
