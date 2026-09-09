@@ -11,6 +11,18 @@ import { PageSkeleton } from "../../components/PageSkeleton";
 import { StatsStrip } from "../../components/StatsStrip";
 
 type CountItem = { label: string; count: number };
+type PerformanceMetric = { average: number | null; p75: number | null };
+type PerformanceSummary = {
+  windowMinutes: number;
+  samples: number;
+  latestAt: string | null;
+  navigationDuration: PerformanceMetric;
+  domContentLoaded: PerformanceMetric;
+  firstContentfulPaint: PerformanceMetric;
+  largestContentfulPaint: PerformanceMetric;
+  cumulativeLayoutShift: PerformanceMetric;
+  topRoutes: { path: string; count: number }[];
+};
 type AnalyticsSummary = {
   generatedAt: string;
   reportTypes: CountItem[];
@@ -32,10 +44,15 @@ type AnalyticsSummary = {
     usersByRole: CountItem[];
     activeReportStatuses: CountItem[];
   } | null;
+  performance: PerformanceSummary | null;
 };
 
 function humanize(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function formatMilliseconds(value: number | null) {
+  return value === null ? "—" : `${Math.round(value)} ms`;
 }
 
 function Breakdown({ title, items, accent = "emerald" }: { title: string; items: CountItem[]; accent?: "emerald" | "orange" | "blue" }) {
@@ -89,9 +106,9 @@ export default function AnalyticsPage() {
       return;
     }
     if (!user || !canAccessPage(user.role, "analytics")) return;
-    const load = async () => {
+    const load = async (showLoading = false) => {
       try {
-        setLoading(true);
+        if (showLoading) setLoading(true);
         const response = await fetch(`${API_BASE_URL}/analytics/summary`, { headers: authHeaders() });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload.error || "Failed to load analytics.");
@@ -102,7 +119,9 @@ export default function AnalyticsPage() {
         setLoading(false);
       }
     };
-    load();
+    load(true);
+    const interval = window.setInterval(() => load(false), 15000);
+    return () => window.clearInterval(interval);
   }, [authLoading, router, token, user]);
 
   const topReportType = useMemo(() => summary?.reportTypes?.reduce((top, item) => item.count > top.count ? item : top, { label: "None", count: 0 }), [summary]);
@@ -157,6 +176,40 @@ export default function AnalyticsPage() {
             <Breakdown title="Users by role" items={summary.system.usersByRole} />
             <Breakdown title="Report status distribution" items={summary.system.activeReportStatuses} accent="blue" />
           </div>
+        </section>
+      )}
+
+      {summary.performance && (
+        <section className="rounded-2xl border border-sky-200 bg-sky-50/60 p-5 shadow-sm dark:border-sky-900 dark:bg-sky-950/20">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="flex items-center gap-3"><LayoutDashboard className="text-sky-600" size={22} /><h2 className="text-lg font-semibold text-slate-900 dark:text-white">Performance telemetry</h2></div>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Live browser performance from the last {summary.performance.windowMinutes} minutes. Refreshes every 15 seconds.</p>
+            </div>
+            <div className="text-right text-xs text-slate-500 dark:text-slate-400">
+              <div>{summary.performance.samples} samples</div>
+              <div>{summary.performance.latestAt ? `Last sample ${new Date(summary.performance.latestAt).toLocaleTimeString()}` : "Waiting for samples"}</div>
+            </div>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {([
+              { label: "Navigation", metric: summary.performance.navigationDuration },
+              { label: "DOM ready", metric: summary.performance.domContentLoaded },
+              { label: "First contentful paint", metric: summary.performance.firstContentfulPaint },
+              { label: "Largest contentful paint", metric: summary.performance.largestContentfulPaint },
+              { label: "Layout shift", metric: summary.performance.cumulativeLayoutShift },
+            ] as { label: string; metric: PerformanceMetric }[]).map(({ label, metric }) => {
+              const item = metric;
+              const isLayoutShift = label === "Layout shift";
+              return <div key={label} className="rounded-xl bg-white/80 p-3 dark:bg-slate-900/70"><div className="text-xs text-slate-500 dark:text-slate-400">{label}</div><div className="mt-1 text-lg font-bold text-slate-900 dark:text-white">{isLayoutShift ? (item.average === null ? "—" : item.average.toFixed(3)) : formatMilliseconds(item.average)}</div><div className="text-[11px] text-slate-500">p75: {isLayoutShift ? (item.p75 === null ? "—" : item.p75.toFixed(3)) : formatMilliseconds(item.p75)}</div></div>;
+            })}
+          </div>
+          {summary.performance.topRoutes.length > 0 && (
+            <div className="mt-4 border-t border-sky-200 pt-3 dark:border-sky-900">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Most viewed routes</div>
+              <div className="flex flex-wrap gap-2">{summary.performance.topRoutes.map((route) => <span key={route.path} className="rounded-full bg-white px-3 py-1 text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-300">{route.path} · {route.count}</span>)}</div>
+            </div>
+          )}
         </section>
       )}
     </main>
