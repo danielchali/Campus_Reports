@@ -33,7 +33,6 @@ export default function LoginView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isOnline, setIsOnline] = useState(true);
-  const [hasLoginHistory, setHasLoginHistory] = useState(false);
   const [featureIndex, setFeatureIndex] = useState(0);
   const [typedFeatureText, setTypedFeatureText] = useState('');
   const [isDeletingFeatureText, setIsDeletingFeatureText] = useState(false);
@@ -49,14 +48,6 @@ export default function LoginView() {
     'Manage campus cases from initial report to resolution.',
     'Keep evidence, reports, and audit logs organized and secure.',
   ];
-
-  useEffect(() => {
-    // Check if user has logged in before for conditional "Welcome Back"
-    const history = localStorage.getItem('hasLoginHistory');
-    if (history === 'true') {
-      setHasLoginHistory(true);
-    }
-  }, []);
 
   // Performance monitoring
   useEffect(() => {
@@ -163,7 +154,6 @@ export default function LoginView() {
       }
 
       if (success) {
-        localStorage.setItem('hasLoginHistory', 'true');
       } else {
         setError('Invalid credentials. Please try again.');
       }
@@ -326,9 +316,6 @@ export default function LoginView() {
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold mb-2">
-                {hasLoginHistory ? 'Welcome Back!' : 'Welcome!'}
-              </h2>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                 Login to your Campus Reports account
               </p>

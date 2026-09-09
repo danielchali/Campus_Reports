@@ -88,9 +88,6 @@ export default function HelpPage() {
             </div>
             <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Help & Documentation</h1>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 md:text-right">
-            Welcome to Campus Reports. Use this guide to navigate the system and complete your daily work.
-          </p>
         </div>
       </div>
 
