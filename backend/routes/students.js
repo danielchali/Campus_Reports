@@ -5,7 +5,7 @@ import ExcelJS from 'exceljs';
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun } from 'docx';
 const router = express.Router();
 
-router.use(authenticate, authorize(['admin', 'academic_office', 'security_officer']));
+router.use(authenticate, authorize(['admin', 'security_officer']));
 
 router.get('/', listStudents);
 router.get('/search', searchStudents);
@@ -14,7 +14,7 @@ router.get('/:id', getStudent);
 router.patch('/:id/update-last-selected', updateLastSelected);
 router.post('/', createStudent);
 router.put('/:id', updateStudent);
-router.delete('/:id', authorize(['admin', 'academic_office']), deleteStudent);
+router.delete('/:id', authorize(['admin']), deleteStudent);
 router.post('/import', importStudents);
 
 // Excel export

@@ -87,7 +87,7 @@ test("students API requires authentication for create and delete operations", as
   assertJsonError(deleteResponse, 401, "Missing or invalid token");
 });
 
-test("students API applies the stricter admin/academic-office rule to deletes", async () => {
+test("students API applies the stricter admin-only rule to deletes", async () => {
   const response = await request(app)
     .delete("/api/v1/students/student-1")
     .set("Authorization", authHeader({ id: "security-1", username: "security.one", role: "security_officer" }));

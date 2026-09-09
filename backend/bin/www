@@ -75,19 +75,6 @@ async function createDefaultUsers() {
                 console.log('✅ Security user created: security / admin123');
             }
 
-            // Check if academic user exists
-            const existingAcademic = await User.findOne({ username: 'academic' });
-            if (!existingAcademic) {
-                const hashedPassword = await bcrypt.hash('admin123', 10);
-                const academicUser = new User({
-                    username: 'academic',
-                    password: hashedPassword,
-                    name: 'Academic Office',
-                    role: 'academic_office'
-                });
-                await academicUser.save();
-                console.log('✅ Academic user created: academic / admin123');
-            }
         }
     } catch (error) {
         console.error('Error creating default users:', error);

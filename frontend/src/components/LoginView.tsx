@@ -108,7 +108,7 @@ export default function LoginView() {
     if (user) {
       const currentPath = window.location.pathname;
       const validPaths = [
-        '/admin', '/academic-dashboard', '/security-dashboard', 
+        '/admin', '/security-dashboard',
         '/student-dashboard', '/my-reports', '/make-report', 
         '/dashboard', '/cases', '/students', '/inbox',
         '/general-dashboard',

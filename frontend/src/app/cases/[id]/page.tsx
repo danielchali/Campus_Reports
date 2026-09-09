@@ -97,7 +97,6 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
         user?.role === 'chief_security_officer' ||
         user?.role === 'dean_of_students' ||
         user?.role === 'assistant_dean' ||
-        user?.role === 'academic_office' ||
         user?.role === 'secretary';
 
     useEffect(() => {
