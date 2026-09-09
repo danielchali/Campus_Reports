@@ -4,6 +4,7 @@ import AnonymousReportModel from '../models/anonymousReport.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { generateDashboardInsights } from '../utils/nlpAnalytics.js';
 import { getStaffReportScope } from '../utils/studentReportAccess.js';
+import { cacheResponse } from '../middleware/cache.js';
 
 const router = express.Router();
 
@@ -39,6 +40,7 @@ router.get(
   '/insights',
   authenticate,
   authorize(STAFF_ROLES),
+  cacheResponse(),
   async (req, res) => {
     try {
       const studentScope = getStaffReportScope(req.user) || {};

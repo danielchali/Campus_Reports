@@ -13,6 +13,7 @@
         "server": "node server.js"
     },
     "dependencies": {
+        "@upstash/redis": "^1.35.3",
         "@vercel/blob": "^1.1.1",
         "bcryptjs": "^2.4.3",
         "cors": "^2.8.5",
