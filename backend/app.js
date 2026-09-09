@@ -24,6 +24,7 @@ import dashboardAnalyticsRouter from "./routes/dashboardAnalytics.js";
 import analyticsRouter from "./routes/analytics.js";
 import formSchemasRouter from "./routes/formSchemas.js";
 import { requestRateLimit } from "./middleware/rateLimit.js";
+import telemetryRouter from "./routes/telemetry.js";
 
 const app = express();
 const API_V1_BASE = "/api/v1";
@@ -169,6 +170,7 @@ function mountRoutes(basePath) {
   app.use(`${basePath}/dashboard`, dashboardAnalyticsRouter);
   app.use(`${basePath}/analytics`, analyticsRouter);
   app.use(`${basePath}/form-schemas`, formSchemasRouter);
+  app.use(`${basePath}/telemetry`, telemetryRouter);
 }
 
 // Primary versioned API

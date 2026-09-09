@@ -17,6 +17,7 @@ import NotificationBell from '../components/NotificationBell';
 import UserProfileMenu from '../components/UserProfileMenu';
 import { PageSkeleton } from '../components/PageSkeleton';
 import SiteFooter from '../components/SiteFooter';
+import PerformanceTelemetry from '../components/PerformanceTelemetry';
 
 const SyncManagerClient = lazy(() => import('../components/SyncManagerClient'));
 const ServiceWorkerRegistration = lazy(() => import('../components/ServiceWorkerRegistration'));
@@ -194,6 +195,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ThemeProvider>
               <SidebarProvider>
                 <AppContent isLogin={isLogin}>{children}</AppContent>
+                <PerformanceTelemetry />
 
                 <Suspense fallback={null}>
                   <ServiceWorkerRegistration />
