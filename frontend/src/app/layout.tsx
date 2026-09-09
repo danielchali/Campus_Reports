@@ -16,6 +16,7 @@ import GlobalSearch from '../components/GlobalSearch';
 import NotificationBell from '../components/NotificationBell';
 import UserProfileMenu from '../components/UserProfileMenu';
 import { PageSkeleton } from '../components/PageSkeleton';
+import SiteFooter from '../components/SiteFooter';
 
 const SyncManagerClient = lazy(() => import('../components/SyncManagerClient'));
 const ServiceWorkerRegistration = lazy(() => import('../components/ServiceWorkerRegistration'));
@@ -126,6 +127,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
           ) : (
             <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
           )}
+          {shouldShowNav && <SiteFooter className="mt-8 pb-2" />}
         </main>
         {shouldShowNav && (
           <div className="md:hidden">

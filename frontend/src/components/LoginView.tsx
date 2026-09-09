@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { performanceMonitor, addResourceHints } from '../utils/performance';
 import CampusBackground from './CampusBackground';
+import SiteFooter from './SiteFooter';
 import {
   User,
   Lock,
@@ -446,6 +447,8 @@ export default function LoginView() {
             </div>
           </div>
         </div>
+
+        <SiteFooter className="pb-4 pt-1" />
 
         {/* Floating AI Chatbot */}
       </div>
