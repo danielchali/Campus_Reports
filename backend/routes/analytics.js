@@ -64,9 +64,15 @@ router.get('/summary', authenticate, authorize(ANALYTICS_ROLES), async (req, res
     const caseScope = {};
 
     const [studentReports, anonymousReports, cases, users] = await Promise.all([
-      StudentReportModel.find(studentScope).lean(),
-      AnonymousReportModel.find(anonymousScope).lean(),
-      CaseModel.find(caseScope).lean(),
+      StudentReportModel.find(studentScope)
+        .select('category status title description details ai_keywords createdAt')
+        .lean(),
+      AnonymousReportModel.find(anonymousScope)
+        .select('category status title description details ai_keywords createdAt')
+        .lean(),
+      CaseModel.find(caseScope)
+        .select('offense_type description student_case_process')
+        .lean(),
       req.user.role === 'admin' ? UserModel.find({}).select('role').lean() : Promise.resolve([]),
     ]);
 

@@ -19,6 +19,9 @@ const anonymousReportSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });
+anonymousReportSchema.index({ category: 1, createdAt: -1 });
+anonymousReportSchema.index({ status: 1, createdAt: -1 });
+anonymousReportSchema.index({ ai_priority_score: -1, createdAt: -1 });
 
 const AnonymousReportModel = mongoose.models.AnonymousReport || mongoose.model('AnonymousReport', anonymousReportSchema);
 

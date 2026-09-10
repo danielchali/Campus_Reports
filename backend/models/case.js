@@ -19,6 +19,9 @@ const caseSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });
+caseSchema.index({ createdAt: -1 });
+caseSchema.index({ status: 1, createdAt: -1 });
+caseSchema.index({ offense_type: 1 });
 
 const CaseModel = mongoose.models.Case || mongoose.model('Case', caseSchema);
 

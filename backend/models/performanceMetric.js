@@ -15,5 +15,6 @@ const performanceMetricSchema = new mongoose.Schema(
   },
   { versionKey: false },
 );
+performanceMetricSchema.index({ receivedAt: -1, path: 1 });
 
 export default mongoose.models.PerformanceMetric || mongoose.model('PerformanceMetric', performanceMetricSchema);

@@ -73,6 +73,11 @@ const studentReportSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+studentReportSchema.index({ owner_id: 1, createdAt: -1 });
+studentReportSchema.index({ category: 1, createdAt: -1 });
+studentReportSchema.index({ status: 1, createdAt: -1 });
+studentReportSchema.index({ ai_priority_score: -1, createdAt: -1 });
+
 const StudentReportModel =
   mongoose.models.StudentReport ||
   mongoose.model("StudentReport", studentReportSchema);
