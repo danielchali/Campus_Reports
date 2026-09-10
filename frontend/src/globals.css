@@ -7,19 +7,31 @@
     @apply mx-auto w-full max-w-[1600px];
   }
 
-  /* Keep authenticated pages feeling like one continuous working sheet. */
+  /* Keep the clean sheet layout while making card boundaries visible. */
   .page-container article[class*="rounded"][class*="border"],
   .page-container section[class*="rounded"][class*="border"],
   .page-container article[class*="shadow"],
   .page-container section[class*="shadow"] {
-    border: 0 !important;
-    border-radius: 0 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 0.75rem !important;
     box-shadow: none !important;
   }
 
   .page-container article[class*="bg-white"],
   .page-container section[class*="bg-white"] {
-    background-color: transparent !important;
+    background-color: #ffffff !important;
+  }
+
+  .dark .page-container article[class*="rounded"][class*="border"],
+  .dark .page-container section[class*="rounded"][class*="border"],
+  .dark .page-container article[class*="shadow"],
+  .dark .page-container section[class*="shadow"] {
+    border-color: #1e293b !important;
+  }
+
+  .dark .page-container article[class*="bg-white"],
+  .dark .page-container section[class*="bg-white"] {
+    background-color: #0f172a !important;
   }
 
   .page-container article > [class*="border-b"],
