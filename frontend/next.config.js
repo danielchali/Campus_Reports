@@ -37,9 +37,7 @@ const nextConfig = {
         // Tree shaking optimization
         config.optimization = {
             ...config.optimization,
-            // Next's dev cache is incompatible with global export analysis.
-            // Keep tree-shaking enabled for production builds only.
-            usedExports: !dev,
+            usedExports: true,
             sideEffects: false,
         };
 
