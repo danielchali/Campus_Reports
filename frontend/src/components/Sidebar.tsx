@@ -31,7 +31,7 @@ export default function Sidebar() {
   const { bottomNav, sidebarNav } = splitNavLinksForMobile(allNavLinks);
   const isCollapsed = isDesktop && isCollapsedDesktop;
 
-  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl transition-[transform,width] duration-300 ease-in-out ${
+  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100 shadow-none transition-[transform,width] duration-300 ease-in-out md:rounded-tr-[28px] ${
     isOpenMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0 md:w-auto'
   }`;
 
@@ -246,7 +246,7 @@ export default function Sidebar() {
           })}
         </nav>
         <div
-          className={`absolute bottom-0 right-0 top-0 hidden w-1 cursor-col-resize bg-slate-200/50 dark:bg-slate-800/50 hover:bg-kmuGreen/30 md:block ${isCollapsed ? 'md:hidden' : ''}`}
+          className={`absolute bottom-0 right-0 top-0 hidden w-1 cursor-col-resize bg-transparent hover:bg-kmuGreen/30 md:block ${isCollapsed ? 'md:hidden' : ''}`}
           onMouseDown={handleMouseDown}
           title="Drag to resize sidebar"
         />

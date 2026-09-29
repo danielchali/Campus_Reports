@@ -39,7 +39,7 @@ function TopNavbar({ showMenuButton }: { showMenuButton: boolean }) {
   if (!user) return null;
 
   return (
-    <nav className="sticky top-0 z-[40] w-full border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95">
+    <nav className="sticky top-0 z-[40] w-full overflow-hidden rounded-tl-[28px] border-0 bg-white/95 backdrop-blur dark:bg-slate-950/95">
       <div className="flex items-center justify-between gap-4 px-4 py-2 md:px-6">
         <div className="flex min-w-0 items-center gap-3">
           {showMenuButton && (
@@ -109,7 +109,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
       )}
 
       <div 
-        className={clsx("relative flex flex-1 flex-col min-w-0 min-h-screen")}
+        className={clsx("relative flex min-h-screen min-w-0 flex-1 flex-col bg-white dark:bg-slate-950")}
         style={shouldShowNav && !isMobile ? { marginLeft: `${sidebarWidth}px` } : undefined}
       >
         {shouldShowNav && <TopNavbar showMenuButton={!disableSidebarForStudentMobile} />}
