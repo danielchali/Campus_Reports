@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,7 +13,7 @@ import {
 } from "@/components/icons";
 import { useAuth } from "../../context/AuthContext";
 import { PageSkeleton, InlineSkeleton } from "../../components/PageSkeleton";
-import { StatsStrip } from "../../components/StatsStrip";
+import { StatCard, StatsStrip } from "../../components/StatsStrip";
 import Notification, { useNotification } from "../../components/Notification";
 import WorkOrderJobCardModal from "../../components/WorkOrderJobCardModal";
 import { canAccessPage } from "../../utils/access";
@@ -284,22 +283,22 @@ export default function WorkOrdersPage() {
           )}
 
         <StatsStrip desktopColumnsClass="md:grid-cols-4">
-          <SummaryCard
+          <StatCard
             label="Total"
             value={summary.total}
             icon={<ClipboardList size={18} />}
           />
-          <SummaryCard
+          <StatCard
             label="Open / Assigned"
             value={summary.open}
             icon={<Wrench size={18} />}
           />
-          <SummaryCard
+          <StatCard
             label="In Progress"
             value={summary.inProgress}
             icon={<Wrench size={18} />}
           />
-          <SummaryCard
+          <StatCard
             label="Completed"
             value={summary.completed}
             icon={<CheckCircle2 size={18} />}
@@ -438,29 +437,5 @@ export default function WorkOrdersPage() {
         />
       )}
     </>
-  );
-}
-
-function SummaryCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: number;
-  icon: ReactNode;
-}) {
-  return (
-    <div className="min-w-[5.6rem] rounded-lg bg-white p-2 shadow dark:bg-gray-800 md:min-w-0 md:rounded-2xl md:p-5">
-      <div className="flex items-center justify-between text-kmuGreen">
-        <span className="truncate text-[9px] font-semibold uppercase leading-tight text-gray-500 dark:text-gray-400 md:text-sm md:font-medium md:normal-case">
-          {label}
-        </span>
-        <span className="hidden md:inline-flex">{icon}</span>
-      </div>
-      <p className="mt-0.5 text-base font-bold leading-none text-gray-900 dark:text-white md:mt-2 md:text-3xl">
-        {value}
-      </p>
-    </div>
   );
 }

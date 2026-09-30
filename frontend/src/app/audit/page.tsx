@@ -9,7 +9,7 @@ import { authHeaders } from '../../utils/api';
 import { useRouter } from "next/navigation";
 import { canAccessPage } from '../../utils/access';
 import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
-import { StatsStrip } from '../../components/StatsStrip';
+import { StatCard, StatsStrip } from '../../components/StatsStrip';
 
 interface AuditLog {
   _id?: string;
@@ -136,40 +136,12 @@ export default function AuditPage() {
         
         {/* Summary Stats */}
         <StatsStrip desktopColumnsClass="md:grid-cols-3 lg:grid-cols-6">
-          <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
-            <div className="text-base font-bold leading-none text-kmuGreen md:text-2xl">{total}</div>
-            <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Total Logs</div>
-          </div>
-          <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
-            <div className="text-base font-bold leading-none text-blue-600 md:text-2xl">
-              {stats.case_created || 0}
-            </div>
-            <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Cases Created</div>
-          </div>
-          <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
-            <div className="text-base font-bold leading-none text-orange-600 md:text-2xl">
-              {stats.status_change || 0}
-            </div>
-            <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Status Changes</div>
-          </div>
-          <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
-            <div className="text-base font-bold leading-none text-red-600 md:text-2xl">
-              {stats.case_deleted || 0}
-            </div>
-            <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Cases Deleted</div>
-          </div>
-          <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
-            <div className="text-base font-bold leading-none text-purple-600 md:text-2xl">
-              {stats.user_login || 0}
-            </div>
-            <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">User Logins</div>
-          </div>
-          <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
-            <div className="text-base font-bold leading-none text-yellow-600 md:text-2xl">
-              {stats.login_failed || 0}
-            </div>
-            <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Failed Logins</div>
-          </div>
+          <StatCard label="Total Logs" value={total} valueClassName="text-kmuGreen" />
+          <StatCard label="Cases Created" value={stats.case_created || 0} valueClassName="text-blue-600" />
+          <StatCard label="Status Changes" value={stats.status_change || 0} valueClassName="text-orange-600" />
+          <StatCard label="Cases Deleted" value={stats.case_deleted || 0} valueClassName="text-red-600" />
+          <StatCard label="User Logins" value={stats.user_login || 0} valueClassName="text-purple-600" />
+          <StatCard label="Failed Logins" value={stats.login_failed || 0} valueClassName="text-yellow-600" />
         </StatsStrip>
 
         <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">

@@ -37,7 +37,7 @@ export function StatCard({
 }: StatCardProps) {
   return (
     <article
-      className={`min-w-[5.6rem] rounded-lg border bg-white p-2 shadow-sm dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-3 ${className}`}
+      className={`stat-card min-w-[5.6rem] rounded-lg border bg-white p-2 shadow-sm dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-3 ${className}`}
     >
       <div className="flex h-full items-center gap-2 md:justify-between md:gap-3">
         {icon && (
@@ -51,7 +51,7 @@ export function StatCard({
           <p className="truncate text-[9px] font-semibold uppercase leading-tight text-slate-500 dark:text-slate-400 md:text-[10px] md:tracking-wider">
             {label}
           </p>
-          <p className={`mt-0.5 text-base font-bold leading-none md:mt-1 md:text-lg ${valueClassName}`}>
+          <p className={`stat-card-value mt-0.5 text-base font-bold leading-none md:mt-1 md:text-lg ${valueClassName}`}>
             {value}
           </p>
         </div>

@@ -8,7 +8,7 @@ import { authHeaders } from "../../utils/api";
 import { canAccessPage } from "../../utils/access";
 import { useAuth } from "../../context/AuthContext";
 import { PageSkeleton } from "../../components/PageSkeleton";
-import { StatsStrip } from "../../components/StatsStrip";
+import { StatCard, StatsStrip } from "../../components/StatsStrip";
 
 type CountItem = { label: string; count: number };
 type PerformanceMetric = { average: number | null; p75: number | null };
@@ -82,16 +82,6 @@ function Breakdown({ title, items, accent = "emerald" }: { title: string; items:
   );
 }
 
-function MetricCard({ label, value, icon: Icon, tone }: { label: string; value: number; icon: React.ComponentType<{ size?: number; className?: string }>; tone: string }) {
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-      <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${tone}`}><Icon size={20} /></div>
-      <div className="text-2xl font-bold text-slate-900 dark:text-white">{value}</div>
-      <div className="mt-1 text-sm text-slate-500 dark:text-slate-400">{label}</div>
-    </div>
-  );
-}
-
 export default function AnalyticsPage() {
   const router = useRouter();
   const { user, token, loading: authLoading } = useAuth();
@@ -144,12 +134,12 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <StatsStrip desktopColumnsClass="lg:grid-cols-4">
-        <MetricCard label="Total reports" value={summary.totals.reports} icon={FileText} tone="bg-emerald-50 text-emerald-600" />
-        <MetricCard label="Maintenance reports" value={summary.totals.maintenanceReports} icon={Wrench} tone="bg-orange-50 text-orange-600" />
-        <MetricCard label="Disciplinary/security" value={summary.totals.disciplinaryReports} icon={ShieldCheck} tone="bg-blue-50 text-blue-600" />
-        <MetricCard label="Reports in last 30 days" value={summary.totals.reportsLast30Days} icon={CheckCircle2} tone="bg-violet-50 text-violet-600" />
-      </StatsStrip>
+        <StatsStrip desktopColumnsClass="lg:grid-cols-4">
+        <StatCard label="Total reports" value={summary.totals.reports} icon={<FileText size={16} />} iconClassName="bg-emerald-50 text-emerald-600" />
+        <StatCard label="Maintenance reports" value={summary.totals.maintenanceReports} icon={<Wrench size={16} />} iconClassName="bg-orange-50 text-orange-600" />
+        <StatCard label="Disciplinary/security" value={summary.totals.disciplinaryReports} icon={<ShieldCheck size={16} />} iconClassName="bg-blue-50 text-blue-600" />
+        <StatCard label="Reports in last 30 days" value={summary.totals.reportsLast30Days} icon={<CheckCircle2 size={16} />} iconClassName="bg-violet-50 text-violet-600" />
+        </StatsStrip>
 
       <section className="grid gap-5 lg:grid-cols-2">
         <Breakdown title="Most common report types" items={summary.reportTypes} accent="blue" />
@@ -172,7 +162,7 @@ export default function AnalyticsPage() {
           <div className="flex items-center gap-3"><ShieldCheck className="text-kmuGreen" size={22} /><h2 className="text-lg font-semibold text-slate-900 dark:text-white">System analytics</h2></div>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Administrator-only platform metrics.</p>
           <div className="mt-4 grid gap-4 md:grid-cols-3">
-            <MetricCard label="Total users" value={summary.system.totalUsers} icon={CheckCircle2} tone="bg-white text-kmuGreen dark:bg-slate-900" />
+            <StatCard label="Total users" value={summary.system.totalUsers} icon={<CheckCircle2 size={16} />} iconClassName="bg-kmuGreen/10 text-kmuGreen" />
             <Breakdown title="Users by role" items={summary.system.usersByRole} />
             <Breakdown title="Report status distribution" items={summary.system.activeReportStatuses} accent="blue" />
           </div>

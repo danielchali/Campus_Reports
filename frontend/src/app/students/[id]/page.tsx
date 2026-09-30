@@ -12,7 +12,7 @@ import { saveAs } from 'file-saver';
 import { canAccessPage } from '../../../utils/access';
 import { getTodayDateInputValue } from '../../../utils/dateTimeDefaults';
 import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
-import { StatsStrip } from '../../../components/StatsStrip';
+import { StatCard, StatsStrip } from '../../../components/StatsStrip';
 import { useAlertDialog } from '../../../components/AppDialog';
 import StatementRequestPanel from '../../../components/statementRequests/StatementRequestPanel';
 
@@ -264,22 +264,10 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                 </div>
 
                 <StatsStrip desktopColumnsClass="lg:grid-cols-4">
-                    <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
-                        <div className="text-base font-bold leading-none text-kmuGreen md:text-2xl">{totalCases}</div>
-                        <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Total Cases</div>
-                    </div>
-                    <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
-                        <div className="text-base font-bold leading-none text-red-600 md:text-2xl">{openCases}</div>
-                        <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Open Cases</div>
-                    </div>
-                    <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
-                        <div className="text-base font-bold leading-none text-green-600 md:text-2xl">{closedCases}</div>
-                        <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">Closed Cases</div>
-                    </div>
-                    <div className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
-                        <div className="text-base font-bold leading-none text-orange-600 md:text-2xl">{highSeverityCases}</div>
-                        <div className="mt-0.5 truncate text-[9px] font-semibold uppercase leading-tight text-gray-600 dark:text-gray-400 md:text-sm md:font-normal md:normal-case">High Severity</div>
-                    </div>
+                    <StatCard label="Total Cases" value={totalCases} valueClassName="text-kmuGreen" />
+                    <StatCard label="Open Cases" value={openCases} valueClassName="text-red-600" />
+                    <StatCard label="Closed Cases" value={closedCases} valueClassName="text-green-600" />
+                    <StatCard label="High Severity" value={highSeverityCases} valueClassName="text-orange-600" />
                 </StatsStrip>
 
                 <div className="w-full rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">

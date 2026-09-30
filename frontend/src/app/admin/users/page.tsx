@@ -6,7 +6,7 @@ import { getAll, register, update, remove, exportDocx, exportExcel, authHeaders 
 import { API_BASE_URL } from '../../../config/constants';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, TableSkeleton } from '../../../components/PageSkeleton';
-import { StatsStrip } from '../../../components/StatsStrip';
+import { StatCard, StatsStrip } from '../../../components/StatsStrip';
 import { useConfirmDialog } from '../../../components/AppDialog';
 
 
@@ -304,12 +304,13 @@ export default function UserManagementPage() {
 
         <StatsStrip desktopColumnsClass="lg:grid-cols-4">
           {userStats.map((stat) => (
-            <div key={stat.label} className="min-w-[5.6rem] rounded-lg border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:min-w-0 md:rounded-xl md:p-4">
-              <div className={`block truncate rounded-full px-0 py-0 text-[9px] font-semibold uppercase leading-tight md:inline-flex md:px-2.5 md:py-1 md:text-xs md:normal-case ${stat.tone}`}>
-                {stat.label}
-              </div>
-              <div className="mt-0.5 text-base font-bold leading-none text-gray-900 dark:text-white md:mt-3 md:text-2xl">{stat.value}</div>
-            </div>
+            <StatCard
+              key={stat.label}
+              label={stat.label}
+              value={stat.value}
+              className="border-slate-200 dark:border-slate-800"
+              valueClassName="text-gray-900 dark:text-white"
+            />
           ))}
         </StatsStrip>
 
