@@ -10,11 +10,13 @@ interface User {
   username: string;
   role: string;
   name?: string;
+  hostel?: string;
 }
 
 
 interface ProfileResponse {
   name?: string;
+  hostel?: string;
   studentProfile?: {
     fullName?: string;
     personalInfo?: {
@@ -147,6 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const refreshedUser = {
                   ...parsedUser,
                   name: getProfileDisplayName(profile, parsedUser),
+                  hostel: profile?.hostel ?? parsedUser.hostel,
                 };
                 localStorage.setItem('auth_user', JSON.stringify(refreshedUser));
                 setUser(refreshedUser);
@@ -204,6 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const refreshedUser = {
         ...user,
         name: getProfileDisplayName(profile, user),
+        hostel: profile?.hostel ?? user.hostel,
       };
 
       localStorage.setItem('auth_user', JSON.stringify(refreshedUser));

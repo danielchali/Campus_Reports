@@ -7,7 +7,7 @@ router.use(authenticate, authorize([
     'admin',
     'chief_security_officer',
     'dean_of_students',
-    'assistant_dean',
+    'warden',
     'secretary',
     'registrar',
     'security_officer',

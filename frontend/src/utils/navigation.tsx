@@ -187,12 +187,12 @@ export function getNavLinksForRole(role?: string): NavLink[] {
     ];
   }
 
-  if (role === "assistant_dean") {
+  if (role === "warden") {
     return [
       {
         icon: navIcons.assistant,
         label: "Dashboard",
-        path: "/assistant-dean-dashboard",
+        path: "/warden-dashboard",
       },
       { icon: navIcons.inbox, label: "Inbox", path: "/inbox" },
       {

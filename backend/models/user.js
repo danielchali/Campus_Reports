@@ -6,6 +6,13 @@ const userSchema = new mongoose.Schema({
     name: String,
     email: { type: String, trim: true, lowercase: true },
     role: { type: String, default: 'user' },
+    hostel: {
+        type: String,
+        trim: true,
+        required: function requiredHostelForWarden() {
+            return this.role === 'warden';
+        }
+    },
     profile: {
         houseNumber: String
     },

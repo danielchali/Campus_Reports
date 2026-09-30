@@ -32,9 +32,9 @@ router.get('/export-excel', async(req, res) => {
         const users = await listUsersRaw();
         const workbook = new ExcelJS.Workbook();
         const sheet = workbook.addWorksheet('Users');
-        sheet.addRow(['ID', 'Username', 'Name', 'Role']);
+        sheet.addRow(['ID', 'Username', 'Name', 'Role', 'Hostel']);
         users.forEach(u => {
-            sheet.addRow([u.id || u._id, u.username, u.name, u.role]);
+            sheet.addRow([u.id || u._id, u.username, u.name, u.role, u.hostel || '']);
         });
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', 'attachment; filename=users.xlsx');
@@ -56,6 +56,7 @@ router.post('/export-docx', async(req, res) => {
                     new TableCell({ children: [new Paragraph('Username')] }),
                     new TableCell({ children: [new Paragraph('Name')] }),
                     new TableCell({ children: [new Paragraph('Role')] }),
+                    new TableCell({ children: [new Paragraph('Hostel')] }),
                 ],
             }),
             ...users.map(u => new TableRow({
@@ -64,6 +65,7 @@ router.post('/export-docx', async(req, res) => {
                     new TableCell({ children: [new Paragraph(u.username)] }),
                     new TableCell({ children: [new Paragraph(u.name)] }),
                     new TableCell({ children: [new Paragraph(u.role)] }),
+                    new TableCell({ children: [new Paragraph(u.hostel || '')] }),
                 ],
             })),
         ];

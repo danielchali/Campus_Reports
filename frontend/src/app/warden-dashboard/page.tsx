@@ -2,10 +2,10 @@
 
 import ManagementDashboard from '../../components/dashboard/ManagementDashboard';
 
-export default function AssistantDeanDashboard() {
+export default function WardenDashboard() {
   return (
     <ManagementDashboard
-      role="assistant_dean"
+      role="warden"
       focusLabel="Recent Campus Reports"
       focusEmpty="No recent incident or maintenance reports are available."
       metricKeys={['totalReports', 'openReports', 'pendingStatements', 'submittedStatements', 'totalStaff']}

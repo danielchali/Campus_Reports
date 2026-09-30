@@ -185,7 +185,13 @@ export async function login(req, res) {
         }
 
         const displayName = await resolveUserDisplayName(user);
-        const payload = { id: user._id || user.id, role: user.role, username: user.username, name: displayName };
+        const payload = {
+            id: user._id || user.id,
+            role: user.role,
+            username: user.username,
+            name: displayName,
+            ...(user.role === 'warden' ? { hostel: user.hostel } : {})
+        };
         const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
         await logAudit({
@@ -211,20 +217,32 @@ export async function login(req, res) {
 
 export async function register(req, res) {
     const { username, password, name, role } = req.body;
+    const normalizedRole = String(role || 'user').trim();
+    const hostel = String(req.body.hostel || '').trim();
     const email = String(req.body.email || '').trim().toLowerCase();
     try {
         if (!email) return res.status(400).json({ error: 'Email is required' });
+        if (normalizedRole === 'warden' && !hostel) {
+            return res.status(400).json({ error: 'Hostel is required for Warden users' });
+        }
 
         const exists = await UserModel.findOne({ username });
         if (exists) return res.status(409).json({ error: 'Username already exists' });
 
         const hashed = await bcrypt.hash(password, 10);
-        const user = await UserModel.create({ username, password: hashed, name, email, role });
+        const user = await UserModel.create({
+            username,
+            password: hashed,
+            name,
+            email,
+            role: normalizedRole,
+            ...(normalizedRole === 'warden' ? { hostel } : {})
+        });
 
         await ensureStudentProfileForUser({
             username,
             name,
-            role: role || 'user'
+            role: normalizedRole
         });
 
         await logAudit({
@@ -235,7 +253,8 @@ export async function register(req, res) {
             details: {
                 name,
                 email,
-                role: role || 'user',
+                role: normalizedRole,
+                ...(normalizedRole === 'warden' ? { hostel } : {}),
                 timestamp: new Date().toISOString()
             },
             ipAddress: req.ip,

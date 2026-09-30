@@ -5,7 +5,7 @@ import ExcelJS from 'exceljs';
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun } from 'docx';
 const router = express.Router();
 
-router.use(authenticate, authorize(['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar', 'maintenance']));
+router.use(authenticate, authorize(['admin', 'chief_security_officer', 'dean_of_students', 'warden', 'secretary', 'registrar', 'maintenance']));
 
 router.get('/', listStaff);
 router.get('/search', searchStaff);

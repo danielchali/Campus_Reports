@@ -16,7 +16,7 @@ export function canViewReport(user, report) {
     [
       "admin",
       "chief_security_officer",
-      "assistant_dean",
+      "warden",
       "security_officer",
     ].includes(role)
   ) {
@@ -66,5 +66,5 @@ export const CONTACT_EMAIL_ROLES = new Set([
   "admin",
   "chief_security_officer",
   "dean_of_students",
-  "assistant_dean",
+  "warden",
 ]);

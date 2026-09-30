@@ -18,6 +18,7 @@ type UserAccount = {
   name: string;
   role: string;
   email?: string;
+  hostel?: string;
 };
 
 type ApiError = {
@@ -36,7 +37,7 @@ const ROLES = [
   { value: 'security_officer', label: 'Security Officer' },
   { value: 'chief_security_officer', label: 'Chief Security Officer' },
   { value: 'dean_of_students', label: 'Dean of Students' },
-  { value: 'assistant_dean', label: 'Assistant Dean' },
+  { value: 'warden', label: 'Warden' },
   { value: 'registrar', label: 'Registrar' },
   { value: 'maintenance', label: 'Maintenance' },
   { value: 'student', label: 'Student' },
@@ -54,7 +55,7 @@ export default function UserManagementPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [editUser, setEditUser] = useState<UserAccount | null>(null);
-  const [newUser, setNewUser] = useState({ username: '', name: '', email: '', password: '', role: 'security_officer' });
+  const [newUser, setNewUser] = useState({ username: '', name: '', email: '', password: '', role: 'security_officer', hostel: '' });
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
@@ -99,10 +100,10 @@ export default function UserManagementPage() {
     setError(null);
     setSuccess(null);
     try {
-      await register(newUser.username, newUser.password, newUser.name, newUser.role, newUser.email.trim());
+      await register(newUser.username, newUser.password, newUser.name, newUser.role, newUser.email.trim(), newUser.hostel.trim());
       setSuccess('User created successfully!');
       setShowCreate(false);
-      setNewUser({ username: '', name: '', email: '', password: '', role: 'security_officer' });
+      setNewUser({ username: '', name: '', email: '', password: '', role: 'security_officer', hostel: '' });
       fetchUsers();
     } catch (err: unknown) {
       console.error('Error creating user:', err);
@@ -130,7 +131,8 @@ export default function UserManagementPage() {
         username: editUser.username,
         name: editUser.name,
         role: editUser.role,
-        email: editUser.email?.trim() || ''
+        email: editUser.email?.trim() || '',
+        hostel: editUser.hostel?.trim() || ''
       });
       setSuccess('User updated successfully!');
       setEditUser(null);
@@ -270,7 +272,7 @@ export default function UserManagementPage() {
     const adminCount = users.filter((account) => account.role === 'admin').length;
     const studentCount = users.filter((account) => account.role === 'student').length;
     const supportCount = users.filter((account) =>
-      ['security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar', 'maintenance'].includes(account.role)
+      ['security_officer', 'chief_security_officer', 'dean_of_students', 'warden', 'secretary', 'registrar', 'maintenance'].includes(account.role)
     ).length;
 
     return [
@@ -413,6 +415,19 @@ export default function UserManagementPage() {
                       {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                     </select>
                   </div>
+                  {newUser.role === 'warden' && (
+                    <div>
+                      <label className="mb-1 block text-gray-700 dark:text-gray-300">Hostel</label>
+                      <input
+                        type="text"
+                        className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                        value={newUser.hostel}
+                        onChange={e => setNewUser(u => ({ ...u, hostel: e.target.value }))}
+                        placeholder="e.g. Kwacha Hostel"
+                        required
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="mt-4 flex justify-end">
                   <button type="submit" className="rounded bg-kmuGreen px-4 py-2 text-white transition hover:bg-kmuOrange">
@@ -470,6 +485,16 @@ export default function UserManagementPage() {
                             >
                               {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                             </select>
+                            {editUser.role === 'warden' && (
+                              <input
+                                type="text"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                value={editUser.hostel || ''}
+                                onChange={e => setEditUser((eu: any) => ({ ...eu, hostel: e.target.value }))}
+                                placeholder="Hostel"
+                                required
+                              />
+                            )}
                             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                               <button type="button" className="bg-kmuGreen text-white px-3 py-2 rounded text-xs" onClick={handleEdit}>Save</button>
                               <button type="button" className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-3 py-2 rounded text-xs" onClick={cancelEdit}>Cancel</button>
@@ -484,6 +509,9 @@ export default function UserManagementPage() {
                               <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
                                 {u.role}
                               </span>
+                              {u.role === 'warden' && u.hostel && (
+                                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">Hostel: {u.hostel}</div>
+                              )}
                             </div>
                             <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                               <button type="button" className="bg-blue-500 text-white px-3 py-2 rounded text-xs hover:bg-blue-600 transition" onClick={() => startEdit(u)}>Edit</button>
@@ -564,6 +592,16 @@ export default function UserManagementPage() {
                               >
                                 {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                               </select>
+                              {editUser.role === 'warden' && (
+                                <input
+                                  type="text"
+                                  className="mt-1 w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                  value={editUser.hostel || ''}
+                                  onChange={e => setEditUser((eu: any) => ({ ...eu, hostel: e.target.value }))}
+                                  placeholder="Hostel"
+                                  required
+                                />
+                              )}
                             </td>
                             <td className="py-2 px-2 md:px-4">
                               <div className="flex flex-col sm:flex-row gap-1">
@@ -595,6 +633,9 @@ export default function UserManagementPage() {
                               <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full">
                                 {u.role}
                               </span>
+                              {u.role === 'warden' && u.hostel && (
+                                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">{u.hostel}</div>
+                              )}
                             </td>
                             <td className="py-2 px-2 md:px-4">
                               <div className="flex flex-col sm:flex-row gap-1">

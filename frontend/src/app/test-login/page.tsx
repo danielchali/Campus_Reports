@@ -100,7 +100,7 @@ export default function TestLoginPage() {
           <li>Admin: username: "admin", password: "password"</li>
           <li>Chief Security Officer: username: "chief_security", password: "password"</li>
           <li>Dean of Students: username: "dean", password: "password"</li>
-          <li>Assistant Dean: username: "assistant_dean", password: "password"</li>
+          <li>Warden: username: "warden", password: "password"</li>
           <li>Registrar: username: "registrar", password: "password"</li>
           <li>Security Officer: username: "security", password: "password"</li>
         </ul>
@@ -112,7 +112,7 @@ export default function TestLoginPage() {
           <li><a href="/admin" className="text-kmuGreen hover:underline">Admin Dashboard</a></li>
           <li><a href="/chief-security-officer-dashboard" className="text-kmuGreen hover:underline">Chief Security Officer Dashboard</a></li>
           <li><a href="/dean-of-students-dashboard" className="text-kmuGreen hover:underline">Dean of Students Dashboard</a></li>
-          <li><a href="/assistant-dean-dashboard" className="text-kmuGreen hover:underline">Assistant Dean Dashboard</a></li>
+          <li><a href="/warden-dashboard" className="text-kmuGreen hover:underline">Warden Dashboard</a></li>
           <li><a href="/registrar-dashboard" className="text-kmuGreen hover:underline">Registrar Dashboard</a></li>
           <li><a href="/security-dashboard" className="text-kmuGreen hover:underline">Security Dashboard</a></li>
         </ul>

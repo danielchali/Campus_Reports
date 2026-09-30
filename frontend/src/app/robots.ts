@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: ['/', '/login', '/signup', '/anonymous-report', '/help'],
       disallow: [
         '/admin',
-        '/assistant-dean-dashboard',
+        '/warden-dashboard',
         '/chief-security-officer-dashboard',
         '/dean-of-students-dashboard',
         '/maintenance-dashboard',

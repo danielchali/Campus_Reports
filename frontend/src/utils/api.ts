@@ -51,11 +51,11 @@ export async function login(username: string, password: string) {
   }
 }
 
-export async function register(username: string, password: string, name: string | undefined, role: string | undefined, email: string) {
+export async function register(username: string, password: string, name: string | undefined, role: string | undefined, email: string, hostel?: string) {
   const res = await fetch(`${API_BASE_URL}/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders() },
-    body: JSON.stringify({ username, password, name, role, email })
+    body: JSON.stringify({ username, password, name, role, email, hostel })
   });
   if (!res.ok) throw new Error((await res.json()).error || 'Register failed');
   return res.json();

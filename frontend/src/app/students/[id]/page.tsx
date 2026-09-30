@@ -234,7 +234,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
     const openCases = cases.filter(c => c.status?.toLowerCase() === 'open').length;
     const closedCases = cases.filter(c => c.status?.toLowerCase() === 'closed').length;
     const highSeverityCases = cases.filter(c => c.severity?.toLowerCase() === 'high').length;
-    const canRequestStatement = user?.role === 'admin' || user?.role === 'security_officer' || user?.role === 'chief_security_officer' || user?.role === 'dean_of_students' || user?.role === 'assistant_dean' || user?.role === 'secretary';
+    const canRequestStatement = user?.role === 'admin' || user?.role === 'security_officer' || user?.role === 'chief_security_officer' || user?.role === 'dean_of_students' || user?.role === 'warden' || user?.role === 'secretary';
 
     const getStatusColor = (status: string) => {
         if (!status) return 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700';
@@ -305,7 +305,7 @@ export default function StudentDetailsPage({ params }: { params: { id: string } 
                             >
                                 Case History ({totalCases})
                             </button>
-                            {(user?.role === 'admin' || user?.role === 'security_officer' || user?.role === 'chief_security_officer' || user?.role === 'dean_of_students' || user?.role === 'assistant_dean') && (
+                            {(user?.role === 'admin' || user?.role === 'security_officer' || user?.role === 'chief_security_officer' || user?.role === 'dean_of_students' || user?.role === 'warden') && (
                                 <button
                                     onClick={() => setActiveTab('add-case')}
                                     className={`py-4 px-1 border-b-2 font-medium text-sm ${

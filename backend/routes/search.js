@@ -18,13 +18,13 @@ router.use(authenticate);
 
 const ROLE_ACCESS = {
     students: ['admin', 'security_officer'],
-    staff: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'maintenance'],
-    cases: ['admin', 'security_officer', 'dean_of_students', 'assistant_dean'],
-    studentReports: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance'],
+    staff: ['admin', 'chief_security_officer', 'dean_of_students', 'warden', 'secretary', 'maintenance'],
+    cases: ['admin', 'security_officer', 'dean_of_students', 'warden'],
+    studentReports: ['admin', 'chief_security_officer', 'dean_of_students', 'warden', 'secretary', 'security_officer', 'maintenance'],
     ownReports: ['student', 'general_user'],
-    anonymousReports: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance'],
+    anonymousReports: ['admin', 'chief_security_officer', 'dean_of_students', 'warden', 'secretary', 'security_officer', 'maintenance'],
     evidence: ['admin', 'security_officer'],
-    auditLogs: ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'security_officer', 'maintenance'],
+    auditLogs: ['admin', 'chief_security_officer', 'dean_of_students', 'warden', 'secretary', 'security_officer', 'maintenance'],
     users: ['admin'],
 };
 
@@ -114,9 +114,9 @@ router.get('/', async (req, res) => {
 
         const regex = new RegExp(escapeRegex(q), 'i');
         const role = req.user?.role;
-        const canViewStudents = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar'].includes(role);
-        const canViewCases = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar'].includes(role);
-        const canViewReports = ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar', 'maintenance'].includes(role);
+        const canViewStudents = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'warden', 'secretary', 'registrar'].includes(role);
+        const canViewCases = ['admin', 'security_officer', 'chief_security_officer', 'dean_of_students', 'warden', 'secretary', 'registrar'].includes(role);
+        const canViewReports = ['admin', 'chief_security_officer', 'dean_of_students', 'warden', 'secretary', 'registrar', 'maintenance'].includes(role);
 
         const students = canViewStudents ? await StudentModel.find({
             $or: [
@@ -151,7 +151,7 @@ router.get('/', async (req, res) => {
             : [];
 
         const studentScope = getStaffReportScope(req.user) || {};
-        const canViewStudentReports = ['admin', 'chief_security_officer', 'dean_of_students', 'assistant_dean', 'secretary', 'registrar', 'security_officer', 'maintenance'].includes(role);
+        const canViewStudentReports = ['admin', 'chief_security_officer', 'dean_of_students', 'warden', 'secretary', 'registrar', 'security_officer', 'maintenance'].includes(role);
         const studentReportDocs = canViewStudentReports
             ? await StudentReportModel.find({
                 ...studentScope,

@@ -3,7 +3,7 @@ export type AppRole =
   | "security_officer"
   | "chief_security_officer"
   | "dean_of_students"
-  | "assistant_dean"
+  | "warden"
   | "secretary"
   | "registrar"
   | "maintenance"
@@ -17,7 +17,7 @@ export const PAGE_ACCESS = {
     "admin",
     "chief_security_officer",
     "dean_of_students",
-    "assistant_dean",
+    "warden",
     "secretary",
     "registrar",
     "security_officer",
@@ -27,7 +27,7 @@ export const PAGE_ACCESS = {
     "admin",
     "chief_security_officer",
     "dean_of_students",
-    "assistant_dean",
+    "warden",
     "secretary",
     "registrar",
     "security_officer",
@@ -37,7 +37,7 @@ export const PAGE_ACCESS = {
     "admin",
     "chief_security_officer",
     "dean_of_students",
-    "assistant_dean",
+    "warden",
     "secretary",
     "registrar",
     "security_officer",
@@ -46,7 +46,7 @@ export const PAGE_ACCESS = {
   maintenanceIssues: [
     "admin",
     "dean_of_students",
-    "assistant_dean",
+    "warden",
     "secretary",
     "registrar",
     "maintenance",
@@ -54,7 +54,7 @@ export const PAGE_ACCESS = {
   workOrders: [
     "admin",
     "dean_of_students",
-    "assistant_dean",
+    "warden",
     "secretary",
     "registrar",
     "maintenance",
@@ -65,13 +65,13 @@ export const PAGE_ACCESS = {
     "admin",
     "chief_security_officer",
     "dean_of_students",
-    "assistant_dean",
+    "warden",
     "secretary",
     "registrar",
     "maintenance",
   ],
-  cases: ["admin", "security_officer", "dean_of_students", "assistant_dean"],
-  caseCreate: ["admin", "security_officer", "dean_of_students", "assistant_dean"],
+  cases: ["admin", "security_officer", "dean_of_students", "warden"],
+  caseCreate: ["admin", "security_officer", "dean_of_students", "warden"],
   makeReport: ["student", "general_user"],
   myReports: ["student", "general_user"],
   formSettings: ["admin"],

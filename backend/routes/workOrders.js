@@ -13,7 +13,7 @@ const router = express.Router();
 const WORK_ORDER_ROLES = [
   "admin",
   "dean_of_students",
-  "assistant_dean",
+  "warden",
   "secretary",
   "registrar",
   "maintenance",
@@ -32,7 +32,7 @@ const PART_EDIT_ROLES = {
     "secretary",
     "registrar",
     "dean_of_students",
-    "assistant_dean",
+    "warden",
     "chief_security_officer",
   ],
   partB: ["admin", "maintenance"],
@@ -41,7 +41,7 @@ const PART_EDIT_ROLES = {
     "secretary",
     "registrar",
     "dean_of_students",
-    "assistant_dean",
+    "warden",
     "chief_security_officer",
   ],
   partD: [
@@ -49,7 +49,7 @@ const PART_EDIT_ROLES = {
     "secretary",
     "registrar",
     "dean_of_students",
-    "assistant_dean",
+    "warden",
     "chief_security_officer",
   ],
   partE: ["admin", "maintenance"],
@@ -146,7 +146,7 @@ function mapMaintenanceIssue(doc, source) {
 function getDepartmentForRole(role = "") {
   const departmentByRole = {
     dean_of_students: "Dean of Students",
-    assistant_dean: "Assistant Dean, Student Affairs",
+    warden: "Warden, Student Affairs",
     registrar: "Registrar",
     secretary: "Registrar",
     maintenance: "Maintenance Department",

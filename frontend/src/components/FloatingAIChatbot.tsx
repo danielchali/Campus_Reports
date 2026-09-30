@@ -39,7 +39,7 @@ const POLICY_MATRIX: Array<{
     roleRules: {
       admin: 'Allow full case workflow guidance from intake to closure including governance checks.',
       'dean-of-students': 'Prioritize adjudication steps, sanctions policy consistency, and student fairness.',
-      'assistant-dean': 'Focus on investigation progress, evidence quality, and escalation criteria.',
+      'warden': 'Focus on investigation progress, evidence quality, and escalation criteria.',
       secretary: 'Focus on intake formatting, timeline updates, and documentation completeness.',
       'chief-security-officer': 'Focus on incident facts, evidence handling, and safety escalation.',
     },

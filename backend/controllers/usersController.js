@@ -84,9 +84,19 @@ export async function updateUser(req, res) {
         const updateData = { ...req.body };
         delete updateData.password;
         if (updateData.email !== undefined) updateData.email = String(updateData.email || '').trim().toLowerCase();
+        if (updateData.hostel !== undefined) updateData.hostel = String(updateData.hostel || '').trim();
 
         const effectiveEmail = updateData.email !== undefined ? updateData.email : currentUser.email;
         if (!effectiveEmail) return res.status(400).json({ error: 'Email is required' });
+
+        const effectiveRole = updateData.role !== undefined ? String(updateData.role || '').trim() : currentUser.role;
+        const effectiveHostel = updateData.hostel !== undefined ? updateData.hostel : String(currentUser.hostel || '').trim();
+        if (effectiveRole === 'warden' && !effectiveHostel) {
+            return res.status(400).json({ error: 'Hostel is required for Warden users' });
+        }
+        if (effectiveRole !== 'warden') {
+            delete updateData.hostel;
+        }
 
         const result = await UserModel.findByIdAndUpdate(req.params.id, updateData, { new: true, select: '-password' });
         res.json(result);

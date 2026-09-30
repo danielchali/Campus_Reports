@@ -21,7 +21,7 @@ Campus Reports is a full-stack campus incident and maintenance workflow system. 
 - Security officer
 - Chief security officer
 - Dean of students
-- Assistant dean
+- warden
 - Secretary
 - Maintenance
 - General user / student
