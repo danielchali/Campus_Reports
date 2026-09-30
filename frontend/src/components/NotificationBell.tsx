@@ -204,8 +204,8 @@ export default function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="fixed left-2 right-2 top-14 z-50 max-h-[70vh] w-auto max-w-none overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:max-h-[400px] sm:w-[320px]">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="fixed left-2 right-2 top-14 z-50 flex max-h-[70vh] w-auto max-w-none flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:max-h-[400px] sm:w-[320px]">
+          <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
             <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               Notifications
               {unreadCount > 0 && <span className="bg-kmuOrange/10 text-kmuOrange text-xs px-2 py-0.5 rounded-full">{unreadCount}</span>}
@@ -217,7 +217,7 @@ export default function NotificationBell() {
             )}
           </div>
           
-          <div className="overflow-y-auto flex-1">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-color:theme(colors.slate.300)_transparent] [scrollbar-width:thin] dark:[scrollbar-color:theme(colors.slate.700)_transparent]">
             {notifications.length === 0 ? (
               <div className="p-8 text-center flex flex-col items-center justify-center text-slate-500">
                 <BellRing size={32} className="text-slate-300 mb-3" />
