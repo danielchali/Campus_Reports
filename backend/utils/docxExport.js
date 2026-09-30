@@ -34,7 +34,7 @@ export function loadKmuLogo() {
         return cachedLogo;
     }
 
-    const pngPath = path.resolve(process.cwd(), '../frontend/public/kmu_logo.png');
+    const pngPath = path.resolve(process.cwd(), '../frontend/public/kmu_logo_pdf.png');
     const svgPath = path.resolve(process.cwd(), '../frontend/public/kmu_logo.svg');
 
     if (fs.existsSync(pngPath)) {
