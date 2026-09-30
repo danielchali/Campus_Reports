@@ -6,8 +6,8 @@ import UserModel from "../models/user.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification } from "../utils/notifications.js";
 import { emitDashboardRefresh } from "../utils/socket.js";
-import { AlignmentType, Document, Packer, Paragraph, TextRun } from "docx";
-import { borderedSection, kmuLogoParagraph, loadKmuLogo, parseSignatureBuffer, signatureInlineParagraph } from "../utils/docxExport.js";
+import { AlignmentType, BorderStyle, Document, ImageRun, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from "docx";
+import { kmuLogoParagraph, loadKmuLogo, parseSignatureBuffer } from "../utils/docxExport.js";
 import PDFDocument from "pdfkit";
 
 const router = express.Router();
@@ -450,52 +450,88 @@ router.post("/", async (req, res) => {
 
 function exportSections(obj) {
   return [
-    { title: "Part A — To be completed by tenant or requesting department", fields: [
+    { title: "Part A — To be completed by tenant or requesting department", layout: "partA", fields: [
       ["Department", obj.requestingDepartment], ["Name", obj.requestedByName || obj.createdBy],
       ["Address / Location", obj.location], ["Date", obj.createdAt ? new Date(obj.createdAt).toLocaleDateString() : ""],
       ["Title", obj.title], ["Issue type", obj.issueType], ["Priority", obj.priority],
       ["Affected asset", obj.affectedAsset], ["Nature of complaint / request", obj.description],
       ["Access instructions", obj.accessInstructions],
     ] },
-    { title: "Part B — Artisan's inspection report", fields: [
+    { title: "Part B — Artisan's inspection report", layout: "stack", fields: [
       ["Inspection note 1", obj.jobCard.partBNotes[0]], ["Inspection note 2", obj.jobCard.partBNotes[1]],
     ] },
-    { title: "Part C — Section supervisor approval", fields: [
+    { title: "Part C — Section supervisor approval", layout: "approval", fields: [
       ["Approved by", obj.jobCard.partCApprovedBy], ["Date", obj.jobCard.partCDate], ["Part C Signature", obj.signatures?.partC],
     ] },
-    { title: "Part D — Completion of job", fields: [
+    { title: "Part D — Completion of job", layout: "approval", fields: [
       ["Name", obj.jobCard.partDName], ["Date", obj.jobCard.partDDate], ["Part D Signature", obj.signatures?.partD],
     ] },
-    { title: "Part E — Completed report (maintenance officer / foreman)", fields: [
+    { title: "Part E — Completed report (maintenance officer / foreman)", layout: "partE", fields: [
       ["Work done", obj.jobCard.partEWorkDone], ["Name", obj.jobCard.partEName], ["Date", obj.jobCard.partEDate], ["Part E Signature", obj.signatures?.partE],
     ] },
-    { title: "Work order handling", fields: [["Status", obj.status], ["Assigned to", obj.assignedTo]] },
+    { title: "Work order handling", layout: "handling", fields: [["Status", obj.status], ["Assigned to", obj.assignedTo]] },
   ];
 }
 
-function docxField(label, value) {
-  return new Paragraph({
-    spacing: { after: 100 },
-    children: [new TextRun({ text: `${label}: `, bold: true }), new TextRun({ text: String(value || "Not provided") })],
-  });
+function fieldChildren(label, value) {
+  const signature = label.includes("Signature") ? parseSignatureBuffer(value) : null;
+  return [
+    new Paragraph({
+      spacing: { after: 60 },
+      children: [new TextRun({ text: label, bold: true, size: 18, color: "475569" })],
+    }),
+      signature
+      ? new Paragraph({ children: [new ImageRun({ data: signature.buffer, type: signature.type, transformation: { width: 110, height: 28 } })] })
+      : new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: String(value || ""), size: 20 })] }),
+  ];
+}
+
+function docxGridSection(section) {
+  const rows = [new TableRow({ children: [new TableCell({ columnSpan: 2, children: [new Paragraph({ children: [new TextRun({ text: section.title, bold: true, size: 20, color: "087F4E" })] })] })] })];
+  const fields = section.fields;
+  const full = (field) => section.layout === "stack" || field[0].includes("Nature") || field[0].includes("Access") || field[0].includes("Work done") || field[0].includes("Signature");
+  for (let i = 0; i < fields.length;) {
+    if (full(fields[i])) {
+      rows.push(new TableRow({ children: [new TableCell({ columnSpan: 2, children: fieldChildren(...fields[i]) })] }));
+      i += 1;
+    } else {
+      rows.push(new TableRow({ children: [
+        new TableCell({ children: fieldChildren(...fields[i]) }),
+        new TableCell({ children: fields[i + 1] ? fieldChildren(...fields[i + 1]) : [] }),
+      ] }));
+      i += 2;
+    }
+  }
+  return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, borders: { top: { style: BorderStyle.SINGLE, size: 6, color: "CBD5E1" }, bottom: { style: BorderStyle.SINGLE, size: 6, color: "CBD5E1" }, left: { style: BorderStyle.SINGLE, size: 6, color: "CBD5E1" }, right: { style: BorderStyle.SINGLE, size: 6, color: "CBD5E1" }, insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: "E2E8F0" }, insideVertical: { style: BorderStyle.SINGLE, size: 4, color: "E2E8F0" } }, rows });
+}
+
+function writePdfField(doc, label, value, x, y, width) {
+  const signature = label.includes("Signature") ? parseSignatureBuffer(value) : null;
+  doc.fillColor("#475569").font("Helvetica-Bold").fontSize(8).text(label, x, y, { width });
+  if (signature) doc.image(signature.buffer, x, y + 12, { fit: [110, 28] });
+  else doc.fillColor("#1e293b").font("Helvetica").fontSize(9).text(String(value || ""), x, y + 12, { width });
+  return signature ? 46 : 30;
 }
 
 function writePdfSection(doc, section) {
-  doc.moveDown(0.8);
-  doc.roundedRect(doc.x, doc.y, doc.page.width - doc.page.margins.left - doc.page.margins.right, 24, 5).fill("#e8f5ef");
-  doc.fillColor("#087f4e").fontSize(11).font("Helvetica-Bold").text(section.title, doc.x + 10, doc.y + 7);
-  doc.moveDown(1.5).fillColor("#1e293b").font("Helvetica").fontSize(9);
-  section.fields.forEach(([label, value]) => {
-    const signature = label.includes("Signature") ? parseSignatureBuffer(value) : null;
-    doc.font("Helvetica-Bold").text(`${label}: `, { continued: true });
-    if (signature) {
-      doc.text("");
-      doc.image(signature.buffer, { fit: [130, 34], align: "left" });
+  doc.moveDown(0.55);
+  const left = doc.page.margins.left;
+  const width = doc.page.width - left - doc.page.margins.right;
+  doc.roundedRect(left, doc.y, width, 22, 5).fill("#e8f5ef");
+  doc.fillColor("#087f4e").fontSize(10).font("Helvetica-Bold").text(section.title, left + 9, doc.y + 6, { width: width - 18 });
+  doc.y += 31;
+  for (let i = 0; i < section.fields.length;) {
+    const field = section.fields[i];
+    const full = section.layout === "stack" || field[0].includes("Nature") || field[0].includes("Access") || field[0].includes("Work done") || field[0].includes("Signature");
+    if (full) {
+      doc.y += writePdfField(doc, ...field, left + 10, doc.y, width - 20);
+      i += 1;
     } else {
-      doc.font("Helvetica").text(String(value || "Not provided"));
+      const height = Math.max(writePdfField(doc, ...field, left + 10, doc.y, width / 2 - 20), field[1] ? writePdfField(doc, ...(section.fields[i + 1] || ["", ""]), left + width / 2 + 10, doc.y, width / 2 - 20) : 0);
+      doc.y += height;
+      i += 2;
     }
-    doc.moveDown(0.25);
-  });
+  }
 }
 
 router.get("/:id/export-docx", async (req, res) => {
@@ -530,12 +566,7 @@ router.get("/:id/export-docx", async (req, res) => {
     );
 
     exportSections(obj).forEach((section) => {
-      docChildren.push(borderedSection([
-        new Paragraph({ children: [new TextRun({ text: section.title, bold: true, color: "087F4E" })] }),
-        ...section.fields.map(([label, value]) =>
-          label.includes("Signature") ? signatureInlineParagraph(label, value) : docxField(label, value)
-        ),
-      ]));
+      docChildren.push(docxGridSection(section));
     });
 
     const doc = new Document({

@@ -422,7 +422,7 @@ export default function WorkOrdersPage() {
                           if (format) exportWorkOrder(workOrder.id, format);
                           event.currentTarget.value = "";
                         }}
-                        className="cursor-pointer bg-transparent text-sm font-semibold text-kmuGreen outline-none"
+                        className="cursor-pointer rounded-lg bg-kmuGreen/5 px-1.5 py-1 text-sm font-semibold text-kmuGreen outline-none focus:ring-2 focus:ring-kmuGreen/30"
                       >
                         <option value="" disabled>Format</option>
                         <option value="docx">DOCX</option>
