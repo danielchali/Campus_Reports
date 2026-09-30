@@ -598,8 +598,13 @@ router.get("/:id/export-pdf", async (req, res) => {
     doc.pipe(res);
     const logo = loadKmuLogo();
     if (logo) {
-      doc.image(logo.buffer, { fit: [72, 72], align: "center" });
-      doc.moveDown(0.3);
+      // Place the logo explicitly so PDFKit cannot advance the text cursor by
+      // the image's intrinsic dimensions and push the final section over a page.
+      const logoSize = 48;
+      doc.image(logo.buffer, (doc.page.width - logoSize) / 2, 42, {
+        fit: [logoSize, logoSize],
+      });
+      doc.y = 98;
     }
     doc.fillColor("#087f4e").font("Helvetica-Bold").fontSize(17).text("KAPASA MAKASA UNIVERSITY", { align: "center" });
     doc.moveDown(0.3).fillColor("#1e293b").fontSize(13).text("Maintenance Request & Job Card", { align: "center" });
