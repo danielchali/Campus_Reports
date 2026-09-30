@@ -318,7 +318,7 @@ export default function InboxPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-kmuGreen">
-              Student Report Inbox
+              Reports Inbox
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
               Review incoming student reports, track new submissions, and update
