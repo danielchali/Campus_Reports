@@ -190,7 +190,6 @@ export default function ProfilePage() {
       } else {
         if (!form.email.trim()) throw new Error('Email is required.');
         await updateProfile({
-          username: form.username,
           name: form.name,
           email: form.email.trim(),
           profile: { houseNumber: form.profile.houseNumber.trim() },
@@ -305,16 +304,6 @@ export default function ProfilePage() {
                   {!isStudent && (
                     <div className="grid gap-4 md:grid-cols-2">
                       <div>
-                        <label className="block text-gray-700 dark:text-gray-300 mb-1">Username</label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                          value={form.username}
-                          onChange={e => setForm(current => ({ ...current, username: e.target.value }))}
-                          required
-                        />
-                      </div>
-                      <div>
                         <label className="block text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
                         <input
                           type="text"
@@ -333,6 +322,7 @@ export default function ProfilePage() {
                           onChange={e => setForm(current => ({ ...current, email: e.target.value }))}
                           required
                         />
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">This email is also your login username.</p>
                       </div>
                       <div className="md:col-span-2">
                         <label className="block text-gray-700 dark:text-gray-300 mb-1">House Number <span className="text-sm text-gray-500">(optional for non-university premises residents/workers)</span></label>
@@ -466,7 +456,7 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-6">
                   <div className="grid gap-4 md:grid-cols-2">
-                    <DisplayField label="Username" value={safeProfile.username || 'Not set'} />
+                    <DisplayField label={isStudent ? 'Student ID' : 'Login email'} value={isStudent ? (safeProfile.username || 'Not set') : (safeProfile.email || 'Not set')} />
                     <DisplayField label="Role" value={safeProfile.role || 'Not set'} capitalize />
                     <DisplayField label="Full Name" value={safeProfile.name || 'Not set'} />
                     {!isStudent && <DisplayField label="Email" value={safeProfile.email || 'Not set'} />}

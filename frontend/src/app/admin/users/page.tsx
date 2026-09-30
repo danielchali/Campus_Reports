@@ -32,6 +32,9 @@ const getErrorMessage = (err: unknown, fallback: string) => {
   return fallback;
 };
 
+const getLoginIdentifier = (account: UserAccount) =>
+  account.role === 'student' ? account.username : (account.email || account.username);
+
 const ROLES = [
   { value: 'admin', label: 'Admin' },
   { value: 'security_officer', label: 'Security Officer' },
@@ -100,7 +103,8 @@ export default function UserManagementPage() {
     setError(null);
     setSuccess(null);
     try {
-      await register(newUser.username, newUser.password, newUser.name, newUser.role, newUser.email.trim(), newUser.hostel.trim());
+      const loginIdentifier = newUser.role === 'student' ? newUser.username.trim() : newUser.email.trim();
+      await register(loginIdentifier, newUser.password, newUser.name, newUser.role, newUser.email.trim(), newUser.hostel.trim());
       setSuccess('User created successfully!');
       setShowCreate(false);
       setNewUser({ username: '', name: '', email: '', password: '', role: 'security_officer', hostel: '' });
@@ -128,7 +132,7 @@ export default function UserManagementPage() {
     setSuccess(null);
     try {
       await update('users', targetUserId, {
-        username: editUser.username,
+        username: editUser.role === 'student' ? editUser.username : (editUser.email || ''),
         name: editUser.name,
         role: editUser.role,
         email: editUser.email?.trim() || '',
@@ -364,8 +368,8 @@ export default function UserManagementPage() {
             {showCreate && (
               <form className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900/40" onSubmit={handleCreate}>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-gray-700 dark:text-gray-300">Username</label>
+                  {newUser.role === 'student' && <div>
+                    <label className="mb-1 block text-gray-700 dark:text-gray-300">Student ID</label>
                     <input
                       type="text"
                       className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
@@ -373,7 +377,7 @@ export default function UserManagementPage() {
                       onChange={e => setNewUser(u => ({ ...u, username: e.target.value }))}
                       required
                     />
-                  </div>
+                  </div>}
                   <div>
                     <label className="mb-1 block text-gray-700 dark:text-gray-300">Name</label>
                     <input
@@ -393,6 +397,7 @@ export default function UserManagementPage() {
                       onChange={e => setNewUser(u => ({ ...u, email: e.target.value }))}
                       required
                     />
+                    {newUser.role !== 'student' && <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">This email will be used as the login username.</p>}
                   </div>
                   <div>
                     <label className="mb-1 block text-gray-700 dark:text-gray-300">Password</label>
@@ -460,12 +465,19 @@ export default function UserManagementPage() {
                       <div className="min-w-0 flex-1">
                         {isEditing && editUser ? (
                           <div className="space-y-3">
-                            <input
-                              type="text"
-                              className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-                              value={editUser.username}
-                              onChange={e => setEditUser((eu: any) => ({ ...eu, username: e.target.value }))}
-                            />
+                            {editUser.role === 'student' ? (
+                              <input
+                                type="text"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                value={editUser.username}
+                                onChange={e => setEditUser((eu: any) => ({ ...eu, username: e.target.value }))}
+                                placeholder="Student ID"
+                              />
+                            ) : (
+                              <div className="rounded border border-dashed border-gray-300 px-2 py-2 text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                                Login: {editUser.email || 'Email required'}
+                              </div>
+                            )}
                             <input
                               type="text"
                               className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
@@ -502,7 +514,7 @@ export default function UserManagementPage() {
                           </div>
                         ) : (
                           <>
-                            <div className="font-medium text-gray-900 dark:text-white">{u.username}</div>
+                            <div className="font-medium text-gray-900 dark:text-white">{getLoginIdentifier(u)}</div>
                             <div className="text-sm text-gray-600 dark:text-gray-400">{u.name}</div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">{u.email || 'No email set'}</div>
                             <div className="mt-2">
@@ -537,7 +549,7 @@ export default function UserManagementPage() {
                         onChange={e => e.target.checked ? selectAll() : clearSelected()} 
                       />
                     </th>
-                    <th className="py-2 px-2 md:px-4 text-left">Username</th>
+                    <th className="py-2 px-2 md:px-4 text-left">Login Identifier</th>
                     <th className="py-2 px-2 md:px-4 text-left hidden sm:table-cell">Name</th>
                     <th className="py-2 px-2 md:px-4 text-left hidden lg:table-cell">Email</th>
                     <th className="py-2 px-2 md:px-4 text-left">Role</th>
@@ -561,12 +573,17 @@ export default function UserManagementPage() {
                         {isEditing && editUser ? (
                           <>
                             <td className="py-2 px-2 md:px-4">
-                              <input 
-                                type="text" 
-                                className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm" 
-                                value={editUser.username} 
-                                onChange={e => setEditUser((eu: any) => ({ ...eu, username: e.target.value }))} 
-                              />
+                              {editUser.role === 'student' ? (
+                                <input
+                                  type="text"
+                                  className="w-full border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                  value={editUser.username}
+                                  onChange={e => setEditUser((eu: any) => ({ ...eu, username: e.target.value }))}
+                                  placeholder="Student ID"
+                                />
+                              ) : (
+                                <span className="text-sm text-gray-500 dark:text-gray-400">{editUser.email || 'Email required'}</span>
+                              )}
                             </td>
                             <td className="py-2 px-2 md:px-4 hidden sm:table-cell">
                               <input 
@@ -623,7 +640,7 @@ export default function UserManagementPage() {
                         ) : (
                           <>
                             <td className="py-2 px-2 md:px-4 text-gray-900 dark:text-white">
-                              <div className="font-medium">{u.username}</div>
+                              <div className="font-medium">{getLoginIdentifier(u)}</div>
                               <div className="text-xs text-gray-500 dark:text-gray-400 sm:hidden">{u.name}</div>
                               <div className="text-xs text-gray-500 dark:text-gray-400 lg:hidden">{u.email || 'No email set'}</div>
                             </td>

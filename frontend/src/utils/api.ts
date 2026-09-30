@@ -62,7 +62,7 @@ export async function register(username: string, password: string, name: string 
 }
 
 
-export async function registerGeneralUser(userData: { username: string; password: string; name: string; email: string; profile?: { houseNumber?: string } }) {
+export async function registerGeneralUser(userData: { password: string; name: string; email: string; profile?: { houseNumber?: string } }) {
   const res = await fetch(`${API_BASE_URL}/general-signup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

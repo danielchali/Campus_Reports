@@ -102,11 +102,12 @@ function normalizeStudentSignupPayload(payload = {}) {
 
 
 function normalizeGeneralUserSignupPayload(payload = {}) {
+    const email = String(payload.email || payload.profile?.email || '').trim().toLowerCase();
     return {
-        username: String(payload.username || '').trim(),
+        username: email,
         password: String(payload.password || ''),
         name: String(payload.name || payload.fullName || '').trim(),
-        email: String(payload.email || payload.profile?.email || '').trim().toLowerCase(),
+        email,
         profile: {
             houseNumber: String(payload.profile?.houseNumber || payload.houseNumber || '').trim()
         }
@@ -116,7 +117,6 @@ function normalizeGeneralUserSignupPayload(payload = {}) {
 function validateGeneralUserSignupPayload(payload = {}) {
     const errors = [];
 
-    if (!String(payload.username || '').trim()) errors.push('Username is required');
     if (!String(payload.password || '').trim()) errors.push('Password is required');
     if (String(payload.password || '').length < 6) errors.push('Password must be at least 6 characters');
     if (!String(payload.name || payload.fullName || '').trim()) errors.push('Full name is required');
@@ -141,11 +141,18 @@ function validateStudentSignupPayload(payload = {}) {
 }
 
 export async function login(req, res) {
-    const { username, password } = req.body;
+    const username = String(req.body.username || '').trim();
+    const password = req.body.password;
+    const normalizedIdentifier = username.toLowerCase();
     const loginAttemptKey = req.loginAttemptKey;
     console.log('Login attempt:', username);
     try {
-        const user = await UserModel.findOne({ username });
+        const user = await UserModel.findOne({
+            $or: [
+                { username },
+                { role: { $ne: 'student' }, email: normalizedIdentifier }
+            ]
+        });
         console.log('User found:', !!user, user && user.username, user && user.role);
 
         if (!user) {
@@ -216,18 +223,32 @@ export async function login(req, res) {
 }
 
 export async function register(req, res) {
-    const { username, password, name, role } = req.body;
+    const { password, name, role } = req.body;
     const normalizedRole = String(role || 'user').trim();
     const hostel = String(req.body.hostel || '').trim();
     const email = String(req.body.email || '').trim().toLowerCase();
+    const submittedUsername = String(req.body.username || '').trim();
+    const username = normalizedRole === 'student' ? submittedUsername : email;
     try {
         if (!email) return res.status(400).json({ error: 'Email is required' });
+        if (normalizedRole === 'student' && !username) {
+            return res.status(400).json({ error: 'Student ID is required' });
+        }
         if (normalizedRole === 'warden' && !hostel) {
             return res.status(400).json({ error: 'Hostel is required for Warden users' });
         }
 
-        const exists = await UserModel.findOne({ username });
-        if (exists) return res.status(409).json({ error: 'Username already exists' });
+        const exists = await UserModel.findOne({
+            $or: [
+                { username },
+                ...(normalizedRole !== 'student' ? [{ email }] : [])
+            ]
+        });
+        if (exists) {
+            return res.status(409).json({
+                error: normalizedRole === 'student' ? 'Student ID already exists' : 'Email already exists'
+            });
+        }
 
         const hashed = await bcrypt.hash(password, 10);
         const user = await UserModel.create({
@@ -392,11 +413,16 @@ import StaffModel from '../models/staff.js';
 import { sendEmail } from '../utils/emailService.js';
 
 export async function forgotPassword(req, res) {
-    const { username } = req.body; // username is typically studentId or staffId
+    const username = String(req.body.username || '').trim(); // Student ID for students, email for non-students
     if (!username) return res.status(400).json({ error: 'Username/ID is required' });
 
     try {
-        const user = await UserModel.findOne({ username });
+        const user = await UserModel.findOne({
+            $or: [
+                { username },
+                { role: { $ne: 'student' }, email: username.toLowerCase() }
+            ]
+        });
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }

@@ -94,7 +94,6 @@ export default function StudentSignupPage() {
   const [generalUserForm, setGeneralUserForm] = useState({
     fullName: '',
     email: '',
-    username: '',
     password: '',
     confirmPassword: '',
     houseNumber: '',
@@ -202,7 +201,6 @@ export default function StudentSignupPage() {
 
     if (accountType === 'general_user') {
       if (!generalUserForm.fullName.trim()) return setError('Full name is required.');
-      if (!generalUserForm.username.trim()) return setError('Username is required.');
       if (!generalUserForm.email.trim()) return setError('Email is required.');
       if (!generalUserForm.password) return setError('Password is required.');
       if (generalUserForm.password.length < 6) return setError('Password must be at least 6 characters.');
@@ -213,7 +211,6 @@ export default function StudentSignupPage() {
       setSuccess('');
       try {
         await registerGeneralUser({
-          username: generalUserForm.username.trim(),
           password: generalUserForm.password,
           name: generalUserForm.fullName.trim(),
           email: generalUserForm.email.trim(),
@@ -222,7 +219,7 @@ export default function StudentSignupPage() {
           },
         });
         setSuccess('Your general user account has been created. You can now sign in.');
-        setGeneralUserForm({ fullName: '', email: '', username: '', password: '', confirmPassword: '', houseNumber: '' });
+        setGeneralUserForm({ fullName: '', email: '', password: '', confirmPassword: '', houseNumber: '' });
         window.setTimeout(() => {
           router.push('/login?registered=1');
         }, 1200);
@@ -539,13 +536,10 @@ export default function StudentSignupPage() {
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Full Name</label>
                     <input className={inputClassName} value={generalUserForm.fullName} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, fullName: e.target.value }))} />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Username</label>
-                    <input className={inputClassName} value={generalUserForm.username} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, username: e.target.value }))} />
-                  </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Email Address *</label>
                     <input type="email" className={inputClassName} value={generalUserForm.email} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, email: e.target.value }))} placeholder="you@example.com" />
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Your email address will be used as your login username.</p>
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">House Number <span className="font-medium text-slate-500">(optional for non-university premises residents/workers)</span></label>

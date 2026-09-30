@@ -91,9 +91,26 @@ export async function updateUser(req, res) {
 
         const effectiveRole = updateData.role !== undefined ? String(updateData.role || '').trim() : currentUser.role;
         const effectiveHostel = updateData.hostel !== undefined ? updateData.hostel : String(currentUser.hostel || '').trim();
+        const effectiveUsername = effectiveRole === 'student'
+            ? String(updateData.username !== undefined ? updateData.username : currentUser.username).trim()
+            : effectiveEmail;
+        if (!effectiveUsername) {
+            return res.status(400).json({ error: effectiveRole === 'student' ? 'Student ID is required' : 'Email is required' });
+        }
+        const duplicate = await UserModel.findOne({
+            _id: { $ne: req.params.id },
+            $or: [
+                { username: effectiveUsername },
+                ...(effectiveRole !== 'student' ? [{ email: effectiveEmail }] : [])
+            ]
+        });
+        if (duplicate) {
+            return res.status(409).json({ error: effectiveRole === 'student' ? 'Student ID already exists' : 'Email already exists' });
+        }
         if (effectiveRole === 'warden' && !effectiveHostel) {
             return res.status(400).json({ error: 'Hostel is required for Warden users' });
         }
+        updateData.username = effectiveUsername;
         if (effectiveRole !== 'warden') {
             delete updateData.hostel;
         }
@@ -213,6 +230,8 @@ export async function updateOwnProfile(req, res) {
                     updateData.name = fullName;
                 }
             }
+        } else {
+            updateData.username = submittedUserEmail;
         }
 
         if (currentUser.role === 'student' && !req.body.studentProfile && !submittedUserEmail) {

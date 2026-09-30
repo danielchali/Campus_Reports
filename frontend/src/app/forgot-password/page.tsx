@@ -47,7 +47,7 @@ export default function ForgotPassword() {
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to login
           </Link>
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">Reset Password</h1>
-          <p className="text-slate-500 dark:text-slate-400">Enter your Student or Staff ID and we'll send a reset OTP to your email.</p>
+          <p className="text-slate-500 dark:text-slate-400">Enter your Student ID or staff email and we'll send a reset OTP to your email.</p>
         </div>
 
         {status === 'success' ? (
@@ -70,7 +70,7 @@ export default function ForgotPassword() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="username" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                User ID
+                Student ID or staff email
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -83,7 +83,7 @@ export default function ForgotPassword() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className={`block w-full pl-11 pr-4 py-3 bg-transparent border rounded-xl text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-kmuGreen focus:border-transparent ${theme === 'dark' ? 'border-slate-700 text-white placeholder-slate-500 focus:bg-slate-800/50' : 'border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white'}`}
-                  placeholder="Enter your ID (e.g., 1234567)"
+                  placeholder="Student ID or staff email"
                 />
               </div>
             </div>
