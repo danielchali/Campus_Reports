@@ -31,7 +31,7 @@ export default function Sidebar() {
   const { bottomNav, sidebarNav } = splitNavLinksForMobile(allNavLinks);
   const isCollapsed = isDesktop && isCollapsedDesktop;
 
-  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-slate-200 bg-white text-slate-900 transition-[transform,width] duration-300 ease-in-out md:rounded-tr-[28px] dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 ${
+  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-slate-200 bg-white text-slate-900 transition-[transform,width] duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 ${
     isOpenMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0 md:w-auto'
   }`;
 
