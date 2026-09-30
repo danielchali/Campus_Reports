@@ -7,7 +7,7 @@ import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification } from "../utils/notifications.js";
 import { emitDashboardRefresh } from "../utils/socket.js";
 import { AlignmentType, Document, Packer, Paragraph, TextRun } from "docx";
-import { kmuLogoParagraph } from "../utils/docxExport.js";
+import { borderedSection, kmuLogoParagraph, loadKmuLogo, parseSignatureBuffer, signatureInlineParagraph } from "../utils/docxExport.js";
 import PDFDocument from "pdfkit";
 
 const router = express.Router();
@@ -486,8 +486,14 @@ function writePdfSection(doc, section) {
   doc.fillColor("#087f4e").fontSize(11).font("Helvetica-Bold").text(section.title, doc.x + 10, doc.y + 7);
   doc.moveDown(1.5).fillColor("#1e293b").font("Helvetica").fontSize(9);
   section.fields.forEach(([label, value]) => {
+    const signature = label.includes("Signature") ? parseSignatureBuffer(value) : null;
     doc.font("Helvetica-Bold").text(`${label}: `, { continued: true });
-    doc.font("Helvetica").text(String(value || "Not provided"));
+    if (signature) {
+      doc.text("");
+      doc.image(signature.buffer, { fit: [130, 34], align: "left" });
+    } else {
+      doc.font("Helvetica").text(String(value || "Not provided"));
+    }
     doc.moveDown(0.25);
   });
 }
@@ -524,10 +530,12 @@ router.get("/:id/export-docx", async (req, res) => {
     );
 
     exportSections(obj).forEach((section) => {
-      docChildren.push(
+      docChildren.push(borderedSection([
         new Paragraph({ children: [new TextRun({ text: section.title, bold: true, color: "087F4E" })] }),
-        ...section.fields.map(([label, value]) => docxField(label, value)),
-      );
+        ...section.fields.map(([label, value]) =>
+          label.includes("Signature") ? signatureInlineParagraph(label, value) : docxField(label, value)
+        ),
+      ]));
     });
 
     const doc = new Document({
@@ -557,6 +565,11 @@ router.get("/:id/export-pdf", async (req, res) => {
 
     const doc = new PDFDocument({ size: "A4", margin: 42 });
     doc.pipe(res);
+    const logo = loadKmuLogo();
+    if (logo) {
+      doc.image(logo.buffer, { fit: [72, 72], align: "center" });
+      doc.moveDown(0.3);
+    }
     doc.fillColor("#087f4e").font("Helvetica-Bold").fontSize(17).text("KAPASA MAKASA UNIVERSITY", { align: "center" });
     doc.moveDown(0.3).fillColor("#1e293b").fontSize(13).text("Maintenance Request & Job Card", { align: "center" });
     doc.fontSize(10).text(`No. ${obj.workOrderId}`, { align: "center" });
