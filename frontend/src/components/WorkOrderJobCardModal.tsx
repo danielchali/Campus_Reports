@@ -240,7 +240,7 @@ export default function WorkOrderJobCardModal({
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
       <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3 md:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 md:px-8">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-kmuGreen">
               Maintenance Request & Job Card
@@ -270,7 +270,7 @@ export default function WorkOrderJobCardModal({
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl space-y-5 px-4 py-6 md:px-8 md:py-8">
+      <div className="mx-auto max-w-7xl space-y-5 px-4 py-6 md:px-8 md:py-8">
         <div className="rounded-2xl border border-slate-300 bg-white p-5 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <img
             src="/kmu_logo.svg"
@@ -670,7 +670,7 @@ export default function WorkOrderJobCardModal({
           </p>
         ) : null}
 
-        <div className="sticky bottom-0 -mx-4 border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 md:-mx-8 md:px-8">
+        <div className="border-t border-slate-200 pt-5 dark:border-slate-800">
           <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
             <button
               type="button"
