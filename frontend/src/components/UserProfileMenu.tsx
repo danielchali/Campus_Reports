@@ -25,8 +25,12 @@ export default function UserProfileMenu() {
 
   return (
     <div ref={wrapperRef} className="relative">
-      <button 
+      <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        aria-label="Open profile menu"
         className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 hover:bg-slate-100 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 text-left"
       >
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-sm font-semibold text-kmuGreen dark:bg-kmuGreen/20 dark:text-emerald-300">
@@ -41,7 +45,7 @@ export default function UserProfileMenu() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-[220px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2 flex flex-col gap-1">
+        <div role="menu" className="absolute right-0 top-full mt-2 w-[220px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-[70] p-2 flex flex-col gap-1">
           <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 mb-1 sm:hidden">
              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{getDisplayFullName(user.name, user.username)}</p>
              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400 mt-1">
@@ -49,7 +53,8 @@ export default function UserProfileMenu() {
              </p>
           </div>
           
-          <Link 
+          <Link
+            role="menuitem"
             href="/profile" 
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-3 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
@@ -63,7 +68,9 @@ export default function UserProfileMenu() {
           
           <div className="h-px bg-slate-100 dark:bg-slate-800 my-1"></div>
           
-          <button 
+          <button
+            type="button"
+            role="menuitem"
             onClick={() => { setIsOpen(false); logout(); }}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
           >
