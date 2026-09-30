@@ -7,7 +7,8 @@ import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification } from "../utils/notifications.js";
 import { emitDashboardRefresh } from "../utils/socket.js";
 import { AlignmentType, Document, Packer, Paragraph, TextRun } from "docx";
-import { kmuLogoParagraph, signatureParagraphs } from "../utils/docxExport.js";
+import { kmuLogoParagraph } from "../utils/docxExport.js";
+import PDFDocument from "pdfkit";
 
 const router = express.Router();
 const WORK_ORDER_ROLES = [
@@ -447,6 +448,50 @@ router.post("/", async (req, res) => {
 });
 
 
+function exportSections(obj) {
+  return [
+    { title: "Part A — To be completed by tenant or requesting department", fields: [
+      ["Department", obj.requestingDepartment], ["Name", obj.requestedByName || obj.createdBy],
+      ["Address / Location", obj.location], ["Date", obj.createdAt ? new Date(obj.createdAt).toLocaleDateString() : ""],
+      ["Title", obj.title], ["Issue type", obj.issueType], ["Priority", obj.priority],
+      ["Affected asset", obj.affectedAsset], ["Nature of complaint / request", obj.description],
+      ["Access instructions", obj.accessInstructions],
+    ] },
+    { title: "Part B — Artisan's inspection report", fields: [
+      ["Inspection note 1", obj.jobCard.partBNotes[0]], ["Inspection note 2", obj.jobCard.partBNotes[1]],
+    ] },
+    { title: "Part C — Section supervisor approval", fields: [
+      ["Approved by", obj.jobCard.partCApprovedBy], ["Date", obj.jobCard.partCDate], ["Part C Signature", obj.signatures?.partC],
+    ] },
+    { title: "Part D — Completion of job", fields: [
+      ["Name", obj.jobCard.partDName], ["Date", obj.jobCard.partDDate], ["Part D Signature", obj.signatures?.partD],
+    ] },
+    { title: "Part E — Completed report (maintenance officer / foreman)", fields: [
+      ["Work done", obj.jobCard.partEWorkDone], ["Name", obj.jobCard.partEName], ["Date", obj.jobCard.partEDate], ["Part E Signature", obj.signatures?.partE],
+    ] },
+    { title: "Work order handling", fields: [["Status", obj.status], ["Assigned to", obj.assignedTo]] },
+  ];
+}
+
+function docxField(label, value) {
+  return new Paragraph({
+    spacing: { after: 100 },
+    children: [new TextRun({ text: `${label}: `, bold: true }), new TextRun({ text: String(value || "Not provided") })],
+  });
+}
+
+function writePdfSection(doc, section) {
+  doc.moveDown(0.8);
+  doc.roundedRect(doc.x, doc.y, doc.page.width - doc.page.margins.left - doc.page.margins.right, 24, 5).fill("#e8f5ef");
+  doc.fillColor("#087f4e").fontSize(11).font("Helvetica-Bold").text(section.title, doc.x + 10, doc.y + 7);
+  doc.moveDown(1.5).fillColor("#1e293b").font("Helvetica").fontSize(9);
+  section.fields.forEach(([label, value]) => {
+    doc.font("Helvetica-Bold").text(`${label}: `, { continued: true });
+    doc.font("Helvetica").text(String(value || "Not provided"));
+    doc.moveDown(0.25);
+  });
+}
+
 router.get("/:id/export-docx", async (req, res) => {
   try {
     const workOrder = await WorkOrderModel.findById(req.params.id);
@@ -476,24 +521,14 @@ router.get("/:id/export-docx", async (req, res) => {
           }),
         ],
       }),
-      new Paragraph(`Title: ${obj.title}`),
-      new Paragraph(`Description: ${obj.description}`),
-      new Paragraph(`Location: ${obj.location}`),
-      new Paragraph(`Issue Type: ${obj.issueType}`),
-      new Paragraph(`Priority: ${obj.priority}`),
-      new Paragraph(`Affected Asset: ${obj.affectedAsset || ""}`),
-      new Paragraph(`Requested By: ${obj.requestedByName || obj.createdBy}`),
-      new Paragraph(`Department: ${obj.requestingDepartment || ""}`),
-      new Paragraph(" "),
-      new Paragraph("Part B - Materials needed / inspection notes (Required): __________________________"),
-      new Paragraph("Part C - Approved by (Required): __________________ Date (Required): ______________"),
-      new Paragraph("Part D - Completed by (Required): _________________ Date (Required): ______________"),
-      new Paragraph("Part E - Maintenance officer name (Required): ______ Date (Required): ______________"),
-      new Paragraph("Signatures / printed names:"),
-      ...signatureParagraphs("Part C Signature", obj.signatures?.partC),
-      ...signatureParagraphs("Part D Signature", obj.signatures?.partD),
-      ...signatureParagraphs("Part E Signature", obj.signatures?.partE),
     );
+
+    exportSections(obj).forEach((section) => {
+      docChildren.push(
+        new Paragraph({ children: [new TextRun({ text: section.title, bold: true, color: "087F4E" })] }),
+        ...section.fields.map(([label, value]) => docxField(label, value)),
+      );
+    });
 
     const doc = new Document({
       sections: [{
@@ -508,6 +543,29 @@ router.get("/:id/export-docx", async (req, res) => {
   } catch (err) {
     console.error("Export work order DOCX error:", err);
     res.status(500).json({ error: "Failed to export work order" });
+  }
+});
+
+router.get("/:id/export-pdf", async (req, res) => {
+  try {
+    const workOrder = await WorkOrderModel.findById(req.params.id);
+    if (!workOrder) return res.status(404).json({ error: "Work order not found" });
+
+    const obj = mapWorkOrder(workOrder);
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=${obj.workOrderId}.pdf`);
+
+    const doc = new PDFDocument({ size: "A4", margin: 42 });
+    doc.pipe(res);
+    doc.fillColor("#087f4e").font("Helvetica-Bold").fontSize(17).text("KAPASA MAKASA UNIVERSITY", { align: "center" });
+    doc.moveDown(0.3).fillColor("#1e293b").fontSize(13).text("Maintenance Request & Job Card", { align: "center" });
+    doc.fontSize(10).text(`No. ${obj.workOrderId}`, { align: "center" });
+    doc.moveDown(0.8).strokeColor("#cbd5e1").moveTo(42, doc.y).lineTo(553, doc.y).stroke();
+    exportSections(obj).forEach((section) => writePdfSection(doc, section));
+    doc.end();
+  } catch (err) {
+    console.error("Export work order PDF error:", err);
+    if (!res.headersSent) res.status(500).json({ error: "Failed to export work order" });
   }
 });
 

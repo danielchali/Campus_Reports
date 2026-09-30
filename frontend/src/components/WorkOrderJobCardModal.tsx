@@ -9,7 +9,7 @@ import {
   type WorkOrderPart,
 } from "../utils/workOrderPermissions";
 import {
-  exportWorkOrderDocx,
+  exportWorkOrder,
   updateWorkOrderJobCard,
   type WorkOrder,
   type WorkOrderJobCard,
@@ -250,14 +250,24 @@ export default function WorkOrderJobCardModal({
             </h2>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={() => exportWorkOrderDocx(workOrder.id)}
-              className="inline-flex items-center gap-1 rounded-xl border border-kmuGreen px-3 py-2 text-xs font-semibold text-kmuGreen hover:bg-kmuGreen/10"
-            >
+            <label className="inline-flex items-center gap-1 rounded-xl border border-kmuGreen px-2 py-1.5 text-xs font-semibold text-kmuGreen hover:bg-kmuGreen/10">
               <FileDown size={14} />
-              Export
-            </button>
+              <span>Export</span>
+              <select
+                defaultValue=""
+                aria-label="Export job card format"
+                onChange={(event) => {
+                  const format = event.target.value as "docx" | "pdf";
+                  if (format) exportWorkOrder(workOrder.id, format);
+                  event.currentTarget.value = "";
+                }}
+                className="cursor-pointer bg-transparent text-xs font-semibold text-kmuGreen outline-none"
+              >
+                <option value="" disabled>Format</option>
+                <option value="docx">DOCX</option>
+                <option value="pdf">PDF</option>
+              </select>
+            </label>
             <button
               type="button"
               onClick={onClose}

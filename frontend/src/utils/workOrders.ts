@@ -228,22 +228,32 @@ export async function updateWorkOrderStatus(
   return res.json();
 }
 
-export async function exportWorkOrderDocx(workOrderId: string): Promise<void> {
-  const res = await fetch(`${API_BASE_URL}/work-orders/${workOrderId}/export-docx`, {
+export type WorkOrderExportFormat = "docx" | "pdf";
+
+export async function exportWorkOrder(workOrderId: string, format: WorkOrderExportFormat): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/work-orders/${workOrderId}/export-${format}`, {
     headers: { ...authHeaders() },
   });
 
   if (!res.ok) {
-    throw new Error("Failed to export work order");
+    throw new Error(`Failed to export work order as ${format.toUpperCase()}`);
   }
 
   const blob = await res.blob();
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = "work_order.docx";
+  link.download = `work_order.${format}`;
   document.body.appendChild(link);
   link.click();
   link.remove();
   window.URL.revokeObjectURL(url);
+}
+
+export function exportWorkOrderDocx(workOrderId: string): Promise<void> {
+  return exportWorkOrder(workOrderId, "docx");
+}
+
+export function exportWorkOrderPdf(workOrderId: string): Promise<void> {
+  return exportWorkOrder(workOrderId, "pdf");
 }

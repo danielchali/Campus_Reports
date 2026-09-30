@@ -20,7 +20,7 @@ import { canAccessPage } from "../../utils/access";
 import {
   createManualWorkOrder,
   getWorkOrders,
-  exportWorkOrderDocx,
+  exportWorkOrder,
   type WorkOrder,
   type WorkOrderStatus,
 } from "../../utils/workOrders";
@@ -412,13 +412,23 @@ export default function WorkOrdersPage() {
                       <FilePenLine size={16} />
                       Open job card
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => exportWorkOrderDocx(workOrder.id)}
-                      className="rounded-xl border border-kmuGreen px-4 py-2.5 text-sm font-semibold text-kmuGreen hover:bg-kmuGreen/10"
-                    >
-                      Export DOCX
-                    </button>
+                    <label className="inline-flex items-center justify-center gap-2 rounded-xl border border-kmuGreen px-4 py-2.5 text-sm font-semibold text-kmuGreen hover:bg-kmuGreen/10">
+                      Export
+                      <select
+                        defaultValue=""
+                        aria-label={`Export ${workOrder.workOrderId} format`}
+                        onChange={(event) => {
+                          const format = event.target.value as "docx" | "pdf";
+                          if (format) exportWorkOrder(workOrder.id, format);
+                          event.currentTarget.value = "";
+                        }}
+                        className="cursor-pointer bg-transparent text-sm font-semibold text-kmuGreen outline-none"
+                      >
+                        <option value="" disabled>Format</option>
+                        <option value="docx">DOCX</option>
+                        <option value="pdf">PDF</option>
+                      </select>
+                    </label>
                   </div>
                 </div>
               </article>
