@@ -6,8 +6,8 @@ import UserModel from "../models/user.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification } from "../utils/notifications.js";
 import { emitDashboardRefresh } from "../utils/socket.js";
-import { AlignmentType, BorderStyle, Document, ImageRun, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from "docx";
-import { kmuLogoParagraph, loadKmuLogo, parseSignatureBuffer } from "../utils/docxExport.js";
+import { AlignmentType, BorderStyle, Document, Header, ImageRun, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from "docx";
+import { kmuLogoParagraph, loadKmuLogo, signatureDisplayValue } from "../utils/docxExport.js";
 import PDFDocument from "pdfkit";
 
 const router = express.Router();
@@ -478,15 +478,15 @@ function exportSections(obj) {
 }
 
 function fieldChildren(label, value) {
-  const signature = label.includes("Signature") ? parseSignatureBuffer(value) : null;
+  const signature = label.includes("Signature") ? signatureDisplayValue(value) : null;
   return [
     new Paragraph({
       spacing: { after: 60 },
       children: [new TextRun({ text: label, bold: true, size: 18, color: "475569" })],
     }),
-      signature
-      ? new Paragraph({ children: [new ImageRun({ data: signature.buffer, type: signature.type, transformation: { width: 110, height: 28 } })] })
-      : new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: String(value || ""), size: 20 })] }),
+      signature?.image
+      ? new Paragraph({ children: [new ImageRun({ data: signature.image.buffer, type: signature.image.type, transformation: { width: 110, height: 28 } })] })
+      : new Paragraph({ spacing: { after: 60 }, children: [new TextRun({ text: signature ? signature.text : String(value || ""), size: 20 })] }),
   ];
 }
 
@@ -524,30 +524,46 @@ function docxGridSection(section) {
   return new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, borders: { top: { style: BorderStyle.SINGLE, size: 6, color: "CBD5E1" }, bottom: { style: BorderStyle.SINGLE, size: 6, color: "CBD5E1" }, left: { style: BorderStyle.SINGLE, size: 6, color: "CBD5E1" }, right: { style: BorderStyle.SINGLE, size: 6, color: "CBD5E1" }, insideHorizontal: { style: BorderStyle.SINGLE, size: 4, color: "E2E8F0" }, insideVertical: { style: BorderStyle.SINGLE, size: 4, color: "E2E8F0" } }, rows });
 }
 
+function pdfFieldHeight(doc, label, value, width) {
+  const signature = label.includes("Signature") ? signatureDisplayValue(value) : null;
+  doc.fillColor("#475569").font("Helvetica-Bold").fontSize(8);
+  const labelHeight = doc.heightOfString(label, { width });
+  const text = signature ? signature.text : String(value || "");
+  doc.fillColor("#1e293b").font("Helvetica").fontSize(9);
+  const valueHeight = Math.max(doc.heightOfString(text || " ", { width }), 12);
+  return labelHeight + (signature?.image ? 40 : valueHeight + 12);
+}
+
+function ensurePdfSpace(doc, requiredHeight, addPageWithHeader) {
+  const bottom = doc.page.height - doc.page.margins.bottom;
+  if (doc.y + requiredHeight > bottom) {
+    addPageWithHeader();
+  }
+}
+
 function writePdfField(doc, label, value, x, y, width) {
-  const signature = label.includes("Signature") ? parseSignatureBuffer(value) : null;
+  const signature = label.includes("Signature") ? signatureDisplayValue(value) : null;
   doc.fillColor("#475569").font("Helvetica-Bold").fontSize(8);
   const labelHeight = doc.heightOfString(label, { width });
   doc.text(label, x, y, { width });
 
   const valueY = y + labelHeight + 4;
-  if (signature) {
-    doc.image(signature.buffer, x, valueY, { fit: [110, 28] });
+  if (signature?.image) {
+    doc.image(signature.image.buffer, x, valueY, { fit: [110, 28] });
     return labelHeight + 40;
   }
 
-  const text = String(value || "");
-  doc.fillColor("#1e293b").font("Helvetica").fontSize(9);
-  const valueHeight = Math.max(doc.heightOfString(text || " ", { width }), 12);
-  doc.text(text, x, valueY, { width });
-  return labelHeight + valueHeight + 12;
+  const text = signature ? signature.text : String(value || "");
+  doc.fillColor("#1e293b").font("Helvetica").fontSize(9).text(text, x, valueY, { width });
+  return labelHeight + Math.max(doc.heightOfString(text || " ", { width }), 12) + 12;
 }
 
-function writePdfSection(doc, section) {
+function writePdfSection(doc, section, addPageWithHeader) {
   doc.moveDown(0.55);
   const left = doc.page.margins.left;
   const width = doc.page.width - left - doc.page.margins.right;
   const headingHeight = section.helper ? 36 : 22;
+  ensurePdfSpace(doc, headingHeight + 40, addPageWithHeader);
   const headingY = doc.y;
   doc.roundedRect(left, headingY, width, headingHeight, 5).fill("#e8f5ef");
   doc.fillColor("#087f4e").fontSize(10).font("Helvetica-Bold").text(section.title, left + 9, headingY + 6, { width: width - 18 });
@@ -559,11 +575,28 @@ function writePdfSection(doc, section) {
     const field = section.fields[i];
     const full = section.layout === "stack" || field[0].includes("Nature") || field[0].includes("Access") || field[0].includes("Work done") || field[0].includes("Signature");
     if (full) {
-      doc.y += writePdfField(doc, ...field, left + 10, doc.y, width - 20);
+      const fieldWidth = width - 20;
+      const fieldHeight = pdfFieldHeight(doc, ...field, fieldWidth);
+      ensurePdfSpace(doc, fieldHeight, addPageWithHeader);
+      const fieldY = doc.y;
+      writePdfField(doc, ...field, left + 10, fieldY, fieldWidth);
+      doc.y = fieldY + fieldHeight;
       i += 1;
     } else {
-      const height = Math.max(writePdfField(doc, ...field, left + 10, doc.y, width / 2 - 20), field[1] ? writePdfField(doc, ...(section.fields[i + 1] || ["", ""]), left + width / 2 + 10, doc.y, width / 2 - 20) : 0);
-      doc.y += height;
+      const fieldWidth = width / 2 - 20;
+      const nextField = section.fields[i + 1] || ["", ""];
+      const hasNextField = Boolean(section.fields[i + 1]);
+      const height = Math.max(
+        pdfFieldHeight(doc, ...field, fieldWidth),
+        hasNextField ? pdfFieldHeight(doc, ...nextField, fieldWidth) : 0,
+      );
+      ensurePdfSpace(doc, height, addPageWithHeader);
+      const rowY = doc.y;
+      writePdfField(doc, ...field, left + 10, rowY, fieldWidth);
+      if (hasNextField) {
+        writePdfField(doc, ...nextField, left + width / 2 + 10, rowY, fieldWidth);
+      }
+      doc.y = rowY + height;
       i += 2;
     }
   }
@@ -576,7 +609,7 @@ router.get("/:id/export-docx", async (req, res) => {
 
     const obj = mapWorkOrder(workOrder);
 
-    const docChildren = [kmuLogoParagraph({ width: 56, height: 56 })];
+    const docChildren = [];
 
     docChildren.push(
       new Paragraph({
@@ -620,6 +653,11 @@ router.get("/:id/export-docx", async (req, res) => {
 
     const doc = new Document({
       sections: [{
+        headers: {
+          default: new Header({
+            children: [kmuLogoParagraph({ width: 40, height: 40 })],
+          }),
+        },
         children: docChildren,
       }],
     });
@@ -664,9 +702,13 @@ router.get("/:id/export-pdf", async (req, res) => {
       doc.y += 8;
     };
 
+    const addPageWithHeader = () => {
+      doc.addPage();
+      writePdfHeader();
+    };
+
     writePdfHeader();
-    doc.on("pageAdded", writePdfHeader);
-    exportSections(obj).forEach((section) => writePdfSection(doc, section));
+    exportSections(obj).forEach((section) => writePdfSection(doc, section, addPageWithHeader));
     doc.end();
   } catch (err) {
     console.error("Export work order PDF error:", err);

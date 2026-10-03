@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import {
     AlignmentType,
     BorderStyle,
@@ -13,6 +14,7 @@ import {
 } from 'docx';
 
 let cachedLogo = null;
+const moduleDirectory = path.dirname(fileURLToPath(import.meta.url));
 
 function extractPngFromSvgFile(svgPath) {
     const content = fs.readFileSync(svgPath, 'utf8');
@@ -34,19 +36,34 @@ export function loadKmuLogo() {
         return cachedLogo;
     }
 
-    const pngPath = path.resolve(process.cwd(), '../frontend/public/kmu_logo_pdf.png');
-    const svgPath = path.resolve(process.cwd(), '../frontend/public/kmu_logo.svg');
+    const backendLogoPath = path.resolve(moduleDirectory, '../assets/kmu_logo_pdf.png');
+    const pngPaths = [
+        backendLogoPath,
+        path.resolve(process.cwd(), '../frontend/public/kmu_logo_pdf.png'),
+        path.resolve(process.cwd(), 'frontend/public/kmu_logo_pdf.png'),
+    ];
+    const svgPaths = [
+        path.resolve(process.cwd(), '../frontend/public/kmu_logo.svg'),
+        path.resolve(process.cwd(), 'frontend/public/kmu_logo.svg'),
+    ];
 
-    if (fs.existsSync(pngPath)) {
-        cachedLogo = { buffer: fs.readFileSync(pngPath), type: 'png' };
-        return cachedLogo;
+    for (const pngPath of pngPaths) {
+        if (fs.existsSync(pngPath)) {
+            cachedLogo = { buffer: fs.readFileSync(pngPath), type: 'png' };
+            return cachedLogo;
+        }
     }
 
-    if (fs.existsSync(svgPath)) {
+    for (const svgPath of svgPaths) {
+        if (!fs.existsSync(svgPath)) {
+            continue;
+        }
+
         const extracted = extractPngFromSvgFile(svgPath);
         if (extracted?.length) {
             try {
-                fs.writeFileSync(pngPath, extracted);
+                fs.mkdirSync(path.dirname(backendLogoPath), { recursive: true });
+                fs.writeFileSync(backendLogoPath, extracted);
             } catch {
                 // Ignore write failures and use the in-memory buffer.
             }
@@ -165,18 +182,31 @@ export function parseSignatureBuffer(value) {
     }
 }
 
+export function signatureDisplayValue(value, fallback = '................................................................') {
+    const parsed = parseSignatureBuffer(value);
+    if (parsed) {
+        return { image: parsed, text: '' };
+    }
+
+    const text = String(value ?? '').trim();
+    return {
+        image: null,
+        text: text.startsWith('data:image/') ? fallback : (text || fallback),
+    };
+}
+
 export function signatureInlineParagraph(label, value, { pendingText = '................................................................' } = {}) {
     const children = [new TextRun({ text: `${label}: `, bold: true })];
-    const parsed = parseSignatureBuffer(value);
+    const signature = signatureDisplayValue(value, pendingText);
 
-    if (parsed) {
+    if (signature.image) {
         children.push(new ImageRun({
-            data: parsed.buffer,
-            type: parsed.type,
+            data: signature.image.buffer,
+            type: signature.image.type,
             transformation: { width: 110, height: 28 },
         }));
     } else {
-        children.push(new TextRun(displayValue(value, pendingText)));
+        children.push(new TextRun(signature.text));
     }
 
     return new Paragraph({
@@ -197,14 +227,14 @@ export function signatureParagraphs(label, value, { pendingText = 'Pending', inl
         }),
     ];
 
-    const parsed = parseSignatureBuffer(value);
-    if (parsed) {
+    const signature = signatureDisplayValue(value, pendingText);
+    if (signature.image) {
         paragraphs.push(new Paragraph({
             alignment: AlignmentType.LEFT,
             children: [
                 new ImageRun({
-                    data: parsed.buffer,
-                    type: parsed.type,
+                    data: signature.image.buffer,
+                    type: signature.image.type,
                     transformation: { width: 110, height: 28 },
                 }),
             ],
@@ -214,7 +244,7 @@ export function signatureParagraphs(label, value, { pendingText = 'Pending', inl
     }
 
     paragraphs.push(new Paragraph({
-        children: [new TextRun(displayValue(value, pendingText))],
+        children: [new TextRun(signature.text)],
         spacing: { after: 160 },
     }));
     return paragraphs;
