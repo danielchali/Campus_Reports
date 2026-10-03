@@ -41,6 +41,7 @@ type ProfileResponse = {
   name?: string;
   role?: string;
   email?: string;
+  hostel?: string;
   createdAt?: string;
   studentProfile?: StudentProfile | null;
   profile?: {
@@ -138,6 +139,7 @@ export default function ProfilePage() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const isStudent = profile?.role === 'student';
+  const isWarden = profile?.role === 'warden';
   const DELIVERY_MODES = ['Full Time', 'Part Time', 'Distance'];
   const MARITAL_STATUSES = ['Single', 'Married', 'Divorced', 'Widowed'];
   const GENDERS = ['Male', 'Female', 'Other'];
@@ -309,6 +311,18 @@ export default function ProfilePage() {
                         />
                         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">This email is also your login username.</p>
                       </div>
+                      {isWarden && (
+                        <div className="md:col-span-2">
+                          <label className="block text-gray-700 dark:text-gray-300 mb-1">Assigned Hostel</label>
+                          <input
+                            type="text"
+                            value={profile?.hostel || 'Not assigned'}
+                            disabled
+                            className="w-full cursor-not-allowed border border-gray-300 bg-gray-100 px-3 py-2 text-gray-600 dark:border-gray-600 dark:bg-gray-700/60 dark:text-gray-300"
+                          />
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Your administrator manages this assignment.</p>
+                        </div>
+                      )}
                       <div className="md:col-span-2">
                         <label className="block text-gray-700 dark:text-gray-300 mb-1">House Number <span className="text-sm text-gray-500">(optional for non-university premises residents/workers)</span></label>
                         <input
@@ -445,6 +459,7 @@ export default function ProfilePage() {
                     <DisplayField label="Role" value={safeProfile.role || 'Not set'} capitalize />
                     <DisplayField label="Full Name" value={safeProfile.name || 'Not set'} />
                     {!isStudent && <DisplayField label="Email" value={safeProfile.email || 'Not set'} />}
+                    {isWarden && <DisplayField label="Assigned Hostel" value={safeProfile.hostel || 'Not assigned'} />}
                     {!isStudent && <DisplayField label="House Number" value={safeProfile.profile?.houseNumber || 'Not set'} />}
                     <DisplayField
                       label="Account Created"

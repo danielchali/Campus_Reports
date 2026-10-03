@@ -12,6 +12,11 @@ import {
 } from "../utils/emailService.js";
 import { applyNlpToDocument } from "../utils/nlpAnalytics.js";
 import { emitDashboardRefresh } from "../utils/socket.js";
+import StudentReportModel from "../models/studentReport.js";
+import {
+  findActiveMaintenanceReportDuplicate,
+  getMaintenanceDuplicateMessage,
+} from "../utils/maintenanceReportDuplicates.js";
 import InstitutionConfigModel from "../models/institutionConfig.js";
 import { DEFAULT_INSTITUTION_CONFIG } from "../data/defaultFormSchemas.js";
 import {
@@ -137,6 +142,24 @@ router.post("/", async (req, res) => {
     }
     if (contact_email?.trim() && !isValidContactEmail(contact_email)) {
       return res.status(400).json({ error: "Invalid contact email address." });
+    }
+    if (category === "maintenance_issue") {
+      const issueType = String(validation.details?.issueType || "").trim();
+      if (!issueType) {
+        return res.status(400).json({ error: "Maintenance issue type is required." });
+      }
+
+      const duplicate = await findActiveMaintenanceReportDuplicate({
+        StudentReportModel,
+        AnonymousReportModel,
+        location,
+        issueType,
+      });
+      if (duplicate) {
+        return res.status(409).json({
+          error: getMaintenanceDuplicateMessage(location, issueType),
+        });
+      }
     }
 
     // Generate a unique tracking code

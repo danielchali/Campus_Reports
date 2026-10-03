@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import multer from "multer";
 import StudentReportModel from "../models/studentReport.js";
+import AnonymousReportModel from "../models/anonymousReport.js";
 import StudentModel from "../models/student.js";
 import { authenticate, authorize } from "../middleware/auth.js";
 import { createNotification, getNotificationEmail } from "../utils/notifications.js";
@@ -13,6 +14,10 @@ import {
 } from "../utils/emailService.js";
 import { applyNlpToDocument } from "../utils/nlpAnalytics.js";
 import { emitDashboardRefresh } from "../utils/socket.js";
+import {
+  findActiveMaintenanceReportDuplicate,
+  getMaintenanceDuplicateMessage,
+} from "../utils/maintenanceReportDuplicates.js";
 import {
   canViewReport,
   getStaffReportScope,
@@ -271,6 +276,24 @@ router.post(
       }
       if (!REPORT_CATEGORIES.includes(category)) {
         return res.status(400).json({ error: "Invalid report category" });
+      }
+      if (category === "maintenance_issue") {
+        const issueType = String(details.issueType || "").trim();
+        if (!issueType) {
+          return res.status(400).json({ error: "Maintenance issue type is required" });
+        }
+
+        const duplicate = await findActiveMaintenanceReportDuplicate({
+          StudentReportModel,
+          AnonymousReportModel,
+          location,
+          issueType,
+        });
+        if (duplicate) {
+          return res.status(409).json({
+            error: getMaintenanceDuplicateMessage(location, issueType),
+          });
+        }
       }
 
       const ownerDisplayName =
@@ -614,6 +637,22 @@ router.patch(
           .json({
             error: `Report is already marked as ${CATEGORY_LABELS[category]}.`,
           });
+      }
+
+      if (category === "maintenance_issue") {
+        const issueType = String(report.details?.issueType || "Other").trim() || "Other";
+        const duplicate = await findActiveMaintenanceReportDuplicate({
+          StudentReportModel,
+          AnonymousReportModel,
+          location: report.location,
+          issueType,
+          excludeId: report._id,
+        });
+        if (duplicate) {
+          return res.status(409).json({
+            error: getMaintenanceDuplicateMessage(report.location, issueType),
+          });
+        }
       }
 
       const previousCategory = report.category;
