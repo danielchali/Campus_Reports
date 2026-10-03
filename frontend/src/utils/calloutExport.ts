@@ -126,9 +126,12 @@ function downloadBlob(blob: Blob, filename: string) {
   window.URL.revokeObjectURL(url);
 }
 
-export async function exportCalloutDocx(
+type CalloutExportFormat = "docx" | "pdf";
+
+async function exportCallouts(
   accused: CalloutPerson[],
   summon: CalloutSummon,
+  format: CalloutExportFormat,
   options?: { onlyIndex?: number; filename?: string },
 ) {
   if (!accused.length) {
@@ -145,7 +148,7 @@ export async function exportCalloutDocx(
     studentSignature: summon.studentSignatures?.[String(index)] || "",
   }));
 
-  const res = await fetch(`${API_BASE_URL}/cases/export-callout-docx`, {
+  const res = await fetch(`${API_BASE_URL}/cases/export-callout-${format}`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ callouts }),
@@ -153,11 +156,27 @@ export async function exportCalloutDocx(
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.error || "Failed to export callout DOCX");
+    throw new Error(data.error || `Failed to export callout ${format.toUpperCase()}`);
   }
 
   const blob = await res.blob();
-  downloadBlob(blob, options?.filename || "callouts.docx");
+  downloadBlob(blob, options?.filename || `callouts.${format}`);
+}
+
+export async function exportCalloutDocx(
+  accused: CalloutPerson[],
+  summon: CalloutSummon,
+  options?: { onlyIndex?: number; filename?: string },
+) {
+  return exportCallouts(accused, summon, "docx", options);
+}
+
+export async function exportCalloutPdf(
+  accused: CalloutPerson[],
+  summon: CalloutSummon,
+  options?: { onlyIndex?: number; filename?: string },
+) {
+  return exportCallouts(accused, summon, "pdf", options);
 }
 
 export async function exportCaseCalloutDocx(caseId: string, filename?: string) {
@@ -172,4 +191,18 @@ export async function exportCaseCalloutDocx(caseId: string, filename?: string) {
 
   const blob = await res.blob();
   downloadBlob(blob, filename || "callout.docx");
+}
+
+export async function exportCaseCalloutPdf(caseId: string, filename?: string) {
+  const res = await fetch(`${API_BASE_URL}/cases/${caseId}/export-callout-pdf`, {
+    headers: authHeaders(),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to export callout PDF");
+  }
+
+  const blob = await res.blob();
+  downloadBlob(blob, filename || "callout.pdf");
 }

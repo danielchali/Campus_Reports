@@ -13,7 +13,7 @@ import QuickCaseTemplates from "../../../components/QuickCaseTemplates";
 import RecentStaff from "../../../components/RecentStaff";
 import SignatureField from "../../../components/SignatureField";
 import { canAccessPage } from "../../../utils/access";
-import { exportCalloutDocx, printCallouts } from "../../../utils/calloutExport";
+import { exportCalloutDocx, exportCalloutPdf, printCallouts } from "../../../utils/calloutExport";
 import {
   getStudentCaseProcessDateDefaults,
   getTodayDateInputValue,
@@ -714,6 +714,30 @@ export default function NewCasePage() {
     }
   };
 
+  const handleExportAllCalloutsPdf = async () => {
+    try {
+      await exportCalloutPdf(
+        studentCaseProcess.occurrenceCover.accusedPeople,
+        studentCaseProcess.summon,
+        { filename: "callouts.pdf" },
+      );
+    } catch (err: any) {
+      setError(err?.message || "Failed to export callout PDF.");
+    }
+  };
+
+  const handleExportSingleCalloutPdf = async (index: number) => {
+    try {
+      await exportCalloutPdf(
+        studentCaseProcess.occurrenceCover.accusedPeople,
+        studentCaseProcess.summon,
+        { onlyIndex: index, filename: `callout_${index + 1}.pdf` },
+      );
+    } catch (err: any) {
+      setError(err?.message || "Failed to export callout PDF.");
+    }
+  };
+
   const handleAddAccusedStudent = (student: Student) => {
     setAccusedStudents((prev) => {
       if (prev.some((item) => item.studentId === student.studentId)) {
@@ -1248,6 +1272,13 @@ export default function NewCasePage() {
               >
                 Export Call Out DOCX
               </button>
+              <button
+                type="button"
+                onClick={handleExportAllCalloutsPdf}
+                className="rounded border border-red-700 px-3 py-2 text-sm font-medium text-red-700 transition hover:bg-red-50 dark:hover:bg-red-950/30"
+              >
+                Export Call Out PDF
+              </button>
             </div>
           </div>
           <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -1278,6 +1309,13 @@ export default function NewCasePage() {
                     className="rounded border border-blue-700 px-2 py-1 text-xs font-medium text-blue-700 transition hover:bg-blue-50 dark:hover:bg-blue-950/30"
                   >
                     Export DOCX
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleExportSingleCalloutPdf(index)}
+                    className="rounded border border-red-700 px-2 py-1 text-xs font-medium text-red-700 transition hover:bg-red-50 dark:hover:bg-red-950/30"
+                  >
+                    Export PDF
                   </button>
                 </div>
                 <div className="mb-2 text-center">

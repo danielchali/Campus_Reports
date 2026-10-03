@@ -5,6 +5,7 @@ import ExcelJS from 'exceljs';
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, AlignmentType, PageBreak } from 'docx';
 import { kmuLogoParagraph, signatureParagraphs } from '../utils/docxExport.js';
 import { buildCalloutsFromCase, createCalloutDocBuffer } from '../utils/calloutDocx.js';
+import { createCalloutPdfBuffer } from '../utils/calloutPdf.js';
 const router = express.Router();
 
 router.use(authenticate, authorize(['admin', 'security_officer', 'dean_of_students', 'warden']));
@@ -31,6 +32,23 @@ router.post('/export-callout-docx', async(req, res) => {
     }
 });
 
+router.post('/export-callout-pdf', async(req, res) => {
+    try {
+        const { callouts } = req.body;
+        if (!Array.isArray(callouts) || callouts.length === 0) {
+            return res.status(400).json({ error: 'callouts array is required' });
+        }
+
+        const buffer = await createCalloutPdfBuffer(callouts);
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=callouts.pdf');
+        res.send(buffer);
+    } catch (err) {
+        console.error('Callout PDF export error:', err);
+        res.status(500).json({ error: 'Export failed' });
+    }
+});
+
 router.get('/:id/export-callout-docx', async(req, res) => {
     try {
         const CaseModel = (await import('../models/case.js')).default;
@@ -49,6 +67,28 @@ router.get('/:id/export-callout-docx', async(req, res) => {
         res.send(buffer);
     } catch (err) {
         console.error('Case callout DOCX export error:', err);
+        res.status(500).json({ error: 'Export failed' });
+    }
+});
+
+router.get('/:id/export-callout-pdf', async(req, res) => {
+    try {
+        const CaseModel = (await import('../models/case.js')).default;
+        const caseItem = await CaseModel.findById(req.params.id).lean();
+        if (!caseItem) return res.status(404).json({ error: 'Case not found' });
+
+        const callouts = buildCalloutsFromCase(caseItem);
+        if (!callouts.length) {
+            return res.status(400).json({ error: 'No callout data found for this case' });
+        }
+
+        const buffer = await createCalloutPdfBuffer(callouts);
+        const filename = `callout_${caseItem.case_id || caseItem._id}.pdf`;
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+        res.send(buffer);
+    } catch (err) {
+        console.error('Case callout PDF export error:', err);
         res.status(500).json({ error: 'Export failed' });
     }
 });

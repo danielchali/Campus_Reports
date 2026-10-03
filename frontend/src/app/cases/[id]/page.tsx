@@ -7,7 +7,7 @@ import { useAuth } from "../../../context/AuthContext";
 import Link from "next/link";
 import { API_BASE_URL } from '../../../config/constants';
 import { canAccessPage } from '../../../utils/access';
-import { exportCaseCalloutDocx, printCallouts } from '../../../utils/calloutExport';
+import { exportCaseCalloutDocx, exportCaseCalloutPdf, printCallouts } from '../../../utils/calloutExport';
 import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
 import StatementRequestPanel from '../../../components/statementRequests/StatementRequestPanel';
 
@@ -239,6 +239,18 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
             );
         } catch (err: any) {
             setActionMessage({ type: 'error', text: err?.message || 'Failed to export callout DOCX.' });
+        }
+    };
+
+    const handleExportSummonCalloutPdf = async () => {
+        if (!caseData) return;
+        try {
+            await exportCaseCalloutPdf(
+                caseData._id,
+                `callout_${caseData.caseId || caseData._id}.pdf`,
+            );
+        } catch (err: any) {
+            setActionMessage({ type: 'error', text: err?.message || 'Failed to export callout PDF.' });
         }
     };
 
@@ -662,6 +674,13 @@ export default function CaseDetailsPage({ params }: { params: { id: string } }) 
                                 className="block w-full text-center px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 transition"
                             >
                                 Export Callout DOCX
+                            </button>
+
+                            <button
+                                onClick={handleExportSummonCalloutPdf}
+                                className="block w-full text-center px-4 py-2 bg-red-700 text-white rounded hover:bg-red-800 transition"
+                            >
+                                Export Callout PDF
                             </button>
 
                             <button
