@@ -110,6 +110,34 @@ export function buildAnalyticsSummary({ studentReports = [], anonymousReports = 
   };
 }
 
+export function buildWorkOrderSummary({ workOrders = [], generatedAt = new Date() } = {}) {
+  const validCreatedDates = workOrders
+    .map((item) => new Date(item.createdAt || 0))
+    .filter((date) => !Number.isNaN(date.getTime()));
+  const recentThreshold = new Date(generatedAt);
+  recentThreshold.setDate(recentThreshold.getDate() - 30);
+  const statusCounts = countValues(workOrders, (item) => item.status || 'Open');
+  const priorityCounts = countValues(workOrders, (item) => item.priority || 'Normal');
+  const issueTypes = countValues(workOrders, (item) => item.issue_type || item.issueType || 'Other');
+  const active = workOrders.filter((item) => !['Completed', 'Cancelled'].includes(item.status)).length;
+
+  return {
+    total: workOrders.length,
+    receivedLast30Days: validCreatedDates.filter((date) => date >= recentThreshold).length,
+    active,
+    open: workOrders.filter((item) => item.status === 'Open').length,
+    inProgress: workOrders.filter((item) => item.status === 'In Progress').length,
+    completed: workOrders.filter((item) => item.status === 'Completed').length,
+    urgent: workOrders.filter((item) => item.priority === 'Urgent safety risk').length,
+    statusCounts,
+    priorityCounts,
+    issueTypes,
+    latestReceivedAt: validCreatedDates.length
+      ? new Date(Math.max(...validCreatedDates.map((date) => date.getTime()))).toISOString()
+      : null,
+  };
+}
+
 export const ANALYTICS_TAXONOMY = {
   maintenance: Object.keys(ISSUE_TAXONOMY),
   disciplinary: Object.keys(DISCIPLINARY_TAXONOMY),

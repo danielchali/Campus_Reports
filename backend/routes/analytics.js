@@ -3,9 +3,10 @@ import StudentReportModel from '../models/studentReport.js';
 import AnonymousReportModel from '../models/anonymousReport.js';
 import CaseModel from '../models/case.js';
 import UserModel from '../models/user.js';
+import WorkOrderModel from '../models/workOrder.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { getStaffReportScope } from '../utils/studentReportAccess.js';
-import { buildAnalyticsSummary } from '../utils/analytics.js';
+import { buildAnalyticsSummary, buildWorkOrderSummary } from '../utils/analytics.js';
 import PerformanceMetricModel from '../models/performanceMetric.js';
 
 const router = express.Router();
@@ -30,6 +31,76 @@ function percentile(values, percentileValue) {
   if (!values.length) return null;
   const sorted = [...values].sort((a, b) => a - b);
   return Math.round(sorted[Math.min(Math.ceil(sorted.length * percentileValue) - 1, sorted.length - 1)] * 100) / 100;
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function emptyScope() {
+  return { _id: null };
+}
+
+async function resolveWardenHostel(user) {
+  const tokenHostel = String(user?.hostel || '').trim();
+  if (tokenHostel) return tokenHostel;
+  if (!user?.id) return '';
+
+  const account = await UserModel.findById(user.id).select('hostel').lean();
+  return String(account?.hostel || '').trim();
+}
+
+function getLocationScope(hostel) {
+  if (!hostel) return emptyScope();
+  return { location: { $regex: escapeRegex(hostel), $options: 'i' } };
+}
+
+function getAnalyticsScope(role, hostel) {
+  if (role === 'warden') {
+    const locationScope = getLocationScope(hostel);
+    return {
+      studentReports: locationScope,
+      anonymousReports: locationScope,
+      workOrders: locationScope,
+      cases: emptyScope(),
+      includeWorkOrders: true,
+      scope: {
+        kind: 'hostel',
+        label: hostel || 'Unassigned hostel',
+        description: hostel
+          ? `Reports and work orders whose recorded location matches ${hostel}.`
+          : 'No hostel assignment is available, so no operational records are shown.',
+      },
+    };
+  }
+
+  if (role === 'maintenance') {
+    return {
+      studentReports: getStaffReportScope({ role }) || {},
+      anonymousReports: { category: 'maintenance_issue' },
+      workOrders: {},
+      cases: emptyScope(),
+      includeWorkOrders: true,
+      scope: {
+        kind: 'maintenance',
+        label: 'Maintenance operations',
+        description: 'Work orders received by the maintenance team and the source requests behind them.',
+      },
+    };
+  }
+
+  return {
+    studentReports: getStaffReportScope({ role }) || {},
+    anonymousReports: {},
+    workOrders: emptyScope(),
+    cases: {},
+    includeWorkOrders: false,
+    scope: {
+      kind: 'campus',
+      label: 'Campus operations',
+      description: 'Reports and cases available to your role.',
+    },
+  };
 }
 
 async function buildPerformanceSummary() {
@@ -59,21 +130,25 @@ async function buildPerformanceSummary() {
 
 router.get('/summary', authenticate, authorize(ANALYTICS_ROLES), async (req, res) => {
   try {
-    const studentScope = getStaffReportScope(req.user) || {};
-    const anonymousScope = req.user.role === 'maintenance' ? { category: 'maintenance_issue' } : {};
-    const caseScope = {};
+    const hostel = req.user.role === 'warden' ? await resolveWardenHostel(req.user) : '';
+    const scopedData = getAnalyticsScope(req.user.role, hostel);
 
-    const [studentReports, anonymousReports, cases, users] = await Promise.all([
-      StudentReportModel.find(studentScope)
+    const [studentReports, anonymousReports, cases, users, workOrders] = await Promise.all([
+      StudentReportModel.find(scopedData.studentReports)
         .select('category status title description details ai_keywords createdAt')
         .lean(),
-      AnonymousReportModel.find(anonymousScope)
+      AnonymousReportModel.find(scopedData.anonymousReports)
         .select('category status title description details ai_keywords createdAt')
         .lean(),
-      CaseModel.find(caseScope)
+      CaseModel.find(scopedData.cases)
         .select('offense_type description student_case_process')
         .lean(),
       req.user.role === 'admin' ? UserModel.find({}).select('role').lean() : Promise.resolve([]),
+      scopedData.includeWorkOrders
+        ? WorkOrderModel.find(scopedData.workOrders)
+          .select('status priority issue_type location createdAt updatedAt')
+          .lean()
+        : Promise.resolve([]),
     ]);
 
     const summary = buildAnalyticsSummary({
@@ -88,6 +163,10 @@ router.get('/summary', authenticate, authorize(ANALYTICS_ROLES), async (req, res
       system: req.user.role === 'admin' ? summary.system : null,
       permissions: { canViewSystemAnalytics: req.user.role === 'admin' },
       performance: req.user.role === 'admin' ? await buildPerformanceSummary() : null,
+      scope: scopedData.scope,
+      workOrders: scopedData.includeWorkOrders
+        ? buildWorkOrderSummary({ workOrders })
+        : null,
     });
   } catch (error) {
     console.error('Analytics summary error:', error);
