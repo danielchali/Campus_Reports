@@ -27,6 +27,19 @@ import {
   ChevronDown
 } from '@/components/icons';
 
+function getLoginErrorMessage(error: unknown) {
+  if (
+    error instanceof TypeError &&
+    /failed to fetch|networkerror/i.test(error.message)
+  ) {
+    return 'The sign-in service is unavailable. Please try again in a moment.';
+  }
+
+  return error instanceof Error
+    ? error.message
+    : 'Login failed. Please check your connection and try again.';
+}
+
 export default function LoginView() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -165,11 +178,7 @@ export default function LoginView() {
         setError('Invalid credentials. Please try again.');
       }
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Login failed. Please check your connection and try again.',
-      );
+      setError(getLoginErrorMessage(err));
     } finally {
       setLoading(false);
       performanceMonitor.endTimer('login-attempt');

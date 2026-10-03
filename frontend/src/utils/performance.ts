@@ -1,5 +1,6 @@
 // Performance optimization utilities
 // Updated for TypeScript compatibility and cross-browser support
+import { API_BASE_URL } from '../config/constants';
 
 // Extend Performance interface for memory API
 interface PerformanceMemory {
@@ -101,9 +102,12 @@ export function dnsPrefetch(domain: string): void {
 export function preconnect(domain: string): void {
   if (typeof window === 'undefined') return;
 
+  const href = /^https?:\/\//i.test(domain) ? domain : `https://${domain}`;
+  if (document.head.querySelector(`link[rel="preconnect"][href="${href}"]`)) return;
+
   const link = document.createElement('link');
   link.rel = 'preconnect';
-  link.href = `https://${domain}`;
+  link.href = href;
   link.crossOrigin = 'anonymous';
   document.head.appendChild(link);
 }
@@ -276,16 +280,13 @@ export function warmCache(urls: string[]): void {
 export function addResourceHints(): void {
   if (typeof window === 'undefined') return;
 
-  // DNS prefetch for external domains
-  dnsPrefetch('kmu-disciplinedesk.onrender.com');
-  
-  // Preconnect to API
-  preconnect('kmu-disciplinedesk.onrender.com');
-  
-  // Preload critical resources
-  preloadResource('/kmu_logo.svg', 'image');
-  preloadResource('/kmu_campus.png', 'image');
-  preloadResource('/manifest.json', 'fetch');
+  try {
+    const apiUrl = new URL(API_BASE_URL);
+    dnsPrefetch(apiUrl.hostname);
+    preconnect(apiUrl.origin);
+  } catch {
+    // The app can still load when a local or relative API URL is in use.
+  }
 }
 
 // Optimize scroll performance
@@ -311,4 +312,4 @@ export function cleanupPerformance(element: HTMLElement): void {
 }
 
 // Export singleton instance
-export const performanceMonitor = PerformanceMonitor.getInstance(); 
+export const performanceMonitor = PerformanceMonitor.getInstance();

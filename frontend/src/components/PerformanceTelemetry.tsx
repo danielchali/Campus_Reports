@@ -4,6 +4,9 @@ import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { API_BASE_URL } from '../config/constants';
 
+const performanceTelemetryEnabled =
+  process.env.NEXT_PUBLIC_ENABLE_PERFORMANCE_TELEMETRY === 'true';
+
 type PerformancePayload = {
   path: string;
   navigationDuration?: number;
@@ -24,7 +27,14 @@ export default function PerformanceTelemetry() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !pathname || pathname.startsWith('/embed')) return;
+    if (
+      !performanceTelemetryEnabled ||
+      typeof window === 'undefined' ||
+      !pathname ||
+      pathname.startsWith('/embed')
+    ) {
+      return;
+    }
 
     let largestContentfulPaint: PerformanceObserver | undefined;
     let layoutShiftObserver: PerformanceObserver | undefined;
