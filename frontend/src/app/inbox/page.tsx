@@ -17,6 +17,7 @@ import { useAuth } from "../../context/AuthContext";
 import Notification, { useNotification } from "../../components/Notification";
 import { canAccessPage } from "../../utils/access";
 import { PageSkeleton, CardSkeleton } from "../../components/PageSkeleton";
+import { StatCard, StatsStrip } from "../../components/StatsStrip";
 import {
   downloadStudentReportAttachment,
   getStudentReportAttachmentDownloadUrl,
@@ -73,6 +74,10 @@ export default function InboxPage() {
 
   const [reports, setReports] = useState<StudentReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [visibilityFilter, setVisibilityFilter] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusDrafts, setStatusDrafts] = useState<
     Record<string, StudentReportStatus>
@@ -91,12 +96,53 @@ export default function InboxPage() {
   const reportRefs = useRef<Record<string, HTMLElement | null>>({});
   const selectedReportId = searchParams.get("reportId")?.trim() || null;
 
-  const sortedReports = useMemo(() => {
-    return [...reports].sort(
+  const visibleReports = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return reports
+      .filter((report) => {
+        if (categoryFilter && report.category !== categoryFilter) return false;
+        if (statusFilter && report.status !== statusFilter) return false;
+        if (visibilityFilter === "anonymous" && !report.anonymous) return false;
+        if (visibilityFilter === "named" && report.anonymous) return false;
+        if (!normalizedSearch) return true;
+
+        const searchableText = [
+          report.title,
+          report.description,
+          report.trackingCode,
+          report.location,
+          report.category,
+          report.status,
+          report.ownerName,
+          report.ownerUsername,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+
+        return searchableText.includes(normalizedSearch);
+      })
+      .sort(
       (a, b) =>
         new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(),
-    );
-  }, [reports]);
+      );
+  }, [reports, search, categoryFilter, statusFilter, visibilityFilter]);
+
+  const reportStats = useMemo(
+    () => ({
+      disciplinary: reports.filter(
+        (report) => report.category === "disciplinary_case",
+      ).length,
+      maintenance: reports.filter(
+        (report) => report.category === "maintenance_issue",
+      ).length,
+      inProgress: reports.filter((report) => report.status === "In Progress")
+        .length,
+      resolved: reports.filter((report) => report.status === "Resolved").length,
+    }),
+    [reports],
+  );
 
   if (typeof window !== "undefined") {
     if (!authLoading && !token) {
@@ -136,6 +182,11 @@ export default function InboxPage() {
 
   useEffect(() => {
     if (!selectedReportId) return;
+
+    setSearch("");
+    setCategoryFilter("");
+    setStatusFilter("");
+    setVisibilityFilter("");
 
     const selectedReport = reports.find(
       (report) => report.id === selectedReportId,
@@ -242,6 +293,13 @@ export default function InboxPage() {
     showNotification("success", "All student reports marked as seen.");
   }
 
+  function clearFilters() {
+    setSearch("");
+    setCategoryFilter("");
+    setStatusFilter("");
+    setVisibilityFilter("");
+  }
+
   async function handleApplyCategory(report: StudentReport) {
     const nextCategory = categoryDrafts[report.id] || report.category;
     if (nextCategory === report.category) {
@@ -303,31 +361,102 @@ export default function InboxPage() {
   return (
     <>
       <section className="w-full space-y-6">
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <div className="rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              Reports
-            </p>
-            <p className="text-lg font-semibold leading-tight text-gray-900 dark:text-white">
-              {sortedReports.length}
-            </p>
+        <StatsStrip desktopColumnsClass="md:grid-cols-3 lg:grid-cols-6">
+          <StatCard
+            label="Total Reports"
+            value={reports.length}
+            valueClassName="text-kmuGreen"
+          />
+          <StatCard
+            label="Unread"
+            value={unreadCount}
+            valueClassName="text-blue-600"
+          />
+          <StatCard
+            label="Disciplinary"
+            value={reportStats.disciplinary}
+            valueClassName="text-orange-600"
+          />
+          <StatCard
+            label="Maintenance"
+            value={reportStats.maintenance}
+            valueClassName="text-purple-600"
+          />
+          <StatCard
+            label="In Progress"
+            value={reportStats.inProgress}
+            valueClassName="text-yellow-600"
+          />
+          <StatCard
+            label="Resolved"
+            value={reportStats.resolved}
+            valueClassName="text-emerald-600"
+          />
+        </StatsStrip>
+
+        <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,0.9fr))]">
+            <input
+              type="text"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search reports, tracking codes, locations, or reporters"
+              className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            />
+            <select
+              value={categoryFilter}
+              onChange={(event) => setCategoryFilter(event.target.value)}
+              className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="">All Categories</option>
+              <option value="disciplinary_case">Disciplinary Case</option>
+              <option value="maintenance_issue">Maintenance Issue</option>
+            </select>
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="">All Statuses</option>
+              {statusOptions.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+            <select
+              value={visibilityFilter}
+              onChange={(event) => setVisibilityFilter(event.target.value)}
+              className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            >
+              <option value="">Anonymous + named</option>
+              <option value="anonymous">Anonymous only</option>
+              <option value="named">Named only</option>
+            </select>
           </div>
-          <div className="rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              Unread
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Showing {visibleReports.length} of {reports.length} report
+              {reports.length === 1 ? "" : "s"}
             </p>
-            <p className="text-lg font-semibold leading-tight text-gray-900 dark:text-white">
-              {unreadCount}
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 transition hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+              >
+                Clear Filters
+              </button>
+              <button
+                type="button"
+                onClick={handleMarkAllSeen}
+                className="inline-flex items-center gap-2 rounded bg-kmuGreen px-4 py-2 text-sm font-medium text-white transition hover:bg-kmuOrange"
+              >
+                <CheckCheck size={16} />
+                Mark all as seen
+              </button>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={handleMarkAllSeen}
-            className="inline-flex items-center gap-2 rounded-xl bg-kmuGreen px-3 py-2 text-sm font-medium text-white transition hover:bg-kmuOrange"
-          >
-            <CheckCheck size={16} />
-            Mark all as seen
-          </button>
         </div>
 
         <div className="space-y-4">
@@ -337,12 +466,12 @@ export default function InboxPage() {
               <CardSkeleton />
               <CardSkeleton />
             </div>
-          ) : sortedReports.length === 0 ? (
+          ) : visibleReports.length === 0 ? (
             <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 shadow text-center text-gray-500 dark:text-gray-400">
-              No student reports are available.
+              No student reports match the selected filters.
             </div>
           ) : (
-            sortedReports.map((report) => {
+            visibleReports.map((report) => {
               const isSeen = !!user && (report.seenBy || []).includes(user.id);
               const isExpanded = expandedId === report.id;
               const isSelectedReport = selectedReportId === report.id;
