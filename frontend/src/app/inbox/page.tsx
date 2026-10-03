@@ -394,69 +394,69 @@ export default function InboxPage() {
           />
         </StatsStrip>
 
-        <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.8fr)_repeat(3,minmax(0,0.9fr))]">
-            <input
-              type="text"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search reports, tracking codes, locations, or reporters"
-              className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            />
-            <select
-              value={categoryFilter}
-              onChange={(event) => setCategoryFilter(event.target.value)}
-              className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            >
-              <option value="">All Categories</option>
-              <option value="disciplinary_case">Disciplinary Case</option>
-              <option value="maintenance_issue">Maintenance Issue</option>
-            </select>
-            <select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-              className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            >
-              <option value="">All Statuses</option>
-              {statusOptions.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-            <select
-              value={visibilityFilter}
-              onChange={(event) => setVisibilityFilter(event.target.value)}
-              className="rounded border border-gray-300 bg-white px-3 py-2 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-            >
-              <option value="">Anonymous + named</option>
-              <option value="anonymous">Anonymous only</option>
-              <option value="named">Named only</option>
-            </select>
-          </div>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Showing {visibleReports.length} of {reports.length} report
-              {reports.length === 1 ? "" : "s"}
-            </p>
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="w-full rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
+            <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(11rem,1.4fr)_repeat(3,minmax(7rem,0.8fr))]">
+              <input
+                type="text"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search reports, tracking codes, locations, or reporters"
+                className="min-w-0 rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              />
+              <select
+                value={categoryFilter}
+                onChange={(event) => setCategoryFilter(event.target.value)}
+                className="min-w-0 rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="">All Categories</option>
+                <option value="disciplinary_case">Disciplinary Case</option>
+                <option value="maintenance_issue">Maintenance Issue</option>
+              </select>
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                className="min-w-0 rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="">All Statuses</option>
+                {statusOptions.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={visibilityFilter}
+                onChange={(event) => setVisibilityFilter(event.target.value)}
+                className="min-w-0 rounded border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="">Anonymous + named</option>
+                <option value="anonymous">Anonymous only</option>
+                <option value="named">Named only</option>
+              </select>
+            </div>
+            <div className="flex shrink-0 flex-nowrap items-center gap-2">
               <button
                 type="button"
                 onClick={clearFilters}
-                className="rounded bg-gray-200 px-4 py-2 text-sm font-medium text-gray-800 transition hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+                className="whitespace-nowrap rounded bg-gray-200 px-3 py-1.5 text-sm font-medium text-gray-800 transition hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
               >
                 Clear Filters
               </button>
               <button
                 type="button"
                 onClick={handleMarkAllSeen}
-                className="inline-flex items-center gap-2 rounded bg-kmuGreen px-4 py-2 text-sm font-medium text-white transition hover:bg-kmuOrange"
+                className="inline-flex whitespace-nowrap items-center gap-2 rounded bg-kmuGreen px-3 py-1.5 text-sm font-medium text-white transition hover:bg-kmuOrange"
               >
                 <CheckCheck size={16} />
                 Mark all as seen
               </button>
             </div>
           </div>
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            Showing {visibleReports.length} of {reports.length} report
+            {reports.length === 1 ? "" : "s"}
+          </p>
         </div>
 
         <div className="space-y-4">
