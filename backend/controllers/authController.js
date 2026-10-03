@@ -150,6 +150,7 @@ export async function login(req, res) {
         const user = await UserModel.findOne({
             $or: [
                 { username },
+                { username: normalizedIdentifier },
                 { role: { $ne: 'student' }, email: normalizedIdentifier }
             ]
         });

@@ -219,14 +219,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
+      const identifier = username.trim();
       const response = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: identifier, password }),
       });
 
       if (!response.ok) {
-        throw new Error('Login failed');
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || 'Login failed. Please try again.');
       }
 
       const data = await response.json();
@@ -236,9 +238,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('auth_user', JSON.stringify(data.user));
       
       // Store encrypted offline data for offline login
-      const passwordHash = await hashOfflinePassword(username, password);
+      const passwordHash = await hashOfflinePassword(identifier, password);
       const offlineData = encryptData(JSON.stringify({
-        username,
+        username: identifier,
         passwordHash,
         user: data.user,
         timestamp: Date.now()
@@ -270,7 +272,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return true;
     } catch (error) {
       console.error('Login error:', error);
-      return false;
+      throw error;
     }
   };
 
@@ -303,7 +305,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error('Invalid credentials');
     } catch (error) {
       console.error('Offline login error:', error);
-      return false;
+      throw error;
     }
   };
 

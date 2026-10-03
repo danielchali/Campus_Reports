@@ -147,11 +147,17 @@ export default function LoginView() {
     performanceMonitor.startTimer('login-attempt');
 
     try {
+      const identifier = username.trim();
+      if (!identifier || !password) {
+        setError('Enter your email or student ID and password.');
+        return;
+      }
+
       let success = false;
       if (isDevelopment || (isOnline && authIsOnline)) {
-        success = await login(username, password);
+        success = await login(identifier, password);
       } else {
-        success = await loginOffline(username, password);
+        success = await loginOffline(identifier, password);
       }
 
       if (success) {
@@ -159,7 +165,11 @@ export default function LoginView() {
         setError('Invalid credentials. Please try again.');
       }
     } catch (err) {
-      setError('Login failed. Please check your connection and try again.');
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Login failed. Please check your connection and try again.',
+      );
     } finally {
       setLoading(false);
       performanceMonitor.endTimer('login-attempt');

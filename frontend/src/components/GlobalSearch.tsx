@@ -12,6 +12,7 @@ import {
   Shield,
   User,
   UserCog,
+  X,
 } from "@/components/icons";
 import Link from "next/link";
 import { API_URL } from "../config/constants";
@@ -139,19 +140,28 @@ export default function GlobalSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResults>(EMPTY_RESULTS);
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState("");
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setIsOpen(false);
+        setIsExpanded(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isExpanded) {
+      inputRef.current?.focus();
+    }
+  }, [isExpanded]);
 
   useEffect(() => {
     const trimmedQuery = query.trim();
@@ -345,22 +355,54 @@ export default function GlobalSearch() {
 
   const hasResults = sections.some((section) => section.items.length > 0);
 
+  function closeSearch() {
+    setIsOpen(false);
+    setIsExpanded(false);
+    setQuery("");
+  }
+
   return (
-    <div ref={wrapperRef} className="relative hidden min-w-[240px] md:block">
-      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-800 dark:bg-slate-900 focus-within:ring-2 focus-within:ring-kmuGreen transition-shadow">
-        <Search size={16} className="text-slate-400" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => trimmedQuery.length >= 2 && setIsOpen(true)}
-          className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-200"
-          placeholder="Search all accessible records..."
-          aria-label="Search accessible campus records"
-        />
-      </div>
+    <div ref={wrapperRef} className="relative hidden shrink-0 md:block">
+      {isExpanded ? (
+        <div className="flex h-8 w-52 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-2.5 dark:border-slate-800 dark:bg-slate-900 focus-within:ring-2 focus-within:ring-kmuGreen lg:w-72">
+          <Search size={16} className="shrink-0 text-slate-400" />
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => trimmedQuery.length >= 2 && setIsOpen(true)}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                closeSearch();
+              }
+            }}
+            className="min-w-0 flex-1 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400 dark:text-slate-200"
+            placeholder="Search records..."
+            aria-label="Search accessible campus records"
+          />
+          <button
+            type="button"
+            onClick={closeSearch}
+            className="rounded-md p-0.5 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            aria-label="Close search"
+          >
+            <X size={15} />
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsExpanded(true)}
+          className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 transition-colors hover:border-kmuGreen hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400"
+          aria-label="Open search"
+          aria-expanded={false}
+        >
+          <Search size={16} />
+        </button>
+      )}
 
       {isOpen && (
-        <div className="absolute top-full right-0 mt-2 w-[440px] max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2">
+        <div className="absolute right-0 top-full z-50 mt-2 max-h-[80vh] w-[min(440px,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-800 dark:bg-slate-900">
           {isSearching && !hasResults ? (
             <div className="p-4 text-center text-sm text-slate-500">Searching...</div>
           ) : error && !hasResults ? (
@@ -385,8 +427,7 @@ export default function GlobalSearch() {
                           key={`${section.key}-${item._id}`}
                           href={section.getHref(item)}
                           onClick={() => {
-                            setIsOpen(false);
-                            setQuery("");
+                            closeSearch();
                           }}
                           className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                         >

@@ -8,7 +8,6 @@ import {
   ChevronUp,
   Eye,
   EyeOff,
-  Filter,
   Paperclip,
   ShieldAlert,
   Wrench,
@@ -74,11 +73,6 @@ export default function InboxPage() {
 
   const [reports, setReports] = useState<StudentReport[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [visibilityFilter, setVisibilityFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("newest");
-  const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [statusDrafts, setStatusDrafts] = useState<
     Record<string, StudentReportStatus>
@@ -97,37 +91,12 @@ export default function InboxPage() {
   const reportRefs = useRef<Record<string, HTMLElement | null>>({});
   const selectedReportId = searchParams.get("reportId")?.trim() || null;
 
-  const filteredReports = useMemo(() => {
-    return reports
-      .filter((report) => {
-        const matchesCategory =
-          categoryFilter === "all" || report.category === categoryFilter;
-        const matchesStatus =
-          statusFilter === "all" || report.status === statusFilter;
-        const matchesVisibility =
-          visibilityFilter === "all" ||
-          (visibilityFilter === "anonymous" && report.anonymous) ||
-          (visibilityFilter === "named" && !report.anonymous);
-
-        return matchesCategory && matchesStatus && matchesVisibility;
-      })
-      .sort((a, b) => {
-        if (sortBy === "oldest") {
-          return (
-            new Date(a.submittedAt).getTime() -
-            new Date(b.submittedAt).getTime()
-          );
-        }
-
-        if (sortBy === "status") {
-          return a.status.localeCompare(b.status);
-        }
-
-        return (
-          new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
-        );
-      });
-  }, [reports, categoryFilter, statusFilter, visibilityFilter, sortBy]);
+  const sortedReports = useMemo(() => {
+    return [...reports].sort(
+      (a, b) =>
+        new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(),
+    );
+  }, [reports]);
 
   if (typeof window !== "undefined") {
     if (!authLoading && !token) {
@@ -145,15 +114,12 @@ export default function InboxPage() {
   useEffect(() => {
     if (!user) return;
 
-    const userId = user.id;
-    const userUsername = user.username;
-    const userName = user.name;
     let cancelled = false;
 
     async function fetchReports() {
       setLoading(true);
       try {
-        const allReports = await getAllStudentReports(search);
+        const allReports = await getAllStudentReports();
         if (!cancelled) setReports(allReports);
       } catch (err) {
         console.error("Failed to load reports:", err);
@@ -166,16 +132,7 @@ export default function InboxPage() {
     return () => {
       cancelled = true;
     };
-  }, [user, search]);
-
-  useEffect(() => {
-    if (!selectedReportId) return;
-
-    setCategoryFilter("all");
-    setStatusFilter("all");
-    setVisibilityFilter("all");
-    setSearch("");
-  }, [selectedReportId]);
+  }, [user]);
 
   useEffect(() => {
     if (!selectedReportId) return;
@@ -262,7 +219,7 @@ export default function InboxPage() {
   }
 
   async function refreshReports() {
-    const allReports = await getAllStudentReports(search);
+    const allReports = await getAllStudentReports();
     setReports(allReports);
   }
 
@@ -346,78 +303,31 @@ export default function InboxPage() {
   return (
     <>
       <section className="w-full space-y-6">
-        <div className="flex justify-end">
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={handleMarkAllSeen}
-              className="inline-flex items-center gap-2 rounded-xl bg-kmuGreen px-4 py-3 text-white font-medium hover:bg-kmuOrange transition"
-            >
-              <CheckCheck size={18} />
-              Mark all as seen
-            </button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <div className="rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Reports
+            </p>
+            <p className="text-lg font-semibold leading-tight text-gray-900 dark:text-white">
+              {sortedReports.length}
+            </p>
           </div>
-        </div>
-
-        <div className="rounded-2xl bg-white dark:bg-gray-800 shadow p-5 space-y-4">
-          <div className="flex items-center gap-2 text-kmuOrange">
-            <Filter size={18} />
-            <h2 className="text-lg font-semibold">Filters</h2>
+          <div className="rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Unread
+            </p>
+            <p className="text-lg font-semibold leading-tight text-gray-900 dark:text-white">
+              {unreadCount}
+            </p>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search title, tracking code, location..."
-              className="rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white xl:col-span-2"
-            />
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white"
-            >
-              <option value="all">All categories</option>
-              <option value="disciplinary_case">Disciplinary Case</option>
-              <option value="maintenance_issue">Maintenance Issue</option>
-            </select>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white"
-            >
-              <option value="all">All statuses</option>
-              {statusOptions.map((status) => (
-                <option key={status} value={status}>
-                  {status}
-                </option>
-              ))}
-            </select>
-            <select
-              value={visibilityFilter}
-              onChange={(e) => setVisibilityFilter(e.target.value)}
-              className="rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-gray-900 dark:text-white"
-            >
-              <option value="all">Anonymous + named</option>
-              <option value="anonymous">Anonymous only</option>
-              <option value="named">Named only</option>
-            </select>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              {filteredReports.length} report
-              {filteredReports.length === 1 ? "" : "s"} found
-            </span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm text-gray-900 dark:text-white"
-            >
-              <option value="newest">Newest first</option>
-              <option value="oldest">Oldest first</option>
-              <option value="status">Sort by status</option>
-            </select>
-          </div>
+          <button
+            type="button"
+            onClick={handleMarkAllSeen}
+            className="inline-flex items-center gap-2 rounded-xl bg-kmuGreen px-3 py-2 text-sm font-medium text-white transition hover:bg-kmuOrange"
+          >
+            <CheckCheck size={16} />
+            Mark all as seen
+          </button>
         </div>
 
         <div className="space-y-4">
@@ -427,12 +337,12 @@ export default function InboxPage() {
               <CardSkeleton />
               <CardSkeleton />
             </div>
-          ) : filteredReports.length === 0 ? (
+          ) : sortedReports.length === 0 ? (
             <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 shadow text-center text-gray-500 dark:text-gray-400">
-              No student reports match the current filters.
+              No student reports are available.
             </div>
           ) : (
-            filteredReports.map((report) => {
+            sortedReports.map((report) => {
               const isSeen = !!user && (report.seenBy || []).includes(user.id);
               const isExpanded = expandedId === report.id;
               const isSelectedReport = selectedReportId === report.id;
