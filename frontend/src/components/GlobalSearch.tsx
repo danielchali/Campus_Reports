@@ -346,8 +346,8 @@ export default function GlobalSearch() {
   const hasResults = sections.some((section) => section.items.length > 0);
 
   return (
-    <div ref={wrapperRef} className="relative hidden md:block min-w-[260px]">
-      <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-900 focus-within:ring-2 focus-within:ring-kmuGreen transition-shadow">
+    <div ref={wrapperRef} className="relative hidden min-w-[240px] md:block">
+      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 dark:border-slate-800 dark:bg-slate-900 focus-within:ring-2 focus-within:ring-kmuGreen transition-shadow">
         <Search size={16} className="text-slate-400" />
         <input
           value={query}

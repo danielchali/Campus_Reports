@@ -10,8 +10,10 @@
   /* Match page-card elevation to the top bar in light mode. */
   .page-container article[class*="rounded"][class*="border"],
   .page-container section[class*="rounded"][class*="border"],
+  .page-container form[class*="rounded"][class*="border"],
   .page-container article[class*="shadow"],
-  .page-container section[class*="shadow"] {
+  .page-container section[class*="shadow"],
+  .page-container form[class*="shadow"] {
     border: 1px solid #e2e8f0 !important;
     border-radius: 0.75rem !important;
     box-shadow:
@@ -20,26 +22,32 @@
   }
 
   .page-container article[class*="bg-white"],
-  .page-container section[class*="bg-white"] {
+  .page-container section[class*="bg-white"],
+  .page-container form[class*="bg-white"] {
     background-color: #ffffff !important;
   }
 
   .dark .page-container article[class*="rounded"][class*="border"],
   .dark .page-container section[class*="rounded"][class*="border"],
+  .dark .page-container form[class*="rounded"][class*="border"],
   .dark .page-container article[class*="shadow"],
-  .dark .page-container section[class*="shadow"] {
+  .dark .page-container section[class*="shadow"],
+  .dark .page-container form[class*="shadow"] {
     border-color: #1e293b !important;
   }
 
   .dark .page-container article[class*="bg-white"],
-  .dark .page-container section[class*="bg-white"] {
+  .dark .page-container section[class*="bg-white"],
+  .dark .page-container form[class*="bg-white"] {
     background-color: #0f172a !important;
   }
 
   .dark .page-container article[class*="rounded"][class*="border"],
   .dark .page-container section[class*="rounded"][class*="border"],
+  .dark .page-container form[class*="rounded"][class*="border"],
   .dark .page-container article[class*="shadow"],
-  .dark .page-container section[class*="shadow"] {
+  .dark .page-container section[class*="shadow"],
+  .dark .page-container form[class*="shadow"] {
     box-shadow: none !important;
   }
 

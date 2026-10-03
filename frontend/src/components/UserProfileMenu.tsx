@@ -31,9 +31,9 @@ export default function UserProfileMenu() {
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label="Open profile menu"
-        className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 hover:bg-slate-100 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 text-left"
+        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 hover:bg-slate-100 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 text-left"
       >
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-sm font-semibold text-kmuGreen dark:bg-kmuGreen/20 dark:text-emerald-300">
+        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-kmuGreen/10 text-xs font-semibold text-kmuGreen dark:bg-kmuGreen/20 dark:text-emerald-300">
           {getDisplayFullName(user.name, user.username, 'U').charAt(0).toUpperCase()}
         </div>
         <div className="leading-tight hidden sm:block">

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Bell, Check, BellRing, FileText } from '@/components/icons';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { API_URL } from '../config/constants';
 import { authHeaders } from '../utils/api';
@@ -187,24 +186,40 @@ export default function NotificationBell() {
     }
   };
 
+  const handleNotificationOpen = async (item: NotificationItem) => {
+    if (item.type === 'report') {
+      await handleReportClick(item);
+      return;
+    }
+
+    if (item.link) {
+      await handleSystemNotificationOpen(item);
+      return;
+    }
+
+    if (!item.isRead) {
+      await markAsRead(item._id);
+    }
+  };
+
   return (
     <div ref={wrapperRef} className="relative">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+        className="relative flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
         aria-label="Notifications"
       >
-        <Bell size={18} />
+        <Bell size={16} />
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-kmuOrange px-1 text-[10px] font-bold leading-none text-white shadow-sm">
+          <span className="absolute -right-1 -top-1 inline-flex min-h-4 min-w-4 items-center justify-center rounded-full bg-kmuOrange px-1 text-[9px] font-bold leading-none text-white shadow-sm">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="fixed left-2 right-2 top-14 z-50 flex max-h-[70vh] w-auto max-w-none flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:max-h-[400px] sm:w-[320px]">
+        <div className="fixed left-2 right-2 top-12 z-50 flex max-h-[70vh] w-auto max-w-none flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:max-h-[400px] sm:w-[320px]">
           <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-800">
             <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
               Notifications
@@ -226,7 +241,20 @@ export default function NotificationBell() {
             ) : (
               <div className="flex flex-col">
                 {notifications.map((n) => (
-                  <div key={n._id} className={`p-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${!n.isRead ? 'bg-kmuGreen/5 dark:bg-kmuGreen/10' : ''}`}>
+                  <div
+                    key={n._id}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Open notification: ${n.message}`}
+                    onClick={() => { void handleNotificationOpen(n); }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        void handleNotificationOpen(n);
+                      }
+                    }}
+                    className={`cursor-pointer border-b border-slate-100 p-4 transition-colors hover:bg-slate-50 focus:outline-none focus-visible:bg-slate-50 dark:border-slate-800/50 dark:hover:bg-slate-800/50 dark:focus-visible:bg-slate-800/50 ${!n.isRead ? 'bg-kmuGreen/5 dark:bg-kmuGreen/10' : ''}`}
+                  >
                     <div className="flex gap-3">
                       {n.type === 'report' && (
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300">
@@ -240,24 +268,18 @@ export default function NotificationBell() {
                         <span className="text-xs text-slate-400 mt-1 block">
                           {new Date(n.createdAt).toLocaleDateString()} {new Date(n.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                         </span>
-                        {n.type === 'report' ? (
-                          <button
-                            onClick={() => handleReportClick(n)}
-                            className="text-xs text-kmuGreen mt-2 inline-block font-medium hover:underline"
-                          >
-                            View report
-                          </button>
-                        ) : n.link && (
-                          <Link href={normalizeNotificationLink(n.link)} className="text-xs text-kmuGreen mt-2 inline-block font-medium hover:underline" onClick={(event) => {
-                            event.preventDefault();
-                            handleSystemNotificationOpen(n);
-                          }}>
-                            View details
-                          </Link>
-                        )}
                       </div>
                       {!n.isRead && (
-                        <button onClick={() => markAsRead(n._id)} className="h-6 w-6 rounded-full flex items-center justify-center text-slate-400 hover:text-kmuGreen hover:bg-kmuGreen/10 transition-colors shrink-0" title="Mark as read">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void markAsRead(n._id);
+                          }}
+                          onKeyDown={(event) => event.stopPropagation()}
+                          className="h-6 w-6 shrink-0 rounded-full text-slate-400 transition-colors hover:bg-kmuGreen/10 hover:text-kmuGreen"
+                          title="Mark as read"
+                        >
                           <Check size={14} />
                         </button>
                       )}

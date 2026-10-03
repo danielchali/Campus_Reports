@@ -8,7 +8,6 @@ import { StatCard, StatsStrip } from '../../components/StatsStrip';
 import {
   BookOpen,
   CheckCircle2,
-  ChevronRight,
   ClipboardList,
   Clock3,
   FilePenLine,
@@ -191,7 +190,11 @@ export default function StudentDashboardPage() {
               </div>
             ) : (
               metrics.recent.map((report) => (
-                <div key={report.id} className="flex flex-col gap-2 px-4 py-2.5 md:flex-row md:items-center md:justify-between">
+                <Link
+                  key={report.id}
+                  href="/my-reports"
+                  className="flex flex-col gap-2 px-4 py-2.5 transition hover:bg-slate-50 focus:outline-none focus-visible:bg-slate-50 dark:hover:bg-slate-800/40 dark:focus-visible:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
+                >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{report.title}</p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
@@ -203,16 +206,8 @@ export default function StudentDashboardPage() {
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusColors[report.status]}`}>
                       {report.status}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => router.push('/my-reports')}
-                      className="rounded-full p-1.5 text-slate-400 transition hover:text-kmuGreen"
-                      aria-label="Open reports"
-                    >
-                      <ChevronRight size={14} />
-                    </button>
                   </div>
-                </div>
+                </Link>
               ))
             )}
           </div>

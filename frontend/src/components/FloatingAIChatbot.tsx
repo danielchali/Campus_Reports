@@ -270,13 +270,15 @@ function applyFormSuggestions(suggestions: FormFieldSuggestion[]) {
   return applied;
 }
 
-const FAB_SIZE = 56;
-const FAB_SIZE_DESKTOP = 64;
-const FAB_MARGIN = 20;
+const FAB_SIZE = 48;
+const FAB_SIZE_DESKTOP = 48;
+const FAB_MARGIN = 16;
 const PANEL_GAP = 12;
 const PANEL_HEIGHT = 416;
-const PANEL_HEIGHT_DESKTOP = 560;
-const PANEL_WIDTH_DESKTOP = 480;
+const PANEL_HEIGHT_DESKTOP = 440;
+const PANEL_WIDTH_DESKTOP = 400;
+const PANEL_MIN_HEIGHT_DESKTOP = 320;
+const PANEL_MIN_WIDTH_DESKTOP = 320;
 
 function isDesktopViewport() {
   return typeof window !== 'undefined' && window.innerWidth >= 768;
@@ -328,6 +330,11 @@ export default function FloatingAIChatbot() {
   const [applyResult, setApplyResult] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const [launcherPosition, setLauncherPosition] = useState(getDefaultLauncherPosition);
+  const [panelSize, setPanelSize] = useState({
+    height: PANEL_HEIGHT_DESKTOP,
+    width: PANEL_WIDTH_DESKTOP,
+  });
+  const [isResizingPanel, setIsResizingPanel] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const dragStateRef = useRef({
     pointerId: -1,
@@ -336,6 +343,13 @@ export default function FloatingAIChatbot() {
     originX: 0,
     originY: 0,
     moved: false,
+  });
+  const panelResizeStateRef = useRef({
+    pointerId: -1,
+    startX: 0,
+    startY: 0,
+    originHeight: PANEL_HEIGHT_DESKTOP,
+    originWidth: PANEL_WIDTH_DESKTOP,
   });
 
   const systemPrompt = useMemo(() => {
@@ -349,10 +363,12 @@ export default function FloatingAIChatbot() {
   const viewportHeight = typeof window === 'undefined' ? 900 : window.innerHeight;
   const desktop = isDesktopViewport();
   const fabSize = desktop ? FAB_SIZE_DESKTOP : FAB_SIZE;
-  const panelHeight = desktop ? PANEL_HEIGHT_DESKTOP : PANEL_HEIGHT;
+  const panelHeight = desktop
+    ? Math.min(panelSize.height, Math.max(PANEL_MIN_HEIGHT_DESKTOP, viewportHeight - 32))
+    : PANEL_HEIGHT;
   const panelWidth = isHydrated
     ? desktop
-      ? Math.min(viewportWidth * 0.92, PANEL_WIDTH_DESKTOP)
+      ? Math.min(panelSize.width, Math.max(PANEL_MIN_WIDTH_DESKTOP, viewportWidth - 32))
       : Math.min(viewportWidth * 0.92, 384)
     : 384;
   const panelLeft = clamp(launcherPosition.x + fabSize - panelWidth, 16, Math.max(16, viewportWidth - panelWidth - 16));
@@ -401,6 +417,37 @@ export default function FloatingAIChatbot() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useEffect(() => {
+    if (!isResizingPanel) return undefined;
+
+    const handlePanelResizeMove = (event: PointerEvent) => {
+      const state = panelResizeStateRef.current;
+      if (event.pointerId !== state.pointerId) return;
+
+      const maxWidth = Math.max(PANEL_MIN_WIDTH_DESKTOP, window.innerWidth - 32);
+      const maxHeight = Math.max(PANEL_MIN_HEIGHT_DESKTOP, window.innerHeight - 32);
+      setPanelSize({
+        width: clamp(state.originWidth + event.clientX - state.startX, PANEL_MIN_WIDTH_DESKTOP, maxWidth),
+        height: clamp(state.originHeight + event.clientY - state.startY, PANEL_MIN_HEIGHT_DESKTOP, maxHeight),
+      });
+    };
+
+    const stopPanelResize = (event: PointerEvent) => {
+      if (event.pointerId !== panelResizeStateRef.current.pointerId) return;
+      panelResizeStateRef.current.pointerId = -1;
+      setIsResizingPanel(false);
+    };
+
+    window.addEventListener('pointermove', handlePanelResizeMove);
+    window.addEventListener('pointerup', stopPanelResize);
+    window.addEventListener('pointercancel', stopPanelResize);
+    return () => {
+      window.removeEventListener('pointermove', handlePanelResizeMove);
+      window.removeEventListener('pointerup', stopPanelResize);
+      window.removeEventListener('pointercancel', stopPanelResize);
+    };
+  }, [isResizingPanel]);
 
   const sendMessage = async (event: FormEvent) => {
     event.preventDefault();
@@ -525,6 +572,20 @@ export default function FloatingAIChatbot() {
     dragStateRef.current.moved = false;
   };
 
+  const handlePanelResizePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!desktop) return;
+
+    event.preventDefault();
+    panelResizeStateRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originHeight: panelHeight,
+      originWidth: panelWidth,
+    };
+    setIsResizingPanel(true);
+  };
+
   if (!isHydrated) {
     return null;
   }
@@ -536,7 +597,7 @@ export default function FloatingAIChatbot() {
           type="button"
           aria-label="Close AI assistant overlay"
           onClick={() => setIsOpen(false)}
-          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-[2px] md:hidden"
+          className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-[2px] md:hidden"
         />
       )}
 
@@ -547,8 +608,8 @@ export default function FloatingAIChatbot() {
         onPointerUp={handleLauncherPointerUp}
         onPointerCancel={handleLauncherPointerUp}
         style={{ left: launcherPosition.x, top: launcherPosition.y }}
-        className={`fixed z-40 touch-none items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg shadow-indigo-900/30 transition hover:bg-indigo-500 ${
-          isOpen ? 'hidden md:inline-flex h-16 w-16' : 'inline-flex h-14 w-14'
+        className={`fixed z-[110] touch-none items-center justify-center rounded-full bg-indigo-600 text-white shadow-lg shadow-indigo-900/30 transition hover:bg-indigo-500 ${
+          isOpen ? 'hidden md:inline-flex h-12 w-12' : 'inline-flex h-12 w-12'
         }`}
         aria-label={isOpen ? 'Close AI assistant' : 'Open AI assistant'}
       >
@@ -557,8 +618,8 @@ export default function FloatingAIChatbot() {
 
       {isOpen && (
         <section
-          style={desktop ? { left: panelLeft, top: panelTop } : undefined}
-          className="fixed z-40 flex flex-col overflow-hidden border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900 inset-x-0 bottom-0 h-[min(88dvh,640px)] w-full rounded-t-2xl border-b-0 md:inset-auto md:bottom-auto md:h-[35rem] md:w-[min(92vw,30rem)] md:rounded-2xl md:border-b"
+          style={desktop ? { height: panelHeight, left: panelLeft, top: panelTop, width: panelWidth } : undefined}
+          className="fixed z-[110] flex flex-col overflow-hidden border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900 inset-x-0 bottom-0 h-[min(76dvh,480px)] w-full rounded-t-2xl border-b-0 md:inset-auto md:bottom-auto md:rounded-2xl md:border-b"
         >
           <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-slate-300 dark:bg-slate-600 md:hidden" aria-hidden />
           <header className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
@@ -701,6 +762,14 @@ export default function FloatingAIChatbot() {
               </button>
             </div>
           </form>
+          <div
+            aria-label="Resize AI assistant"
+            className="absolute bottom-0 right-0 hidden h-5 w-5 cursor-se-resize touch-none md:block"
+            onPointerDown={handlePanelResizePointerDown}
+            role="separator"
+          >
+            <span className="absolute bottom-1 right-1 h-2.5 w-2.5 border-b-2 border-r-2 border-slate-400/80 dark:border-slate-500" aria-hidden />
+          </div>
         </section>
       )}
     </>
