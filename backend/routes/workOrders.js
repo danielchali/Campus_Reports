@@ -449,6 +449,8 @@ router.post("/", async (req, res) => {
 
 
 function exportSections(obj) {
+  const latestWorkNote = obj.updates?.[0]?.message || "";
+
   return [
     { title: "Part A — To be completed by tenant or requesting department", layout: "partA", fields: [
       ["Department", obj.requestingDepartment], ["Name", obj.requestedByName || obj.createdBy],
@@ -457,19 +459,21 @@ function exportSections(obj) {
       ["Affected asset", obj.affectedAsset], ["Nature of complaint / request", obj.description],
       ["Access instructions", obj.accessInstructions],
     ] },
-    { title: "Part B — Artisan's inspection report", layout: "stack", fields: [
+    { title: "Part B — Artisan's inspection report", helper: "Materials needed / inspection notes", layout: "stack", fields: [
       ["Inspection note 1", obj.jobCard.partBNotes[0]], ["Inspection note 2", obj.jobCard.partBNotes[1]],
     ] },
     { title: "Part C — Section supervisor approval", layout: "approval", fields: [
       ["Approved by", obj.jobCard.partCApprovedBy], ["Date", obj.jobCard.partCDate], ["Part C Signature", obj.signatures?.partC],
     ] },
-    { title: "Part D — Completion of job", layout: "approval", fields: [
+    { title: "Part D — Completion of job", helper: "Tenant / Head of Department confirmation", layout: "approval", fields: [
       ["Name", obj.jobCard.partDName], ["Date", obj.jobCard.partDDate], ["Part D Signature", obj.signatures?.partD],
     ] },
     { title: "Part E — Completed report (maintenance officer / foreman)", layout: "partE", fields: [
       ["Work done", obj.jobCard.partEWorkDone], ["Name", obj.jobCard.partEName], ["Date", obj.jobCard.partEDate], ["Part E Signature", obj.signatures?.partE],
     ] },
-    { title: "Work order handling", layout: "handling", fields: [["Status", obj.status], ["Assigned to", obj.assignedTo]] },
+    { title: "Work order handling", layout: "handling", fields: [
+      ["Status", obj.status], ["Assigned to", obj.assignedTo], ["Work note", latestWorkNote],
+    ] },
   ];
 }
 
@@ -487,7 +491,22 @@ function fieldChildren(label, value) {
 }
 
 function docxGridSection(section) {
-  const rows = [new TableRow({ children: [new TableCell({ columnSpan: 2, children: [new Paragraph({ children: [new TextRun({ text: section.title, bold: true, size: 20, color: "087F4E" })] })] })] })];
+  const headingChildren = [
+    new Paragraph({
+      children: [new TextRun({ text: section.title, bold: true, size: 20, color: "087F4E" })],
+      spacing: { after: section.helper ? 50 : 0 },
+    }),
+  ];
+  if (section.helper) {
+    headingChildren.push(
+      new Paragraph({
+        children: [new TextRun({ text: section.helper, size: 16, color: "64748B" })],
+        spacing: { after: 50 },
+      }),
+    );
+  }
+
+  const rows = [new TableRow({ children: [new TableCell({ columnSpan: 2, children: headingChildren })] })];
   const fields = section.fields;
   const full = (field) => section.layout === "stack" || field[0].includes("Nature") || field[0].includes("Access") || field[0].includes("Work done") || field[0].includes("Signature");
   for (let i = 0; i < fields.length;) {
@@ -507,19 +526,35 @@ function docxGridSection(section) {
 
 function writePdfField(doc, label, value, x, y, width) {
   const signature = label.includes("Signature") ? parseSignatureBuffer(value) : null;
-  doc.fillColor("#475569").font("Helvetica-Bold").fontSize(8).text(label, x, y, { width });
-  if (signature) doc.image(signature.buffer, x, y + 12, { fit: [110, 28] });
-  else doc.fillColor("#1e293b").font("Helvetica").fontSize(9).text(String(value || ""), x, y + 12, { width });
-  return signature ? 46 : 30;
+  doc.fillColor("#475569").font("Helvetica-Bold").fontSize(8);
+  const labelHeight = doc.heightOfString(label, { width });
+  doc.text(label, x, y, { width });
+
+  const valueY = y + labelHeight + 4;
+  if (signature) {
+    doc.image(signature.buffer, x, valueY, { fit: [110, 28] });
+    return labelHeight + 40;
+  }
+
+  const text = String(value || "");
+  doc.fillColor("#1e293b").font("Helvetica").fontSize(9);
+  const valueHeight = Math.max(doc.heightOfString(text || " ", { width }), 12);
+  doc.text(text, x, valueY, { width });
+  return labelHeight + valueHeight + 12;
 }
 
 function writePdfSection(doc, section) {
   doc.moveDown(0.55);
   const left = doc.page.margins.left;
   const width = doc.page.width - left - doc.page.margins.right;
-  doc.roundedRect(left, doc.y, width, 22, 5).fill("#e8f5ef");
-  doc.fillColor("#087f4e").fontSize(10).font("Helvetica-Bold").text(section.title, left + 9, doc.y + 6, { width: width - 18 });
-  doc.y += 31;
+  const headingHeight = section.helper ? 36 : 22;
+  const headingY = doc.y;
+  doc.roundedRect(left, headingY, width, headingHeight, 5).fill("#e8f5ef");
+  doc.fillColor("#087f4e").fontSize(10).font("Helvetica-Bold").text(section.title, left + 9, headingY + 6, { width: width - 18 });
+  if (section.helper) {
+    doc.fillColor("#64748b").fontSize(8).font("Helvetica").text(section.helper, left + 9, headingY + 20, { width: width - 18 });
+  }
+  doc.y = headingY + headingHeight + 9;
   for (let i = 0; i < section.fields.length;) {
     const field = section.fields[i];
     const full = section.layout === "stack" || field[0].includes("Nature") || field[0].includes("Access") || field[0].includes("Work done") || field[0].includes("Signature");
@@ -541,7 +576,7 @@ router.get("/:id/export-docx", async (req, res) => {
 
     const obj = mapWorkOrder(workOrder);
 
-    const docChildren = [kmuLogoParagraph()];
+    const docChildren = [kmuLogoParagraph({ width: 56, height: 56 })];
 
     docChildren.push(
       new Paragraph({
@@ -550,7 +585,8 @@ router.get("/:id/export-docx", async (req, res) => {
           new TextRun({
             text: "KAPASA MAKASA UNIVERSITY",
             bold: true,
-            size: 30,
+            size: 22,
+            color: "475569",
           }),
         ],
       }),
@@ -558,8 +594,21 @@ router.get("/:id/export-docx", async (req, res) => {
         alignment: AlignmentType.CENTER,
         children: [
           new TextRun({
-            text: `Maintenance Request & Job Card - ${obj.workOrderId}`,
+            text: "MAINTENANCE REQUEST & JOB CARD",
             bold: true,
+            size: 28,
+            color: "1E293B",
+          }),
+        ],
+      }),
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [
+          new TextRun({
+            text: `No. ${obj.workOrderId}`,
+            bold: true,
+            size: 20,
+            color: "DC2626",
           }),
         ],
       }),
@@ -596,20 +645,27 @@ router.get("/:id/export-pdf", async (req, res) => {
 
     const doc = new PDFDocument({ size: "A4", margin: 42 });
     doc.pipe(res);
-    const logo = loadKmuLogo();
-    if (logo) {
-      // Place the logo explicitly so PDFKit cannot advance the text cursor by
-      // the image's intrinsic dimensions and push the final section over a page.
+
+    const writePdfHeader = () => {
+      const left = doc.page.margins.left;
+      const width = doc.page.width - left - doc.page.margins.right;
+      const logo = loadKmuLogo();
       const logoSize = 48;
-      doc.image(logo.buffer, (doc.page.width - logoSize) / 2, 42, {
-        fit: [logoSize, logoSize],
-      });
-      doc.y = 98;
-    }
-    doc.fillColor("#087f4e").font("Helvetica-Bold").fontSize(17).text("KAPASA MAKASA UNIVERSITY", { align: "center" });
-    doc.moveDown(0.3).fillColor("#1e293b").fontSize(13).text("Maintenance Request & Job Card", { align: "center" });
-    doc.fontSize(10).text(`No. ${obj.workOrderId}`, { align: "center" });
-    doc.moveDown(0.8).strokeColor("#cbd5e1").moveTo(42, doc.y).lineTo(553, doc.y).stroke();
+      if (logo) {
+        doc.image(logo.buffer, (doc.page.width - logoSize) / 2, left, {
+          fit: [logoSize, logoSize],
+        });
+      }
+      doc.y = left + logoSize + 8;
+      doc.fillColor("#475569").font("Helvetica-Bold").fontSize(10).text("KAPASA MAKASA UNIVERSITY", left, doc.y, { width, align: "center" });
+      doc.moveDown(0.3).fillColor("#1e293b").fontSize(14).text("MAINTENANCE REQUEST & JOB CARD", { align: "center" });
+      doc.moveDown(0.15).fillColor("#dc2626").fontSize(10).text(`No. ${obj.workOrderId}`, { align: "center" });
+      doc.moveDown(0.65).strokeColor("#cbd5e1").moveTo(left, doc.y).lineTo(left + width, doc.y).stroke();
+      doc.y += 8;
+    };
+
+    writePdfHeader();
+    doc.on("pageAdded", writePdfHeader);
     exportSections(obj).forEach((section) => writePdfSection(doc, section));
     doc.end();
   } catch (err) {
