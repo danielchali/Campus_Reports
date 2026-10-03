@@ -1,4 +1,4 @@
-import { PageBreak, Paragraph, TextRun } from 'docx';
+import { AlignmentType, PageBreak, Paragraph, TextRun } from 'docx';
 import {
     borderedSection,
     centeredTitle,
@@ -24,29 +24,35 @@ export function buildCalloutCardParagraphs(item) {
         || '';
 
     return [
-        kmuLogoParagraph(),
-        centeredTitle('KAPASA MAKASA UNIVERSITY', 32, 60),
-        centeredTitle('SECURITY DEPARTMENT', 28, 60),
-        centeredTitle('CALL OUT', 32, 180),
-        fieldParagraph('Full Names', personName(person), {
-            fallback: '................................................................',
-        }),
+        kmuLogoParagraph({ width: 56, height: 56 }),
+        centeredTitle('KAPASA MAKASA UNIVERSITY SECURITY DEPARTMENT', 24, 60),
+        centeredTitle('CALL OUT', 28, 180),
         combinedFieldParagraph([
-            ['Sex', person.sex],
-            ['Age', person.age],
+            ['Full Names', personName(person)],
             ['SIN', person.sin],
         ]),
         combinedFieldParagraph([
-            ['Program of study', person.programOfStudy || person.program],
-            ['Year of study', person.yearOfStudy],
+            ['Sex', person.sex],
+            ['Age', person.age],
+        ]),
+        combinedFieldParagraph([
+            ['Program of Study', person.programOfStudy || person.program],
+            ['Year of Study', person.yearOfStudy],
         ]),
         combinedFieldParagraph([
             ['Residential Address', person.residentialAddress],
             ['Phone No', person.phoneNo],
         ]),
+        combinedFieldParagraph([
+            ['Report Time', summon.reportTime],
+            ['Day & Date', summon.reportDate],
+        ]),
+        fieldParagraph('Appointment', summon.appointment, {
+            fallback: '........................................................',
+        }),
         new Paragraph({
             children: [
-                new TextRun({ text: 'You are required to report to the Security Officer\'s office at ' }),
+                new TextRun({ text: "You are required to report to the Security Officer's office at " }),
                 new TextRun({ text: displayValue(summon.reportTime), bold: true }),
                 new TextRun({ text: ' hours (Time) on ' }),
                 new TextRun({ text: displayValue(summon.reportDate), bold: true }),
@@ -54,11 +60,19 @@ export function buildCalloutCardParagraphs(item) {
             ],
             spacing: { before: 100, after: 100 },
         }),
-        fieldParagraph('Appointment', summon.appointment, {
-            fallback: '........................................................',
-        }),
         signatureInlineParagraph('Officer Signature', summon.officerSignature),
         signatureInlineParagraph('Student Signature', studentSignature),
+        new Paragraph({
+            alignment: AlignmentType.RIGHT,
+            children: [
+                new TextRun({
+                    text: `Call Out ${index + 1} of ${item.total || 1}`,
+                    size: 16,
+                    color: '64748B',
+                }),
+            ],
+            spacing: { before: 80 },
+        }),
     ];
 }
 
@@ -66,7 +80,11 @@ export function buildCalloutDocChildren(callouts = []) {
     const children = [];
 
     callouts.forEach((item, index) => {
-        children.push(borderedSection(buildCalloutCardParagraphs(item)));
+        children.push(borderedSection(buildCalloutCardParagraphs({
+            ...item,
+            index: item.index ?? index,
+            total: callouts.length,
+        })));
 
         if (index < callouts.length - 1) {
             children.push(new Paragraph({ children: [new PageBreak()] }));
