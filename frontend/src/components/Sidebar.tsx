@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { ChevronDown, ChevronRight } from '@/components/icons';
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
-import { getNavLinksForRole, splitNavLinksForMobile, type NavLink } from '../utils/navigation';
+import { getNavLinksForRole, isNavigationPathActive, splitNavLinksForMobile, type NavLink } from '../utils/navigation';
 
 const MOBILE_SIDEBAR_WIDTH = 'min(240px, calc(100vw - 4rem))';
 const MIN_DESKTOP_SIDEBAR_WIDTH = 184;
@@ -26,6 +26,7 @@ export default function Sidebar() {
   } = useSidebar();
   const { user } = useAuth();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const allNavLinks = getNavLinksForRole(user?.role);
   const { bottomNav, sidebarNav } = splitNavLinksForMobile(allNavLinks);
@@ -44,17 +45,8 @@ export default function Sidebar() {
   const childLinkBase =
     'ml-6 flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-500 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100';
 
-  const isPathActive = (path: string) => {
-    if (pathname === path) {
-      return true;
-    }
-
-    if (path === '/cases') {
-      return /^\/cases\/(?!new(?:\/|$))/.test(pathname);
-    }
-
-    return path !== '/admin' && pathname.startsWith(`${path}/`);
-  };
+  const isPathActive = (path: string) =>
+    isNavigationPathActive(pathname, path, searchParams);
 
   const isGroupActive = (link: NavLink) =>
     Boolean(link.children?.some((child) => isPathActive(child.path)));

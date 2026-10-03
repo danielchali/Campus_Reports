@@ -6,7 +6,6 @@ import {
   AlertTriangle,
   Camera,
   CheckCircle2,
-  FilePenLine,
   Paperclip,
   ShieldAlert,
   Wrench,
@@ -431,25 +430,6 @@ export default function MakeReportPage() {
 
   return (
     <section className="w-full space-y-6 md:space-y-8">
-      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
-              <FilePenLine size={18} />
-            </div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-              Make a Report
-            </h1>
-          </div>
-          <div className="text-xs text-slate-500 dark:text-slate-400 md:text-right">
-            <p>Submit a concern, choose the type of issue, and decide whether the report should be handled anonymously.</p>
-            <p className="mt-1 text-kmuGreen">
-              Tip: open Campus Reports AI (bottom-right) and choose <strong>Start guided report</strong>.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {error && (
         <div className="rounded-lg md:rounded-2xl border border-red-200 bg-red-50 dark:bg-red-900/20 p-3 md:p-4 text-red-700 dark:text-red-300">
           <div className="flex items-start gap-2 md:gap-3">

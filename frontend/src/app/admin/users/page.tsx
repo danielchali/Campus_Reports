@@ -298,10 +298,6 @@ export default function UserManagementPage() {
 
   return (
       <div className="w-full space-y-6">
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <h1 className="text-lg font-semibold text-slate-900 dark:text-white">User Management</h1>
-        </div>
-
         <StatsStrip desktopColumnsClass="lg:grid-cols-4">
           {userStats.map((stat) => (
             <StatCard

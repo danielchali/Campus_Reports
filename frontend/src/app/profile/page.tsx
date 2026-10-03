@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { UserRound } from "@/components/icons";
 import { useAuth } from "../../context/AuthContext";
 import { getProfile, updateProfile } from '../../utils/api';
 import { useRouter } from "next/navigation";
@@ -267,20 +266,6 @@ export default function ProfilePage() {
 
   return (
     <section className="w-full space-y-8">
-      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
-              <UserRound size={18} />
-            </div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Profile & Settings</h1>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 md:text-right">
-            Manage your personal information and account settings in one place.
-          </p>
-        </div>
-      </div>
-
       {loading ? (
         <ProfilePageSkeleton />
       ) : loadError ? (

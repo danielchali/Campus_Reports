@@ -94,7 +94,7 @@ export default function InboxPage() {
     name: string;
     url: string;
   } | null>(null);
-  const reportRefs = useRef<Record<string, HTMLArticleElement | null>>({});
+  const reportRefs = useRef<Record<string, HTMLElement | null>>({});
   const selectedReportId = searchParams.get("reportId")?.trim() || null;
 
   const filteredReports = useMemo(() => {
@@ -346,17 +346,7 @@ export default function InboxPage() {
   return (
     <>
       <section className="w-full space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-kmuGreen">
-              Reports Inbox
-            </h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Review incoming student reports, track new submissions, and update
-              follow-up status from one shared inbox.
-            </p>
-          </div>
-
+        <div className="flex justify-end">
           <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"

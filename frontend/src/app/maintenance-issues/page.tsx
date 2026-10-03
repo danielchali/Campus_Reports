@@ -8,7 +8,6 @@ import {
   ClipboardList,
   PlusCircle,
   Search,
-  Wrench,
 } from "@/components/icons";
 import { useAuth } from "../../context/AuthContext";
 import { PageSkeleton, InlineSkeleton } from "../../components/PageSkeleton";
@@ -180,35 +179,23 @@ export default function MaintenanceIssuesPage() {
   return (
     <>
       <section className="w-full space-y-6">
-        <div className="rounded-3xl bg-white dark:bg-gray-800 p-6 shadow">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="flex items-center gap-3 text-kmuGreen">
-                <Wrench size={26} />
-                <h1 className="text-3xl font-bold">Maintenance Issues</h1>
-              </div>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">
-                Review submitted maintenance issues, inspect request details,
-                and create dedicated work orders for maintenance follow-up.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <button
-                type="button"
-                onClick={() => setShowManualForm((current) => !current)}
-                className="inline-flex items-center gap-2 rounded-xl bg-kmuGreen px-4 py-3 text-sm font-semibold text-white hover:bg-kmuOrange"
-              >
-                <PlusCircle size={18} />
-                {showManualForm ? "Cancel Manual Issue" : "Create Manual Issue"}
-              </button>
-              <Link
-                href="/work-orders"
-                className="inline-flex items-center gap-2 rounded-xl border border-kmuGreen px-4 py-3 text-sm font-semibold text-kmuGreen hover:bg-kmuGreen/10"
-              >
-                <ClipboardList size={18} />
-                View Work Orders
-              </Link>
-            </div>
+        <div className="flex justify-end">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => setShowManualForm((current) => !current)}
+              className="inline-flex items-center gap-2 rounded-xl bg-kmuGreen px-4 py-3 text-sm font-semibold text-white hover:bg-kmuOrange"
+            >
+              <PlusCircle size={18} />
+              {showManualForm ? "Cancel Manual Issue" : "Create Manual Issue"}
+            </button>
+            <Link
+              href="/work-orders"
+              className="inline-flex items-center gap-2 rounded-xl border border-kmuGreen px-4 py-3 text-sm font-semibold text-kmuGreen hover:bg-kmuGreen/10"
+            >
+              <ClipboardList size={18} />
+              View Work Orders
+            </Link>
           </div>
         </div>
 

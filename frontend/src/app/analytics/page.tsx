@@ -124,22 +124,14 @@ export default function AnalyticsPage() {
 
   return (
     <main className="w-full space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="flex items-center gap-3"><LayoutDashboard className="text-kmuGreen" size={22} /><h1 className="text-xl font-semibold text-slate-900 dark:text-white">Analytics</h1></div>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Report patterns, issue classifications, and operational trends.</p>
-          </div>
-          <p className="text-xs text-slate-500">Updated {new Date(summary.generatedAt).toLocaleString()}</p>
-        </div>
-      </div>
+      <p className="text-right text-xs text-slate-500">Updated {new Date(summary.generatedAt).toLocaleString()}</p>
 
-        <StatsStrip desktopColumnsClass="lg:grid-cols-4">
+      <StatsStrip desktopColumnsClass="lg:grid-cols-4">
         <StatCard label="Total reports" value={summary.totals.reports} icon={<FileText size={16} />} iconClassName="bg-emerald-50 text-emerald-600" />
         <StatCard label="Maintenance reports" value={summary.totals.maintenanceReports} icon={<Wrench size={16} />} iconClassName="bg-orange-50 text-orange-600" />
         <StatCard label="Disciplinary/security" value={summary.totals.disciplinaryReports} icon={<ShieldCheck size={16} />} iconClassName="bg-blue-50 text-blue-600" />
         <StatCard label="Reports in last 30 days" value={summary.totals.reportsLast30Days} icon={<CheckCircle2 size={16} />} iconClassName="bg-violet-50 text-violet-600" />
-        </StatsStrip>
+      </StatsStrip>
 
       <section className="grid gap-5 lg:grid-cols-2">
         <Breakdown title="Most common report types" items={summary.reportTypes} accent="blue" />

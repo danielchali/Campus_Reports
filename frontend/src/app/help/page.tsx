@@ -10,20 +10,6 @@ export default function HelpPage() {
   if (isStudent) {
     return (
       <section className="w-full space-y-8">
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
-                <LifeBuoy size={18} />
-              </div>
-              <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Help</h1>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 md:text-right">
-              Everything you need to submit reports confidently and track them from your student dashboard.
-            </p>
-          </div>
-        </div>
-
         <div className="grid gap-6 md:grid-cols-2">
           <div className="rounded-2xl bg-white dark:bg-gray-800 p-6 shadow">
             <div className="flex items-center gap-3 mb-4">
@@ -80,17 +66,6 @@ export default function HelpPage() {
 
   return (
     <section className="w-full">
-      <div className="mb-8 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
-              <LifeBuoy size={18} />
-            </div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Help & Documentation</h1>
-          </div>
-        </div>
-      </div>
-
       <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6 mb-8">
         <h2 className="text-2xl font-semibold mb-4 text-kmuOrange">Quick Start</h2>
         <div className="grid md:grid-cols-2 gap-6">

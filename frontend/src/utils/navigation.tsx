@@ -30,6 +30,36 @@ export type NavLink = {
   children?: NavLink[];
 };
 
+type NavigationSearchParams = {
+  get(name: string): string | null;
+};
+
+export function isNavigationPathActive(
+  pathname: string,
+  path: string,
+  searchParams?: NavigationSearchParams | null,
+) {
+  if (pathname === "/make-report") {
+    const category = searchParams?.get("category");
+    if (path === "/maintenance-request") {
+      return category === "maintenance_issue";
+    }
+    if (path === "/file-security-disciplinary-issue") {
+      return category === "disciplinary_case";
+    }
+  }
+
+  if (pathname === path) {
+    return true;
+  }
+
+  if (path === "/cases") {
+    return /^\/cases\/(?!new(?:\/|$))/.test(pathname);
+  }
+
+  return path !== "/admin" && pathname.startsWith(`${path}/`);
+}
+
 const navIcons = {
   dashboard: LayoutDashboard,
   cases: ShieldAlert,

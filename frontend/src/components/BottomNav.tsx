@@ -1,12 +1,13 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
-import { getNavLinksForRole, splitNavLinksForMobile } from '../utils/navigation';
+import { getNavLinksForRole, isNavigationPathActive, splitNavLinksForMobile } from '../utils/navigation';
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
 
   if (!user) {
@@ -25,7 +26,7 @@ export default function BottomNav() {
       <div className={isStudent ? 'grid grid-cols-4 gap-1 px-1 py-1.5 sm:px-2 sm:py-2' : 'flex overflow-x-auto px-1 py-1.5 sm:px-2 sm:py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'}>
         {navItems.map((link) => {
           const Icon = link.icon;
-          const isActive = pathname === link.path;
+          const isActive = isNavigationPathActive(pathname, link.path, searchParams);
           const commonClasses = `${isStudent ? 'w-full min-w-0' : 'min-w-[64px] flex-1 sm:min-w-[76px]'} rounded-2xl px-2 py-1.5 text-center transition sm:px-3 sm:py-2 ${
             isActive
               ? 'bg-kmuGreen/10 text-kmuGreen dark:bg-kmuGreen/20'

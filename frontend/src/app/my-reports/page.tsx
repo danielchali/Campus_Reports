@@ -110,22 +110,6 @@ export default function MyReportsPage() {
 
   return (
     <section className="w-full space-y-6 md:space-y-8">
-      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
-              <FileStack size={18} />
-            </div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-              My Reports
-            </h1>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 md:text-right">
-            Track every report or request you have submitted, review status changes, and keep your tracking codes handy.
-          </p>
-        </div>
-      </div>
-
       <div className="rounded-2xl md:rounded-3xl bg-white dark:bg-gray-800 p-4 md:p-6 shadow space-y-3 md:space-y-4">
         <div className="grid gap-2 md:gap-4 grid-cols-1 md:grid-cols-[1fr_220px]">
           <label className="relative">

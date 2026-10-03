@@ -93,11 +93,9 @@ export default function MaintenanceDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
-  const [liveUpdatedAt, setLiveUpdatedAt] = useState<string | null>(null);
 
   const handleRealtimeRefresh = useCallback(() => {
     setRefreshToken((current) => current + 1);
-    setLiveUpdatedAt(new Date().toLocaleTimeString());
   }, []);
 
   useDashboardRealtime(handleRealtimeRefresh, Boolean(token), [
@@ -350,27 +348,6 @@ export default function MaintenanceDashboard() {
 
   return (
     <div className="w-full space-y-4 xl:space-y-5">
-      <section className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
-              <Wrench size={18} />
-            </div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-              Maintenance Dashboard
-            </h1>
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Monitor maintenance requests and track completion status.
-            </p>
-            {liveUpdatedAt && (
-              <p className="text-[11px] font-medium text-kmuGreen">Live update at {liveUpdatedAt}</p>
-            )}
-          </div>
-        </div>
-      </section>
-
       {error && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-200">
           {error}

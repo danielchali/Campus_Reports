@@ -234,16 +234,13 @@ export default function EvidencePage() {
   return (
     <>
       <div className="w-full space-y-6">
-        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">Evidence Management</h1>
-            {offlineMode && (
-              <span className="inline-flex w-fit rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">
-                Offline Mode
-              </span>
-            )}
+        {offlineMode && (
+          <div className="flex justify-end">
+            <span className="inline-flex w-fit rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">
+              Offline Mode
+            </span>
           </div>
-        </div>
+        )}
 
         <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 md:p-6">
           <h2 className="text-lg font-semibold text-kmuOrange mb-4">Upload Evidence</h2>

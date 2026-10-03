@@ -10,12 +10,13 @@ import SignatureField from "../components/SignatureField";
 import SiteFooter from "../components/SiteFooter";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { getNavLinksForRole, splitNavLinksForMobile } from "../utils/navigation";
+import { getNavLinksForRole, isNavigationPathActive, splitNavLinksForMobile } from "../utils/navigation";
 import { canEditWorkOrderPart, workOrderPartLabel } from "../utils/workOrderPermissions";
 import { getDisplayFirstName, getDisplayFullName } from "../utils/userDisplay";
 
 jest.mock("next/navigation", () => ({
   usePathname: () => "/student-dashboard",
+  useSearchParams: () => new URLSearchParams(),
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
 }));
 
@@ -60,6 +61,30 @@ describe("navigation utilities", () => {
     expect(sidebarNav.map((link) => link.label)).toEqual(
       expect.arrayContaining(["Manage Users", "System Settings", "Logout"]),
     );
+  });
+
+  it("keeps the correct report type active after its route redirects to the report form", () => {
+    expect(
+      isNavigationPathActive(
+        "/make-report",
+        "/maintenance-request",
+        new URLSearchParams("category=maintenance_issue"),
+      ),
+    ).toBe(true);
+    expect(
+      isNavigationPathActive(
+        "/make-report",
+        "/file-security-disciplinary-issue",
+        new URLSearchParams("category=disciplinary_case"),
+      ),
+    ).toBe(true);
+    expect(
+      isNavigationPathActive(
+        "/make-report",
+        "/maintenance-request",
+        new URLSearchParams("category=disciplinary_case"),
+      ),
+    ).toBe(false);
   });
 });
 

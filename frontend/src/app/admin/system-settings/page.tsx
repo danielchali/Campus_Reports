@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Copy, Loader2, Save, Settings2 } from '@/components/icons';
+import { Copy, Loader2, Save } from '@/components/icons';
 import RoleProtectedRoute from '../../(protected)/RoleProtectedRoute';
 import { useAuth } from '../../../context/AuthContext';
 import { PageSkeleton } from '../../../components/PageSkeleton';
@@ -99,20 +99,6 @@ function SystemSettingsContent() {
 
   return (
     <div className="w-full space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kmuGreen/10 text-kmuGreen">
-              <Settings2 className="w-5 h-5" />
-            </div>
-            <h1 className="text-lg font-semibold text-slate-900 dark:text-white">System Settings</h1>
-          </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 md:text-right">
-            Configure institution profile, reporting forms, and student portal embed integration.
-          </p>
-        </div>
-      </div>
-
       {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
       {success && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div>}
 
