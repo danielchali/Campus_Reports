@@ -783,11 +783,14 @@ export default function ManagementDashboard({
             ) : (
               (focusItems as AnonymousReport[]).map((item) => {
                 const statusTone = item.status === 'Resolved' ? 'emerald' : item.status === 'In Progress' || item.status === 'Under Review' ? 'amber' : 'slate';
+                const inboxHref = item.source === 'student' && item._id
+                  ? `/inbox?reportId=${encodeURIComponent(item._id)}`
+                  : '/inbox';
 
                 return (
                   <Link
                     key={item._id || item.tracking_code || `${item.title}-${getReportDate(item)}`}
-                    href="/inbox"
+                    href={inboxHref}
                     className="flex w-full flex-col gap-2 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
                   >
                     <div className="min-w-0">

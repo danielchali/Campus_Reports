@@ -300,7 +300,7 @@ export default function MaintenanceIssuesPage() {
               </label>
               <label className="space-y-1">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Affected asset
+                  Affected Asset
                 </span>
                 <input
                   value={manualIssue.affectedAsset}

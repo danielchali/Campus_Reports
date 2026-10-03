@@ -32,7 +32,7 @@ const detailLabels: Record<string, string> = {
   studentInvolved: "Learner/Student Involved",
   issueType: "Maintenance Issue Type",
   priority: "Priority",
-  affectedAsset: "Affected Room, Fixture, or Asset",
+  affectedAsset: "Affected Asset",
   accessInstructions: "Access or Timing Notes",
 };
 

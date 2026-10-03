@@ -1,5 +1,7 @@
 import express from "express";
-import WorkOrderModel from "../models/workOrder.js";
+import WorkOrderModel, {
+  WorkOrderSequenceModel,
+} from "../models/workOrder.js";
 import StudentReportModel from "../models/studentReport.js";
 import AnonymousReportModel from "../models/anonymousReport.js";
 import UserModel from "../models/user.js";
@@ -76,8 +78,15 @@ function mapJobCard(obj = {}) {
   };
 }
 
-function generateWorkOrderId() {
-  return `WO-${new Date().getFullYear()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+async function generateWorkOrderId() {
+  const year = String(new Date().getFullYear());
+  const sequence = await WorkOrderSequenceModel.findOneAndUpdate(
+    { year },
+    { $inc: { value: 1 } },
+    { new: true, upsert: true, setDefaultsOnInsert: true },
+  );
+
+  return `KMU-WO-${year}-${String(sequence.value).padStart(3, "0")}`;
 }
 
 function mapWorkOrder(doc) {
@@ -226,7 +235,7 @@ async function createManualWorkOrder(payload, user) {
   }
 
   const requesterInfo = await getRequesterInfo(user);
-  const workOrderId = generateWorkOrderId();
+  const workOrderId = await generateWorkOrderId();
   return WorkOrderModel.create({
     work_order_id: workOrderId,
     source_report_id: `manual:${workOrderId}`,
@@ -279,7 +288,7 @@ async function createWorkOrderFromReport(
   const details = report.details || {};
   const requesterInfo = await getRequesterInfo(user);
   const workOrder = await WorkOrderModel.create({
-    work_order_id: generateWorkOrderId(),
+    work_order_id: await generateWorkOrderId(),
     source_report_id: String(report._id),
     source_tracking_code: report.tracking_code,
     title: report.title,
@@ -456,7 +465,7 @@ function exportSections(obj) {
       ["Department", obj.requestingDepartment], ["Name", obj.requestedByName || obj.createdBy],
       ["Address / Location", obj.location], ["Date", obj.createdAt ? new Date(obj.createdAt).toLocaleDateString() : ""],
       ["Title", obj.title], ["Issue type", obj.issueType], ["Priority", obj.priority],
-      ["Affected asset", obj.affectedAsset], ["Nature of complaint / request", obj.description],
+      ["Affected Asset", obj.affectedAsset], ["Nature of complaint / request", obj.description],
       ["Access instructions", obj.accessInstructions],
     ] },
     { title: "Part B — Artisan's inspection report", helper: "Materials needed / inspection notes", layout: "stack", fields: [

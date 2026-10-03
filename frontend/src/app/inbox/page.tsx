@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   CheckCheck,
   ChevronDown,
@@ -46,7 +46,7 @@ const detailLabels: Record<string, string> = {
   studentInvolved: "Learner/Student Involved",
   issueType: "Maintenance Issue Type",
   priority: "Priority",
-  affectedAsset: "Affected Room, Fixture, or Asset",
+  affectedAsset: "Affected Asset",
   accessInstructions: "Access or Timing Notes",
 };
 
@@ -68,6 +68,7 @@ const statusOptions: StudentReportStatus[] = [
 export default function InboxPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { notification, showNotification, hideNotification } =
     useNotification();
 
@@ -93,6 +94,8 @@ export default function InboxPage() {
     name: string;
     url: string;
   } | null>(null);
+  const reportRefs = useRef<Record<string, HTMLArticleElement | null>>({});
+  const selectedReportId = searchParams.get("reportId")?.trim() || null;
 
   const filteredReports = useMemo(() => {
     return reports
@@ -164,6 +167,34 @@ export default function InboxPage() {
       cancelled = true;
     };
   }, [user, search]);
+
+  useEffect(() => {
+    if (!selectedReportId) return;
+
+    setCategoryFilter("all");
+    setStatusFilter("all");
+    setVisibilityFilter("all");
+    setSearch("");
+  }, [selectedReportId]);
+
+  useEffect(() => {
+    if (!selectedReportId) return;
+
+    const selectedReport = reports.find(
+      (report) => report.id === selectedReportId,
+    );
+    if (!selectedReport) return;
+
+    setExpandedId(selectedReport.id);
+    const scrollTimer = window.setTimeout(() => {
+      reportRefs.current[selectedReport.id]?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 0);
+
+    return () => window.clearTimeout(scrollTimer);
+  }, [reports, selectedReportId]);
 
   useEffect(() => {
     if (!user) return;
@@ -414,6 +445,7 @@ export default function InboxPage() {
             filteredReports.map((report) => {
               const isSeen = !!user && (report.seenBy || []).includes(user.id);
               const isExpanded = expandedId === report.id;
+              const isSelectedReport = selectedReportId === report.id;
               const draftStatus = statusDrafts[report.id] || report.status;
               const draftCategory =
                 categoryDrafts[report.id] || report.category;
@@ -421,10 +453,17 @@ export default function InboxPage() {
               return (
                 <article
                   key={report.id}
-                  className={`rounded-2xl bg-white dark:bg-gray-800 shadow overflow-hidden border ${
-                    isSeen
-                      ? "border-gray-200 dark:border-gray-700"
-                      : "border-blue-300 dark:border-blue-700"
+                  ref={(element) => {
+                    reportRefs.current[report.id] = element;
+                  }}
+                  className={`rounded-2xl bg-white dark:bg-gray-800 shadow overflow-hidden transition-all ${
+                    isSelectedReport
+                      ? "border-2 border-kmuOrange bg-amber-50/40 ring-4 ring-kmuOrange/20 dark:border-kmuOrange dark:bg-amber-950/20"
+                      : `border ${
+                          isSeen
+                            ? "border-gray-200 dark:border-gray-700"
+                            : "border-blue-300 dark:border-blue-700"
+                        }`
                   }`}
                 >
                   <button

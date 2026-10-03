@@ -84,8 +84,8 @@ export const DEFAULT_INSTITUTION_CONFIG = {
             {
               id: "affectedAsset",
               type: "text",
-              label: "Affected Room, Fixture, or Asset",
-              placeholder: "e.g. Room B12 projector, leaking sink",
+              label: "Affected Asset",
+              placeholder: "e.g. Projector, leaking sink",
               required: false,
             },
             {
@@ -238,8 +238,8 @@ export const DEFAULT_INSTITUTION_CONFIG = {
             {
               id: "affectedAsset",
               type: "text",
-              label: "Affected Room, Fixture, or Asset",
-              placeholder: "e.g. Room B12 projector",
+              label: "Affected Asset",
+              placeholder: "e.g. Projector",
               required: false,
             },
             {

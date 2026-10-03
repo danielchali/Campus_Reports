@@ -62,7 +62,16 @@ const workOrderSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
+const workOrderSequenceSchema = new mongoose.Schema({
+  year: { type: String, required: true, unique: true, index: true },
+  value: { type: Number, required: true, default: 0, min: 0 },
+});
+
 const WorkOrderModel =
   mongoose.models.WorkOrder || mongoose.model("WorkOrder", workOrderSchema);
+
+export const WorkOrderSequenceModel =
+  mongoose.models.WorkOrderSequence ||
+  mongoose.model("WorkOrderSequence", workOrderSequenceSchema);
 
 export default WorkOrderModel;

@@ -146,7 +146,6 @@ export default function StudentDashboardPage() {
 
   const progressCount = Math.max(metrics.open - metrics.resolved, 0);
   const maintenanceCount = metrics.recent.filter((report) => report.category === 'maintenance_issue').length;
-  const pendingStatements = statementRequests.filter((request) => request.status === 'pending').length;
 
   const summaryCards = [
     { label: 'My Reports', value: metrics.total, helper: 'Current report records', icon: ClipboardList, tone: 'text-kmuGreen' },
@@ -219,7 +218,7 @@ export default function StudentDashboardPage() {
           </div>
         </article>
 
-        <div className="space-y-4">
+        <div className="space-y-4 xl:flex xl:h-full xl:flex-col xl:space-y-0 xl:gap-4">
           <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-base font-semibold text-slate-900 dark:text-white">Quick Actions</h2>
             <div className="mt-3 grid gap-2 grid-cols-2">
@@ -242,7 +241,7 @@ export default function StudentDashboardPage() {
             </div>
           </article>
 
-          <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 xl:flex-1">
             <div className="mb-3 flex items-center justify-between">
               <div>
                 <h2 className="text-base font-semibold text-slate-900 dark:text-white">Statement Requests</h2>
@@ -278,23 +277,6 @@ export default function StudentDashboardPage() {
             </div>
           </article>
 
-          <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h2 className="text-base font-semibold text-slate-900 dark:text-white">Current Snapshot</h2>
-            <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
-              <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Maintenance</span>
-                <span className="mt-0.5 text-lg font-semibold text-slate-900 dark:text-white">{maintenanceCount}</span>
-              </div>
-              <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Anonymous</span>
-                <span className="mt-0.5 text-lg font-semibold text-slate-900 dark:text-white">{metrics.anonymous}</span>
-              </div>
-              <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Pending</span>
-                <span className="mt-0.5 text-lg font-semibold text-slate-900 dark:text-white">{pendingStatements}</span>
-              </div>
-            </div>
-          </article>
         </div>
       </section>
     </div>

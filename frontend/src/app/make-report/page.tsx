@@ -645,14 +645,14 @@ export default function MakeReportPage() {
                   htmlFor="affectedAsset"
                   className="block mb-2 font-medium text-gray-900 dark:text-white text-sm md:text-base"
                 >
-                  Affected Room, Fixture, or Asset
+                  Affected Asset
                 </label>
                 <input
                   id="affectedAsset"
                   type="text"
                   value={affectedAsset}
                   onChange={(e) => setAffectedAsset(e.target.value)}
-                  placeholder="e.g. Room B12 projector, leaking sink, broken door lock"
+                  placeholder="e.g. Projector, leaking sink, broken door lock"
                   className="w-full rounded-lg md:rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 md:px-4 py-2 md:py-3 text-sm md:text-base text-gray-900 dark:text-white"
                 />
               </div>

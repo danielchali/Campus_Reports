@@ -376,7 +376,7 @@ export default function WorkOrderJobCardModal({
               </select>
             </label>
             <FormInput
-              label="Affected asset"
+              label="Affected Asset"
               value={draft.affectedAsset}
               onChange={(value) =>
                 setDraft((current) => ({ ...current, affectedAsset: value }))

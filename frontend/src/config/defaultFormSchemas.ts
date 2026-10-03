@@ -55,7 +55,7 @@ export const DEFAULT_ANONYMOUS_REPORT_SCHEMA: ReportFormSchema = {
         {
           id: 'affectedAsset',
           type: 'text',
-          label: 'Affected Room, Fixture, or Asset',
+          label: 'Affected Asset',
           required: false,
         },
         {
@@ -185,7 +185,7 @@ export const DEFAULT_STUDENT_REPORT_SCHEMA: ReportFormSchema = {
           options: ['Low', 'Normal', 'High', 'Urgent safety risk'],
           defaultValue: 'Normal',
         },
-        { id: 'affectedAsset', type: 'text', label: 'Affected Room, Fixture, or Asset', required: false },
+        { id: 'affectedAsset', type: 'text', label: 'Affected Asset', required: false },
         { id: 'accessInstructions', type: 'text', label: 'Access or Timing Notes', required: false },
       ],
     },
