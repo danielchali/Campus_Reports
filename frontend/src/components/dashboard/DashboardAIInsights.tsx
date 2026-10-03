@@ -146,7 +146,7 @@ export default function DashboardAIInsights({
                     {priorities.slice(0, 5).map((item) => (
                       <Link
                         key={`${item.source}-${item.id}`}
-                        href={item.source === 'student' ? '/inbox' : item.trackingCode ? `/anonymous-report?track=${encodeURIComponent(item.trackingCode)}` : '/anonymous-report'}
+                        href="/inbox"
                         className="block rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition hover:border-kmuGreen/30 dark:border-slate-800 dark:bg-slate-950"
                       >
                         <div className="flex items-center justify-between gap-2">

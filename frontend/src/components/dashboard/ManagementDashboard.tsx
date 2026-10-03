@@ -787,7 +787,7 @@ export default function ManagementDashboard({
                 return (
                   <Link
                     key={item._id || item.tracking_code || `${item.title}-${getReportDate(item)}`}
-                    href={item.source === 'student' ? '/inbox' : (item.tracking_code ? `/anonymous-report?track=${encodeURIComponent(item.tracking_code)}` : '/anonymous-report')}
+                    href="/inbox"
                     className="flex w-full flex-col gap-2 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
                   >
                     <div className="min-w-0">
