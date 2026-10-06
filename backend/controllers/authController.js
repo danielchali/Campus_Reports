@@ -7,7 +7,13 @@ import StudentModel from '../models/student.js';
 import StaffModel from '../models/staff.js';
 import { logAudit } from './auditController.js';
 import { clearLoginAttempts, recordFailedLoginAttempt } from '../middleware/loginRateLimit.js';
-import { escapeHtml, isValidContactEmail, sendTwoFactorCode, sendEmail } from '../utils/emailService.js';
+import {
+    escapeHtml,
+    isEmailTransportConfigured,
+    isValidContactEmail,
+    sendTwoFactorCode,
+    sendEmail
+} from '../utils/emailService.js';
 import {
     createTwoFactorChallenge,
     hashTwoFactorChallenge,
@@ -58,6 +64,13 @@ async function recordSuccessfulLogin({ req, user, username, twoFactorVerified })
 }
 
 async function issueTwoFactorChallenge({ req, user, username, authMethod = 'password' }) {
+    if (!isEmailTransportConfigured()) {
+        return {
+            status: 503,
+            error: 'Two-factor email delivery is not configured. Please contact an administrator.'
+        };
+    }
+
     let email = String(user.email || '').trim().toLowerCase();
     if (!isValidContactEmail(email)) {
         const staff = await StaffModel.findOne({ staffId: user.username }).select('email').lean();

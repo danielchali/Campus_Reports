@@ -19,6 +19,12 @@ services:
         value: https://campusreports.onrender.com
       - key: CORS_ORIGIN
         value: https://campusreports.onrender.com
+      - key: EMAIL_ENABLED
+        value: "true"
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
 
   - type: web
     name: kmu-discipline-desk-frontend

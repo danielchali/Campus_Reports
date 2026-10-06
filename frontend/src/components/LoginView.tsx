@@ -205,10 +205,10 @@ export default function LoginView() {
       cancel_on_tap_outside: true,
     });
     google.accounts.id.renderButton(container, {
+      type: 'icon',
       theme: theme === 'dark' ? 'filled_black' : 'outline',
       size: 'large',
-      width: 360,
-      text: 'signin_with',
+      shape: 'circle',
     });
   }, [googleClientId, googleScriptLoaded, handleGoogleCredential, theme]);
 
@@ -550,25 +550,10 @@ export default function LoginView() {
               </div>
 
               {/* Form Options */}
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className="relative flex items-center justify-center w-4 h-4 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 group-hover:border-kmuGreen transition-colors">
-                    <input type="checkbox" className="peer sr-only" />
-                    <div className="hidden peer-checked:block w-2.5 h-2.5 bg-kmuGreen rounded-sm"></div>
-                  </div>
-                  <span className="text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors">Remember me</span>
-                </label>
+              <div className="flex justify-end text-sm">
                 <Link href="/forgot-password" className="text-kmuGreen hover:underline font-medium">
                   Forgot Password?
                 </Link>
-              </div>
-
-              {/* Connection Status Indicator */}
-              <div className="flex items-center justify-end text-[10px] md:text-xs">
-                <span className={`flex items-center ${isOnline ? 'text-emerald-600' : 'text-rose-600'}`}>
-                  <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${isOnline ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`}></div>
-                  {isOnline ? 'Online' : 'Offline Mode Available'}
-                </span>
               </div>
 
               {/* Primary Action Button */}
@@ -588,12 +573,13 @@ export default function LoginView() {
               </button>
               {googleClientId && (
                 <>
-                  <div className="relative flex items-center py-1">
-                    <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
-                    <span className="flex-shrink-0 mx-4 text-[10px] text-slate-400">or continue with</span>
-                    <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
-                  </div>
-                  <div ref={googleButtonRef} className="flex min-h-10 justify-center" aria-label="Sign in with Google" />
+                  <div className="border-t border-slate-200 pt-3 dark:border-slate-800" />
+                  <div
+                    ref={googleButtonRef}
+                    className="flex min-h-10 justify-center"
+                    aria-label="Sign in with Google"
+                    title="Sign in with Google"
+                  />
                 </>
               )}
             </form>

@@ -25,6 +25,13 @@ function isEmailEnabled() {
   return process.env.EMAIL_ENABLED === 'true';
 }
 
+function isEmailTransportConfigured() {
+  return Boolean(
+    String(process.env.GMAIL_USER || '').trim() &&
+      String(process.env.GMAIL_APP_PASSWORD || '').trim(),
+  );
+}
+
 function escapeHtml(value = '') {
   return String(value)
     .replace(/&/g, '&amp;')
@@ -396,6 +403,7 @@ export {
   escapeHtml,
   sendTwoFactorCode,
   isEmailEnabled,
+  isEmailTransportConfigured,
   isValidContactEmail,
   normalizeContactEmail,
   sendAnonymousReportNotification,

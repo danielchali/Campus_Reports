@@ -27,8 +27,10 @@ declare global {
           cancel_on_tap_outside?: boolean;
         }) => void;
         renderButton: (element: HTMLElement, options: {
+          type?: 'standard' | 'icon';
           theme?: 'outline' | 'filled_blue' | 'filled_black';
           size?: 'small' | 'medium' | 'large';
+          shape?: 'rectangular' | 'pill' | 'circle' | 'square';
           width?: number;
           text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
         }) => void;

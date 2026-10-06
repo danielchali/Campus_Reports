@@ -18,7 +18,8 @@ const contentSecurityPolicy = [
     "default-src 'self'",
     `script-src ${cspScriptSources.join(' ')}`,
     "script-src-attr 'none'",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
+    "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data: https://fonts.gstatic.com",
     `connect-src 'self' ${apiOrigin} http://localhost:3000 http://127.0.0.1:3000 http://localhost:5000 http://127.0.0.1:5000 https://campureportsbackend.onrender.com https://kmu-discipline-desk-backend.onrender.com https://kmu-disciplinedesk.onrender.com https://accounts.google.com https://*.googleapis.com ws: wss:`.replace(/\s+/g, ' ').trim(),
@@ -138,6 +139,10 @@ const nextConfig = {
                     {
                         key: 'X-Frame-Options',
                         value: 'DENY',
+                    },
+                    {
+                        key: 'Cross-Origin-Opener-Policy',
+                        value: 'same-origin-allow-popups',
                     },
                     {
                         key: 'Content-Security-Policy',
