@@ -1,6 +1,7 @@
 import StaffModel from '../models/staff.js';
 import CaseModel from '../models/case.js';
 import { logAudit } from './auditController.js';
+import { escapeRegex, pickFields } from '../utils/inputSanitization.js';
 
 export async function listStaff(req, res) {
     try {
@@ -12,9 +13,10 @@ export async function listStaff(req, res) {
 
         const query = {};
         if (search) {
+            const escapedSearch = escapeRegex(search);
             query.$or = [
-                { fullName: { $regex: search, $options: 'i' } },
-                { staffId: { $regex: search, $options: 'i' } }
+                { fullName: { $regex: escapedSearch, $options: 'i' } },
+                { staffId: { $regex: escapedSearch, $options: 'i' } }
             ];
         }
         if (department) query.department = department;
@@ -63,7 +65,8 @@ export async function getStaff(req, res) {
 
 export async function createStaff(req, res) {
     try {
-        const staffData = { ...req.body, email: String(req.body.email || '').trim().toLowerCase() };
+        const staffData = pickFields(req.body, ['staffId', 'fullName', 'department', 'position', 'email', 'phone', 'hireDate']);
+        staffData.email = String(req.body.email || '').trim().toLowerCase();
         if (!staffData.email) return res.status(400).json({ error: 'Email is required' });
         const staff = await StaffModel.create(staffData);
         await logAudit({
@@ -93,7 +96,7 @@ export async function createStaff(req, res) {
 
 export async function updateStaff(req, res) {
     try {
-        const staffData = { ...req.body };
+        const staffData = pickFields(req.body, ['staffId', 'fullName', 'department', 'position', 'email', 'phone', 'hireDate']);
         if (staffData.email !== undefined) staffData.email = String(staffData.email || '').trim().toLowerCase();
         if (staffData.email !== undefined && !staffData.email) return res.status(400).json({ error: 'Email is required' });
         const staff = await StaffModel.findByIdAndUpdate(req.params.id, staffData, { new: true, runValidators: true });
@@ -142,10 +145,11 @@ export async function searchStaff(req, res) {
             return res.json([]);
         }
 
+        const escapedQuery = escapeRegex(query);
         const staff = await StaffModel.find({
             $or: [
-                { fullName: { $regex: query, $options: 'i' } },
-                { staffId: { $regex: query, $options: 'i' } }
+                { fullName: { $regex: escapedQuery, $options: 'i' } },
+                { staffId: { $regex: escapedQuery, $options: 'i' } }
             ]
         }).limit(10);
         res.json(staff);

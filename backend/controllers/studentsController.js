@@ -2,6 +2,7 @@ import StudentModel from '../models/student.js';
 import UserModel from '../models/user.js';
 import CaseModel from '../models/case.js';
 import { logAudit } from './auditController.js';
+import { escapeRegex } from '../utils/inputSanitization.js';
 
 function normalizeStudentStatus(status) {
     const normalized = String(status || '').trim().toLowerCase();
@@ -55,11 +56,12 @@ export async function listStudents(req, res) {
 
         const query = {};
         if (search) {
+            const escapedSearch = escapeRegex(search);
             query.$or = [
-                { 'personalInfo.firstName': { $regex: search, $options: 'i' } },
-                { 'personalInfo.surName': { $regex: search, $options: 'i' } },
-                { studentId: { $regex: search, $options: 'i' } },
-                { program: { $regex: search, $options: 'i' } }
+                { 'personalInfo.firstName': { $regex: escapedSearch, $options: 'i' } },
+                { 'personalInfo.surName': { $regex: escapedSearch, $options: 'i' } },
+                { studentId: { $regex: escapedSearch, $options: 'i' } },
+                { program: { $regex: escapedSearch, $options: 'i' } }
             ];
         }
         if (program) query.program = program;
@@ -325,12 +327,13 @@ export async function searchStudents(req, res) {
             return res.json([]);
         }
 
+        const escapedQuery = escapeRegex(q);
         const students = await StudentModel.find({
             $or: [
-                { 'personalInfo.firstName': { $regex: q, $options: 'i' } },
-                { 'personalInfo.surName': { $regex: q, $options: 'i' } },
-                { studentId: { $regex: q, $options: 'i' } },
-                { program: { $regex: q, $options: 'i' } }
+                { 'personalInfo.firstName': { $regex: escapedQuery, $options: 'i' } },
+                { 'personalInfo.surName': { $regex: escapedQuery, $options: 'i' } },
+                { studentId: { $regex: escapedQuery, $options: 'i' } },
+                { program: { $regex: escapedQuery, $options: 'i' } }
             ]
         }).limit(10);
 

@@ -23,6 +23,7 @@ import {
   getStaffReportScope,
 } from "../utils/studentReportAccess.js";
 import { redactStudentReportForViewer } from "../utils/reportRedaction.js";
+import { escapeRegex } from "../utils/inputSanitization.js";
 
 const router = express.Router();
 const REPORT_ATTACHMENT_DIR = getUploadDirectory("student-reports");
@@ -230,7 +231,7 @@ async function mapUploadedFiles(files = []) {
 
 function addSearchToScope(scopeQuery, search) {
   if (!search) return scopeQuery || {};
-  const regex = { $regex: search, $options: "i" };
+  const regex = { $regex: escapeRegex(search), $options: "i" };
   const searchQuery = {
     $or: [
       { title: regex },
@@ -375,7 +376,7 @@ router.get(
         $or: [{ owner_id: userId }, { owner_username: username }],
       };
       if (search) {
-        const regex = { $regex: search, $options: "i" };
+        const regex = { $regex: escapeRegex(search), $options: "i" };
         query.$and = [
           { $or: [{ owner_id: userId }, { owner_username: username }] },
           {

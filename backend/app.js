@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
 
 dotenv.config();
 
@@ -28,6 +30,11 @@ import telemetryRouter from "./routes/telemetry.js";
 
 const app = express();
 const API_V1_BASE = "/api/v1";
+
+app.disable("x-powered-by");
+// API responses do not render HTML, so Helmet's browser CSP is owned by the
+// Next.js frontend. Keep the remaining security headers on every API response.
+app.use(helmet({ contentSecurityPolicy: false }));
 
 const LOCAL_CORS_ORIGINS = [
   "http://localhost:3000",
@@ -147,7 +154,10 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || "1mb" }));
+// Remove MongoDB operator/dotted-path keys before any route can use request
+// data in a query or update document.
+app.use(mongoSanitize());
 app.use("/api", requestRateLimit());
 
 function mountRoutes(basePath) {

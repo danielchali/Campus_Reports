@@ -4,6 +4,7 @@ import StudentModel from '../models/student.js';
 import ExcelJS from 'exceljs';
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType, AlignmentType, ImageRun } from 'docx';
 import { authenticate, authorize } from '../middleware/auth.js';
+import { escapeRegex } from '../utils/inputSanitization.js';
 
 const router = express.Router();
 
@@ -15,9 +16,10 @@ function buildCaseQuery(filters = {}) {
     if (filters.status || filters.statusFilter) query.status = filters.status || filters.statusFilter;
     if (filters.severity || filters.severityFilter) query.severity = filters.severity || filters.severityFilter;
     if (filters.search) {
+        const escapedSearch = escapeRegex(filters.search);
         query.$or = [
-            { offense_type: { $regex: filters.search, $options: 'i' } },
-            { description: { $regex: filters.search, $options: 'i' } }
+            { offense_type: { $regex: escapedSearch, $options: 'i' } },
+            { description: { $regex: escapedSearch, $options: 'i' } }
         ];
     }
     return query;
@@ -25,14 +27,15 @@ function buildCaseQuery(filters = {}) {
 
 function buildStudentQuery(filters = {}) {
     const query = {};
-    if (filters.program) query.program = { $regex: filters.program, $options: 'i' };
+    if (filters.program) query.program = { $regex: escapeRegex(filters.program), $options: 'i' };
     if (filters.year) query.year = filters.year;
     if (filters.gender) query['personalInfo.gender'] = filters.gender;
     if (filters.search) {
+        const escapedSearch = escapeRegex(filters.search);
         query.$or = [
-            { 'personalInfo.firstName': { $regex: filters.search, $options: 'i' } },
-            { 'personalInfo.surName': { $regex: filters.search, $options: 'i' } },
-            { studentId: { $regex: filters.search, $options: 'i' } }
+            { 'personalInfo.firstName': { $regex: escapedSearch, $options: 'i' } },
+            { 'personalInfo.surName': { $regex: escapedSearch, $options: 'i' } },
+            { studentId: { $regex: escapedSearch, $options: 'i' } }
         ];
     }
     return query;

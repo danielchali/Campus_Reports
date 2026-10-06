@@ -1,5 +1,6 @@
 import AuditModel from '../models/audit.js';
 import { emitAuditLog } from '../utils/socket.js';
+import { escapeRegex } from '../utils/inputSanitization.js';
 
 export async function listAuditLogs(req, res) {
     try {
@@ -15,13 +16,14 @@ export async function listAuditLogs(req, res) {
         const query = {};
         if (action) query.action = action;
         if (entity) query.entity = entity;
-        if (user) query.user = { $regex: user, $options: 'i' };
+        if (user) query.user = { $regex: escapeRegex(user), $options: 'i' };
         if (search) {
+            const escapedSearch = escapeRegex(search);
             query.$or = [
-                { action: { $regex: search, $options: 'i' } },
-                { entity: { $regex: search, $options: 'i' } },
-                { entityId: { $regex: search, $options: 'i' } },
-                { user: { $regex: search, $options: 'i' } }
+                { action: { $regex: escapedSearch, $options: 'i' } },
+                { entity: { $regex: escapedSearch, $options: 'i' } },
+                { entityId: { $regex: escapedSearch, $options: 'i' } },
+                { user: { $regex: escapedSearch, $options: 'i' } }
             ];
         }
         if (dateFrom || dateTo) {

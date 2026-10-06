@@ -11,6 +11,7 @@ import { emitDashboardRefresh } from "../utils/socket.js";
 import { AlignmentType, BorderStyle, Document, Header, ImageRun, Packer, Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from "docx";
 import { kmuLogoParagraph, loadKmuLogo, signatureDisplayValue } from "../utils/docxExport.js";
 import PDFDocument from "pdfkit";
+import { escapeRegex } from "../utils/inputSanitization.js";
 
 const router = express.Router();
 const WORK_ORDER_ROLES = [
@@ -339,7 +340,7 @@ router.get("/maintenance-issues", async (req, res) => {
     const { search, status, source } = req.query;
     const buildSearch = () => {
       if (!search) return {};
-      const regex = { $regex: search, $options: "i" };
+      const regex = { $regex: escapeRegex(search), $options: "i" };
       return {
         $or: [
           { tracking_code: regex },
@@ -400,7 +401,7 @@ router.get("/", async (req, res) => {
     if (status) query.status = status;
     if (priority) query.priority = priority;
     if (search) {
-      const regex = { $regex: search, $options: "i" };
+      const regex = { $regex: escapeRegex(search), $options: "i" };
       query.$or = [
         { work_order_id: regex },
         { source_tracking_code: regex },

@@ -12,6 +12,7 @@ import {
 } from "../utils/emailService.js";
 import { applyNlpToDocument } from "../utils/nlpAnalytics.js";
 import { emitDashboardRefresh } from "../utils/socket.js";
+import { escapeRegex } from "../utils/inputSanitization.js";
 import StudentReportModel from "../models/studentReport.js";
 import {
   findActiveMaintenanceReportDuplicate,
@@ -265,11 +266,12 @@ router.get("/", authenticate, authorize(STAFF_ROLES), async (req, res) => {
     }
     if (status) query.status = status;
     if (search) {
+      const escapedSearch = escapeRegex(search);
       query.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-        { location: { $regex: search, $options: "i" } },
-        { tracking_code: { $regex: search, $options: "i" } },
+        { title: { $regex: escapedSearch, $options: "i" } },
+        { description: { $regex: escapedSearch, $options: "i" } },
+        { location: { $regex: escapedSearch, $options: "i" } },
+        { tracking_code: { $regex: escapedSearch, $options: "i" } },
       ];
     }
 

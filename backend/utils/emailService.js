@@ -134,23 +134,23 @@ const sendAnonymousReportNotification = async (report) => {
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
             <td style="padding: 8px 0; font-weight: bold; width: 120px;">Category:</td>
-            <td style="padding: 8px 0;">${report.category}</td>
+            <td style="padding: 8px 0;">${escapeHtml(report.category)}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; font-weight: bold;">Title:</td>
-            <td style="padding: 8px 0;">${report.title}</td>
+            <td style="padding: 8px 0;">${escapeHtml(report.title)}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; font-weight: bold; vertical-align: top;">Description:</td>
-            <td style="padding: 8px 0;">${report.description}</td>
+            <td style="padding: 8px 0;">${escapeHtml(report.description)}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; font-weight: bold;">Location:</td>
-            <td style="padding: 8px 0;">${report.location}</td>
+            <td style="padding: 8px 0;">${escapeHtml(report.location)}</td>
           </tr>
           <tr>
             <td style="padding: 8px 0; font-weight: bold;">Tracking Code:</td>
-            <td style="padding: 8px 0; color: #059669; font-family: monospace; font-size: 18px;">${report.tracking_code}</td>
+            <td style="padding: 8px 0; color: #059669; font-family: monospace; font-size: 18px;">${escapeHtml(report.tracking_code)}</td>
           </tr>
         </table>
         <div style="margin-top: 30px; padding-top: 20px; border-t: 1px solid #e2e8f0; text-align: center;">
@@ -393,6 +393,7 @@ const sendStudentReporterConfirmation = async (report, recipientEmail) => {
 
 export {
   sendEmail,
+  escapeHtml,
   sendTwoFactorCode,
   isEmailEnabled,
   isValidContactEmail,

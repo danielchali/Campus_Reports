@@ -2,6 +2,24 @@ import CaseModel from '../models/case.js';
 import CounterModel from '../models/counter.js';
 import { logAudit } from './auditController.js';
 import { emitDashboardRefresh } from '../utils/socket.js';
+import { escapeRegex, pickFields } from '../utils/inputSanitization.js';
+
+const CASE_WRITE_FIELDS = [
+    'student_id',
+    'student_ids',
+    'staff_id',
+    'staff_ids',
+    'incident_date',
+    'description',
+    'offense_type',
+    'severity',
+    'status',
+    'sanctions',
+    'student_case_process',
+    'attachments',
+    'created_by',
+    'case_type'
+];
 
 function formatCaseId(value) {
     return String(value).padStart(4, '0');
@@ -42,9 +60,10 @@ export async function listCases(req, res) {
         if (status) query.status = status;
         if (severity) query.severity = severity;
         if (search) {
+            const escapedSearch = escapeRegex(search);
             query.$or = [
-                { offense_type: { $regex: search, $options: 'i' } },
-                { description: { $regex: search, $options: 'i' } }
+                { offense_type: { $regex: escapedSearch, $options: 'i' } },
+                { description: { $regex: escapedSearch, $options: 'i' } }
             ];
         }
 
@@ -178,7 +197,7 @@ export async function createCase(req, res) {
         }
 
         const caseData = {
-            ...req.body,
+            ...pickFields(req.body, CASE_WRITE_FIELDS),
             status: req.body.status || 'Open',
             sanctions: req.body.sanctions || '',
             attachments: req.body.attachments || [],
@@ -255,11 +274,9 @@ export async function updateCase(req, res) {
         const oldStatus = oldCase ? oldCase.status : undefined;
 
         const updatePayload = {
-            ...req.body,
+            ...pickFields(req.body, CASE_WRITE_FIELDS),
             updatedAt: new Date()
         };
-        delete updatePayload.case_id;
-        delete updatePayload.caseId;
 
         let caseItem = await CaseModel.findByIdAndUpdate(req.params.id, updatePayload, { new: true });
         if (caseItem) {

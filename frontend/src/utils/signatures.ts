@@ -1,5 +1,17 @@
 export function isSignatureDataUrl(value?: string | null): boolean {
-  return Boolean(value && value.startsWith("data:image/"));
+  return Boolean(
+    value &&
+      /^data:image\/(?:png|jpeg|jpg|gif|webp);base64,[A-Za-z0-9+/=]+$/i.test(value),
+  );
+}
+
+function escapeHtml(value = "") {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 export function signaturePrintHtml(
@@ -7,16 +19,17 @@ export function signaturePrintHtml(
   label = "Signature",
 ): string {
   const raw = value ?? "";
+  const safeLabel = escapeHtml(label);
 
   if (isSignatureDataUrl(raw)) {
     return (
-      `<p class="signature-line"><strong>${label}:</strong> `
-      + `<img src="${raw}" alt="${label}" class="signature-img" /></p>`
+      `<p class="signature-line"><strong>${safeLabel}:</strong> `
+      + `<img src="${raw}" alt="${safeLabel}" class="signature-img" /></p>`
     );
   }
 
   const display = raw.trim() || "................................................................";
-  return `<p class="signature-line"><strong>${label}:</strong> ${display}</p>`;
+  return `<p class="signature-line"><strong>${safeLabel}:</strong> ${escapeHtml(display)}</p>`;
 }
 
 export const signaturePrintStyles = `

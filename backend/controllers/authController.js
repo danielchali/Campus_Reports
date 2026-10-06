@@ -6,7 +6,7 @@ import UserModel from '../models/user.js';
 import StudentModel from '../models/student.js';
 import { logAudit } from './auditController.js';
 import { clearLoginAttempts, recordFailedLoginAttempt } from '../middleware/loginRateLimit.js';
-import { sendTwoFactorCode } from '../utils/emailService.js';
+import { escapeHtml, sendTwoFactorCode, sendEmail } from '../utils/emailService.js';
 import {
     createTwoFactorChallenge,
     hashTwoFactorChallenge,
@@ -825,7 +825,6 @@ export async function registerStudent(req, res) {
 }
 
 import StaffModel from '../models/staff.js';
-import { sendEmail } from '../utils/emailService.js';
 
 export async function forgotPassword(req, res) {
     const username = String(req.body.username || '').trim(); // Student ID for students, email for non-students
@@ -872,7 +871,7 @@ export async function forgotPassword(req, res) {
             to: email,
             subject: 'Password Reset OTP',
             text: `Use this OTP to reset your password: ${resetOTP}. It expires in 15 minutes.\n\nReset link: ${resetUrl}`,
-            html: `<p>Your password reset OTP is <strong style="font-size:20px">${resetOTP}</strong>.</p><p>It expires in 15 minutes.</p><p>Or use this link: <a href="${resetUrl}">${resetUrl}</a></p>`
+            html: `<p>Your password reset OTP is <strong style="font-size:20px">${escapeHtml(resetOTP)}</strong>.</p><p>It expires in 15 minutes.</p><p>Or use this link: <a href="${escapeHtml(resetUrl)}">${escapeHtml(resetUrl)}</a></p>`
         };
 
         // Attempt to send email

@@ -4,6 +4,22 @@ export default function Head() {
   const title = 'Campus Reports | Secure Campus Issue Reporting';
   const description =
     'Campus Reports helps students and staff submit secure incident and anonymous reports, track progress, and support safer campus operations.';
+  const structuredData = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Campus Reports',
+    url: SITE_URL,
+    description,
+    inLanguage: 'en',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${SITE_URL}/help?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  })
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026');
 
   return (
     <>
@@ -33,19 +49,7 @@ export default function Head() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'WebSite',
-            name: 'Campus Reports',
-            url: SITE_URL,
-            description,
-            inLanguage: 'en',
-            potentialAction: {
-              '@type': 'SearchAction',
-              target: `${SITE_URL}/help?q={search_term_string}`,
-              'query-input': 'required name=search_term_string',
-            },
-          }),
+          __html: structuredData,
         }}
       />
     </>

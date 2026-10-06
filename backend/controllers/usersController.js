@@ -2,6 +2,7 @@ import UserModel from '../models/user.js';
 import StudentModel from '../models/student.js';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
+import { escapeRegex, pickFields } from '../utils/inputSanitization.js';
 
 function buildStudentProfileUpdate(body = {}) {
     const studentProfile = body.studentProfile || {};
@@ -43,7 +44,7 @@ export async function listUsers(req, res) {
         const query = {};
 
         if (search) {
-            const regex = { $regex: search, $options: 'i' };
+            const regex = { $regex: escapeRegex(search), $options: 'i' };
             query.$or = [
                 { username: regex },
                 { name: regex },
@@ -81,10 +82,14 @@ export async function updateUser(req, res) {
         const currentUser = await UserModel.findById(req.params.id, '-password');
         if (!currentUser) return res.status(404).json({ error: 'User not found' });
 
-        const updateData = { ...req.body };
-        delete updateData.password;
+        const updateData = pickFields(req.body, ['username', 'name', 'email', 'role', 'hostel', 'profile']);
         if (updateData.email !== undefined) updateData.email = String(updateData.email || '').trim().toLowerCase();
         if (updateData.hostel !== undefined) updateData.hostel = String(updateData.hostel || '').trim();
+        if (updateData.profile !== undefined) {
+            updateData.profile = {
+                houseNumber: String(updateData.profile?.houseNumber || '').trim()
+            };
+        }
 
         const effectiveEmail = updateData.email !== undefined ? updateData.email : currentUser.email;
         if (!effectiveEmail) return res.status(400).json({ error: 'Email is required' });
