@@ -41,12 +41,16 @@ function getLoginErrorMessage(error: unknown) {
     : 'Login failed. Please check your connection and try again.';
 }
 
+function emptyTwoFactorDigits() {
+  return Array.from({ length: 6 }, () => '');
+}
+
 export default function LoginView() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [twoFactorChallengeId, setTwoFactorChallengeId] = useState<string | null>(null);
-  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [twoFactorDigits, setTwoFactorDigits] = useState<string[]>(emptyTwoFactorDigits);
   const [twoFactorMessage, setTwoFactorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -56,6 +60,7 @@ export default function LoginView() {
   const [isDeletingFeatureText, setIsDeletingFeatureText] = useState(false);
   const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
   const googleButtonRef = useRef<HTMLDivElement>(null);
+  const twoFactorInputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const { user, login, loginWithGoogle, loginOffline, verifyTwoFactorLogin, isOnline: authIsOnline } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -177,7 +182,7 @@ export default function LoginView() {
       if (typeof result === 'object' && result !== null && 'requiresTwoFactor' in result && result.requiresTwoFactor) {
         setTwoFactorChallengeId(result.challengeId);
         setTwoFactorMessage(result.message || 'Enter the verification code sent to your email address.');
-        setTwoFactorCode('');
+        setTwoFactorDigits(emptyTwoFactorDigits());
         return;
       }
 
@@ -212,6 +217,90 @@ export default function LoginView() {
     });
   }, [googleClientId, googleScriptLoaded, handleGoogleCredential, theme]);
 
+  const twoFactorCode = twoFactorDigits.join('');
+
+  useEffect(() => {
+    if (!twoFactorChallengeId) return;
+    const focusTimer = window.setTimeout(() => {
+      twoFactorInputRefs.current[0]?.focus();
+    }, 0);
+    return () => window.clearTimeout(focusTimer);
+  }, [twoFactorChallengeId]);
+
+  const submitTwoFactorCode = async (code: string) => {
+    if (!twoFactorChallengeId || code.length !== 6) return;
+
+    setLoading(true);
+    setError('');
+    try {
+      await verifyTwoFactorLogin(twoFactorChallengeId, code);
+    } catch (err) {
+      setError(getLoginErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTwoFactorDigitChange = (index: number, rawValue: string) => {
+    const digits = rawValue.replace(/\D/g, '');
+    const nextDigits = [...twoFactorDigits];
+
+    if (!digits) {
+      nextDigits[index] = '';
+      setTwoFactorDigits(nextDigits);
+      return;
+    }
+
+    digits
+      .slice(0, 6 - index)
+      .split('')
+      .forEach((digit, offset) => {
+        nextDigits[index + offset] = digit;
+      });
+
+    setTwoFactorDigits(nextDigits);
+    const nextCode = nextDigits.join('');
+    if (nextDigits.every(Boolean)) {
+      void submitTwoFactorCode(nextCode);
+      return;
+    }
+
+    const nextEmptyIndex = nextDigits.findIndex((digit) => !digit);
+    twoFactorInputRefs.current[nextEmptyIndex >= 0 ? nextEmptyIndex : index + 1]?.focus();
+  };
+
+  const handleTwoFactorKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Backspace' && !twoFactorDigits[index] && index > 0) {
+      twoFactorInputRefs.current[index - 1]?.focus();
+    }
+    if (event.key === 'ArrowLeft' && index > 0) {
+      event.preventDefault();
+      twoFactorInputRefs.current[index - 1]?.focus();
+    }
+    if (event.key === 'ArrowRight' && index < 5) {
+      event.preventDefault();
+      twoFactorInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleTwoFactorPaste = (index: number, event: React.ClipboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    const pastedDigits = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6 - index);
+    if (!pastedDigits) return;
+
+    const nextDigits = [...twoFactorDigits];
+    pastedDigits.split('').forEach((digit, offset) => {
+      nextDigits[index + offset] = digit;
+    });
+    setTwoFactorDigits(nextDigits);
+
+    if (pastedDigits.length === 6) {
+      void submitTwoFactorCode(pastedDigits);
+    } else {
+      twoFactorInputRefs.current[index + pastedDigits.length]?.focus();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -232,7 +321,7 @@ export default function LoginView() {
         if (typeof result === 'object' && result !== null && 'requiresTwoFactor' in result && result.requiresTwoFactor) {
           setTwoFactorChallengeId(result.challengeId);
           setTwoFactorMessage(result.message || 'Enter the verification code sent to your email address.');
-          setTwoFactorCode('');
+          setTwoFactorDigits(emptyTwoFactorDigits());
           setPassword('');
           return;
         }
@@ -257,22 +346,12 @@ export default function LoginView() {
 
   const handleTwoFactorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!twoFactorChallengeId) return;
-
-    setLoading(true);
-    setError('');
-    try {
-      await verifyTwoFactorLogin(twoFactorChallengeId, twoFactorCode);
-    } catch (err) {
-      setError(getLoginErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
+    await submitTwoFactorCode(twoFactorCode);
   };
 
   const cancelTwoFactor = () => {
     setTwoFactorChallengeId(null);
-    setTwoFactorCode('');
+    setTwoFactorDigits(emptyTwoFactorDigits());
     setTwoFactorMessage('');
     setError('');
   };
@@ -465,21 +544,28 @@ export default function LoginView() {
                 </div>
 
                 <div>
-                  <label htmlFor="two-factor-code" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Verification code</label>
-                  <input
-                    id="two-factor-code"
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    autoComplete="one-time-code"
-                    value={twoFactorCode}
-                    onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="6-digit code"
-                    aria-label="Verification code"
-                    className={`w-full rounded-xl border px-4 py-3.5 text-center font-mono text-lg tracking-[0.4em] outline-none transition-colors ${theme === 'dark' ? 'border-slate-700 bg-slate-800 text-slate-100 focus:border-kmuGreen' : 'border-slate-200 bg-slate-50 text-slate-900 focus:border-kmuGreen focus:bg-white'}`}
-                    required
-                    maxLength={6}
-                  />
+                  <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">Verification code</p>
+                  <div className="flex justify-center gap-2 sm:gap-3" role="group" aria-label="Six-digit verification code">
+                    {twoFactorDigits.map((digit, index) => (
+                      <input
+                        key={index}
+                        ref={(element) => { twoFactorInputRefs.current[index] = element; }}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        autoComplete={index === 0 ? 'one-time-code' : 'off'}
+                        value={digit}
+                        onChange={(event) => handleTwoFactorDigitChange(index, event.target.value)}
+                        onKeyDown={(event) => handleTwoFactorKeyDown(index, event)}
+                        onPaste={(event) => handleTwoFactorPaste(index, event)}
+                        aria-label={`Verification code digit ${index + 1}`}
+                        className={`h-12 w-10 rounded-xl border text-center font-mono text-xl font-bold outline-none transition-colors sm:h-14 sm:w-12 ${theme === 'dark' ? 'border-slate-700 bg-slate-800 text-slate-100 focus:border-kmuGreen' : 'border-slate-200 bg-slate-50 text-slate-900 focus:border-kmuGreen focus:bg-white'}`}
+                        required
+                        maxLength={6}
+                        disabled={loading}
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 <button
@@ -573,7 +659,11 @@ export default function LoginView() {
               </button>
               {googleClientId && (
                 <>
-                  <div className="border-t border-slate-200 pt-3 dark:border-slate-800" />
+                  <div className="relative flex items-center py-1">
+                    <div className="flex-grow border-t border-slate-200 dark:border-slate-800" />
+                    <span className="mx-4 flex-shrink-0 text-[10px] text-slate-400">or login with</span>
+                    <div className="flex-grow border-t border-slate-200 dark:border-slate-800" />
+                  </div>
                   <div
                     ref={googleButtonRef}
                     className="flex min-h-10 justify-center"
