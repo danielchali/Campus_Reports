@@ -550,7 +550,16 @@ export default function StudentSignupPage() {
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Email Address</label>
-                    <input type="email" className={inputClassName} value={form.addressInfo.email} onChange={(e) => updateNestedField('addressInfo', 'email', e.target.value)} />
+                    <input
+                      type="email"
+                      className={`${inputClassName} ${googleRegistration ? 'cursor-not-allowed opacity-70' : ''}`}
+                      value={form.addressInfo.email}
+                      onChange={(e) => updateNestedField('addressInfo', 'email', e.target.value)}
+                      readOnly={Boolean(googleRegistration)}
+                    />
+                    {googleRegistration && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400">This verified Google email will be used for your account.</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Phone Number</label>
@@ -619,7 +628,7 @@ export default function StudentSignupPage() {
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Email Address *</label>
-                    <input type="email" className={inputClassName} value={generalUserForm.email} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, email: e.target.value }))} placeholder="you@example.com" readOnly={Boolean(googleRegistration)} />
+                    <input type="email" className={`${inputClassName} ${googleRegistration ? 'cursor-not-allowed opacity-70' : ''}`} value={generalUserForm.email} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, email: e.target.value }))} placeholder="you@example.com" readOnly={Boolean(googleRegistration)} />
                     <p className="text-xs text-slate-500 dark:text-slate-400">{googleRegistration ? 'This verified Google email will be used as your login username.' : 'Your email address will be used as your login username.'}</p>
                   </div>
                   <div className="space-y-2 md:col-span-2">
