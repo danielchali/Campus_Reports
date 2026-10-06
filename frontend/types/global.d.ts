@@ -11,6 +11,37 @@ interface Navigator {
   onLine: boolean;
 }
 
+declare global {
+  interface GoogleCredentialResponse {
+    credential: string;
+    select_by?: string;
+  }
+
+  interface GoogleIdentityServices {
+    accounts: {
+      id: {
+        initialize: (options: {
+          client_id: string;
+          callback: (response: GoogleCredentialResponse) => void;
+          auto_select?: boolean;
+          cancel_on_tap_outside?: boolean;
+        }) => void;
+        renderButton: (element: HTMLElement, options: {
+          theme?: 'outline' | 'filled_blue' | 'filled_black';
+          size?: 'small' | 'medium' | 'large';
+          width?: number;
+          text?: 'signin_with' | 'signup_with' | 'continue_with' | 'signin';
+        }) => void;
+        disableAutoSelect?: () => void;
+      };
+    };
+  }
+
+  interface Window {
+    google?: GoogleIdentityServices;
+  }
+}
+
 export interface User {
   id: string;
   username: string;

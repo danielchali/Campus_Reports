@@ -91,6 +91,10 @@ copy env.example .env
 
 Then edit `backend/.env` with your values.
 
+Management roles (admin, security officer, chief security officer, dean of students, warden, registrar, secretary, and maintenance) must complete an email verification code after entering their password. Configure `GMAIL_USER`, `GMAIL_APP_PASSWORD`, and the recipient email on each management account before signing in.
+
+Users can use Google Sign-In when `GOOGLE_CLIENT_ID` (backend) and the matching `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (frontend) are configured. Add each deployed frontend origin to the Google OAuth web client’s authorized JavaScript origins. Existing management accounts with a matching verified email still complete the email 2FA step. New Google users can register as a student or general user; both roles must complete the relevant registration details before their dashboard is opened, while student registration additionally requires the academic, personal, accommodation, and contact steps.
+
 ### 4. Start backend
 
 ```bash

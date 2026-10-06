@@ -1,5 +1,5 @@
 import express from 'express';
-import { login, register, registerGeneralUser, registerStudent } from '../controllers/authController.js';
+import { googleLogin, googleRegister, login, register, registerGeneralUser, registerStudent, verifyTwoFactor } from '../controllers/authController.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { loginRateLimit } from '../middleware/loginRateLimit.js';
 import { requestRateLimit } from '../middleware/rateLimit.js';
@@ -9,6 +9,9 @@ const router = express.Router();
 const authRequestRateLimit = requestRateLimit({ prefix: 'auth' });
 
 router.post('/login', authRequestRateLimit, loginRateLimit, login);
+router.post('/google', authRequestRateLimit, googleLogin);
+router.post('/google-register', authRequestRateLimit, googleRegister);
+router.post('/verify-2fa', authRequestRateLimit, verifyTwoFactor);
 router.post('/student-signup', authRequestRateLimit, registerStudent);
 router.post('/general-signup', authRequestRateLimit, registerGeneralUser);
 router.post('/register', authenticate, authorize(['admin']), register);

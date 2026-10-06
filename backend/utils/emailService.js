@@ -93,6 +93,30 @@ const sendEmail = async ({ to, subject, text, html }) => {
 };
 
 /**
+ * Sends a short-lived verification code after a staff member has completed
+ * the password step of sign-in.
+ */
+const sendTwoFactorCode = async ({ to, code, expiresAt }) => {
+  const expiresInMinutes = Math.max(1, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 60000));
+  const subject = 'Your Campus Reports verification code';
+  const text = [
+    'Use the verification code below to complete your Campus Reports sign-in.',
+    '',
+    `Verification code: ${code}`,
+    '',
+    `This code expires in approximately ${expiresInMinutes} minute${expiresInMinutes === 1 ? '' : 's'}.`,
+    'If you did not try to sign in, you can ignore this email.',
+  ].join('\n');
+  const html = emailShell('Verify your sign-in', `
+    <p style="font-size: 16px; line-height: 1.6;">Use this verification code to complete your Campus Reports sign-in:</p>
+    <p style="margin: 24px 0; color: #059669; font-family: monospace; font-size: 30px; font-weight: 700; letter-spacing: 0.18em; text-align: center;">${escapeHtml(code)}</p>
+    <p style="font-size: 14px; line-height: 1.6; color: #475569;">This code expires in approximately ${expiresInMinutes} minute${expiresInMinutes === 1 ? '' : 's'}. If you did not try to sign in, you can ignore this email.</p>
+  `);
+
+  return sendEmail({ to, subject, text, html });
+};
+
+/**
  * Send a notification for a new anonymous report
  * @param {Object} report - The report data
  */
@@ -369,6 +393,7 @@ const sendStudentReporterConfirmation = async (report, recipientEmail) => {
 
 export {
   sendEmail,
+  sendTwoFactorCode,
   isEmailEnabled,
   isValidContactEmail,
   normalizeContactEmail,

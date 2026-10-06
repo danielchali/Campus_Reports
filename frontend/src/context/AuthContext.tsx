@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/constants';
 import { offlineApi } from '../utils/offlineApi';
 import { backgroundSync } from '../utils/backgroundSync';
+import { requiresTwoFactorAuthentication } from '../utils/roles';
 
 interface User {
   id: string;
@@ -26,10 +27,37 @@ interface ProfileResponse {
   } | null;
 }
 
+export type LoginResult =
+  // Keep accepting the previous boolean result for callers that still use it.
+  | boolean
+  | { authenticated: true }
+  | {
+      requiresRegistration: true;
+      registrationRoles: string[];
+      googleProfile: { email: string; name?: string };
+      message?: string;
+    }
+  | {
+      requiresTwoFactor: true;
+      challengeId: string;
+      expiresAt?: string;
+      message?: string;
+    };
+
+export type GoogleRegistrationDetails = {
+  role: 'student' | 'general_user';
+  name?: string;
+  profile?: { houseNumber?: string };
+  studentProfile?: Record<string, unknown>;
+};
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<LoginResult>;
+  loginWithGoogle: (credential: string) => Promise<LoginResult>;
+  registerWithGoogle: (credential: string, details: GoogleRegistrationDetails) => Promise<boolean>;
+  verifyTwoFactorLogin: (challengeId: string, code: string) => Promise<boolean>;
   loginOffline: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>;
@@ -217,27 +245,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const login = async (username: string, password: string): Promise<boolean> => {
-    try {
-      const identifier = username.trim();
-      const response = await fetch(`${API_BASE_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: identifier, password }),
-      });
+  const persistAuthenticatedSession = async (
+    data: { token: string; user: User },
+    identifier: string,
+    password: string,
+    allowOfflineLogin = true,
+  ) => {
+    localStorage.setItem('auth_token', data.token);
+    localStorage.setItem('auth_user', JSON.stringify(data.user));
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        throw new Error(data?.error || 'Login failed. Please try again.');
-      }
-
-      const data = await response.json();
-      
-      // Store auth data
-      localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('auth_user', JSON.stringify(data.user));
-      
-      // Store encrypted offline data for offline login
+    if (allowOfflineLogin) {
       const passwordHash = await hashOfflinePassword(identifier, password);
       const offlineData = encryptData(JSON.stringify({
         username: identifier,
@@ -246,32 +263,136 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         timestamp: Date.now()
       }));
       localStorage.setItem('offline_auth_data', offlineData);
-      
-      // Set auth state immediately for instant login
-      setToken(data.token);
-      setUser(data.user);
-      
-      // Start preloading data in the background (non-blocking)
-      // Use requestIdleCallback for better performance, fallback to setTimeout
-      const startPreload = () => {
-        // Use a very short delay to ensure UI updates first
-        setTimeout(() => {
-          preloadData().catch(error => {
-            console.warn('Background preload failed:', error);
-            // Don't block login if preload fails
-          });
-        }, 100);
+    } else {
+      localStorage.removeItem('offline_auth_data');
+    }
+
+    setToken(data.token);
+    setUser(data.user);
+
+    const startPreload = () => {
+      setTimeout(() => {
+        preloadData().catch(error => {
+          console.warn('Background preload failed:', error);
+        });
+      }, 100);
+    };
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(startPreload);
+    } else {
+      startPreload();
+    }
+  };
+
+  const completeLoginResponse = async (
+    response: Response,
+    identifier: string,
+    password: string,
+    allowOfflineLogin = true,
+  ): Promise<LoginResult> => {
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+      throw new Error(data?.error || 'Login failed. Please try again.');
+    }
+
+    const data = await response.json();
+    if (data?.requiresRegistration) {
+      return {
+        requiresRegistration: true,
+        registrationRoles: Array.isArray(data.registrationRoles) ? data.registrationRoles : ['student', 'general_user'],
+        googleProfile: data.googleProfile || { email: '' },
+        message: data.message,
       };
-      
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(startPreload);
-      } else {
-        startPreload();
+    }
+    if (data?.requiresTwoFactor) {
+      if (!data.challengeId) {
+        throw new Error('Unable to start two-factor authentication. Please try again.');
       }
-      
-      return true;
+      return {
+        requiresTwoFactor: true,
+        challengeId: data.challengeId,
+        expiresAt: data.expiresAt,
+        message: data.message,
+      };
+    }
+
+    if (!data?.token || !data?.user) {
+      throw new Error('Login failed. Please try again.');
+    }
+
+    await persistAuthenticatedSession(data, identifier, password, allowOfflineLogin);
+    return { authenticated: true };
+  };
+
+  const login = async (username: string, password: string): Promise<LoginResult> => {
+    try {
+      const identifier = username.trim();
+      const response = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: identifier, password }),
+      });
+
+      return await completeLoginResponse(response, identifier, password);
     } catch (error) {
       console.error('Login error:', error);
+      throw error;
+    }
+  };
+
+  const loginWithGoogle = async (credential: string): Promise<LoginResult> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      });
+
+      return await completeLoginResponse(response, '', '', false);
+    } catch (error) {
+      console.error('Google login error:', error);
+      throw error;
+    }
+  };
+
+  const registerWithGoogle = async (credential: string, details: GoogleRegistrationDetails): Promise<boolean> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/google-register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential, ...details }),
+      });
+
+      const result = await completeLoginResponse(response, '', '', false);
+      return typeof result === 'object' && result !== null && 'authenticated' in result && result.authenticated === true;
+    } catch (error) {
+      console.error('Google registration error:', error);
+      throw error;
+    }
+  };
+
+  const verifyTwoFactorLogin = async (challengeId: string, code: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/verify-2fa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challengeId, code: code.trim() }),
+      });
+
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.error || 'Verification failed. Please try again.');
+      }
+      if (!data?.token || !data?.user) {
+        throw new Error('Verification failed. Please sign in again.');
+      }
+
+      // The offline credential is only created after both factors are verified.
+      await persistAuthenticatedSession(data, data.user.username, '', false);
+      return true;
+    } catch (error) {
+      console.error('Two-factor verification error:', error);
       throw error;
     }
   };
@@ -285,6 +406,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const decryptedData = decryptData(storedOfflineData);
       const offlineData = JSON.parse(decryptedData);
+
+      if (requiresTwoFactorAuthentication(offlineData.user?.role)) {
+        throw new Error('Management accounts require an online two-factor sign-in.');
+      }
       
       // Check if stored credentials match
       const passwordHash = await hashOfflinePassword(username, password);
@@ -432,6 +557,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       token,
       login,
+      loginWithGoogle,
+      registerWithGoogle,
+      verifyTwoFactorLogin,
       loginOffline,
       logout,
       changePassword,

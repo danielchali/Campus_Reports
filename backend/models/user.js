@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
     resetPasswordExpires: Date,
     resetPasswordOTP: String,
     resetPasswordOTPExpires: Date,
+    twoFactorChallengeHash: { type: String, select: false },
+    twoFactorCodeHash: { type: String, select: false },
+    twoFactorExpiresAt: { type: Date, select: false },
+    twoFactorAttempts: { type: Number, default: 0, select: false },
     createdAt: { type: Date, default: Date.now },
 });
 

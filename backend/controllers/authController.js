@@ -1,11 +1,177 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import UserModel from '../models/user.js';
 import StudentModel from '../models/student.js';
 import { logAudit } from './auditController.js';
 import { clearLoginAttempts, recordFailedLoginAttempt } from '../middleware/loginRateLimit.js';
+import { sendTwoFactorCode } from '../utils/emailService.js';
+import {
+    createTwoFactorChallenge,
+    hashTwoFactorChallenge,
+    isValidTwoFactorCode,
+    MANAGEMENT_ROLES,
+    requiresTwoFactorAuthentication
+} from '../utils/twoFactorAuth.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
+const MAX_TWO_FACTOR_ATTEMPTS = 5;
+const GOOGLE_REGISTRATION_ROLES = new Set(['student', 'general_user']);
+
+function createAuthenticatedUserPayload(user, displayName) {
+    return {
+        id: user._id || user.id,
+        role: user.role,
+        username: user.username,
+        name: displayName,
+        ...(user.role === 'warden' ? { hostel: user.hostel } : {})
+    };
+}
+
+function clearTwoFactorChallenge(user) {
+    user.twoFactorChallengeHash = undefined;
+    user.twoFactorCodeHash = undefined;
+    user.twoFactorExpiresAt = undefined;
+    user.twoFactorAttempts = 0;
+}
+
+function createAuthenticationToken(payload) {
+    return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+}
+
+async function recordSuccessfulLogin({ req, user, username, twoFactorVerified }) {
+    await logAudit({
+        action: 'user_login',
+        entity: 'user',
+        entityId: user._id || user.id,
+        user: username,
+        details: {
+            role: user.role,
+            ...(twoFactorVerified ? { twoFactorVerified: true } : {}),
+            timestamp: new Date().toISOString()
+        },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+    });
+}
+
+async function issueTwoFactorChallenge({ req, user, username, authMethod = 'password' }) {
+    if (!user.email) {
+        return {
+            status: 503,
+            error: 'Two-factor authentication is unavailable for this account. Please contact an administrator.'
+        };
+    }
+
+    const challenge = createTwoFactorChallenge();
+    user.twoFactorChallengeHash = challenge.challengeHash;
+    user.twoFactorCodeHash = await bcrypt.hash(challenge.code, 10);
+    user.twoFactorExpiresAt = challenge.expiresAt;
+    user.twoFactorAttempts = 0;
+    await user.save();
+
+    try {
+        await sendTwoFactorCode({
+            to: user.email,
+            code: challenge.code,
+            expiresAt: challenge.expiresAt
+        });
+    } catch (emailError) {
+        clearTwoFactorChallenge(user);
+        await user.save();
+        console.error('Two-factor authentication email error:', emailError);
+        return {
+            status: 503,
+            error: 'Unable to send a verification code. Please try again later.'
+        };
+    }
+
+    await logAudit({
+        action: 'two_factor_challenge_created',
+        entity: 'user',
+        entityId: user._id || user.id,
+        user: username,
+        details: {
+            role: user.role,
+            authMethod,
+            expiresAt: challenge.expiresAt.toISOString(),
+            timestamp: new Date().toISOString()
+        },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent')
+    });
+
+    return {
+        status: 202,
+        body: {
+            requiresTwoFactor: true,
+            challengeId: challenge.challengeId,
+            expiresAt: challenge.expiresAt.toISOString(),
+            message: 'A verification code has been sent to your email address.'
+        }
+    };
+}
+
+async function verifyGoogleIdToken(idToken) {
+    const googleClientId = String(process.env.GOOGLE_CLIENT_ID || '').trim();
+    if (!googleClientId) {
+        const error = new Error('Google sign-in is not configured.');
+        error.status = 503;
+        throw error;
+    }
+
+    let ticket;
+    try {
+        ticket = await new OAuth2Client(googleClientId).verifyIdToken({
+            idToken,
+            audience: googleClientId
+        });
+    } catch {
+        const error = new Error('Google ID token verification failed.');
+        error.status = 401;
+        throw error;
+    }
+    const payload = ticket.getPayload();
+    const email = String(payload?.email || '').trim().toLowerCase();
+
+    if (!payload?.sub || !email || payload.email_verified !== true) {
+        const error = new Error('Google account email could not be verified.');
+        error.status = 401;
+        throw error;
+    }
+
+    return {
+        email,
+        name: String(payload.name || '').trim()
+    };
+}
+
+function createGoogleAccountPassword() {
+    return crypto.randomBytes(32).toString('hex');
+}
+
+function getGoogleStudentRegistrationErrors(studentPayload) {
+    const errors = [];
+    if (!studentPayload.studentId) errors.push('Student ID is required');
+    if (!studentPayload.program) errors.push('Program is required');
+    if (!studentPayload.year) errors.push('Year is required');
+    if (!studentPayload.personalInfo.firstName) errors.push('First name is required');
+    if (!studentPayload.personalInfo.surName) errors.push('Surname is required');
+    if (!studentPayload.personalInfo.gender) errors.push('Gender is required');
+    if (!studentPayload.personalInfo.dateOfBirth) errors.push('Date of birth is required');
+    if (!studentPayload.addressInfo.email) errors.push('Email is required');
+    if (!studentPayload.addressInfo.phone) errors.push('Phone number is required');
+    if (!studentPayload.addressInfo.address) errors.push('Address is required');
+    if (!studentPayload.accommodation.roomNumber) errors.push('Room number is required');
+    return errors;
+}
+
+function getGoogleGeneralRegistrationErrors(payload) {
+    const errors = [];
+    if (!String(payload.name || '').trim()) errors.push('Full name is required');
+    return errors;
+}
 
 
 function getStudentFullName(student) {
@@ -192,34 +358,283 @@ export async function login(req, res) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        const displayName = await resolveUserDisplayName(user);
-        const payload = {
-            id: user._id || user.id,
-            role: user.role,
-            username: user.username,
-            name: displayName,
-            ...(user.role === 'warden' ? { hostel: user.hostel } : {})
-        };
-        const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+        if (requiresTwoFactorAuthentication(user.role)) {
+            const challengeResponse = await issueTwoFactorChallenge({
+                req,
+                user,
+                username,
+                authMethod: 'password'
+            });
+            clearLoginAttempts(loginAttemptKey);
+            return res.status(challengeResponse.status).json(challengeResponse.body || { error: challengeResponse.error });
+        }
 
-        await logAudit({
-            action: 'user_login',
-            entity: 'user',
-            entityId: user._id || user.id,
-            user: username,
-            details: {
-                role: user.role,
-                timestamp: new Date().toISOString()
-            },
-            ipAddress: req.ip,
-            userAgent: req.get('User-Agent')
-        });
+        const displayName = await resolveUserDisplayName(user);
+        const payload = createAuthenticatedUserPayload(user, displayName);
+        const token = createAuthenticationToken(payload);
+
+        await recordSuccessfulLogin({ req, user, username, twoFactorVerified: false });
 
         clearLoginAttempts(loginAttemptKey);
         res.json({ token, user: payload });
     } catch (err) {
         console.error('Login error:', err);
         res.status(500).json({ error: 'Server error' });
+    }
+}
+
+export async function googleLogin(req, res) {
+    const credential = String(req.body.credential || req.body.idToken || '').trim();
+    if (!credential) {
+        return res.status(400).json({ error: 'Google sign-in credential is required.' });
+    }
+
+    try {
+        const googleUser = await verifyGoogleIdToken(credential);
+        // Prefer the management account if duplicate email records exist so a
+        // management identity can never bypass the second factor by matching a
+        // lower-privilege record first.
+        const user = await UserModel.findOne({
+            email: googleUser.email,
+            role: { $in: [...MANAGEMENT_ROLES] }
+        }) || await UserModel.findOne({ email: googleUser.email });
+
+        if (!user) {
+            await logAudit({
+                action: 'google_registration_started',
+                entity: 'user',
+                entityId: null,
+                user: googleUser.email,
+                details: {
+                    reason: 'No matching account',
+                    timestamp: new Date().toISOString()
+                },
+                ipAddress: req.ip,
+                userAgent: req.get('User-Agent')
+            });
+            return res.json({
+                requiresRegistration: true,
+                registrationRoles: [...GOOGLE_REGISTRATION_ROLES],
+                googleProfile: {
+                    email: googleUser.email,
+                    name: googleUser.name
+                },
+                message: 'Choose an account type to complete Google registration.'
+            });
+        }
+
+        if (MANAGEMENT_ROLES.has(user.role)) {
+            const challengeResponse = await issueTwoFactorChallenge({
+                req,
+                user,
+                username: user.username,
+                authMethod: 'google'
+            });
+
+            return res.status(challengeResponse.status).json(challengeResponse.body || { error: challengeResponse.error });
+        }
+
+        if (!GOOGLE_REGISTRATION_ROLES.has(user.role)) {
+            return res.status(403).json({ error: 'Google sign-in is not available for this account role.' });
+        }
+
+        const displayName = await resolveUserDisplayName(user);
+        const payload = createAuthenticatedUserPayload(user, displayName);
+        const token = createAuthenticationToken(payload);
+
+        await recordSuccessfulLogin({ req, user, username: user.username, twoFactorVerified: false });
+        return res.json({ token, user: payload });
+    } catch (err) {
+        const status = Number.isInteger(err?.status) ? err.status : 500;
+        if (status >= 500) {
+            console.error('Google sign-in error:', err);
+        }
+        return res.status(status).json({
+            error: status === 503
+                ? err.message
+                : 'Unable to verify Google sign-in. Please try again.'
+        });
+    }
+}
+
+export async function googleRegister(req, res) {
+    const credential = String(req.body.credential || req.body.idToken || '').trim();
+    const role = String(req.body.role || '').trim();
+
+    if (!credential) {
+        return res.status(400).json({ error: 'Google sign-in credential is required.' });
+    }
+    if (!GOOGLE_REGISTRATION_ROLES.has(role)) {
+        return res.status(400).json({ error: 'Choose Student or General User to continue.' });
+    }
+
+    try {
+        const googleUser = await verifyGoogleIdToken(credential);
+        const existingUser = await UserModel.findOne({ email: googleUser.email });
+        if (existingUser) {
+            return res.status(409).json({ error: 'An account already exists for this Google email. Sign in instead.' });
+        }
+
+        let user;
+        if (role === 'student') {
+            const studentPayload = normalizeStudentSignupPayload({
+                ...(req.body.studentProfile || {}),
+                email: googleUser.email,
+                addressInfo: {
+                    ...(req.body.studentProfile?.addressInfo || {}),
+                    email: googleUser.email
+                }
+            });
+            const validationErrors = getGoogleStudentRegistrationErrors(studentPayload);
+            if (validationErrors.length > 0) {
+                return res.status(400).json({ error: validationErrors[0], details: validationErrors });
+            }
+
+            const [existingStudent, existingUsername] = await Promise.all([
+                StudentModel.findOne({ studentId: studentPayload.studentId }),
+                UserModel.findOne({ username: studentPayload.studentId })
+            ]);
+            if (existingStudent || existingUsername) {
+                return res.status(409).json({ error: 'A user with this Student ID already exists.' });
+            }
+
+            const fullName = [studentPayload.personalInfo.firstName, studentPayload.personalInfo.surName]
+                .filter(Boolean)
+                .join(' ')
+                .trim();
+            user = await UserModel.create({
+                username: studentPayload.studentId,
+                password: await bcrypt.hash(createGoogleAccountPassword(), 10),
+                name: fullName || googleUser.name || googleUser.email,
+                email: googleUser.email,
+                role: 'student'
+            });
+            await StudentModel.create(studentPayload);
+
+            await logAudit({
+                action: 'google_student_registered',
+                entity: 'student',
+                entityId: user._id || user.id,
+                user: user.username,
+                details: {
+                    studentId: studentPayload.studentId,
+                    email: googleUser.email,
+                    program: studentPayload.program,
+                    timestamp: new Date().toISOString()
+                },
+                ipAddress: req.ip,
+                userAgent: req.get('User-Agent')
+            });
+        } else {
+            const generalRegistrationErrors = getGoogleGeneralRegistrationErrors(req.body);
+            if (generalRegistrationErrors.length > 0) {
+                return res.status(400).json({ error: generalRegistrationErrors[0], details: generalRegistrationErrors });
+            }
+
+            user = await UserModel.create({
+                username: googleUser.email,
+                password: await bcrypt.hash(createGoogleAccountPassword(), 10),
+                name: String(req.body.name || googleUser.name || googleUser.email).trim(),
+                email: googleUser.email,
+                role: 'general_user',
+                profile: {
+                    houseNumber: String(req.body.profile?.houseNumber || '').trim()
+                }
+            });
+
+            await logAudit({
+                action: 'google_general_user_registered',
+                entity: 'user',
+                entityId: user._id || user.id,
+                user: user.username,
+                details: {
+                    email: googleUser.email,
+                    role: user.role,
+                    timestamp: new Date().toISOString()
+                },
+                ipAddress: req.ip,
+                userAgent: req.get('User-Agent')
+            });
+        }
+
+        const displayName = await resolveUserDisplayName(user);
+        const payload = createAuthenticatedUserPayload(user, displayName);
+        const token = createAuthenticationToken(payload);
+        return res.status(201).json({ token, user: payload, registeredWithGoogle: true });
+    } catch (err) {
+        console.error('Google registration error:', err);
+        if (err?.code === 11000) {
+            return res.status(409).json({ error: 'An account with these details already exists.' });
+        }
+        const status = Number.isInteger(err?.status) ? err.status : 500;
+        return res.status(status).json({
+            error: status === 503 ? err.message : 'Unable to complete Google registration. Please try again.'
+        });
+    }
+}
+
+export async function verifyTwoFactor(req, res) {
+    const challengeId = String(req.body.challengeId || '').trim();
+    const code = String(req.body.code || '').trim();
+
+    if (!challengeId || !isValidTwoFactorCode(code)) {
+        return res.status(400).json({ error: 'Enter a valid six-digit verification code.' });
+    }
+
+    try {
+        const challengeHash = hashTwoFactorChallenge(challengeId);
+        const user = await UserModel.findOne({
+            twoFactorChallengeHash: challengeHash,
+            twoFactorExpiresAt: { $gt: new Date() }
+        }).select('+twoFactorChallengeHash +twoFactorCodeHash +twoFactorExpiresAt +twoFactorAttempts');
+
+        if (!user || !requiresTwoFactorAuthentication(user.role)) {
+            return res.status(401).json({ error: 'This verification code is invalid or has expired. Sign in again.' });
+        }
+
+        const validCode = await bcrypt.compare(code, user.twoFactorCodeHash || '');
+        if (!validCode) {
+            user.twoFactorAttempts = Number(user.twoFactorAttempts || 0) + 1;
+            const attemptsExhausted = user.twoFactorAttempts >= MAX_TWO_FACTOR_ATTEMPTS;
+            if (attemptsExhausted) {
+                clearTwoFactorChallenge(user);
+            }
+            await user.save();
+
+            await logAudit({
+                action: 'two_factor_verification_failed',
+                entity: 'user',
+                entityId: user._id || user.id,
+                user: user.username,
+                details: {
+                    role: user.role,
+                    attemptsRemaining: attemptsExhausted ? 0 : MAX_TWO_FACTOR_ATTEMPTS - user.twoFactorAttempts,
+                    timestamp: new Date().toISOString()
+                },
+                ipAddress: req.ip,
+                userAgent: req.get('User-Agent')
+            });
+
+            return res.status(401).json({ error: 'This verification code is invalid or has expired. Sign in again.' });
+        }
+
+        const displayName = await resolveUserDisplayName(user);
+        const payload = createAuthenticatedUserPayload(user, displayName);
+        const token = createAuthenticationToken(payload);
+        clearTwoFactorChallenge(user);
+        await user.save();
+
+        await recordSuccessfulLogin({
+            req,
+            user,
+            username: user.username,
+            twoFactorVerified: true
+        });
+
+        return res.json({ token, user: payload });
+    } catch (err) {
+        console.error('Two-factor verification error:', err);
+        return res.status(500).json({ error: 'Server error' });
     }
 }
 
@@ -409,7 +824,6 @@ export async function registerStudent(req, res) {
     }
 }
 
-import crypto from 'crypto';
 import StaffModel from '../models/staff.js';
 import { sendEmail } from '../utils/emailService.js';
 

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle } from '@/components/icons';
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth, type GoogleRegistrationDetails } from '../../context/AuthContext';
 import { getAvailableYearsForProgram, PROGRAM_OPTIONS } from '../../config/constants';
 import { registerGeneralUser, registerStudent } from '../../utils/api';
 import CampusBackground from '../../components/CampusBackground';
@@ -84,7 +84,7 @@ const GENDERS = ['Male', 'Female', 'Other'];
 export default function StudentSignupPage() {
   const router = useRouter();
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { user, registerWithGoogle } = useAuth();
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -98,12 +98,58 @@ export default function StudentSignupPage() {
     confirmPassword: '',
     houseNumber: '',
   });
+  const [googleRegistration, setGoogleRegistration] = useState<{
+    credential: string;
+    googleProfile: { email: string; name?: string };
+  } | null>(null);
 
   useEffect(() => {
     if (user) {
-      router.push('/student-dashboard');
+      router.push(user.role === 'student' ? '/student-dashboard' : '/general-dashboard');
     }
   }, [router, user]);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('google') !== '1') return;
+
+    try {
+      const pending = sessionStorage.getItem('google_registration');
+      if (!pending) return;
+      const parsed = JSON.parse(pending);
+      if (!parsed?.credential || !parsed?.googleProfile?.email) return;
+
+      const googleProfile = {
+        email: String(parsed.googleProfile.email).trim().toLowerCase(),
+        name: String(parsed.googleProfile.name || '').trim(),
+      };
+      const [firstName, ...surnameParts] = googleProfile.name.split(/\s+/).filter(Boolean);
+      setGoogleRegistration({ credential: parsed.credential, googleProfile });
+      setGeneralUserForm((current) => ({
+        ...current,
+        fullName: googleProfile.name,
+        email: googleProfile.email,
+      }));
+      setForm((current) => ({
+        ...current,
+        personalInfo: {
+          ...current.personalInfo,
+          firstName: current.personalInfo.firstName || firstName || '',
+          surName: current.personalInfo.surName || surnameParts.join(' '),
+        },
+        addressInfo: {
+          ...current.addressInfo,
+          email: googleProfile.email,
+        },
+      }));
+    } catch {
+      sessionStorage.removeItem('google_registration');
+    }
+  }, []);
+
+  const clearGoogleRegistration = () => {
+    sessionStorage.removeItem('google_registration');
+    setGoogleRegistration(null);
+  };
 
   const fullName = useMemo(
     () => [form.personalInfo.firstName, form.personalInfo.surName].filter(Boolean).join(' ').trim(),
@@ -152,9 +198,11 @@ export default function StudentSignupPage() {
   const validateStep = () => {
     if (step === 0) {
       if (!form.studentId.trim()) return 'Student ID is required.';
-      if (!form.password) return 'Password is required.';
-      if (form.password.length < 6) return 'Password must be at least 6 characters.';
-      if (form.password !== form.confirmPassword) return 'Passwords do not match.';
+      if (!googleRegistration) {
+        if (!form.password) return 'Password is required.';
+        if (form.password.length < 6) return 'Password must be at least 6 characters.';
+        if (form.password !== form.confirmPassword) return 'Passwords do not match.';
+      }
       if (!form.program.trim()) return 'Program is required.';
       if (!form.year) return 'Year is required.';
       return '';
@@ -202,27 +250,39 @@ export default function StudentSignupPage() {
     if (accountType === 'general_user') {
       if (!generalUserForm.fullName.trim()) return setError('Full name is required.');
       if (!generalUserForm.email.trim()) return setError('Email is required.');
-      if (!generalUserForm.password) return setError('Password is required.');
-      if (generalUserForm.password.length < 6) return setError('Password must be at least 6 characters.');
-      if (generalUserForm.password !== generalUserForm.confirmPassword) return setError('Passwords do not match.');
+      if (!googleRegistration) {
+        if (!generalUserForm.password) return setError('Password is required.');
+        if (generalUserForm.password.length < 6) return setError('Password must be at least 6 characters.');
+        if (generalUserForm.password !== generalUserForm.confirmPassword) return setError('Passwords do not match.');
+      }
 
       setLoading(true);
       setError('');
       setSuccess('');
       try {
-        await registerGeneralUser({
-          password: generalUserForm.password,
-          name: generalUserForm.fullName.trim(),
-          email: generalUserForm.email.trim(),
-          profile: {
-            houseNumber: generalUserForm.houseNumber.trim(),
-          },
-        });
-        setSuccess('Your general user account has been created. You can now sign in.');
-        setGeneralUserForm({ fullName: '', email: '', password: '', confirmPassword: '', houseNumber: '' });
-        window.setTimeout(() => {
-          router.push('/login?registered=1');
-        }, 1200);
+        if (googleRegistration) {
+          await registerWithGoogle(googleRegistration.credential, {
+            role: 'general_user',
+            name: generalUserForm.fullName.trim(),
+            profile: { houseNumber: generalUserForm.houseNumber.trim() },
+          });
+          clearGoogleRegistration();
+          router.push('/general-dashboard');
+        } else {
+          await registerGeneralUser({
+            password: generalUserForm.password,
+            name: generalUserForm.fullName.trim(),
+            email: generalUserForm.email.trim(),
+            profile: {
+              houseNumber: generalUserForm.houseNumber.trim(),
+            },
+          });
+          setSuccess('Your general user account has been created. You can now sign in.');
+          setGeneralUserForm({ fullName: '', email: '', password: '', confirmPassword: '', houseNumber: '' });
+          window.setTimeout(() => {
+            router.push('/login?registered=1');
+          }, 1200);
+        }
       } catch (err: any) {
         setError(err?.message || 'Signup failed. Please try again.');
       } finally {
@@ -247,9 +307,8 @@ export default function StudentSignupPage() {
     setSuccess('');
 
     try {
-      await registerStudent({
+      const studentProfile = {
         studentId: form.studentId.trim(),
-        password: form.password,
         program: form.program.trim(),
         year: form.year,
         deliveryMode: form.deliveryMode,
@@ -271,14 +330,25 @@ export default function StudentSignupPage() {
           phone: form.addressInfo.phone.trim(),
           email: form.addressInfo.email.trim(),
         },
-      });
+      };
 
-      setSuccess('Your student account has been created. You can now sign in.');
-      setForm(INITIAL_FORM);
-      setStep(0);
-      window.setTimeout(() => {
-        router.push('/login?registered=1');
-      }, 1200);
+      if (googleRegistration) {
+        await registerWithGoogle(googleRegistration.credential, {
+          role: 'student',
+          name: fullName,
+          studentProfile,
+        });
+        clearGoogleRegistration();
+        router.push('/student-dashboard');
+      } else {
+        await registerStudent({ ...studentProfile, password: form.password });
+        setSuccess('Your student account has been created. You can now sign in.');
+        setForm(INITIAL_FORM);
+        setStep(0);
+        window.setTimeout(() => {
+          router.push('/login?registered=1');
+        }, 1200);
+      }
     } catch (err: any) {
       setError(err?.message || 'Signup failed. Please try again.');
     } finally {
@@ -357,6 +427,15 @@ export default function StudentSignupPage() {
               </div>
             )}
 
+            {googleRegistration && (
+              <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200">
+                You are registering with Google as <strong>{googleRegistration.googleProfile.email}</strong>. Complete the relevant account details below before entering the dashboard.
+                <button type="button" className="ml-2 font-semibold underline" onClick={() => { clearGoogleRegistration(); router.replace('/signup'); }}>
+                  Use email/password instead
+                </button>
+              </div>
+            )}
+
             {!accountType && (
               <div className="space-y-6">
                 <p className={`text-sm md:text-base ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>
@@ -390,16 +469,18 @@ export default function StudentSignupPage() {
                     </select>
                   </div>
                 </div>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Password</label>
-                    <input type="password" className={inputClassName} value={form.password} onChange={(e) => updateField('password', e.target.value)} placeholder="Minimum 6 characters" />
+                {!googleRegistration && (
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Password</label>
+                      <input type="password" className={inputClassName} value={form.password} onChange={(e) => updateField('password', e.target.value)} placeholder="Minimum 6 characters" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Confirm Password</label>
+                      <input type="password" className={inputClassName} value={form.confirmPassword} onChange={(e) => updateField('confirmPassword', e.target.value)} placeholder="Repeat password" />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Confirm Password</label>
-                    <input type="password" className={inputClassName} value={form.confirmPassword} onChange={(e) => updateField('confirmPassword', e.target.value)} placeholder="Repeat password" />
-                  </div>
-                </div>
+                )}
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Year</label>
@@ -538,24 +619,26 @@ export default function StudentSignupPage() {
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Email Address *</label>
-                    <input type="email" className={inputClassName} value={generalUserForm.email} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, email: e.target.value }))} placeholder="you@example.com" />
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Your email address will be used as your login username.</p>
+                    <input type="email" className={inputClassName} value={generalUserForm.email} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, email: e.target.value }))} placeholder="you@example.com" readOnly={Boolean(googleRegistration)} />
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{googleRegistration ? 'This verified Google email will be used as your login username.' : 'Your email address will be used as your login username.'}</p>
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">House Number <span className="font-medium text-slate-500">(optional for non-university premises residents/workers)</span></label>
                     <input className={inputClassName} value={generalUserForm.houseNumber} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, houseNumber: e.target.value }))} placeholder="e.g., Staff House 12 or Campus Block B-4" />
                   </div>
                 </div>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Password</label>
-                    <input type="password" className={inputClassName} value={generalUserForm.password} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, password: e.target.value }))} />
+                {!googleRegistration && (
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Password</label>
+                      <input type="password" className={inputClassName} value={generalUserForm.password} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, password: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Confirm Password</label>
+                      <input type="password" className={inputClassName} value={generalUserForm.confirmPassword} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, confirmPassword: e.target.value }))} />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Confirm Password</label>
-                    <input type="password" className={inputClassName} value={generalUserForm.confirmPassword} onChange={(e) => setGeneralUserForm(prev => ({ ...prev, confirmPassword: e.target.value }))} />
-                  </div>
-                </div>
+                )}
               </div>
             )}
 

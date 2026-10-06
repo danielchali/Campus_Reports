@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Script from 'next/script';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { performanceMonitor, addResourceHints } from '../utils/performance';
@@ -44,17 +45,23 @@ export default function LoginView() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [twoFactorChallengeId, setTwoFactorChallengeId] = useState<string | null>(null);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [twoFactorMessage, setTwoFactorMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isOnline, setIsOnline] = useState(true);
   const [featureIndex, setFeatureIndex] = useState(0);
   const [typedFeatureText, setTypedFeatureText] = useState('');
   const [isDeletingFeatureText, setIsDeletingFeatureText] = useState(false);
+  const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
+  const googleButtonRef = useRef<HTMLDivElement>(null);
 
-  const { user, login, loginOffline, isOnline: authIsOnline } = useAuth();
+  const { user, login, loginWithGoogle, loginOffline, verifyTwoFactorLogin, isOnline: authIsOnline } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const googleClientId = String(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '').trim();
 
   const featureTexts = [
     'Report issues. Request maintenance. Improve campus life.',
@@ -152,6 +159,59 @@ export default function LoginView() {
 
   const isDevelopment = process.env.NODE_ENV === 'development';
 
+  const handleGoogleCredential = useCallback(async (response: GoogleCredentialResponse) => {
+    if (!response.credential) return;
+
+    setLoading(true);
+    setError('');
+    try {
+      const result = await loginWithGoogle(response.credential);
+      if (typeof result === 'object' && result !== null && 'requiresRegistration' in result && result.requiresRegistration) {
+        sessionStorage.setItem('google_registration', JSON.stringify({
+          credential: response.credential,
+          googleProfile: result.googleProfile,
+        }));
+        router.push('/signup?google=1');
+        return;
+      }
+      if (typeof result === 'object' && result !== null && 'requiresTwoFactor' in result && result.requiresTwoFactor) {
+        setTwoFactorChallengeId(result.challengeId);
+        setTwoFactorMessage(result.message || 'Enter the verification code sent to your email address.');
+        setTwoFactorCode('');
+        return;
+      }
+
+      const success = typeof result === 'boolean'
+        ? result
+        : Boolean(result && 'authenticated' in result && result.authenticated);
+      if (!success) setError('Google sign-in could not be completed. Please try again.');
+    } catch (err) {
+      setError(getLoginErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [loginWithGoogle, router]);
+
+  useEffect(() => {
+    const google = window.google;
+    const container = googleButtonRef.current;
+    if (!googleClientId || !googleScriptLoaded || !google || !container) return;
+
+    container.innerHTML = '';
+    google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: (response) => { void handleGoogleCredential(response); },
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+    google.accounts.id.renderButton(container, {
+      theme: theme === 'dark' ? 'filled_black' : 'outline',
+      size: 'large',
+      width: 360,
+      text: 'signin_with',
+    });
+  }, [googleClientId, googleScriptLoaded, handleGoogleCredential, theme]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -168,7 +228,17 @@ export default function LoginView() {
 
       let success = false;
       if (isDevelopment || (isOnline && authIsOnline)) {
-        success = await login(identifier, password);
+        const result = await login(identifier, password);
+        if (typeof result === 'object' && result !== null && 'requiresTwoFactor' in result && result.requiresTwoFactor) {
+          setTwoFactorChallengeId(result.challengeId);
+          setTwoFactorMessage(result.message || 'Enter the verification code sent to your email address.');
+          setTwoFactorCode('');
+          setPassword('');
+          return;
+        }
+        success = typeof result === 'boolean'
+          ? result
+          : Boolean(result && 'authenticated' in result && result.authenticated);
       } else {
         success = await loginOffline(identifier, password);
       }
@@ -185,10 +255,39 @@ export default function LoginView() {
     }
   };
 
+  const handleTwoFactorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!twoFactorChallengeId) return;
+
+    setLoading(true);
+    setError('');
+    try {
+      await verifyTwoFactorLogin(twoFactorChallengeId, twoFactorCode);
+    } catch (err) {
+      setError(getLoginErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelTwoFactor = () => {
+    setTwoFactorChallengeId(null);
+    setTwoFactorCode('');
+    setTwoFactorMessage('');
+    setError('');
+  };
+
   return (
     <div className="h-screen relative overflow-hidden flex flex-col md:flex-row bg-slate-100 text-slate-800 dark:bg-slate-950 dark:text-slate-200 md:bg-transparent">
 
       <CampusBackground />
+      {googleClientId && (
+        <Script
+          src="https://accounts.google.com/gsi/client"
+          strategy="afterInteractive"
+          onLoad={() => setGoogleScriptLoaded(true)}
+        />
+      )}
 
       {/* Left Column - Desktop & Tablet (hidden on small mobile) */}
       <div className="hidden sm:flex md:relative md:w-[55%] lg:w-[60%] flex-col justify-between p-8 lg:p-12 h-full overflow-hidden">
@@ -353,6 +452,53 @@ export default function LoginView() {
               </div>
             )}
 
+            {twoFactorChallengeId ? (
+              <form onSubmit={handleTwoFactorSubmit} className="space-y-4" autoComplete="off">
+                <div className="rounded-xl border border-kmuGreen/30 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
+                  <div className="flex gap-3">
+                    <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" />
+                    <div>
+                      <p className="font-semibold">Verify your sign-in</p>
+                      <p className="mt-1 text-xs leading-5">{twoFactorMessage}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="two-factor-code" className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">Verification code</label>
+                  <input
+                    id="two-factor-code"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="one-time-code"
+                    value={twoFactorCode}
+                    onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="6-digit code"
+                    aria-label="Verification code"
+                    className={`w-full rounded-xl border px-4 py-3.5 text-center font-mono text-lg tracking-[0.4em] outline-none transition-colors ${theme === 'dark' ? 'border-slate-700 bg-slate-800 text-slate-100 focus:border-kmuGreen' : 'border-slate-200 bg-slate-50 text-slate-900 focus:border-kmuGreen focus:bg-white'}`}
+                    required
+                    maxLength={6}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || twoFactorCode.length !== 6}
+                  className="flex w-full items-center justify-center rounded-xl bg-kmuGreen px-4 py-3.5 font-bold text-white shadow-lg shadow-kmuGreen/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
+                >
+                  {loading ? 'Verifying…' : 'Verify and Sign In'}
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelTwoFactor}
+                  disabled={loading}
+                  className="w-full text-sm font-medium text-slate-600 hover:text-slate-900 disabled:opacity-60 dark:text-slate-400 dark:hover:text-white"
+                >
+                  Use a different account
+                </button>
+              </form>
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
               {/* Username Field */}
               <div>
@@ -440,7 +586,18 @@ export default function LoginView() {
                   'Log In'
                 )}
               </button>
+              {googleClientId && (
+                <>
+                  <div className="relative flex items-center py-1">
+                    <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                    <span className="flex-shrink-0 mx-4 text-[10px] text-slate-400">or continue with</span>
+                    <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
+                  </div>
+                  <div ref={googleButtonRef} className="flex min-h-10 justify-center" aria-label="Sign in with Google" />
+                </>
+              )}
             </form>
+            )}
 
             <div className="mt-6 relative flex items-center py-1">
               <div className="flex-grow border-t border-slate-200 dark:border-slate-800"></div>
