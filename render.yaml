@@ -16,7 +16,9 @@ services:
       - key: MONGODB_URI
         sync: false
       - key: FRONTEND_URL
-        sync: false
+        value: https://campusreports.onrender.com
+      - key: CORS_ORIGIN
+        value: https://campusreports.onrender.com
 
   - type: web
     name: kmu-discipline-desk-frontend

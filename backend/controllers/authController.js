@@ -4,9 +4,10 @@ import crypto from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import UserModel from '../models/user.js';
 import StudentModel from '../models/student.js';
+import StaffModel from '../models/staff.js';
 import { logAudit } from './auditController.js';
 import { clearLoginAttempts, recordFailedLoginAttempt } from '../middleware/loginRateLimit.js';
-import { escapeHtml, sendTwoFactorCode, sendEmail } from '../utils/emailService.js';
+import { escapeHtml, isValidContactEmail, sendTwoFactorCode, sendEmail } from '../utils/emailService.js';
 import {
     createTwoFactorChallenge,
     hashTwoFactorChallenge,
@@ -57,7 +58,19 @@ async function recordSuccessfulLogin({ req, user, username, twoFactorVerified })
 }
 
 async function issueTwoFactorChallenge({ req, user, username, authMethod = 'password' }) {
-    if (!user.email) {
+    let email = String(user.email || '').trim().toLowerCase();
+    if (!isValidContactEmail(email)) {
+        const staff = await StaffModel.findOne({ staffId: user.username }).select('email').lean();
+        email = String(staff?.email || '').trim().toLowerCase();
+        if (isValidContactEmail(email)) {
+            // Keep the login account synchronized with the staff directory so
+            // future 2FA challenges do not depend on a second lookup.
+            user.email = email;
+            await user.save();
+        }
+    }
+
+    if (!isValidContactEmail(email)) {
         return {
             status: 503,
             error: 'Two-factor authentication is unavailable for this account. Please contact an administrator.'
@@ -73,7 +86,7 @@ async function issueTwoFactorChallenge({ req, user, username, authMethod = 'pass
 
     try {
         await sendTwoFactorCode({
-            to: user.email,
+            to: email,
             code: challenge.code,
             expiresAt: challenge.expiresAt
         });
@@ -823,8 +836,6 @@ export async function registerStudent(req, res) {
         res.status(500).json({ error: 'Server error' });
     }
 }
-
-import StaffModel from '../models/staff.js';
 
 export async function forgotPassword(req, res) {
     const username = String(req.body.username || '').trim(); // Student ID for students, email for non-students

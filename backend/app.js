@@ -40,7 +40,10 @@ const LOCAL_CORS_ORIGINS = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
 ];
-const DEFAULT_PRODUCTION_CORS_ORIGINS = ["https://campusreports.vercel.app"];
+const DEFAULT_PRODUCTION_CORS_ORIGINS = [
+  "https://campusreports.vercel.app",
+  "https://campusreports.onrender.com",
+];
 
 function stripCorsValueQuotes(value) {
   return String(value || "")
