@@ -62,19 +62,28 @@ export default function Notification({
     }
   };
 
+  const title = type === 'success' ? 'Success' : type === 'error' ? 'Something went wrong' : 'Notice';
+
   return (
-    <div className="fixed top-4 left-4 right-4 sm:left-auto z-50 sm:max-w-sm sm:w-full">
-      <div className={`border rounded-lg p-4 shadow-lg ${getStyles()}`}>
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/35 px-4 py-6 backdrop-blur-[2px]">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        className={`w-full max-w-md rounded-2xl border p-5 shadow-2xl ${getStyles()}`}
+      >
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/70 dark:bg-slate-950/40">
             {getIcon()}
           </div>
-          <div className="ml-3 flex-1">
-            <p className="text-sm font-medium">{message}</p>
+          <div className="min-w-0 flex-1 pt-0.5">
+            <h2 className="text-base font-semibold">{title}</h2>
+            <p className="mt-1 text-sm leading-6">{message}</p>
           </div>
-          <div className="ml-4 flex-shrink-0">
+          <div className="flex-shrink-0">
             <button
               onClick={onClose}
+              aria-label="Close notification"
               className="inline-flex text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:text-gray-600 dark:focus:text-gray-300"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

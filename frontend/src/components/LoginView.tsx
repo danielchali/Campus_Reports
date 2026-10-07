@@ -198,23 +198,43 @@ export default function LoginView() {
   }, [loginWithGoogle, router]);
 
   useEffect(() => {
-    const google = window.google;
-    const container = googleButtonRef.current;
-    if (!googleClientId || !googleScriptLoaded || !google || !container) return;
+    if (!googleClientId) return;
+    let cancelled = false;
+    let attempts = 0;
+    let retryTimer: number | undefined;
 
-    container.innerHTML = '';
-    google.accounts.id.initialize({
-      client_id: googleClientId,
-      callback: (response) => { void handleGoogleCredential(response); },
-      auto_select: false,
-      cancel_on_tap_outside: true,
-    });
-    google.accounts.id.renderButton(container, {
-      type: 'icon',
-      theme: theme === 'dark' ? 'filled_black' : 'outline',
-      size: 'large',
-      shape: 'circle',
-    });
+    const renderGoogleButton = () => {
+      if (cancelled) return;
+      const google = window.google;
+      const container = googleButtonRef.current;
+      if (!googleScriptLoaded || !google?.accounts?.id || !container) {
+        if (attempts < 100) {
+          attempts += 1;
+          retryTimer = window.setTimeout(renderGoogleButton, 50);
+        }
+        return;
+      }
+
+      container.innerHTML = '';
+      google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: (response) => { void handleGoogleCredential(response); },
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+      google.accounts.id.renderButton(container, {
+        type: 'icon',
+        theme: theme === 'dark' ? 'filled_black' : 'outline',
+        size: 'large',
+        shape: 'circle',
+      });
+    };
+
+    renderGoogleButton();
+    return () => {
+      cancelled = true;
+      if (retryTimer !== undefined) window.clearTimeout(retryTimer);
+    };
   }, [googleClientId, googleScriptLoaded, handleGoogleCredential, theme]);
 
   const twoFactorCode = twoFactorDigits.join('');
@@ -361,11 +381,15 @@ export default function LoginView() {
 
       <CampusBackground />
       {googleClientId && (
-        <Script
-          src="https://accounts.google.com/gsi/client"
-          strategy="afterInteractive"
-          onLoad={() => setGoogleScriptLoaded(true)}
-        />
+        <>
+          <link rel="preconnect" href="https://accounts.google.com" />
+          <link rel="dns-prefetch" href="//accounts.google.com" />
+          <Script
+            src="https://accounts.google.com/gsi/client"
+            strategy="afterInteractive"
+            onLoad={() => setGoogleScriptLoaded(true)}
+          />
+        </>
       )}
 
       {/* Left Column - Desktop & Tablet (hidden on small mobile) */}
@@ -500,7 +524,7 @@ export default function LoginView() {
 
         {/* Login Card Container */}
         <div className="flex-1 flex flex-col justify-center px-4 py-4 sm:py-8 md:px-12 relative h-full overflow-y-auto">
-          <div className={`w-full max-w-md mx-auto rounded-3xl shadow-2xl p-6 sm:p-7 border ${theme === 'dark' ? 'bg-slate-900 border-slate-800 shadow-black/40' : 'bg-white border-white shadow-slate-200/60'}`}>
+          <div className={`w-full max-w-md mx-auto rounded-3xl p-6 sm:p-7 border ${theme === 'dark' ? 'bg-slate-900 border-slate-800 shadow-[0_16px_36px_-18px_rgba(0,0,0,0.85)]' : 'bg-white border-white shadow-[0_8px_18px_-6px_rgba(15,23,42,0.14),0_20px_40px_-16px_rgba(15,23,42,0.2)]'}`}>
             
             <div className="text-center mb-4 sm:mb-6">
               {/* Mobile Logo */}
