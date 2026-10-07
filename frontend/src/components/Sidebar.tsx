@@ -32,7 +32,7 @@ export default function Sidebar() {
   const { bottomNav, sidebarNav } = splitNavLinksForMobile(allNavLinks);
   const isCollapsed = isDesktop && isCollapsedDesktop;
 
-  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-slate-200 bg-white text-slate-900 transition-[transform,width] duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 ${
+  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-slate-200 bg-white text-slate-900 shadow-[4px_0_16px_-4px_rgba(15,23,42,0.55),12px_0_28px_-12px_rgba(15,23,42,0.6)] transition-[transform,width] duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-none ${
     isOpenMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0 md:w-auto'
   }`;
 

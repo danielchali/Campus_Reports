@@ -208,7 +208,7 @@ export default function EmbedReportPage() {
               onChange={(event) => setDescription(event.target.value)}
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-sm resize-none"
             />
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {description.length} characters — aim for at least {descriptionMinLength}.
             </p>
           </div>

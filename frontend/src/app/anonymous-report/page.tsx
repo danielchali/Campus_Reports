@@ -325,7 +325,7 @@ export default function AnonymousReportPage() {
                       placeholder="Describe what happened in detail — who or what was involved, what occurred, and why this needs attention. Do NOT include your own personal information."
                       className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-kmuGreen focus:bg-white dark:focus:bg-slate-800 transition-colors resize-none lg:min-h-[132px]"
                     />
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {description.length} characters — aim for at least {descriptionMinLength} for a useful report.
                     </p>
                   </div>
@@ -358,7 +358,7 @@ export default function AnonymousReportPage() {
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm focus:outline-none focus:border-kmuGreen focus:bg-white dark:focus:bg-slate-800 transition-colors"
                       />
                     </div>
-                    <p className="text-xs text-slate-400 flex items-center gap-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                       <Lock className="w-3 h-3" />
                       Only seen by authorised staff for follow-up.
                     </p>
@@ -401,7 +401,7 @@ export default function AnonymousReportPage() {
                 </div>
 
                 <div className="inline-block bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 px-8 py-5 mx-auto">
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Your Tracking Code</p>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Your Tracking Code</p>
                   <p className="text-3xl font-extrabold tracking-widest text-kmuGreen">{trackingCode}</p>
                 </div>
 
@@ -421,7 +421,7 @@ export default function AnonymousReportPage() {
                   </button>
                 </div>
 
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   You can also track your report under the{' '}
                   <button onClick={() => { setActiveTab('track'); setTrackInput(trackingCode); }} className="text-kmuGreen underline">
                     Track Anonymous Report
@@ -476,7 +476,7 @@ export default function AnonymousReportPage() {
               <div className="rounded-2xl border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
                 <div className="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-800/50">
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tracking Code</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tracking Code</p>
                     <p className="text-lg font-extrabold text-kmuGreen tracking-widest mt-0.5">{trackResult.tracking_code}</p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-xs font-bold ${statusColors[trackResult.status] || 'bg-slate-100 text-slate-600'}`}>
@@ -485,23 +485,23 @@ export default function AnonymousReportPage() {
                 </div>
                 <div className="p-5 grid sm:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Title</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Title</p>
                     <p className="font-semibold text-slate-900 dark:text-white">{trackResult.title}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Category</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Category</p>
                     <p className="font-semibold text-slate-900 dark:text-white capitalize">{trackResult.category.replace('_', ' ')}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Location</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Location</p>
                     <p className="font-semibold text-slate-900 dark:text-white">{trackResult.location}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Incident Date</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Incident Date</p>
                     <p className="font-semibold text-slate-900 dark:text-white">{trackResult.incident_date}</p>
                   </div>
                   <div className="sm:col-span-2">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Submitted</p>
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-0.5">Submitted</p>
                     <p className="font-semibold text-slate-900 dark:text-white">{new Date(trackResult.submitted_at).toLocaleString()}</p>
                   </div>
                 </div>

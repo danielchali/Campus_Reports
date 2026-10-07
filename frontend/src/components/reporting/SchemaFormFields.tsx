@@ -111,7 +111,7 @@ export default function SchemaFormFields({
             )}
 
             {field.helpText && (
-              <p className="text-xs text-slate-400">{field.helpText}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{field.helpText}</p>
             )}
           </div>
         );
