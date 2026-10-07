@@ -7,27 +7,39 @@
     @apply mx-auto w-full max-w-[1600px];
   }
 
-  /* Give page cards a strong, clearly visible elevation in light mode. */
+  /* Give page cards a subtle Apple-style border and elevation in light mode. */
   .page-container article[class*="rounded"][class*="border"],
   .page-container section[class*="rounded"][class*="border"],
   .page-container form[class*="rounded"][class*="border"],
   .page-container article[class*="shadow"],
   .page-container section[class*="shadow"],
   .page-container form[class*="shadow"] {
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid #cbd5e1 !important;
     border-radius: 0.75rem !important;
     box-shadow:
-      0 0 18px -8px rgba(15, 23, 42, 0.65),
-      0 12px 28px -10px rgba(15, 23, 42, 0.6) !important;
+      0 1px 2px rgba(15, 23, 42, 0.06),
+      0 4px 12px -4px rgba(15, 23, 42, 0.1) !important;
   }
 
-  /* Apply the same light-mode elevation to div/label cards and any shadowed container. */
+  /* Apply the same subtle light-mode elevation to div/label cards and shadowed containers. */
   html:not(.dark) .page-container [class*="shadow"],
   html:not(.dark) .page-container div[class*="rounded"][class*="border"],
   html:not(.dark) .page-container label[class*="rounded"][class*="border"] {
     box-shadow:
-      0 0 18px -8px rgba(15, 23, 42, 0.65),
-      0 12px 28px -10px rgba(15, 23, 42, 0.6) !important;
+      0 1px 2px rgba(15, 23, 42, 0.06),
+      0 4px 12px -4px rgba(15, 23, 42, 0.1) !important;
+  }
+
+  /* Make neutral borders visible on shadowed div cards and list items too. */
+  html:not(.dark) .page-container [class*="shadow"][class*="rounded"][class*="bg-white"],
+  html:not(.dark) .page-container [class*="shadow"][class*="rounded"][class*="bg-gray-"] {
+    border: 1px solid #cbd5e1 !important;
+  }
+
+  /* Strengthen existing neutral borders without changing colored status borders. */
+  html:not(.dark) .page-container [class*="border-slate-200"],
+  html:not(.dark) .page-container [class*="border-gray-200"] {
+    border-color: #cbd5e1 !important;
   }
 
   .page-container article[class*="bg-white"],
