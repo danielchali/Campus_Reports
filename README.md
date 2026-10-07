@@ -121,6 +121,9 @@ The backend expects these environment variables in `backend/.env`:
 - `PORT`
 - `JWT_SECRET`
 - `MONGODB_URI`
+- `UPSTASH_REDIS_REST_URL` — Upstash Redis REST endpoint; leave blank to disable shared Redis features locally.
+- `UPSTASH_REDIS_REST_TOKEN` — Upstash Redis REST token.
+- `REDIS_CACHE_TTL_SECONDS` — dashboard response cache lifetime; defaults to `60`.
 - `CORS_ORIGIN` — comma- or whitespace-separated frontend origins allowed by CORS; surrounding quotes are tolerated but not required.
 - `CORS_ORIGIN` — comma- or whitespace-separated frontend origins allowed by CORS.
 - `FRONTEND_URL` — primary frontend URL; also added to the CORS allow-list when set.
@@ -136,6 +139,23 @@ The backend expects these environment variables in `backend/.env`:
 - `LOGIN_RATE_LIMIT_WINDOW_MS`
 - `CREATE_DEFAULT_USERS`
 - `IP_SALT`
+
+### Redis caching
+
+The backend uses Upstash Redis when both Redis variables are set. Without them, the app continues to work and falls back to in-memory rate limiting, but shared caching and shared rate limiting are disabled.
+
+1. Create a Redis database in [Upstash](https://upstash.com/).
+2. Copy its **REST URL** into `backend/.env` as `UPSTASH_REDIS_REST_URL`.
+3. Copy its **REST token** into `backend/.env` as `UPSTASH_REDIS_REST_TOKEN`.
+4. Set the cache lifetime, for example:
+
+   ```env
+   UPSTASH_REDIS_REST_URL=https://your-database.upstash.io
+   UPSTASH_REDIS_REST_TOKEN=replace_with_upstash_token
+   REDIS_CACHE_TTL_SECONDS=60
+   ```
+
+The `/api/v1/dashboard/insights` endpoint is cached per authenticated user and role. Successful responses include `X-Cache: HIT` or `X-Cache: MISS`. Redis is also used for API and authentication rate-limit counters. Configure the same three variables in Render's environment settings; `render.yaml` marks the URL and token as secret values.
 
 ### Frontend
 

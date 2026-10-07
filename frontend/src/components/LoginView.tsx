@@ -60,6 +60,7 @@ export default function LoginView() {
   const [isDeletingFeatureText, setIsDeletingFeatureText] = useState(false);
   const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
   const googleButtonRef = useRef<HTMLDivElement>(null);
+  const googleInitializedRef = useRef(false);
   const twoFactorInputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const { user, login, loginWithGoogle, loginOffline, verifyTwoFactorLogin, isOnline: authIsOnline } = useAuth();
@@ -215,6 +216,8 @@ export default function LoginView() {
         return;
       }
 
+      if (googleInitializedRef.current) return;
+
       container.innerHTML = '';
       google.accounts.id.initialize({
         client_id: googleClientId,
@@ -222,6 +225,7 @@ export default function LoginView() {
         auto_select: false,
         cancel_on_tap_outside: true,
       });
+      googleInitializedRef.current = true;
       google.accounts.id.renderButton(container, {
         type: 'icon',
         theme: theme === 'dark' ? 'filled_black' : 'outline',
