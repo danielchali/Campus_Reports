@@ -7,7 +7,7 @@
     @apply mx-auto w-full max-w-[1600px];
   }
 
-  /* Match page-card elevation to the top bar in light mode. */
+  /* Give page cards a strong, clearly visible elevation in light mode. */
   .page-container article[class*="rounded"][class*="border"],
   .page-container section[class*="rounded"][class*="border"],
   .page-container form[class*="rounded"][class*="border"],
@@ -17,8 +17,17 @@
     border: 1px solid #e2e8f0 !important;
     border-radius: 0.75rem !important;
     box-shadow:
-      0 0 18px -12px rgba(15, 23, 42, 0.28),
-      0 10px 28px -24px rgba(15, 23, 42, 0.45) !important;
+      0 0 18px -8px rgba(15, 23, 42, 0.65),
+      0 12px 28px -10px rgba(15, 23, 42, 0.6) !important;
+  }
+
+  /* Apply the same light-mode elevation to div/label cards and any shadowed container. */
+  html:not(.dark) .page-container [class*="shadow"],
+  html:not(.dark) .page-container div[class*="rounded"][class*="border"],
+  html:not(.dark) .page-container label[class*="rounded"][class*="border"] {
+    box-shadow:
+      0 0 18px -8px rgba(15, 23, 42, 0.65),
+      0 12px 28px -10px rgba(15, 23, 42, 0.6) !important;
   }
 
   .page-container article[class*="bg-white"],

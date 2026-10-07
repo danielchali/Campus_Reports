@@ -384,12 +384,12 @@ export default function LoginView() {
             />
           </div>
           
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight mb-2 text-kmuGreen drop-shadow-[0_2px_10px_rgba(255,255,255,0.9)] dark:text-white dark:drop-shadow-none">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight mb-2 text-black drop-shadow-[0_2px_10px_rgba(255,255,255,0.9)] dark:text-white dark:drop-shadow-none">
             Campus Reports
           </h1>
           
           <div className="h-12 md:h-16 mb-4 md:mb-8">
-            <p className="text-lg md:text-xl font-semibold text-kmuGreen drop-shadow-[0_2px_8px_rgba(255,255,255,0.85)] dark:text-slate-300 dark:drop-shadow-none">
+            <p className="text-lg md:text-xl font-semibold text-black drop-shadow-[0_2px_8px_rgba(255,255,255,0.85)] dark:text-slate-300 dark:drop-shadow-none">
               <span className="inline-block">
                 {typedFeatureText}
                 <span className="ml-0.5 inline-block h-5 w-[2px] animate-pulse bg-current align-middle" />
