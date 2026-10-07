@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import {
   BookOpen,
   CheckCircle2,
-  ChevronRight,
   ClipboardList,
   Clock3,
   FilePenLine,
@@ -22,8 +21,8 @@ import { getStudentReportsForUser, type StudentReport } from '../../utils/studen
 import { useDashboardRealtime } from '../../hooks/useDashboardRealtime';
 
 const categoryLabels = {
-  disciplinary_case: 'Incident',
-  maintenance_issue: 'Maintenance',
+  disciplinary_case: 'Disciplinary Case',
+  maintenance_issue: 'Maintenance Issue',
 } as const;
 
 const statusColors = {
@@ -114,11 +113,11 @@ export default function GeneralDashboardPage() {
     <div className="w-full space-y-4 xl:space-y-5">
       <StatsStrip desktopColumnsClass="xl:grid-cols-5">
         {[
-          { label: 'My Reports', value: summary.total, helper: 'Total submitted items', icon: ClipboardList, tone: 'text-rose-700 bg-rose-50 dark:bg-rose-900/20 dark:text-rose-300' },
-          { label: 'Resolved', value: summary.resolved, helper: 'Completed or closed', icon: CheckCircle2, tone: 'text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-300' },
-          { label: 'In Progress', value: summary.inProgress, helper: 'Being reviewed now', icon: Clock3, tone: 'text-orange-700 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-300' },
-          { label: 'Open', value: summary.open, helper: 'Awaiting action', icon: FileText, tone: 'text-violet-700 bg-violet-50 dark:bg-violet-900/20 dark:text-violet-300' },
-          { label: 'Maintenance', value: summary.maintenance, helper: 'Maintenance requests raised', icon: Wrench, tone: 'text-sky-700 bg-sky-50 dark:bg-sky-900/20 dark:text-sky-300' },
+          { label: 'My Reports', value: summary.total, helper: 'Current report records', icon: ClipboardList, tone: 'text-kmuGreen' },
+          { label: 'Resolved', value: summary.resolved, helper: 'Marked complete', icon: CheckCircle2, tone: 'text-emerald-600' },
+          { label: 'In Progress', value: summary.inProgress, helper: 'Still being handled', icon: Clock3, tone: 'text-amber-600' },
+          { label: 'Open', value: summary.open, helper: 'Awaiting final resolution', icon: FileText, tone: 'text-indigo-600' },
+          { label: 'Maintenance', value: summary.maintenance, helper: 'From your recent reports', icon: Wrench, tone: 'text-blue-600' },
         ].map((card) => {
           const Icon = card.icon;
           return (
@@ -127,7 +126,7 @@ export default function GeneralDashboardPage() {
               label={card.label}
               value={card.value}
               icon={<Icon size={16} />}
-              iconClassName={card.tone}
+              iconClassName={`bg-slate-50 dark:bg-slate-950 ${card.tone}`}
             />
           );
         })}
@@ -137,8 +136,7 @@ export default function GeneralDashboardPage() {
         <article className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
             <div>
-              <h2 className="text-base font-semibold text-slate-900 dark:text-white">My Recent Reports</h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Incident and maintenance reports you have submitted.</p>
+              <h2 className="text-base font-semibold text-slate-900 dark:text-white">Recent Reports</h2>
             </div>
             <Link href="/my-reports" className="text-xs font-medium text-kmuGreen hover:underline">
               View all
@@ -155,23 +153,19 @@ export default function GeneralDashboardPage() {
                 <Link
                   key={report.id}
                   href="/my-reports"
-                  className="flex w-full flex-col gap-2 px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
+                  className="flex flex-col gap-2 px-4 py-2.5 transition hover:bg-slate-50 focus:outline-none focus-visible:bg-slate-50 dark:hover:bg-slate-800/40 dark:focus-visible:bg-slate-800/40 md:flex-row md:items-center md:justify-between"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-slate-900 dark:text-white">{report.title}</p>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      {report.location} • {report.trackingCode}
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {categoryLabels[report.category]} • {report.location}
                     </p>
-                    <p className="mt-2 truncate text-sm text-slate-600 dark:text-slate-300">{categoryLabels[report.category]}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{formatDate(report.submittedAt)}</p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                    <span className="rounded-full bg-kmuGreen/10 px-2.5 py-1 text-[11px] font-semibold text-kmuGreen dark:bg-kmuGreen/20 dark:text-emerald-300">
-                      {categoryLabels[report.category]}
-                    </span>
-                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusColors[report.status]}`}>
+                  <div className="flex items-center gap-2">
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusColors[report.status]}`}>
                       {report.status}
                     </span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">{formatDate(report.submittedAt)}</span>
                   </div>
                 </Link>
               ))
@@ -179,15 +173,15 @@ export default function GeneralDashboardPage() {
           </div>
         </article>
 
-        <div className="space-y-4">
+        <div className="space-y-4 xl:flex xl:h-full xl:flex-col xl:space-y-0 xl:gap-4">
           <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <h2 className="text-base font-semibold text-slate-900 dark:text-white">Quick Actions</h2>
             <div className="mt-3 grid gap-2 grid-cols-2">
-              <Link href="/make-report" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+              <Link href="/make-report?guided=true" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
                 <FilePenLine size={16} />
                 <span>New Report</span>
               </Link>
-              <Link href="/anonymous-report" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
+              <Link href="/make-report?anonymous=true" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
                 <Fingerprint size={16} />
                 <span>Anonymous</span>
               </Link>
@@ -197,7 +191,7 @@ export default function GeneralDashboardPage() {
               </Link>
               <Link href="/help" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-700 transition hover:text-kmuGreen dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200">
                 <BookOpen size={16} />
-                <span>Knowledge Base</span>
+                <span>Help</span>
               </Link>
             </div>
           </article>
@@ -217,7 +211,7 @@ export default function GeneralDashboardPage() {
             </div>
           </article>
 
-          <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <article className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900 xl:flex-1">
             <h2 className="text-base font-semibold text-slate-900 dark:text-white">How It Works</h2>
             <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
               <div className="flex flex-col items-center rounded-xl bg-slate-50 px-3 py-2.5 dark:bg-slate-950">

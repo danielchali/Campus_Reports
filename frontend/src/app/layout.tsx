@@ -39,7 +39,7 @@ function TopNavbar({ showMenuButton }: { showMenuButton: boolean }) {
   if (!user) return null;
 
   return (
-    <nav className="sticky top-0 z-[60] h-12 w-full overflow-visible border-b border-slate-300 bg-white/95 shadow-[0_4px_16px_-4px_rgba(15,23,42,0.55),0_12px_28px_-12px_rgba(15,23,42,0.6)] transition-[box-shadow,background-color] duration-300 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 dark:shadow-[0_10px_28px_-24px_rgba(0,0,0,0.7)]">
+    <nav className="sticky top-0 z-[60] h-12 w-full overflow-visible border-b border-slate-300 bg-white/95 shadow-[0_1px_2px_rgba(15,23,42,0.06),0_4px_12px_-4px_rgba(15,23,42,0.1)] transition-[box-shadow,background-color] duration-300 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 dark:shadow-[0_10px_28px_-24px_rgba(0,0,0,0.7)]">
       <div className="flex h-full items-center justify-between gap-3 px-3 md:px-4">
         <div className="flex min-w-0 items-center gap-2">
           {showMenuButton && (

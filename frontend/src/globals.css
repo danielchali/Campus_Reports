@@ -85,6 +85,29 @@
     border-bottom-width: 0 !important;
     border-top-width: 0 !important;
   }
+
+  /* Keep interactive controls and overlays at the same quiet elevation as cards. */
+  html:not(.dark) button[class*="shadow"],
+  html:not(.dark) button[class*="rounded"][class*="bg-"],
+  html:not(.dark) [class*="shadow-md"],
+  html:not(.dark) [class*="shadow-lg"],
+  html:not(.dark) [class*="shadow-xl"],
+  html:not(.dark) [class*="shadow-2xl"],
+  html:not(.dark) [class*="fixed"] [class*="shadow-lg"] {
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.06),
+      0 4px 12px -4px rgba(15, 23, 42, 0.1) !important;
+  }
+
+  /* Dark surfaces rely on borders and contrast rather than bright cast shadows. */
+  .dark button[class*="shadow"],
+  .dark [class*="shadow-md"],
+  .dark [class*="shadow-lg"],
+  .dark [class*="shadow-xl"],
+  .dark [class*="shadow-2xl"],
+  .dark [class*="fixed"] [class*="shadow-lg"] {
+    box-shadow: none !important;
+  }
 }
 
 @layer base {

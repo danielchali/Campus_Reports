@@ -22,7 +22,7 @@ export default function BottomNav() {
     : bottomNav;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-300 bg-white/95 shadow-[0_-4px_16px_-4px_rgba(15,23,42,0.55),0_-12px_28px_-12px_rgba(15,23,42,0.6)] backdrop-blur dark:border-gray-700 dark:bg-gray-900/95 dark:shadow-none md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-300 bg-white/95 shadow-[0_-1px_2px_rgba(15,23,42,0.06),0_-4px_12px_-4px_rgba(15,23,42,0.1)] backdrop-blur dark:border-gray-700 dark:bg-gray-900/95 dark:shadow-none md:hidden">
       <div className={isStudent ? 'grid grid-cols-4 gap-1 px-1 py-1.5 sm:px-2 sm:py-2' : 'flex overflow-x-auto px-1 py-1.5 sm:px-2 sm:py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'}>
         {navItems.map((link) => {
           const Icon = link.icon;
