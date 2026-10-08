@@ -30,7 +30,7 @@ type Category = 'disciplinary_case' | 'maintenance_issue' | 'other';
 type Step = 'form' | 'success';
 
 export default function AnonymousReportPage() {
-  const { schema, institutionName } = useFormSchema('anonymous_report');
+  const { schema } = useFormSchema('anonymous_report');
   const [step, setStep] = useState<Step>('form');
   const [category, setCategory] = useState<Category>('disciplinary_case');
   const [title, setTitle] = useState('');
@@ -163,21 +163,17 @@ export default function AnonymousReportPage() {
   return (
     <div className="relative min-h-screen flex flex-col bg-slate-100 dark:bg-slate-950 md:bg-transparent">
       <CampusBackground />
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
-        <div className="w-full px-4 md:px-8 py-3 flex items-center justify-between">
-          <Link href="/login" className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-kmuGreen transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Login
-          </Link>
-          <div className="flex items-center gap-2">
-            <img src="/kmu_logo.svg" alt="KMU" className="h-8 w-8 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-            <span className="font-bold text-kmuGreen hidden sm:block">{institutionName}</span>
-          </div>
-        </div>
-      </header>
 
       <div className="relative z-10 flex-1 w-full px-4 md:px-8 py-3 md:py-4 flex flex-col gap-3 md:gap-4">
+
+        <Link
+          href="/"
+          aria-label="Back to Home"
+          className="inline-flex w-fit items-center gap-2 text-sm font-medium text-slate-600 transition-colors hover:text-kmuGreen dark:text-slate-400"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Back to Home</span>
+        </Link>
 
         {/* Page Title — compact two-line hero */}
         <div className="shrink-0">

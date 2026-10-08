@@ -501,34 +501,31 @@ export default function LoginView() {
 
       {/* Right Column - Login Area */}
       <div className="relative z-20 w-full sm:w-[45%] md:w-[45%] lg:w-[40%] flex flex-col h-full">
-        {/* Top Controls */}
-        <div className="absolute top-4 right-4 md:top-6 md:right-6 flex items-center gap-3 z-30">
-          {/* Dark Mode Slider Toggle */}
-          <button
-            onClick={toggleTheme}
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-            className={`flex items-center gap-1 px-1.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.08em] border backdrop-blur-md transition-all hover:scale-105 active:scale-95 ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700/50 text-slate-300' : 'bg-white/40 border-slate-200/50 text-slate-600'}`}
-          >
-            {/* Icon */}
-            {theme === 'dark'
-              ? <Moon className="w-2.5 h-2.5 text-indigo-400" />
-              : <Sun className="w-2.5 h-2.5 text-amber-500" />
-            }
-            <span>{theme === 'dark' ? 'Dark' : 'Light'}</span>
-            {/* Slider knob */}
-            <div
-              className={`relative inline-flex items-center w-5 h-3 rounded-full transition-colors duration-200 ${theme === 'dark' ? 'bg-indigo-500' : 'bg-slate-300'}`}
-            >
-              <span
-                className={`absolute top-0.5 left-0.5 w-2 h-2 bg-white rounded-full shadow-sm transition-transform duration-200 ${theme === 'dark' ? 'translate-x-2' : 'translate-x-0'}`}
-              />
-            </div>
-          </button>
-        </div>
-
         {/* Login Card Container */}
         <div className="flex-1 flex flex-col justify-center px-4 py-4 sm:py-8 md:px-12 relative h-full overflow-y-auto">
-          <div className={`w-full max-w-md mx-auto rounded-3xl p-6 sm:p-7 border ${theme === 'dark' ? 'bg-slate-900 border-slate-800 shadow-[0_16px_36px_-18px_rgba(0,0,0,0.85)]' : 'bg-white border-white shadow-[0_8px_18px_-6px_rgba(15,23,42,0.14),0_20px_40px_-16px_rgba(15,23,42,0.2)]'}`}>
+          <div className={`w-full max-w-lg mx-auto rounded-3xl p-6 sm:p-7 border ${theme === 'dark' ? 'bg-slate-900 border-slate-800 shadow-[0_16px_36px_-18px_rgba(0,0,0,0.85)]' : 'bg-white border-white shadow-[0_10px_24px_-6px_rgba(15,23,42,0.22),0_24px_48px_-14px_rgba(15,23,42,0.32)]'}`}>
+
+            {/* Theme toggle stays on the login card surface */}
+            <div className="mb-3 flex justify-end">
+              <button
+                onClick={toggleTheme}
+                aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                className={`flex items-center gap-1 px-1.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.08em] border backdrop-blur-md transition-all hover:scale-105 active:scale-95 ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700/50 text-slate-300' : 'bg-white/40 border-slate-200/50 text-slate-600'}`}
+              >
+                {theme === 'dark'
+                  ? <Moon className="w-2.5 h-2.5 text-indigo-400" />
+                  : <Sun className="w-2.5 h-2.5 text-amber-500" />
+                }
+                <span>{theme === 'dark' ? 'Dark' : 'Light'}</span>
+                <div
+                  className={`relative inline-flex items-center w-5 h-3 rounded-full transition-colors duration-200 ${theme === 'dark' ? 'bg-indigo-500' : 'bg-slate-300'}`}
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 w-2 h-2 bg-white rounded-full shadow-sm transition-transform duration-200 ${theme === 'dark' ? 'translate-x-2' : 'translate-x-0'}`}
+                  />
+                </div>
+              </button>
+            </div>
             
             <div className="text-center mb-4 sm:mb-6">
               {/* Mobile Logo */}
@@ -542,9 +539,9 @@ export default function LoginView() {
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
               </div>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                Login to your Campus Reports account
-              </p>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Login
+              </h1>
             </div>
 
             {signupSuccess && (
@@ -663,28 +660,26 @@ export default function LoginView() {
                 </div>
               </div>
 
-              {/* Form Options */}
-              <div className="flex justify-end text-sm">
+              {/* Form Options and Primary Action */}
+              <div className="flex items-center justify-between gap-3 text-sm">
                 <Link href="/forgot-password" className="text-kmuGreen hover:underline font-medium">
                   Forgot Password?
                 </Link>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="shrink-0 bg-kmuGreen hover:bg-kmuGreen-dark text-white py-2.5 px-5 rounded-xl font-bold shadow-lg shadow-kmuGreen/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                      Signing in...
+                    </>
+                  ) : (
+                    'Log In'
+                  )}
+                </button>
               </div>
-
-              {/* Primary Action Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-kmuGreen hover:bg-kmuGreen-dark text-white py-3 sm:py-3.5 px-4 rounded-xl font-bold shadow-lg shadow-kmuGreen/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                    Signing in...
-                  </>
-                ) : (
-                  'Log In'
-                )}
-              </button>
               {googleClientId && (
                 <>
                   <div className="relative flex items-center py-1">
