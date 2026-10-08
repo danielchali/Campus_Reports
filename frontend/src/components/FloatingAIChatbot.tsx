@@ -6,7 +6,11 @@ import { Bot, Sparkles, MessageCircle, Send, Wand2, X } from '@/components/icons
 import { useAuth } from '../context/AuthContext';
 import { useGuidedReporting } from '../hooks/useGuidedReporting';
 import { streamChatWithAssistant } from '../utils/api';
-import { getGuidedReportingSystemPrompt, isReportingRoute } from '../utils/guidedReporting';
+import {
+  getCampusReportsAssistantSystemPrompt,
+  getGuidedReportingSystemPrompt,
+  isReportingRoute,
+} from '../utils/guidedReporting';
 
 type ChatMessage = {
   role: 'user' | 'assistant';
@@ -88,18 +92,7 @@ function getLocationAwareSystemPrompt(pathname: string, role: string | undefined
   const matchedPolicy = POLICY_MATRIX.find((entry) => entry.route.test(pathname));
   const contextualRule = matchedPolicy?.roleRules[roleKey] || matchedPolicy?.defaultRule || 'Guide only the currently visible route with practical, low-risk steps.';
 
-  return [
-    'You are Campus Reports AI for a university discipline-management platform.',
-    'Always identify yourself as "Campus Reports AI" and never call yourself "AI Assistant".',
-    'Structure responses with short headings and bullets when possible for readability.',
-    'Respond in under 8 bullet points or 1 short paragraph unless asked for depth.',
-    'Never invent records, IDs, law, or institutional policy text.',
-    'If you are unsure, ask for confirmation and state exactly what to verify in the UI.',
-    'When the user asks to fill forms, prefer exact visible field labels/names and include one optional XML block exactly once: <form_suggestion>[{"field":"fieldName","value":"proposed value"}]</form_suggestion>.',
-    'Only include fields that are likely visible on this page, skip unknown fields, and avoid guessing hidden/system fields.',
-    `User role: ${role || 'unknown'}. Respect least privilege and avoid unauthorized actions.`,
-    `Current route: ${pathname}. ${contextualRule}`,
-  ].join(' ');
+  return getCampusReportsAssistantSystemPrompt(pathname, role, contextualRule);
 }
 
 function storageKey(pathname: string, userId: string | undefined) {
@@ -354,7 +347,7 @@ export default function FloatingAIChatbot() {
 
   const systemPrompt = useMemo(() => {
     if (reportingRoute && guided.reportingContext) {
-      return getGuidedReportingSystemPrompt(pathname || '', guided.reportingContext.mode);
+      return getGuidedReportingSystemPrompt(pathname || '', guided.reportingContext.mode, user?.role);
     }
     return getLocationAwareSystemPrompt(pathname, user?.role);
   }, [guided.reportingContext, pathname, reportingRoute, user?.role]);

@@ -11,6 +11,7 @@ import SiteFooter from "../components/SiteFooter";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { getNavLinksForRole, isNavigationPathActive, splitNavLinksForMobile } from "../utils/navigation";
+import { getCampusReportsAssistantSystemPrompt } from "../utils/guidedReporting";
 import { canEditWorkOrderPart, workOrderPartLabel } from "../utils/workOrderPermissions";
 import { getDisplayFirstName, getDisplayFullName } from "../utils/userDisplay";
 
@@ -51,6 +52,17 @@ describe("navigation utilities", () => {
       "Logout",
     ]);
     expect(getNavLinksForRole("unknown").map((link) => link.label)).toEqual(["Logout"]);
+  });
+
+  it("uses the actual role and route map in the assistant system prompt", () => {
+    const prompt = getCampusReportsAssistantSystemPrompt("/student-dashboard", "student", "Student dashboard guidance");
+    expect(prompt).toContain("Campus Reports AI");
+    expect(prompt).toContain("Chali Daniel and Namonje Grace");
+    expect(prompt).toContain("/student-dashboard");
+    expect(prompt).toContain("student");
+    expect(prompt).toContain("/security-dashboard");
+    expect(prompt).toContain("/maintenance-dashboard");
+    expect(prompt).toContain("Do not invent pages or actions not present in this codebase");
   });
 
   it("splits navigation into mobile and sidebar groups while excluding profile links", () => {
