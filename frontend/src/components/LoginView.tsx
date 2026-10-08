@@ -510,7 +510,7 @@ export default function LoginView() {
               <button
                 onClick={toggleTheme}
                 aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-                className={`flex items-center gap-1 px-1.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.08em] border backdrop-blur-md transition-all hover:scale-105 active:scale-95 ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700/50 text-slate-300' : 'bg-white/40 border-slate-200/50 text-slate-600'}`}
+                className={`flex items-center gap-1 px-1.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-[0.08em] border backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 hover:shadow-sm active:translate-y-0 active:scale-95 ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700/50 text-slate-300' : 'bg-white/40 border-slate-200/50 text-slate-600'}`}
               >
                 {theme === 'dark'
                   ? <Moon className="w-2.5 h-2.5 text-indigo-400" />
@@ -668,7 +668,7 @@ export default function LoginView() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="shrink-0 bg-kmuGreen hover:bg-kmuGreen-dark text-white py-2.5 px-5 rounded-xl font-bold shadow-lg shadow-kmuGreen/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100 flex items-center justify-center"
+                  className="shrink-0 bg-kmuGreen hover:bg-kmuGreen-dark text-white py-2.5 px-5 rounded-xl font-bold shadow-lg shadow-kmuGreen/20 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-kmuGreen/30 active:translate-y-0 active:scale-[0.98] disabled:opacity-70 disabled:active:translate-y-0 disabled:active:scale-100 flex items-center justify-center"
                 >
                   {loading ? (
                     <>
