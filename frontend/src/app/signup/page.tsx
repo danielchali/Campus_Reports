@@ -447,7 +447,7 @@ export default function StudentSignupPage() {
                     <p className="text-sm text-slate-500 dark:text-slate-400">Register with your student details and academic information.</p>
                   </button>
                   <button type="button" onClick={() => { setAccountType('general_user'); setError(''); }} className="text-left p-5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-kmuGreen transition-all">
-                    <h3 className="font-bold text-lg mb-2">General User (e.g. Lecturer)</h3>
+                    <h3 className="font-bold text-lg mb-2">Other User (e.g. Lecturer, Staff)</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400">For malpractice reports, disciplinary reports, and maintenance requests.</p>
                   </button>
                 </div>
