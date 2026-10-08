@@ -378,7 +378,7 @@ export function getNavLinksForRole(role?: string): NavLink[] {
         label: "Security/Disciplinary Issue",
         path: "/file-security-disciplinary-issue",
       },
-      { icon: navIcons.help, label: "Knowledge Base", path: "/help" },
+      { icon: navIcons.help, label: "Help", path: "/help" },
       {
         icon: navIcons.logout,
         label: "Logout",
