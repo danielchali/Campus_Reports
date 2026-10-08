@@ -62,6 +62,7 @@ export default function WorkOrdersPage() {
   const [manualWorkOrder, setManualWorkOrder] = useState(INITIAL_MANUAL_WORK_ORDER);
   const [creatingManual, setCreatingManual] = useState(false);
   const [activeWorkOrderId, setActiveWorkOrderId] = useState<string | null>(null);
+  const [createdWorkOrder, setCreatedWorkOrder] = useState<WorkOrder | null>(null);
 
   const activeWorkOrder = useMemo(
     () => workOrders.find((item) => item.id === activeWorkOrderId) || null,
@@ -147,6 +148,7 @@ export default function WorkOrdersPage() {
       setWorkOrders((current) => [workOrder, ...current]);
       setManualWorkOrder(INITIAL_MANUAL_WORK_ORDER);
       setShowManualForm(false);
+      setCreatedWorkOrder(workOrder);
       showNotification("success", `Manual work order ${workOrder.workOrderId} created.`);
     } catch (err: any) {
       showNotification("error", err?.message || "Failed to create manual work order.");
@@ -432,6 +434,14 @@ export default function WorkOrdersPage() {
           message={notification.message}
           isVisible={notification.isVisible}
           onClose={hideNotification}
+          action={createdWorkOrder ? {
+            label: "Open work order",
+            onClick: () => {
+              setActiveWorkOrderId(createdWorkOrder.id);
+              setCreatedWorkOrder(null);
+              hideNotification();
+            },
+          } : undefined}
         />
       )}
     </>

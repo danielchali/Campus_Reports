@@ -8,6 +8,10 @@ interface NotificationProps {
   isVisible: boolean;
   onClose: () => void;
   duration?: number;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 export default function Notification({ 
@@ -15,7 +19,8 @@ export default function Notification({
   message, 
   isVisible, 
   onClose, 
-  duration = 4000 
+  duration = 4000,
+  action,
 }: NotificationProps) {
   useEffect(() => {
     if (isVisible) {
@@ -92,6 +97,17 @@ export default function Notification({
             </button>
           </div>
         </div>
+        {action && (
+          <div className="mt-4 flex justify-end border-t border-current/10 pt-4">
+            <button
+              type="button"
+              onClick={action.onClick}
+              className="rounded-lg bg-kmuGreen px-4 py-2 text-sm font-semibold text-white transition hover:bg-kmuOrange"
+            >
+              {action.label}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

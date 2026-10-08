@@ -6,6 +6,7 @@ import {
   AlertTriangle,
   Camera,
   CheckCircle2,
+  Copy,
   Paperclip,
   ShieldAlert,
   Wrench,
@@ -196,6 +197,7 @@ export default function MakeReportPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [trackingCode, setTrackingCode] = useState("");
+  const [trackingCodeCopied, setTrackingCodeCopied] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [autoFillNotice, setAutoFillNotice] = useState("");
@@ -206,6 +208,12 @@ export default function MakeReportPage() {
     user?.role === "general_user" && !isMaintenanceRequest;
   const reportInvolvesStudent =
     user?.role === "student" || (!isMaintenanceRequest && studentInvolved);
+
+  const copyTrackingCode = async () => {
+    await navigator.clipboard.writeText(trackingCode);
+    setTrackingCodeCopied(true);
+    setTimeout(() => setTrackingCodeCopied(false), 2000);
+  };
 
   useEffect(() => {
     if (lockedCategory) {
@@ -932,10 +940,20 @@ export default function MakeReportPage() {
                   {success}
                 </p>
                 {trackingCode && (
-                  <p className="mt-3 text-sm text-slate-700 dark:text-slate-200">
-                    Tracking code:{" "}
+                  <div className="mt-3 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                    <span>Tracking code:</span>
                     <span className="font-semibold">{trackingCode}</span>
-                  </p>
+                    <button
+                      type="button"
+                      onClick={copyTrackingCode}
+                      aria-label={trackingCodeCopied ? "Tracking code copied" : "Copy tracking code"}
+                      title={trackingCodeCopied ? "Copied" : "Copy tracking code"}
+                      className="rounded-lg p-1.5 text-kmuGreen transition hover:bg-kmuGreen/10"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
+                    {trackingCodeCopied && <span className="text-xs font-medium text-emerald-600">Copied!</span>}
+                  </div>
                 )}
               </div>
             </div>

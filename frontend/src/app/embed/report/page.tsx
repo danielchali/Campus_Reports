@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { AlertTriangle, CheckCircle2, Ghost, Loader2 } from '@/components/icons';
+import { AlertTriangle, CheckCircle2, Copy, Ghost, Loader2 } from '@/components/icons';
 import SchemaCategoryPicker from '../../../components/reporting/SchemaCategoryPicker';
 import SchemaFormFields from '../../../components/reporting/SchemaFormFields';
 import { API_BASE_URL } from '../../../config/constants';
@@ -27,6 +27,7 @@ export default function EmbedReportPage() {
   const [error, setError] = useState('');
   const [trackingCode, setTrackingCode] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const lockedCategory = searchParams.get('category');
   const activeCategory = getCategoryById(schema, category);
@@ -56,6 +57,12 @@ export default function EmbedReportPage() {
 
   const handleDetailChange = (fieldId: string, value: string) => {
     setDetails((current) => ({ ...current, [fieldId]: value }));
+  };
+
+  const copyTrackingCode = async () => {
+    await navigator.clipboard.writeText(trackingCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -116,7 +123,19 @@ export default function EmbedReportPage() {
           <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto" />
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Report Submitted</h1>
           <p className="text-sm text-slate-500">Your tracking code:</p>
-          <p className="text-3xl font-extrabold tracking-widest text-kmuGreen">{trackingCode}</p>
+          <div className="flex items-center justify-center gap-3">
+            <p className="text-3xl font-extrabold tracking-widest text-kmuGreen">{trackingCode}</p>
+            <button
+              type="button"
+              onClick={copyTrackingCode}
+              aria-label={copied ? 'Tracking code copied' : 'Copy tracking code'}
+              title={copied ? 'Copied' : 'Copy tracking code'}
+              className="rounded-lg p-2 text-kmuGreen transition hover:bg-kmuGreen/10"
+            >
+              <Copy className="h-5 w-5" />
+            </button>
+          </div>
+          {copied && <p className="text-sm font-medium text-emerald-600">Copied!</p>}
         </div>
       </div>
     );

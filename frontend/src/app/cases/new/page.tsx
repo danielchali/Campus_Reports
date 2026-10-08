@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "@/components/icons";
+import { useAlertDialog } from "../../../components/AppDialog";
 import { useAuth } from "../../../context/AuthContext";
 import ProtectedRoute from "../../(protected)/ProtectedRoute";
 import { API_BASE_URL, OFFENSE_TYPES, SEVERITY_LEVELS } from "../../../config/constants";
@@ -311,6 +312,7 @@ function TextAreaField({
 }
 
 export default function NewCasePage() {
+  const { showAlert, alertDialog } = useAlertDialog();
   const { user, loading: authLoading } = useAuth();
   if (typeof window !== 'undefined') {
     if (authLoading) {
@@ -1063,13 +1065,13 @@ export default function NewCasePage() {
       }
 
       if (asDraft) {
-        setSuccess(`Draft saved successfully. Case number: ${createdCase.caseId || createdCase.case_id || "generated"}.`);
+        showAlert({ title: "Draft saved", message: `Draft saved successfully. Case number: ${createdCase.caseId || createdCase.case_id || "generated"}.`, tone: "success" });
       } else if (caseType === "single_student") {
-        setSuccess("Case created from docket cover. Complete Call Out, Statement Pad, and Warn & Caution later.");
+        showAlert({ title: "Case created", message: "Case created from docket cover. Complete Call Out, Statement Pad, and Warn & Caution later.", tone: "success" });
       } else if (caseType === "single_staff") {
-        setSuccess("Case created successfully for staff member.");
+        showAlert({ title: "Case created", message: "Case created successfully for staff member.", tone: "success" });
       } else {
-        setSuccess(`Case created successfully for ${selectedStaffMembers.length} staff member(s).`);
+        showAlert({ title: "Cases created", message: `Case created successfully for ${selectedStaffMembers.length} staff member(s).`, tone: "success" });
       }
 
       if (!asDraft) {
@@ -1580,7 +1582,9 @@ export default function NewCasePage() {
   };
 
   return (
-    <ProtectedRoute>
+    <>
+      {alertDialog}
+      <ProtectedRoute>
       <div className="min-h-screen bg-slate-100 dark:bg-slate-950 print:bg-white">
         <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95 print:hidden">
           <div className="flex w-full items-center justify-between gap-3 px-4 py-3 md:px-8">
@@ -1710,7 +1714,6 @@ export default function NewCasePage() {
                     {renderStudentWizardStep()}
 
                     {error && <div className="text-sm text-red-600">{error}</div>}
-                    {success && <div className="text-sm text-kmuGreen">{success}</div>}
 
                     <div className="sticky bottom-0 -mx-6 mt-6 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur dark:border-slate-700 dark:bg-gray-800/95 print:static print:border-0 print:bg-transparent print:px-0">
                       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1801,7 +1804,6 @@ export default function NewCasePage() {
                     <Field label="Sanctions (Optional)" value={sanctions} onChange={setSanctions} placeholder="Any sanctions or disciplinary measures applied" />
 
                     {error && <div className="text-sm text-red-600">{error}</div>}
-                    {success && <div className="text-sm text-kmuGreen">{success}</div>}
 
                     <div className="sticky bottom-0 -mx-6 mt-6 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur dark:border-slate-700 dark:bg-gray-800/95">
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -1827,6 +1829,7 @@ export default function NewCasePage() {
           </div>
         </div>
       </div>
-    </ProtectedRoute>
+      </ProtectedRoute>
+    </>
   );
 }

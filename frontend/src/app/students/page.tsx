@@ -108,7 +108,7 @@ export default function StudentsPage() {
   }, [success]);
 
   function handleCreateSuccess() {
-    setSuccess('Student user created successfully!');
+    showAlert({ title: 'Student created', message: 'Student user created successfully!', tone: 'success' });
     loadStudents();
   }
 
@@ -303,7 +303,7 @@ export default function StudentsPage() {
         successMessage += `\n\n📊 Summary: ${importResponse.data.summary.successful} imported, ${importResponse.data.summary.skipped} skipped, ${importResponse.data.summary.failed} failed`;
       }
       
-      setSuccess(successMessage);
+      showAlert({ title: 'Students imported', message: successMessage, tone: 'success' });
       loadStudents();
       
     } catch (err: any) {
@@ -409,11 +409,6 @@ export default function StudentsPage() {
       {error && (
         <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" aria-live="polite">
           {error}
-        </div>
-      )}
-      {success && (
-        <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700" aria-live="polite">
-          {success}
         </div>
       )}
       {loading && <div className="mb-4"><InlineSkeleton rows={5} /></div>}

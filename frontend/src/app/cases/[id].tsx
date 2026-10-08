@@ -6,12 +6,13 @@ import { API_BASE_URL } from '../../config/constants';
 import { OFFENSE_TYPES, SEVERITY_LEVELS, CASE_STATUSES } from '../../config/constants';
 import { authHeaders } from '../../utils/api';
 import { InlineSkeleton } from '../../components/PageSkeleton';
-import { useConfirmDialog } from '../../components/AppDialog';
+import { useAlertDialog, useConfirmDialog } from '../../components/AppDialog';
 
 export default function CaseDetailsPage() {
   const { user, token } = useAuth();
   const router = useRouter();
   const { confirm, confirmDialog } = useConfirmDialog();
+  const { showAlert, alertDialog } = useAlertDialog();
   const params = useParams();
   const caseId = params?.id as string;
   const [caseData, setCaseData] = useState<any>(null);
@@ -108,7 +109,7 @@ export default function CaseDetailsPage() {
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error(await res.text());
-      setSuccess('Case updated successfully!');
+      showAlert({ title: 'Case updated', message: 'Case updated successfully!', tone: 'success' });
       setEditMode(false);
       fetchCase();
     } catch (err: any) {
@@ -132,7 +133,7 @@ export default function CaseDetailsPage() {
         headers: { ...authHeaders() },
       });
       if (!res.ok) throw new Error(await res.text());
-      setSuccess('Case deleted successfully!');
+      showAlert({ title: 'Case deleted', message: 'Case deleted successfully!', tone: 'success' });
       setTimeout(() => router.push('/cases'), 1000);
     } catch (err: any) {
       setError(err?.message || 'Network error, please try again');
@@ -214,7 +215,6 @@ export default function CaseDetailsPage() {
                 placeholder="Any sanctions or disciplinary measures applied (optional)"
               />
             </div>
-            {success && <div className="text-kmuGreen text-sm">{success}</div>}
             {error && <div className="text-red-600 text-sm">{error}</div>}
             <button type="submit" className="bg-kmuGreen text-white px-4 py-2 rounded">Save</button>
             <button type="button" className="bg-gray-300 text-gray-700 px-4 py-2 rounded ml-2" onClick={() => setEditMode(false)}>Cancel</button>
@@ -263,6 +263,7 @@ export default function CaseDetailsPage() {
           </ul>
         )}
       </div>
+      {alertDialog}
       {confirmDialog}
     </section>
   );

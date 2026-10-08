@@ -5,12 +5,14 @@ import { Copy, Loader2, Save } from '@/components/icons';
 import RoleProtectedRoute from '../../(protected)/RoleProtectedRoute';
 import { useAuth } from '../../../context/AuthContext';
 import { PageSkeleton } from '../../../components/PageSkeleton';
+import { useAlertDialog } from '../../../components/AppDialog';
 import { API_BASE_URL } from '../../../config/constants';
 import type { InstitutionFormConfig } from '../../../types/formSchema';
 import { fetchPortalConfig, updateInstitutionFormConfig } from '../../../utils/formSchemas';
 
 function SystemSettingsContent() {
   const { token } = useAuth();
+  const { showAlert, alertDialog } = useAlertDialog();
   const [config, setConfig] = useState<InstitutionFormConfig | null>(null);
   const [portalMeta, setPortalMeta] = useState<InstitutionFormConfig['portal'] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,7 +75,7 @@ function SystemSettingsContent() {
         },
       });
       setConfig(updated);
-      setSuccess('System settings saved.');
+      showAlert({ title: 'Settings saved', message: 'System settings saved.', tone: 'success' });
       const portalResponse = await fetchPortalConfig();
       setPortalMeta(portalResponse);
     } catch (err) {
@@ -100,7 +102,7 @@ function SystemSettingsContent() {
   return (
     <div className="w-full space-y-6">
       {error && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{error}</div>}
-      {success && <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</div>}
+      {alertDialog}
 
       <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-5">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">Institution Profile</h2>

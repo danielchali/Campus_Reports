@@ -7,7 +7,7 @@ import { API_BASE_URL } from '../../../config/constants';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, TableSkeleton } from '../../../components/PageSkeleton';
 import { StatCard, StatsStrip } from '../../../components/StatsStrip';
-import { useConfirmDialog } from '../../../components/AppDialog';
+import { useAlertDialog, useConfirmDialog } from '../../../components/AppDialog';
 
 
 
@@ -51,6 +51,7 @@ export default function UserManagementPage() {
   const { token, user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { confirm, confirmDialog } = useConfirmDialog();
+  const { showAlert, alertDialog } = useAlertDialog();
   
   const [users, setUsers] = useState<UserAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,7 +106,7 @@ export default function UserManagementPage() {
     try {
       const loginIdentifier = newUser.role === 'student' ? newUser.username.trim() : newUser.email.trim();
       await register(loginIdentifier, newUser.password, newUser.name, newUser.role, newUser.email.trim(), newUser.hostel.trim());
-      setSuccess('User created successfully!');
+      showAlert({ title: 'User created', message: 'User created successfully!', tone: 'success' });
       setShowCreate(false);
       setNewUser({ username: '', name: '', email: '', password: '', role: 'security_officer', hostel: '' });
       fetchUsers();
@@ -138,7 +139,11 @@ export default function UserManagementPage() {
         email: editUser.email?.trim() || '',
         hostel: editUser.hostel?.trim() || ''
       });
-      setSuccess('User updated successfully!');
+      showAlert({
+        title: 'User updated',
+        message: 'User updated successfully!',
+        tone: 'success',
+      });
       setEditUser(null);
       setEditingUserId(null);
       fetchUsers();
@@ -160,7 +165,7 @@ export default function UserManagementPage() {
     setSuccess(null);
     try {
       await remove('users', id);
-      setSuccess('User deleted successfully!');
+      showAlert({ title: 'User deleted', message: 'User deleted successfully!', tone: 'success' });
       fetchUsers();
     } catch (err: unknown) {
       console.error('Error deleting user:', err);
@@ -213,7 +218,11 @@ export default function UserManagementPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to reset password');
-      setSuccess(`Password reset successfully for ${resetPasswordUser?.username || 'user'}.`);
+      showAlert({
+        title: 'Password reset',
+        message: `Password reset successfully for ${resetPasswordUser?.username || 'user'}.`,
+        tone: 'success',
+      });
       setResetPasswordUser(null);
       setResetPassword('');
       setResetPasswordConfirm('');
@@ -298,6 +307,7 @@ export default function UserManagementPage() {
 
   return (
       <div className="w-full space-y-6">
+        {alertDialog}
         <StatsStrip desktopColumnsClass="lg:grid-cols-4">
           {userStats.map((stat) => (
             <StatCard
@@ -311,7 +321,6 @@ export default function UserManagementPage() {
         </StatsStrip>
 
         {/* Messages */}
-        {success && <div className="text-kmuGreen text-sm mb-2 bg-green-100 dark:bg-green-900/20 p-2 rounded">{success}</div>}
         {error && <div className="text-red-600 text-sm mb-2 bg-red-100 dark:bg-red-900/20 p-2 rounded">{error}</div>}
 
         {/* Filters and Actions */}

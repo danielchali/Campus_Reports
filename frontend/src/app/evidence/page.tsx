@@ -8,7 +8,7 @@ import { useOfflineApi } from '../../hooks/useOfflineSync';
 import { canAccessPage } from '../../utils/access';
 import { PageSkeleton } from '../../components/PageSkeleton';
 import { InlineSkeleton } from '../../components/PageSkeleton';
-import { useConfirmDialog } from '../../components/AppDialog';
+import { useAlertDialog, useConfirmDialog } from '../../components/AppDialog';
 
 
 interface Evidence {
@@ -57,6 +57,7 @@ export default function EvidencePage() {
   const [offlineMode, setOfflineMode] = useState(false);
   const { apiCall, isLoading: apiLoading, error: apiError } = useOfflineApi();
   const { confirm, confirmDialog } = useConfirmDialog();
+  const { showAlert, alertDialog } = useAlertDialog();
 
   useEffect(() => {
     async function fetchEvidence() {
@@ -126,7 +127,7 @@ export default function EvidencePage() {
         body: formData,
       });
       if (!res.ok) throw new Error(await res.text());
-      setSuccess('Evidence uploaded successfully!');
+      showAlert({ title: 'Evidence uploaded', message: 'Evidence uploaded successfully!', tone: 'success' });
       setFile(null);
       setCaseId('');
       // Refresh evidence list
@@ -175,7 +176,11 @@ export default function EvidencePage() {
     setSuccess(null);
     try {
       const response = await apiCall<{ success: boolean }>('delete', `/evidence/${id}`);
-      setSuccess(response.offline ? 'Evidence marked for deletion and will sync when online.' : 'Evidence deleted successfully!');
+      showAlert({
+        title: 'Evidence deleted',
+        message: response.offline ? 'Evidence marked for deletion and will sync when online.' : 'Evidence deleted successfully!',
+        tone: 'success',
+      });
       setEvidence(evidence => evidence.filter(e => {
         const evidenceId = getEvidenceId(e);
         return evidenceId !== id;
@@ -279,7 +284,6 @@ export default function EvidencePage() {
               />
             </div>
             {error && <div className="text-red-600 text-sm" aria-live="polite">{error}</div>}
-            {success && <div className="text-kmuGreen text-sm" aria-live="polite">{success}</div>}
             <button
               type="submit"
               className="bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition disabled:opacity-50"
@@ -369,6 +373,7 @@ export default function EvidencePage() {
           )}
         </div>
       </div>
+      {alertDialog}
       {confirmDialog}
     </>
   );
