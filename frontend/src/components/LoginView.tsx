@@ -688,11 +688,17 @@ export default function LoginView() {
                     <div className="flex-grow border-t border-slate-200 dark:border-slate-800" />
                   </div>
                   <div
-                    ref={googleButtonRef}
-                    className="flex min-h-10 justify-center"
+                    className={`relative mx-auto flex h-12 w-12 items-center justify-center rounded-full border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 hover:shadow-md active:translate-y-0 active:scale-95 ${theme === 'dark' ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}
                     aria-label="Sign in with Google"
                     title="Sign in with Google"
-                  />
+                  >
+                    <img src="/google-mark.svg" alt="" aria-hidden="true" className="h-8 w-8" />
+                    <div
+                      ref={googleButtonRef}
+                      className="absolute inset-0 flex items-center justify-center overflow-hidden opacity-0"
+                      aria-hidden="true"
+                    />
+                  </div>
                 </>
               )}
             </form>
