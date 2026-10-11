@@ -188,6 +188,17 @@ router.post("/", async (req, res) => {
       contact_email: contact_email ? contact_email.trim() : "",
       details: validation.details || {},
       ip_hash,
+      seen_by: [],
+      updates: [
+        {
+          status: "Submitted",
+          message:
+            "Your anonymous report has been received and is waiting for review by the appropriate office.",
+          createdBy: "system",
+          createdByRole: "anonymous",
+          createdAt: new Date(),
+        },
+      ],
     });
 
     if (isEmailEnabled()) {
@@ -202,13 +213,18 @@ router.post("/", async (req, res) => {
     }
 
     applyNlpToDocument(AnonymousReportModel, report._id, report)
-      .then(() => emitDashboardRefresh("anonymous-reports"))
+      .then(() => {
+        emitDashboardRefresh("anonymous-reports");
+        emitDashboardRefresh("student-reports");
+      })
       .catch((err) => {
         console.error("Failed NLP analysis for anonymous report:", err);
         emitDashboardRefresh("anonymous-reports");
+        emitDashboardRefresh("student-reports");
       });
 
     emitDashboardRefresh("anonymous-reports");
+    emitDashboardRefresh("student-reports");
 
     res.status(201).json({
       message: "Report submitted successfully.",
@@ -245,6 +261,11 @@ router.get("/track/:code", async (req, res) => {
       incident_date: report.incident_date,
       status: report.status,
       submitted_at: report.createdAt,
+      updates: (report.updates || []).map((u) => ({
+        status: u.status,
+        message: u.message,
+        createdAt: u.createdAt,
+      })),
     });
   } catch (err) {
     console.error("Anonymous report tracking error:", err);
@@ -331,6 +352,14 @@ router.patch(
       const previousCategory = report.category;
       report.category = category;
       report.updatedAt = new Date();
+      if (!report.updates) report.updates = [];
+      report.updates.unshift({
+        status: report.status,
+        message: `Report category rerouted from ${CATEGORY_LABELS[previousCategory] || previousCategory} to ${CATEGORY_LABELS[category] || category}.`,
+        createdBy: req.user.username || req.user.name || "system",
+        createdByRole: req.user.role,
+        createdAt: new Date(),
+      });
       await report.save();
 
       if (isEmailEnabled() && report.contact_email) {
@@ -343,6 +372,7 @@ router.patch(
       }
 
       emitDashboardRefresh("anonymous-reports");
+      emitDashboardRefresh("student-reports");
       res.json(mapAnonymousReportForStaff(report, req.user.role));
     } catch (err) {
       res.status(500).json({ error: "Failed to reroute category." });
@@ -385,8 +415,22 @@ router.patch(
         return res.status(409).json({ error: `Report is already in "${status}" status.` });
       }
 
+      const userId = String(req.user.id || req.user._id);
+      if (!report.seen_by) report.seen_by = [];
+      if (!report.seen_by.includes(userId)) {
+        report.seen_by.push(userId);
+      }
+
       report.status = status;
       report.updatedAt = new Date();
+      if (!report.updates) report.updates = [];
+      report.updates.unshift({
+        status,
+        message: req.body.message?.trim() || `Report status updated to ${status}.`,
+        createdBy: req.user.username || req.user.name || "staff",
+        createdByRole: req.user.role,
+        createdAt: new Date(),
+      });
       await report.save();
 
       if (isEmailEnabled() && report.contact_email) {
@@ -399,6 +443,7 @@ router.patch(
       }
 
       emitDashboardRefresh("anonymous-reports");
+      emitDashboardRefresh("student-reports");
       res.json(mapAnonymousReportForStaff(report, req.user.role));
     } catch (err) {
       res.status(500).json({ error: "Failed to update status." });

@@ -11,6 +11,19 @@ const anonymousReportSchema = new mongoose.Schema({
     details: { type: mongoose.Schema.Types.Mixed, default: {} },
     status: { type: String, enum: ['Submitted', 'Under Review', 'In Progress', 'Resolved'], default: 'Submitted' },
     ip_hash: { type: String, default: '' }, // hashed for basic spam detection, not traceable
+    seen_by: { type: [String], default: [] },
+    updates: {
+      type: [
+        {
+          status: { type: String, required: true },
+          message: { type: String, required: true },
+          createdBy: { type: String, default: '' },
+          createdByRole: { type: String, default: '' },
+          createdAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
     ai_summary: { type: String, default: '' },
     ai_priority: { type: String, enum: ['Low', 'Medium', 'High', 'Critical'], default: 'Medium' },
     ai_priority_score: { type: Number, default: 50 },

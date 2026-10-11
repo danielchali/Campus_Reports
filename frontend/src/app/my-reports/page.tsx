@@ -22,6 +22,7 @@ import {
 const categoryLabels = {
   disciplinary_case: "Disciplinary Case",
   maintenance_issue: "Maintenance Issue",
+  other: "Other",
 } as const;
 
 const detailLabels: Record<string, string> = {

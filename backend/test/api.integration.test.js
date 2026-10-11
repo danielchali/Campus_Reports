@@ -106,3 +106,16 @@ test("students API applies the stricter admin-only rule to deletes", async () =>
 
   assertJsonError(response, 403, "Forbidden");
 });
+
+test("student-reports API requires authentication for staff report intake", async () => {
+  const response = await request(app).get("/api/v1/student-reports");
+  assertJsonError(response, 401, "Missing or invalid token");
+});
+
+test("student-reports API rejects unauthorized roles from viewing intake queue", async () => {
+  const response = await request(app)
+    .get("/api/v1/student-reports")
+    .set("Authorization", authHeader({ id: "student-1", username: "student.one", role: "student" }));
+
+  assertJsonError(response, 403, "Forbidden");
+});

@@ -3,6 +3,19 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Bar, Doughnut, Line } from "react-chartjs-2";
+import {
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  Filler,
+  Legend,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Tooltip,
+} from "chart.js";
 import {
   ArrowRight,
   Bot,
@@ -22,7 +35,30 @@ import { useAuth } from "../../context/AuthContext";
 import { PageSkeleton } from "../../components/PageSkeleton";
 import { StatCard, StatsStrip } from "../../components/StatsStrip";
 
+ChartJS.register(
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  Filler,
+  Legend,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Tooltip,
+);
+
 type CountItem = { label: string; count: number };
+type ReportActivityBucket = {
+  period: string;
+  maintenance: number;
+  discipline: number;
+  anonymous: number;
+};
+type ReportActivity = {
+  distribution: CountItem[];
+  daily: ReportActivityBucket[];
+  monthly: ReportActivityBucket[];
+};
 type PerformanceMetric = { average: number | null; p75: number | null };
 type PerformanceSummary = {
   windowMinutes: number;
@@ -60,6 +96,7 @@ type AnalyticsSummary = {
   disciplinaryIssues: CountItem[];
   caseOffenses: CountItem[];
   statusCounts: CountItem[];
+  reportActivity: ReportActivity;
   totals: {
     reports: number;
     studentReports: number;
@@ -80,6 +117,22 @@ type AnalyticsSummary = {
 };
 
 type Accent = "emerald" | "orange" | "blue" | "violet";
+type ActivityPeriod = 7 | 14 | 28 | "all";
+
+const REPORT_ACTIVITY_PERIODS: { days: ActivityPeriod; label: string }[] = [
+  { days: 7, label: "7D" },
+  { days: 14, label: "14D" },
+  { days: 28, label: "28D" },
+  { days: "all", label: "All" },
+];
+
+const REPORT_CHART_COLORS = {
+  maintenance: "#008542",
+  discipline: "#ff8200",
+  anonymous: "#2563eb",
+  status: "#7c3aed",
+  issues: "#0f766e",
+};
 
 const accentClasses: Record<Accent, { bar: string; badge: string }> = {
   emerald: { bar: "bg-emerald-500", badge: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
@@ -104,6 +157,16 @@ function formatDateTime(value: string | null | undefined) {
 
 function getCount(items: CountItem[], ...labels: string[]) {
   return items.filter((item) => labels.includes(item.label)).reduce((total, item) => total + item.count, 0);
+}
+
+function formatActivityPeriod(period: string, monthly = false) {
+  const date = monthly
+    ? new Date(`${period}-01T12:00:00`)
+    : new Date(`${period}T12:00:00`);
+  if (Number.isNaN(date.getTime())) return period;
+  return date.toLocaleDateString(undefined, monthly
+    ? { month: "short", year: "numeric" }
+    : { month: "short", day: "numeric" });
 }
 
 function Breakdown({ eyebrow, title, description, items, accent = "emerald" }: {
@@ -186,6 +249,7 @@ export default function AnalyticsPage() {
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activityPeriod, setActivityPeriod] = useState<ActivityPeriod>(28);
 
   const loadSummary = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
@@ -236,6 +300,89 @@ export default function AnalyticsPage() {
     : isHostelView
       ? "A location-scoped view of reports and maintenance work for the assigned hostel."
       : "A role-aware view of report trends, operating backlog, and recurring patterns.";
+  const isAllActivity = activityPeriod === "all";
+  const activityBuckets = isAllActivity
+    ? summary.reportActivity.monthly
+    : summary.reportActivity.daily.slice(-activityPeriod);
+  const activityPeriodLabel = isAllActivity ? "all available months" : `the last ${activityPeriod} days`;
+  const reportTrendData = {
+    labels: activityBuckets.map((bucket) => formatActivityPeriod(bucket.period, isAllActivity)),
+    datasets: [
+      {
+        label: "Maintenance",
+        data: activityBuckets.map((bucket) => bucket.maintenance),
+        borderColor: REPORT_CHART_COLORS.maintenance,
+        backgroundColor: "rgba(0, 133, 66, 0.10)",
+        fill: true,
+        tension: 0.35,
+        pointRadius: 3,
+        pointBackgroundColor: REPORT_CHART_COLORS.maintenance,
+        pointBorderWidth: 0,
+      },
+      {
+        label: "Discipline",
+        data: activityBuckets.map((bucket) => bucket.discipline),
+        borderColor: REPORT_CHART_COLORS.discipline,
+        backgroundColor: "rgba(255, 130, 0, 0.08)",
+        fill: false,
+        tension: 0.35,
+        pointRadius: 3,
+        pointBackgroundColor: REPORT_CHART_COLORS.discipline,
+        pointBorderWidth: 0,
+      },
+      {
+        label: "Anonymous",
+        data: activityBuckets.map((bucket) => bucket.anonymous),
+        borderColor: REPORT_CHART_COLORS.anonymous,
+        backgroundColor: "rgba(37, 99, 235, 0.08)",
+        fill: false,
+        tension: 0.35,
+        pointRadius: 3,
+        pointBackgroundColor: REPORT_CHART_COLORS.anonymous,
+        pointBorderWidth: 0,
+      },
+    ],
+  };
+  const reportDistribution = summary.reportActivity.distribution.filter((item) => item.count > 0);
+  const reportDistributionData = {
+    labels: reportDistribution.map((item) => item.label),
+    datasets: [{
+      data: reportDistribution.map((item) => item.count),
+      backgroundColor: [
+        REPORT_CHART_COLORS.maintenance,
+        REPORT_CHART_COLORS.discipline,
+        REPORT_CHART_COLORS.anonymous,
+      ].slice(0, reportDistribution.length),
+      borderWidth: 0,
+      cutout: "68%",
+    }],
+  };
+  const statusChartItems = summary.statusCounts.filter((item) => item.count > 0);
+  const statusChartData = {
+    labels: statusChartItems.map((item) => humanize(item.label)),
+    datasets: [{
+      label: "Reports",
+      data: statusChartItems.map((item) => item.count),
+      backgroundColor: "rgba(124, 58, 237, 0.76)",
+      borderRadius: 7,
+      borderSkipped: false,
+    }],
+  };
+  const issueChartItems = (isMaintenanceView && workOrders
+    ? workOrders.issueTypes
+    : summary.maintenanceIssues)
+    .filter((item) => item.count > 0)
+    .slice(0, 6);
+  const issueChartData = {
+    labels: issueChartItems.map((item) => humanize(item.label)),
+    datasets: [{
+      label: isMaintenanceView ? "Work orders" : "Reports",
+      data: issueChartItems.map((item) => item.count),
+      backgroundColor: "rgba(15, 118, 110, 0.76)",
+      borderRadius: 7,
+      borderSkipped: false,
+    }],
+  };
 
   return (
     <main className="w-full space-y-5 xl:space-y-6">
@@ -282,6 +429,132 @@ export default function AnalyticsPage() {
           <StatCard label="Last 30 days" value={summary.totals.reportsLast30Days} icon={<Clock3 size={16} />} iconClassName="bg-violet-50 text-violet-600 dark:bg-violet-950/30 dark:text-violet-300" />
         </>}
       </StatsStrip>
+
+      <section className="grid gap-4 xl:grid-cols-3">
+        <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 xl:col-span-2">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Dashboard report activity</p>
+              <h2 className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">Report trend</h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Maintenance, discipline, and anonymous reports for {activityPeriodLabel}.</p>
+            </div>
+            <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-800/60" aria-label="Report trend period">
+              {REPORT_ACTIVITY_PERIODS.map((period) => (
+                <button
+                  key={period.days}
+                  type="button"
+                  onClick={() => setActivityPeriod(period.days)}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+                    activityPeriod === period.days
+                      ? "bg-white text-kmuGreen shadow-sm dark:bg-slate-900 dark:text-emerald-300"
+                      : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+                  }`}
+                  aria-pressed={activityPeriod === period.days}
+                >
+                  {period.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-5 h-[260px]">
+            <Line
+              data={reportTrendData}
+              aria-label="Report activity over time"
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                  legend: {
+                    display: true,
+                    position: "top",
+                    labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true, font: { size: 11 } },
+                  },
+                },
+                scales: {
+                  x: { grid: { display: false } },
+                  y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(148, 163, 184, 0.15)" } },
+                },
+              }}
+            />
+          </div>
+        </article>
+
+        <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Dashboard report distribution</p>
+          <h2 className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">Report mix</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">The same report grouping used on management dashboards.</p>
+          {reportDistribution.length === 0 ? (
+            <p className="mt-10 rounded-2xl bg-slate-50 px-3 py-4 text-sm text-slate-500 dark:bg-slate-950 dark:text-slate-400">No report data available yet.</p>
+          ) : (
+            <>
+              <div className="relative mx-auto mt-4 h-[185px] max-w-[210px]">
+                <Doughnut data={reportDistributionData} aria-label="Report distribution" options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }} />
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-2xl font-semibold tabular-nums text-slate-900 dark:text-white">{summary.totals.reports}</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Reports</span>
+                </div>
+              </div>
+              <div className="mt-4 space-y-2.5">
+                {reportDistribution.map((item, index) => (
+                  <div key={item.label} className="flex items-center justify-between gap-3 text-xs">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: reportDistributionData.datasets[0].backgroundColor[index] }} />
+                      <span className="truncate text-slate-600 dark:text-slate-300">{item.label}</span>
+                    </div>
+                    <span className="font-medium tabular-nums text-slate-900 dark:text-white">{item.count}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </article>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-2">
+        <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Workflow</p>
+          <h2 className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">Reports by status</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">The current review and resolution workload.</p>
+          <div className="mt-5 h-[235px]">
+            <Bar
+              data={statusChartData}
+              aria-label="Reports by status"
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { grid: { display: false } },
+                  y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(148, 163, 184, 0.15)" } },
+                },
+              }}
+            />
+          </div>
+        </article>
+
+        <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Recurring patterns</p>
+          <h2 className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{isMaintenanceView ? "Work orders by type" : "Maintenance issues by type"}</h2>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">The leading categories in the records available to your role.</p>
+          <div className="mt-5 h-[235px]">
+            <Bar
+              data={issueChartData}
+              aria-label={isMaintenanceView ? "Work orders by type" : "Maintenance issues by type"}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: "y",
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: "rgba(148, 163, 184, 0.15)" } },
+                  y: { grid: { display: false } },
+                },
+              }}
+            />
+          </div>
+        </article>
+      </section>
 
       {isMaintenanceView && workOrders ? (
         <section className="grid gap-4 xl:grid-cols-3">

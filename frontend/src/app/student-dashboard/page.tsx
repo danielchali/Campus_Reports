@@ -35,6 +35,7 @@ type StatementRequest = {
 const categoryLabels = {
   disciplinary_case: 'Disciplinary Case',
   maintenance_issue: 'Maintenance Issue',
+  other: 'Other',
 } as const;
 
 const statusColors = {

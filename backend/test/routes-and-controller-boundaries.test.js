@@ -8,6 +8,7 @@ import { deleteEvidence, downloadEvidence, uploadEvidence } from "../controllers
 import EvidenceModel from "../models/evidence.js";
 import NotificationModel from "../models/notification.js";
 import StudentModel from "../models/student.js";
+import AnonymousReportModel from "../models/anonymousReport.js";
 import { getUploadDirectory } from "../utils/uploadPaths.js";
 
 function responseMock() {
@@ -236,4 +237,19 @@ test("getUploadDirectory creates the normal and Vercel upload locations", () => 
 
   if (previousVercel === undefined) delete process.env.VERCEL;
   else process.env.VERCEL = previousVercel;
+});
+
+test("anonymous report model initializes seen_by and updates fields", () => {
+  const report = new AnonymousReportModel({
+    tracking_code: "KMU-TEST-1234",
+    category: "disciplinary_case",
+    title: "Test report",
+    description: "Detailed description",
+    location: "Block A",
+    incident_date: "2026-10-08",
+  });
+  assert.equal(Array.isArray(report.seen_by), true);
+  assert.equal(Array.isArray(report.updates), true);
+  assert.equal(report.seen_by.length, 0);
+  assert.equal(report.updates.length, 0);
 });

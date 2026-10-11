@@ -11,6 +11,8 @@ import { getUploadDirectory } from "../utils/uploadPaths.js";
 import {
   isEmailEnabled,
   sendStudentReporterConfirmation,
+  sendAnonymousReporterStatusUpdate,
+  sendAnonymousReporterCategoryUpdate,
 } from "../utils/emailService.js";
 import { applyNlpToDocument } from "../utils/nlpAnalytics.js";
 import { emitDashboardRefresh } from "../utils/socket.js";
@@ -21,6 +23,7 @@ import {
 import {
   canViewReport,
   getStaffReportScope,
+  CONTACT_EMAIL_ROLES,
 } from "../utils/studentReportAccess.js";
 import { redactStudentReportForViewer } from "../utils/reportRedaction.js";
 import { escapeRegex } from "../utils/inputSanitization.js";
@@ -33,6 +36,7 @@ const MAX_ATTACHMENT_SIZE_BYTES = 2 * 1024 * 1024;
 const CATEGORY_LABELS = {
   disciplinary_case: "Disciplinary Case",
   maintenance_issue: "Maintenance Issue",
+  other: "Other",
 };
 
 function buildAttachmentFilename(file) {
@@ -247,6 +251,70 @@ function addSearchToScope(scopeQuery, search) {
   return { $and: [scopeQuery, searchQuery] };
 }
 
+function getAnonymousStaffScope(user, search = "") {
+  const query = {};
+  if (user?.role === "maintenance") {
+    query.category = "maintenance_issue";
+  }
+  if (!search) return query;
+  const regex = { $regex: escapeRegex(search), $options: "i" };
+  const searchQuery = {
+    $or: [
+      { title: regex },
+      { description: regex },
+      { tracking_code: regex },
+      { location: regex },
+      { category: regex },
+    ],
+  };
+  if (Object.keys(query).length > 0) {
+    return { $and: [query, searchQuery] };
+  }
+  return searchQuery;
+}
+
+function mapAnonymousReportToStudentReport(doc, viewerRole = "") {
+  const obj = doc.toObject ? doc.toObject() : doc;
+  return {
+    id: String(obj._id),
+    trackingCode: obj.tracking_code,
+    title: obj.title,
+    description: obj.description,
+    category: obj.category,
+    anonymous: true,
+    location: obj.location,
+    incidentDate: obj.incident_date,
+    submittedAt: obj.createdAt?.toISOString?.() || obj.createdAt,
+    status: obj.status,
+    ownerId: "",
+    ownerUsername: "",
+    ownerName: "",
+    ownerRole: "",
+    studentInvolved: false,
+    routedToMaintenance: obj.category === "maintenance_issue",
+    routedByRole: "",
+    maintenanceWorkOrderId: "",
+    seenBy: obj.seen_by || [],
+    details: obj.details || {},
+    attachments: [],
+    updates: (obj.updates || []).map((u) => ({
+      id: String(u._id || Math.random().toString(36).slice(2)),
+      status: u.status,
+      message: u.message,
+      createdByRole: u.createdByRole || "",
+      createdAt: u.createdAt?.toISOString?.() || u.createdAt,
+    })),
+    aiSummary: obj.ai_summary || "",
+    aiPriority: obj.ai_priority || "Medium",
+    aiPriorityScore: obj.ai_priority_score ?? 50,
+    aiKeywords: obj.ai_keywords || [],
+    contactEmail: CONTACT_EMAIL_ROLES?.has?.(viewerRole)
+      ? obj.contact_email || ""
+      : "",
+    isAnonymousModel: true,
+  };
+}
+
 // POST / — Student creates a report
 router.post(
   "/",
@@ -453,10 +521,27 @@ router.get(
       const search = req.query.search;
       const query = addSearchToScope(getStaffReportScope(req.user), search);
 
-      const reports = await StudentReportModel.find(query).sort({
-        createdAt: -1,
-      });
-      res.json(await mapReportsWithStudentNames(reports, req.user));
+      const [studentReports, anonymousReports] = await Promise.all([
+        StudentReportModel.find(query).sort({ createdAt: -1 }),
+        AnonymousReportModel.find(getAnonymousStaffScope(req.user, search)).sort({
+          createdAt: -1,
+        }),
+      ]);
+
+      const mappedStudentReports = await mapReportsWithStudentNames(
+        studentReports,
+        req.user,
+      );
+      const mappedAnonymousReports = anonymousReports.map((r) =>
+        mapAnonymousReportToStudentReport(r, req.user.role),
+      );
+
+      const allReports = [...mappedStudentReports, ...mappedAnonymousReports].sort(
+        (a, b) =>
+          new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(),
+      );
+
+      res.json(allReports);
     } catch (err) {
       console.error("Fetch all reports error:", err);
       res.status(500).json({ error: "Failed to fetch reports" });
@@ -482,11 +567,20 @@ router.get(
     try {
       const userId = String(req.user.id || req.user._id);
       const scopeQuery = getStaffReportScope(req.user) || {};
-      const count = await StudentReportModel.countDocuments({
-        ...scopeQuery,
-        seen_by: { $ne: userId },
-      });
-      res.json({ count });
+      const anonScope = getAnonymousStaffScope(req.user);
+
+      const [studentCount, anonCount] = await Promise.all([
+        StudentReportModel.countDocuments({
+          ...scopeQuery,
+          seen_by: { $ne: userId },
+        }),
+        AnonymousReportModel.countDocuments({
+          ...anonScope,
+          seen_by: { $ne: userId },
+        }),
+      ]);
+
+      res.json({ count: studentCount + anonCount });
     } catch (err) {
       console.error("Fetch unread count error:", err);
       res.status(500).json({ error: "Failed to fetch unread count" });
@@ -554,19 +648,44 @@ router.patch("/:id/seen", authenticate, async (req, res) => {
   try {
     const userId = String(req.user.id || req.user._id);
     const report = await StudentReportModel.findById(req.params.id);
-    if (!report) {
-      return res.status(404).json({ error: "Report not found" });
-    }
-    if (!canViewReport(req.user, report)) {
-      return res.status(403).json({ error: "Not authorized to view this report" });
+    if (report) {
+      if (!canViewReport(req.user, report)) {
+        return res
+          .status(403)
+          .json({ error: "Not authorized to view this report" });
+      }
+
+      if (!report.seen_by.includes(userId)) {
+        report.seen_by.push(userId);
+        await report.save();
+      }
+
+      return res.json(mapReportForViewer(report, req.user));
     }
 
-    if (!report.seen_by.includes(userId)) {
-      report.seen_by.push(userId);
-      await report.save();
+    const anonReport = await AnonymousReportModel.findById(req.params.id);
+    if (anonReport) {
+      if (
+        req.user.role === "maintenance" &&
+        anonReport.category !== "maintenance_issue"
+      ) {
+        return res
+          .status(403)
+          .json({ error: "Not authorized to view this report" });
+      }
+
+      if (!anonReport.seen_by) anonReport.seen_by = [];
+      if (!anonReport.seen_by.includes(userId)) {
+        anonReport.seen_by.push(userId);
+        await anonReport.save();
+      }
+
+      return res.json(
+        mapAnonymousReportToStudentReport(anonReport, req.user.role),
+      );
     }
 
-    res.json(mapReportForViewer(report, req.user));
+    res.status(404).json({ error: "Report not found" });
   } catch (err) {
     console.error("Mark seen error:", err);
     res.status(500).json({ error: "Failed to mark as seen" });
@@ -591,10 +710,19 @@ router.patch(
     try {
       const userId = String(req.user.id || req.user._id);
       const scopeQuery = getStaffReportScope(req.user) || {};
-      await StudentReportModel.updateMany(
-        { ...scopeQuery, seen_by: { $ne: userId } },
-        { $addToSet: { seen_by: userId } },
-      );
+      const anonScope = getAnonymousStaffScope(req.user);
+
+      await Promise.all([
+        StudentReportModel.updateMany(
+          { ...scopeQuery, seen_by: { $ne: userId } },
+          { $addToSet: { seen_by: userId } },
+        ),
+        AnonymousReportModel.updateMany(
+          { ...anonScope, seen_by: { $ne: userId } },
+          { $addToSet: { seen_by: userId } },
+        ),
+      ]);
+
       res.json({ success: true });
     } catch (err) {
       console.error("Mark all seen error:", err);
@@ -619,70 +747,118 @@ router.patch(
   async (req, res) => {
     try {
       const { category, message } = req.body;
-      if (!REPORT_CATEGORIES.includes(category)) {
+      const validCategories = [
+        "disciplinary_case",
+        "maintenance_issue",
+        "other",
+      ];
+      if (!category || !validCategories.includes(category)) {
         return res.status(400).json({ error: "Invalid report category" });
       }
 
       const report = await StudentReportModel.findById(req.params.id);
-      if (!report) {
-        return res.status(404).json({ error: "Report not found" });
-      }
-      if (!canViewReport(req.user, report)) {
-        return res
-          .status(403)
-          .json({ error: "Not authorized to reroute this report" });
-      }
-      if (report.category === category) {
-        return res
-          .status(409)
-          .json({
-            error: `Report is already marked as ${CATEGORY_LABELS[category]}.`,
+      if (report) {
+        if (!REPORT_CATEGORIES.includes(category)) {
+          return res.status(400).json({ error: "Invalid report category for student reports" });
+        }
+        if (!canViewReport(req.user, report)) {
+          return res
+            .status(403)
+            .json({ error: "Not authorized to reroute this report" });
+        }
+        if (report.category === category) {
+          return res
+            .status(409)
+            .json({
+              error: `Report is already marked as ${CATEGORY_LABELS[category] || category}.`,
+            });
+        }
+
+        if (category === "maintenance_issue") {
+          const issueType = String(report.details?.issueType || "Other").trim() || "Other";
+          const duplicate = await findActiveMaintenanceReportDuplicate({
+            StudentReportModel,
+            AnonymousReportModel,
+            location: report.location,
+            issueType,
+            excludeId: report._id,
           });
+          if (duplicate) {
+            return res.status(409).json({
+              error: getMaintenanceDuplicateMessage(report.location, issueType),
+            });
+          }
+        }
+
+        const previousCategory = report.category;
+        report.category = category;
+        report.routed_by_role = req.user.role || report.routed_by_role || "";
+        if (category !== "maintenance_issue") {
+          report.routed_to_maintenance = false;
+          report.maintenance_work_order_id = "";
+        }
+        report.updates.unshift({
+          status: report.status,
+          message:
+            message?.trim() ||
+            `Report category rerouted from ${CATEGORY_LABELS[previousCategory] || previousCategory} to ${CATEGORY_LABELS[category] || category}.`,
+          createdBy: req.user.username || req.user.name || "system",
+          createdByRole: req.user.role,
+        });
+        report.updatedAt = new Date();
+        await report.save();
+
+        await createNotification({
+          userId: report.owner_id,
+          type: "report_update",
+          message: `Your report "${report.title}" was rerouted to ${CATEGORY_LABELS[category] || category}.`,
+          link: "/my-reports",
+        });
+
+        emitDashboardRefresh("student-reports");
+        return res.json(mapReportForViewer(report, req.user));
       }
 
-      if (category === "maintenance_issue") {
-        const issueType = String(report.details?.issueType || "Other").trim() || "Other";
-        const duplicate = await findActiveMaintenanceReportDuplicate({
-          StudentReportModel,
-          AnonymousReportModel,
-          location: report.location,
-          issueType,
-          excludeId: report._id,
-        });
-        if (duplicate) {
+      const anonReport = await AnonymousReportModel.findById(req.params.id);
+      if (anonReport) {
+        if (anonReport.category === category) {
           return res.status(409).json({
-            error: getMaintenanceDuplicateMessage(report.location, issueType),
+            error: `Report is already marked as ${CATEGORY_LABELS[category] || category}.`,
           });
         }
+
+        const previousCategory = anonReport.category;
+        anonReport.category = category;
+        if (!anonReport.updates) anonReport.updates = [];
+        anonReport.updates.unshift({
+          status: anonReport.status,
+          message:
+            message?.trim() ||
+            `Report category rerouted from ${CATEGORY_LABELS[previousCategory] || previousCategory} to ${CATEGORY_LABELS[category] || category}.`,
+          createdBy: req.user.username || req.user.name || "system",
+          createdByRole: req.user.role,
+          createdAt: new Date(),
+        });
+        anonReport.updatedAt = new Date();
+        await anonReport.save();
+
+        if (isEmailEnabled() && anonReport.contact_email) {
+          sendAnonymousReporterCategoryUpdate(anonReport, {
+            previousCategory,
+            newCategory: category,
+          }).catch((err) => {
+            console.error("Failed to send anonymous reporter category email:", err);
+          });
+        }
+
+        emitDashboardRefresh("anonymous-reports");
+        emitDashboardRefresh("student-reports");
+        return res.json(
+          mapAnonymousReportToStudentReport(anonReport, req.user.role),
+        );
       }
 
-      const previousCategory = report.category;
-      report.category = category;
-      report.routed_by_role = req.user.role || report.routed_by_role || "";
-      if (category !== "maintenance_issue") {
-        report.routed_to_maintenance = false;
-        report.maintenance_work_order_id = "";
-      }
-      report.updates.unshift({
-        status: report.status,
-        message:
-          message?.trim() ||
-          `Report category rerouted from ${CATEGORY_LABELS[previousCategory] || previousCategory} to ${CATEGORY_LABELS[category] || category}.`,
-        createdBy: req.user.username || req.user.name || "system",
-        createdByRole: req.user.role,
-      });
-      report.updatedAt = new Date();
-      await report.save();
-
-      await createNotification({
-        userId: report.owner_id,
-        type: "report_update",
-        message: `Your report "${report.title}" was rerouted to ${CATEGORY_LABELS[category] || category}.`,
-        link: "/my-reports",
-      });
-
-      emitDashboardRefresh("student-reports");
-      res.json(mapReportForViewer(report, req.user));
+      res.status(404).json({ error: "Report not found" });
     } catch (err) {
       console.error("Reroute report category error:", err);
       res.status(500).json({ error: "Failed to reroute report category" });
@@ -725,41 +901,94 @@ router.patch(
       }
 
       const report = await StudentReportModel.findById(req.params.id);
-      if (!report) {
-        return res.status(404).json({ error: "Report not found" });
-      }
-      if (report.status === status) {
-        return res
-          .status(409)
-          .json({ error: `Report is already in "${status}" status.` });
-      }
-      if (!canViewReport(req.user, report)) {
-        return res.status(403).json({ error: "Not authorized to update this report" });
+      if (report) {
+        if (report.status === status) {
+          return res
+            .status(409)
+            .json({ error: `Report is already in "${status}" status.` });
+        }
+        if (!canViewReport(req.user, report)) {
+          return res.status(403).json({ error: "Not authorized to update this report" });
+        }
+
+        const userId = String(req.user.id || req.user._id);
+        if (!report.seen_by.includes(userId)) {
+          report.seen_by.push(userId);
+        }
+
+        report.status = status;
+        report.updates.unshift({
+          status,
+          message: message.trim(),
+          createdBy: req.user.username || req.user.name,
+          createdByRole: req.user.role,
+        });
+        report.updatedAt = new Date();
+
+        await report.save();
+        await createNotification({
+          userId: report.owner_id,
+          type: "report_update",
+          message: `Your report has been updated to ${status}.`,
+          link: "/my-reports",
+        });
+        emitDashboardRefresh("student-reports");
+        return res.json(mapReportForViewer(report, req.user));
       }
 
-      const userId = String(req.user.id || req.user._id);
-      if (!report.seen_by.includes(userId)) {
-        report.seen_by.push(userId);
+      const anonReport = await AnonymousReportModel.findById(req.params.id);
+      if (anonReport) {
+        if (
+          req.user.role === "maintenance" &&
+          anonReport.category !== "maintenance_issue"
+        ) {
+          return res.status(403).json({
+            error: "Maintenance can only update anonymous maintenance issues.",
+          });
+        }
+
+        const previousStatus = anonReport.status;
+        if (previousStatus === status) {
+          return res
+            .status(409)
+            .json({ error: `Report is already in "${status}" status.` });
+        }
+
+        const userId = String(req.user.id || req.user._id);
+        if (!anonReport.seen_by) anonReport.seen_by = [];
+        if (!anonReport.seen_by.includes(userId)) {
+          anonReport.seen_by.push(userId);
+        }
+
+        anonReport.status = status;
+        if (!anonReport.updates) anonReport.updates = [];
+        anonReport.updates.unshift({
+          status,
+          message: message.trim(),
+          createdBy: req.user.username || req.user.name || "staff",
+          createdByRole: req.user.role,
+          createdAt: new Date(),
+        });
+        anonReport.updatedAt = new Date();
+        await anonReport.save();
+
+        if (isEmailEnabled() && anonReport.contact_email) {
+          sendAnonymousReporterStatusUpdate(anonReport, {
+            previousStatus,
+            newStatus: status,
+          }).catch((err) => {
+            console.error("Failed to send anonymous reporter status email:", err);
+          });
+        }
+
+        emitDashboardRefresh("anonymous-reports");
+        emitDashboardRefresh("student-reports");
+        return res.json(
+          mapAnonymousReportToStudentReport(anonReport, req.user.role),
+        );
       }
 
-      report.status = status;
-      report.updates.unshift({
-        status,
-        message: message.trim(),
-        createdBy: req.user.username || req.user.name,
-        createdByRole: req.user.role,
-      });
-      report.updatedAt = new Date();
-
-      await report.save();
-      await createNotification({
-        userId: report.owner_id,
-        type: "report_update",
-        message: `Your report has been updated to ${status}.`,
-        link: "/my-reports",
-      });
-      emitDashboardRefresh("student-reports");
-      res.json(mapReportForViewer(report, req.user));
+      res.status(404).json({ error: "Report not found" });
     } catch (err) {
       console.error("Update status error:", err);
       res.status(500).json({ error: "Failed to update status" });

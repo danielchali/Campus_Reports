@@ -6,7 +6,7 @@ import {
   redactStudentReportForViewer,
 } from "../utils/reportRedaction.js";
 import { buildPortalConfig } from "../utils/formSchemaValidation.js";
-import { buildAnalyticsSummary, classifyDisciplinaryIssue, classifyMaintenanceIssue } from "../utils/analytics.js";
+import { buildAnalyticsSummary, buildReportActivity, classifyDisciplinaryIssue, classifyMaintenanceIssue } from "../utils/analytics.js";
 
 const report = {
   owner_id: "student-1",
@@ -90,6 +90,43 @@ test("buildAnalyticsSummary aggregates report types, issue categories, and admin
   assert.equal(summary.disciplinaryIssues[0].label, "violence");
   assert.equal(summary.system.totalUsers, 3);
   assert.deepEqual(summary.system.usersByRole[0], { label: "student", count: 2 });
+});
+
+test("buildReportActivity keeps dashboard report groups for daily, monthly, and source distributions", () => {
+  const activity = buildReportActivity({
+    studentReports: [
+      { category: "maintenance_issue", createdAt: "2026-10-10T09:00:00.000Z" },
+      { category: "disciplinary_case", createdAt: "2026-10-10T11:00:00.000Z" },
+    ],
+    anonymousReports: [
+      { category: "maintenance_issue", createdAt: "2026-10-11T08:00:00.000Z" },
+    ],
+    generatedAt: "2026-10-11T12:00:00.000Z",
+  });
+
+  assert.deepEqual(activity.distribution, [
+    { label: "Maintenance", count: 1 },
+    { label: "Discipline", count: 1 },
+    { label: "Anonymous", count: 1 },
+  ]);
+  assert.deepEqual(activity.daily.at(-2), {
+    period: "2026-10-10",
+    maintenance: 1,
+    discipline: 1,
+    anonymous: 0,
+  });
+  assert.deepEqual(activity.daily.at(-1), {
+    period: "2026-10-11",
+    maintenance: 0,
+    discipline: 0,
+    anonymous: 1,
+  });
+  assert.deepEqual(activity.monthly, [{
+    period: "2026-10",
+    maintenance: 1,
+    discipline: 1,
+    anonymous: 1,
+  }]);
 });
 
 test("buildPortalConfig merges environment and institution origins without duplicates", () => {

@@ -71,6 +71,107 @@ function countValues(items, getter) {
     .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }
 
+function getCreatedDate(report) {
+  const value = report?.createdAt || report?.created_at;
+  const date = value ? new Date(value) : null;
+  return date && !Number.isNaN(date.getTime()) ? date : null;
+}
+
+function dayKey(date) {
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+}
+
+function monthKey(date) {
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0')].join('-');
+}
+
+function createActivityBucket(period) {
+  return {
+    period,
+    maintenance: 0,
+    discipline: 0,
+    anonymous: 0,
+  };
+}
+
+function addReportToActivityBucket(bucket, report, source) {
+  if (source === 'anonymous') {
+    bucket.anonymous += 1;
+    return;
+  }
+
+  if (report.category === 'maintenance_issue') {
+    bucket.maintenance += 1;
+    return;
+  }
+
+  bucket.discipline += 1;
+}
+
+/**
+ * Builds the same maintenance, discipline, and anonymous report groupings used
+ * on management dashboards, while keeping the data constrained to the caller's
+ * already-authorized report collections.
+ */
+export function buildReportActivity({ studentReports = [], anonymousReports = [], generatedAt = new Date() } = {}) {
+  const generatedDate = new Date(generatedAt);
+  const now = Number.isNaN(generatedDate.getTime()) ? new Date() : generatedDate;
+  const reports = [
+    ...studentReports.map((report) => ({ report, source: 'student' })),
+    ...anonymousReports.map((report) => ({ report, source: 'anonymous' })),
+  ].map((item) => ({ ...item, createdAt: getCreatedDate(item.report) }))
+    .filter((item) => item.createdAt && item.createdAt <= now);
+
+  const distribution = [
+    { label: 'Maintenance', count: 0 },
+    { label: 'Discipline', count: 0 },
+    { label: 'Anonymous', count: 0 },
+  ];
+  const distributionByLabel = new Map(distribution.map((item) => [item.label, item]));
+  for (const { report, source } of reports) {
+    const label = source === 'anonymous'
+      ? 'Anonymous'
+      : report.category === 'maintenance_issue'
+        ? 'Maintenance'
+        : 'Discipline';
+    distributionByLabel.get(label).count += 1;
+  }
+
+  const dailyStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 27);
+  const dailyByPeriod = new Map();
+  for (let offset = 0; offset < 28; offset += 1) {
+    const date = new Date(dailyStart);
+    date.setDate(dailyStart.getDate() + offset);
+    dailyByPeriod.set(dayKey(date), createActivityBucket(dayKey(date)));
+  }
+
+  const monthStart = reports.length
+    ? new Date(Math.min(...reports.map((item) => item.createdAt.getTime())))
+    : now;
+  const monthlyByPeriod = new Map();
+  for (
+    let cursor = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1);
+    cursor <= new Date(now.getFullYear(), now.getMonth(), 1);
+    cursor.setMonth(cursor.getMonth() + 1)
+  ) {
+    monthlyByPeriod.set(monthKey(cursor), createActivityBucket(monthKey(cursor)));
+  }
+
+  for (const { report, source, createdAt } of reports) {
+    const dailyBucket = dailyByPeriod.get(dayKey(createdAt));
+    if (dailyBucket) addReportToActivityBucket(dailyBucket, report, source);
+
+    const monthlyBucket = monthlyByPeriod.get(monthKey(createdAt));
+    if (monthlyBucket) addReportToActivityBucket(monthlyBucket, report, source);
+  }
+
+  return {
+    distribution,
+    daily: [...dailyByPeriod.values()],
+    monthly: [...monthlyByPeriod.values()],
+  };
+}
+
 export function buildAnalyticsSummary({ studentReports = [], anonymousReports = [], cases = [], users = [], generatedAt = new Date() }) {
   const reports = [...studentReports, ...anonymousReports];
   const maintenanceReports = reports.filter((report) => report.category === 'maintenance_issue');

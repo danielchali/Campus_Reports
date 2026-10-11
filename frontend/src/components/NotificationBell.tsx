@@ -8,6 +8,7 @@ import { authHeaders } from '../utils/api';
 import { markStudentReportSeen, markAllStudentReportsSeen, getAllStudentReports, type StudentReport } from '../utils/studentReports';
 import { useAuth } from '../context/AuthContext';
 import { getDisplayFullName } from '../utils/userDisplay';
+import { useDashboardRealtime } from '../hooks/useDashboardRealtime';
 
 type NotificationItem = {
   _id: string;
@@ -109,6 +110,12 @@ export default function NotificationBell() {
     const interval = setInterval(loadAll, 30000);
     return () => clearInterval(interval);
   }, [loadAll, loading]);
+
+  useDashboardRealtime(
+    loadAll,
+    Boolean(!loading && token && user),
+    ['student-reports', 'anonymous-reports']
+  );
 
   const markAsRead = async (id: string) => {
     const item = notifications.find(n => n._id === id);

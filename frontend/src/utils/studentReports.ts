@@ -1,7 +1,10 @@
 import { API_BASE_URL } from "../config/constants";
 import { authHeaders } from "./api";
 
-export type StudentReportCategory = "disciplinary_case" | "maintenance_issue";
+export type StudentReportCategory =
+  | "disciplinary_case"
+  | "maintenance_issue"
+  | "other";
 
 export type StudentReportStatus =
   | "Submitted"

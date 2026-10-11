@@ -17,6 +17,7 @@ import { useAuth } from "../../context/AuthContext";
 import Notification, { useNotification } from "../../components/Notification";
 import { canAccessPage } from "../../utils/access";
 import { PageSkeleton, CardSkeleton } from "../../components/PageSkeleton";
+import { useDashboardRealtime } from "../../hooks/useDashboardRealtime";
 import { StatCard, StatsStrip } from "../../components/StatsStrip";
 import {
   downloadStudentReportAttachment,
@@ -33,10 +34,11 @@ import {
 } from "../../utils/studentReports";
 import { getDisplayFullName } from "../../utils/userDisplay";
 
-const categoryLabels = {
+const categoryLabels: Record<string, string> = {
   disciplinary_case: "Disciplinary Case",
   maintenance_issue: "Maintenance Issue",
-} as const;
+  other: "Other",
+};
 
 const detailLabels: Record<string, string> = {
   peopleInvolved: "People Involved",
@@ -137,6 +139,7 @@ export default function InboxPage() {
       maintenance: reports.filter(
         (report) => report.category === "maintenance_issue",
       ).length,
+      other: reports.filter((report) => report.category === "other").length,
       inProgress: reports.filter((report) => report.status === "In Progress")
         .length,
       resolved: reports.filter((report) => report.status === "Resolved").length,
@@ -179,6 +182,14 @@ export default function InboxPage() {
       cancelled = true;
     };
   }, [user]);
+
+  useDashboardRealtime(
+    () => {
+      refreshReports();
+    },
+    Boolean(token && user),
+    ["student-reports", "anonymous-reports"],
+  );
 
   useEffect(() => {
     if (!selectedReportId) return;
@@ -361,7 +372,7 @@ export default function InboxPage() {
   return (
     <>
       <section className="w-full space-y-6">
-        <StatsStrip desktopColumnsClass="md:grid-cols-3 lg:grid-cols-6">
+        <StatsStrip desktopColumnsClass="md:grid-cols-4 lg:grid-cols-7">
           <StatCard
             label="Total Reports"
             value={reports.length}
@@ -381,6 +392,11 @@ export default function InboxPage() {
             label="Maintenance"
             value={reportStats.maintenance}
             valueClassName="text-purple-600"
+          />
+          <StatCard
+            label="Other"
+            value={reportStats.other}
+            valueClassName="text-teal-600"
           />
           <StatCard
             label="In Progress"
@@ -412,6 +428,7 @@ export default function InboxPage() {
                 <option value="">All Categories</option>
                 <option value="disciplinary_case">Disciplinary Case</option>
                 <option value="maintenance_issue">Maintenance Issue</option>
+                <option value="other">Other</option>
               </select>
               <select
                 value={statusFilter}

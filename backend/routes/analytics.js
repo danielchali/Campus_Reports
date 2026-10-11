@@ -6,7 +6,7 @@ import UserModel from '../models/user.js';
 import WorkOrderModel from '../models/workOrder.js';
 import { authenticate, authorize } from '../middleware/auth.js';
 import { getStaffReportScope } from '../utils/studentReportAccess.js';
-import { buildAnalyticsSummary, buildWorkOrderSummary } from '../utils/analytics.js';
+import { buildAnalyticsSummary, buildReportActivity, buildWorkOrderSummary } from '../utils/analytics.js';
 import PerformanceMetricModel from '../models/performanceMetric.js';
 
 const router = express.Router();
@@ -151,11 +151,13 @@ router.get('/summary', authenticate, authorize(ANALYTICS_ROLES), async (req, res
         : Promise.resolve([]),
     ]);
 
+    const generatedAt = new Date();
     const summary = buildAnalyticsSummary({
       studentReports,
       anonymousReports,
       cases,
       users,
+      generatedAt,
     });
 
     res.json({
@@ -164,6 +166,7 @@ router.get('/summary', authenticate, authorize(ANALYTICS_ROLES), async (req, res
       permissions: { canViewSystemAnalytics: req.user.role === 'admin' },
       performance: req.user.role === 'admin' ? await buildPerformanceSummary() : null,
       scope: scopedData.scope,
+      reportActivity: buildReportActivity({ studentReports, anonymousReports, generatedAt }),
       workOrders: scopedData.includeWorkOrders
         ? buildWorkOrderSummary({ workOrders })
         : null,
