@@ -8,7 +8,7 @@ import { API_BASE_URL } from '../../../config/constants';
 import { authHeaders } from '../../../utils/api';
 import { canAccessPage } from '../../../utils/access';
 import { PageSkeleton, DetailPageSkeleton } from '../../../components/PageSkeleton';
-import { useConfirmDialog } from '../../../components/AppDialog';
+import { useAlertDialog, useConfirmDialog } from '../../../components/AppDialog';
 
 interface Staff {
     staffId: string;
@@ -43,6 +43,7 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
     const { token, user, loading: authLoading } = useAuth();
     const router = useRouter();
     const { confirm, confirmDialog } = useConfirmDialog();
+    const { showAlert, alertDialog } = useAlertDialog();
     
     // Handle authentication like profile page - only on client side
     if (typeof window !== 'undefined') {
@@ -111,7 +112,7 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
                 headers: { ...authHeaders() },
             });
             if (!res.ok) throw new Error(await res.text());
-            setSuccess('Staff member deleted successfully!');
+            showAlert({ title: 'Staff member deleted', message: 'Staff member deleted successfully!', tone: 'success' });
             setTimeout(() => router.push('/staff'), 1500);
         } catch (err: any) {
             setError(err?.message || 'Network error, please try again');
@@ -173,11 +174,6 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
                 </div>
             )}
             
-            {success && (
-                <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6">
-                    {success}
-                </div>
-            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {/* Staff Information */}
@@ -405,6 +401,7 @@ export default function StaffDetailsPage({ params }: { params: { id: string } })
                     </>
                 )}
             </div>
+            {alertDialog}
             {confirmDialog}
         </section>
     );

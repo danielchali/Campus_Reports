@@ -8,7 +8,7 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { canAccessPage } from '../../utils/access';
 import { PageSkeleton, InlineSkeleton } from '../../components/PageSkeleton';
-import { useConfirmDialog } from '../../components/AppDialog';
+import { useAlertDialog, useConfirmDialog } from '../../components/AppDialog';
 import { getTodayDateInputValue } from '../../utils/dateTimeDefaults';
 
 // Type for a staff member
@@ -64,6 +64,7 @@ export default function StaffPage() {
   const [offlineMode, setOfflineMode] = useState(false);
   const { apiCall, isLoading: apiLoading, error: apiError } = useOfflineApi();
   const { confirm, confirmDialog } = useConfirmDialog();
+  const { showAlert, alertDialog } = useAlertDialog();
 
   async function loadStaff(pageNum = page) {
     setLoading(true);
@@ -122,7 +123,7 @@ export default function StaffPage() {
       const staffMember: Staff = { staffId, fullName, department, position, email: email.trim(), phone, hireDate };
       const response = await apiCall<Staff>('post', '/staff', staffMember);
       setStaffId(''); setFullName(''); setDepartment(''); setPosition(''); setEmail(''); setPhone(''); setHireDate(getTodayDateInputValue());
-      setSuccess(response.offline ? 'Staff member saved offline and will sync when online.' : 'Staff member added successfully!');
+      showAlert({ title: 'Staff member saved', message: response.offline ? 'Staff member saved offline and will sync when online.' : 'Staff member added successfully!', tone: 'success' });
       loadStaff();
     } catch (err: any) {
       setError(err?.message || 'Network error, please try again');
@@ -302,7 +303,7 @@ export default function StaffPage() {
       if (failedImports > 0) {
         setError(`${failedImports} staff members failed to import. ${successfulImports} imported successfully.`);
       } else {
-        setSuccess(`${successfulImports} staff members imported successfully!`);
+        showAlert({ title: 'Staff imported', message: `${successfulImports} staff members imported successfully!`, tone: 'success' });
       }
       
       loadStaff();
@@ -328,7 +329,11 @@ export default function StaffPage() {
     setSuccess(null);
     try {
       const response = await apiCall<{ success: boolean }>('delete', `/staff/${staffId}`);
-      setSuccess(response.offline ? 'Staff member marked for deletion and will sync when online.' : 'Staff member deleted successfully!');
+      showAlert({
+        title: 'Staff member deleted',
+        message: response.offline ? 'Staff member marked for deletion and will sync when online.' : 'Staff member deleted successfully!',
+        tone: 'success',
+      });
       loadStaff();
     } catch (err: any) {
       setError(err?.message || 'Network error, please try again');
@@ -367,11 +372,13 @@ export default function StaffPage() {
       );
       const queuedOffline = results.some(result => result.offline);
       setSelected([]);
-      setSuccess(
-        queuedOffline
+      showAlert({
+        title: 'Staff members deleted',
+        message: queuedOffline
           ? `${selected.length} staff member(s) marked for deletion and will sync when online.`
-          : `${selected.length} staff member(s) deleted successfully!`
-      );
+          : `${selected.length} staff member(s) deleted successfully!`,
+        tone: 'success',
+      });
       loadStaff();
     } catch (err: any) {
       setError(err?.message || 'Network error, please try again');
@@ -399,11 +406,6 @@ export default function StaffPage() {
         </div>
       )}
       
-      {success && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-6">
-          {success}
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Add Staff Form */}
@@ -763,6 +765,7 @@ export default function StaffPage() {
           </div>
         </div>
       </div>
+      {alertDialog}
       {confirmDialog}
     </section>
   );

@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { getProfile, updateProfile } from '../../utils/api';
 import { useRouter } from "next/navigation";
 import { ProfilePageSkeleton } from '../../components/PageSkeleton';
+import { useAlertDialog } from '../../components/AppDialog';
 import { getAvailableYearsForProgram, PROGRAM_OPTIONS } from '../../config/constants';
 
 type StudentProfile = {
@@ -126,6 +127,7 @@ function buildForm(data: ProfileResponse): ProfileForm {
 export default function ProfilePage() {
   const router = useRouter();
   const { token, changePassword, refreshUserProfile } = useAuth();
+  const { showAlert, alertDialog } = useAlertDialog();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -196,7 +198,7 @@ export default function ProfilePage() {
           profile: { houseNumber: form.profile.houseNumber.trim() },
         });
       }
-      setSuccess('Profile updated successfully!');
+      showAlert({ title: 'Profile updated', message: 'Profile updated successfully!', tone: 'success' });
       setEditMode(false);
       await fetchProfile();
       await refreshUserProfile();
@@ -267,7 +269,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <section className="w-full space-y-8">
+    <>
+      {alertDialog}
+      <section className="w-full space-y-8">
       {loading ? (
         <ProfilePageSkeleton />
       ) : loadError ? (
@@ -435,7 +439,6 @@ export default function ProfilePage() {
                   )}
 
                   {formError && <div className="text-red-600 dark:text-red-400 text-sm">{formError}</div>}
-                  {success && <div className="text-kmuGreen dark:text-green-400 text-sm">{success}</div>}
                   <div className="flex gap-2">
                     <button type="submit" className="bg-kmuGreen text-white px-4 py-2 rounded hover:bg-kmuOrange transition">
                       Save Changes
@@ -571,7 +574,8 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-    </section>
+      </section>
+    </>
   );
 }
 
