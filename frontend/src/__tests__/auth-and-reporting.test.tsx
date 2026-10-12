@@ -90,6 +90,19 @@ beforeEach(() => {
 });
 
 describe("LoginView", () => {
+  it("shows a clear Google sign-in loading state before the native control is ready", () => {
+    const previousGoogleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID = "test-google-client";
+
+    try {
+      render(<LoginView />);
+      expect(screen.getByRole("status")).toHaveTextContent("Preparing Google sign-in…");
+    } finally {
+      if (previousGoogleClientId === undefined) delete process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      else process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID = previousGoogleClientId;
+    }
+  });
+
   it("submits credentials through the auth context and redirects on success", async () => {
     const login = jest.fn().mockResolvedValue(true);
     const replace = jest.fn();

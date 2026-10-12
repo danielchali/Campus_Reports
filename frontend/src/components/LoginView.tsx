@@ -59,6 +59,8 @@ export default function LoginView() {
   const [typedFeatureText, setTypedFeatureText] = useState('');
   const [isDeletingFeatureText, setIsDeletingFeatureText] = useState(false);
   const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
+  const [googleButtonReady, setGoogleButtonReady] = useState(false);
+  const [googleScriptFailed, setGoogleScriptFailed] = useState(false);
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const googleInitializedRef = useRef(false);
   const twoFactorInputRefs = useRef<Array<HTMLInputElement | null>>([]);
@@ -227,11 +229,14 @@ export default function LoginView() {
       });
       googleInitializedRef.current = true;
       google.accounts.id.renderButton(container, {
-        type: 'icon',
+        type: 'standard',
         theme: theme === 'dark' ? 'filled_black' : 'outline',
         size: 'large',
-        shape: 'circle',
+        shape: 'rectangular',
+        text: 'signin_with',
+        width: 280,
       });
+      setGoogleButtonReady(true);
     };
 
     renderGoogleButton();
@@ -391,7 +396,14 @@ export default function LoginView() {
           <Script
             src="https://accounts.google.com/gsi/client"
             strategy="afterInteractive"
-            onLoad={() => setGoogleScriptLoaded(true)}
+            onLoad={() => {
+              setGoogleScriptFailed(false);
+              setGoogleScriptLoaded(true);
+            }}
+            onError={() => {
+              setGoogleButtonReady(false);
+              setGoogleScriptFailed(true);
+            }}
           />
         </>
       )}
@@ -687,16 +699,20 @@ export default function LoginView() {
                     <span className="mx-4 flex-shrink-0 text-[10px] text-slate-400">or login with</span>
                     <div className="flex-grow border-t border-slate-200 dark:border-slate-800" />
                   </div>
-                  <div
-                    className={`relative mx-auto flex h-12 w-12 items-center justify-center rounded-full border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 hover:shadow-md active:translate-y-0 active:scale-95 ${theme === 'dark' ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-white'}`}
-                    aria-label="Sign in with Google"
-                    title="Sign in with Google"
-                  >
-                    <img src="/google-mark.svg" alt="" aria-hidden="true" className="h-8 w-8" />
+                  <div className="relative mx-auto min-h-[44px] w-full max-w-[280px]">
+                    {!googleButtonReady && (
+                      <div
+                        role="status"
+                        className={`absolute inset-0 flex items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium ${theme === 'dark' ? 'border-slate-700 bg-slate-800 text-slate-300' : 'border-slate-200 bg-white text-slate-600'}`}
+                      >
+                        <img src="/google-mark.svg" alt="" aria-hidden="true" className="h-5 w-5" />
+                        <span>{googleScriptFailed ? 'Google sign-in unavailable' : 'Preparing Google sign-in…'}</span>
+                      </div>
+                    )}
                     <div
                       ref={googleButtonRef}
-                      className="absolute inset-0 flex items-center justify-center overflow-hidden opacity-0"
-                      aria-hidden="true"
+                      className={`relative z-10 flex min-h-[44px] items-center justify-center ${googleButtonReady ? '' : 'pointer-events-none opacity-0'}`}
+                      aria-hidden={googleButtonReady ? undefined : true}
                     />
                   </div>
                 </>
