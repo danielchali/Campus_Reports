@@ -4,6 +4,7 @@ import request from "supertest";
 import app from "../app.js";
 import { register, registerGeneralUser, registerStudent } from "../controllers/authController.js";
 import { createStatementRequest } from "../controllers/statementRequestsController.js";
+import { calculateSusScore } from "../controllers/susSurveysController.js";
 import { deleteEvidence, downloadEvidence, uploadEvidence } from "../controllers/evidenceController.js";
 import EvidenceModel from "../models/evidence.js";
 import NotificationModel from "../models/notification.js";
@@ -158,6 +159,12 @@ test("statement-request creation validates required fields before database acces
   await createStatementRequest(requestMock({ studentId: "STU-001", title: "" }), res);
   assert.equal(res.statusCode, 400);
   assert.deepEqual(res.body, { error: "studentId, title, and prompt are required" });
+});
+
+test("SUS score calculation applies the alternating item scale", () => {
+  assert.equal(calculateSusScore([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]), 50);
+  assert.equal(calculateSusScore([5, 1, 5, 1, 5, 1, 5, 1, 5, 1]), 100);
+  assert.equal(calculateSusScore([1, 5, 1, 5, 1, 5, 1, 5, 1, 5]), 0);
 });
 
 test("statement-request creation rejects unknown students before resolving linked cases", async () => {

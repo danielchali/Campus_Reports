@@ -50,6 +50,7 @@ describe("navigation utilities", () => {
       "My Profile",
       "Help",
       "Logout",
+      "UAT Survey",
     ]);
     expect(getNavLinksForRole("unknown").map((link) => link.label)).toEqual(["Logout"]);
   });

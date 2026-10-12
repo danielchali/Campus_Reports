@@ -78,6 +78,18 @@ export const PAGE_ACCESS = {
   systemSettings: ["admin"],
   studentDashboard: ["student"],
   generalDashboard: ["general_user"],
+  susSurvey: [
+    "admin",
+    "security_officer",
+    "chief_security_officer",
+    "dean_of_students",
+    "warden",
+    "secretary",
+    "registrar",
+    "maintenance",
+    "student",
+    "general_user",
+  ],
 } as const;
 
 export type PageAccessKey = keyof typeof PAGE_ACCESS;

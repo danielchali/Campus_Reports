@@ -27,6 +27,7 @@ import analyticsRouter from "./routes/analytics.js";
 import formSchemasRouter from "./routes/formSchemas.js";
 import { requestRateLimit } from "./middleware/rateLimit.js";
 import telemetryRouter from "./routes/telemetry.js";
+import susSurveysRouter from "./routes/susSurveys.js";
 
 const app = express();
 const API_V1_BASE = "/api/v1";
@@ -184,6 +185,7 @@ function mountRoutes(basePath) {
   app.use(`${basePath}/analytics`, analyticsRouter);
   app.use(`${basePath}/form-schemas`, formSchemasRouter);
   app.use(`${basePath}/telemetry`, telemetryRouter);
+  app.use(`${basePath}/sus-surveys`, susSurveysRouter);
 }
 
 // Primary versioned API

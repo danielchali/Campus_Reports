@@ -58,6 +58,27 @@ test("analytics API rejects a student token at the staff authorization boundary"
   assertJsonError(response, 403, "Forbidden");
 });
 
+test("SUS UAT API requires authentication and keeps aggregate results admin-only", async () => {
+  const unauthenticatedSubmit = await request(app)
+    .post("/api/v1/sus-surveys")
+    .send({ answers: Array(10).fill(3) });
+  const studentSummary = await request(app)
+    .get("/api/v1/sus-surveys/summary")
+    .set("Authorization", authHeader({ id: "student-1", username: "student.one", role: "student" }));
+
+  assertJsonError(unauthenticatedSubmit, 401, "Missing or invalid token");
+  assertJsonError(studentSummary, 403, "Forbidden");
+});
+
+test("SUS UAT API validates all ten scaled answers before saving", async () => {
+  const response = await request(app)
+    .post("/api/v1/sus-surveys")
+    .set("Authorization", authHeader({ id: "student-1", username: "student.one", role: "student" }))
+    .send({ answers: [1, 2, 3] });
+
+  assertJsonError(response, 400, "Provide all ten SUS responses as whole numbers from 1 to 5.");
+});
+
 test("reports API requires authentication for listing reports", async () => {
   const response = await request(app).get("/api/v1/reports");
   assertJsonError(response, 401, "Missing or invalid token");

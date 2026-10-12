@@ -86,7 +86,7 @@ const navIcons = {
   analytics: TrendingUp,
 } as const;
 
-export function getNavLinksForRole(role?: string): NavLink[] {
+function getBaseNavLinksForRole(role?: string): NavLink[] {
   if (role === "admin") {
     return [
       { icon: navIcons.admin, label: "Dashboard", path: "/admin" },
@@ -397,6 +397,31 @@ export function getNavLinksForRole(role?: string): NavLink[] {
       danger: true,
       mobileOnly: true,
     },
+  ];
+}
+
+const UAT_SURVEY_ROLES = new Set([
+  "admin",
+  "security_officer",
+  "chief_security_officer",
+  "dean_of_students",
+  "warden",
+  "secretary",
+  "registrar",
+  "maintenance",
+  "student",
+  "general_user",
+]);
+
+export function getNavLinksForRole(role?: string): NavLink[] {
+  const links = getBaseNavLinksForRole(role);
+  if (!role || !UAT_SURVEY_ROLES.has(role)) {
+    return links;
+  }
+
+  return [
+    ...links,
+    { icon: navIcons.analytics, label: "UAT Survey", path: "/sus-uat" },
   ];
 }
 
