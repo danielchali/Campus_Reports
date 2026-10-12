@@ -28,6 +28,7 @@ const Breadcrumbs = lazy(() => import('../components/Breadcrumbs'));
 const Sidebar = lazy(() => import('../components/Sidebar'));
 const BottomNav = lazy(() => import('../components/BottomNav'));
 const FloatingAIChatbot = lazy(() => import('../components/FloatingAIChatbot'));
+const FloatingUATLink = lazy(() => import('../components/FloatingUATLink'));
 
 const LoadingFallback = () => <PageSkeleton />;
 
@@ -139,6 +140,11 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
         {(shouldShowNav || showPublicChatbot) && (
           <Suspense fallback={null}>
             <FloatingAIChatbot />
+          </Suspense>
+        )}
+        {shouldShowNav && pathname !== '/sus-uat' && (
+          <Suspense fallback={null}>
+            <FloatingUATLink />
           </Suspense>
         )}
       </div>
