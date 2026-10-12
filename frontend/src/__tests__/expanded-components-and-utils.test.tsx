@@ -59,10 +59,11 @@ describe("navigation utilities", () => {
     const prompt = getCampusReportsAssistantSystemPrompt("/student-dashboard", "student", "Student dashboard guidance");
     expect(prompt).toContain("Campus Reports AI");
     expect(prompt).toContain("Chali Daniel and Namonje Grace");
-    expect(prompt).toContain("/student-dashboard");
+    expect(prompt).toContain("Dashboard");
     expect(prompt).toContain("student");
-    expect(prompt).toContain("/security-dashboard");
-    expect(prompt).toContain("/maintenance-dashboard");
+    expect(prompt).toContain("Discipline Cases");
+    expect(prompt).toContain("Maintenance Request");
+    expect(prompt).toContain("Never show internal route paths");
     expect(prompt).toContain("Do not invent pages or actions not present in this codebase");
   });
 
