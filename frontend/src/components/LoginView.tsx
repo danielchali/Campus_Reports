@@ -218,16 +218,16 @@ export default function LoginView() {
         return;
       }
 
-      if (googleInitializedRef.current) return;
-
       container.innerHTML = '';
-      google.accounts.id.initialize({
-        client_id: googleClientId,
-        callback: (response) => { void handleGoogleCredential(response); },
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
-      googleInitializedRef.current = true;
+      if (!googleInitializedRef.current) {
+        google.accounts.id.initialize({
+          client_id: googleClientId,
+          callback: (response) => { void handleGoogleCredential(response); },
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        });
+        googleInitializedRef.current = true;
+      }
       google.accounts.id.renderButton(container, {
         type: 'icon',
         theme: theme === 'dark' ? 'filled_black' : 'outline',
