@@ -24,7 +24,7 @@ export default function Sidebar() {
     isOpenMobile,
     setIsOpenMobile,
   } = useSidebar();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -60,15 +60,30 @@ export default function Sidebar() {
   const renderNavLink = (link: NavLink, extraClasses = '') => {
     const Icon = link.icon;
     const isActive = isPathActive(link.path);
+    const sharedProps = {
+      onClick: () => {
+        setIsOpenMobile(false);
+        if (link.path === '/logout') logout();
+      },
+      title: isCollapsed ? link.label : undefined,
+      'aria-label': isCollapsed ? link.label : undefined,
+      className: `${linkBase} ${extraClasses} ${isActive ? linkActive : ''} ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`,
+    };
+
+    if (link.path === '/logout') {
+      return (
+        <button key={link.path} type="button" {...sharedProps}>
+          {renderIcon(Icon, isActive)}
+          {!isCollapsed && <span>{link.label}</span>}
+        </button>
+      );
+    }
 
     return (
       <Link
         key={link.path}
         href={link.path}
-        onClick={() => setIsOpenMobile(false)}
-        title={isCollapsed ? link.label : undefined}
-        aria-label={isCollapsed ? link.label : undefined}
-        className={`${linkBase} ${extraClasses} ${isActive ? linkActive : ''} ${link.danger ? 'hover:bg-red-500/20 hover:text-white' : ''}`}
+        {...sharedProps}
       >
         {renderIcon(Icon, isActive)}
         {!isCollapsed && <span>{link.label}</span>}

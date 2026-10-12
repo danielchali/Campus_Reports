@@ -17,6 +17,9 @@ export function useDashboardRealtime(
 
   useEffect(() => {
     if (!enabled) return;
+    const isVercelDeployment = typeof window !== 'undefined' && window.location.hostname.endsWith('.vercel.app');
+    const realtimeExplicitlyEnabled = process.env.NEXT_PUBLIC_ENABLE_REALTIME === 'true';
+    if (isVercelDeployment && !realtimeExplicitlyEnabled) return;
 
     const allowedResources = resourcesKey.split('|').filter(Boolean);
 

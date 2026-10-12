@@ -1,5 +1,5 @@
-const CACHE_NAME = 'kmu-desk-v1.0.0';
-const STATIC_CACHE = 'kmu-static-v1.0.0';
+const CACHE_NAME = 'kmu-desk-v1.0.1';
+const STATIC_CACHE = 'kmu-static-v1.0.1';
 
 // Critical resources to cache immediately
 const CRITICAL_RESOURCES = [
@@ -117,10 +117,18 @@ self.addEventListener('fetch', (event) => {
             return response;
         })
         .catch(() => {
-            return caches.match(request);
+            return caches.match(request).then((cachedResponse) => cachedResponse || offlineResponse());
         })
     );
 });
+
+function offlineResponse() {
+    return new Response('You are offline and this page is not cached.', {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
+}
 
 // Handle API requests without Cache Storage persistence.
 // Authenticated campus records can contain sensitive student, case, and evidence
@@ -195,7 +203,7 @@ async function handleNavigation(request) {
         }
 
         // Return offline fallback page
-        return caches.match('/offline.html');
+        return caches.match('/offline.html').then((cachedResponse) => cachedResponse || offlineResponse());
     }
 }
 
