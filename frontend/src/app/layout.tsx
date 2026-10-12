@@ -84,7 +84,6 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
   const { sidebarWidth } = useSidebar();
   const [isMobile, setIsMobile] = useState(true); // Default to true to avoid sidebar space on mobile during hydration
   const shouldShowNav = !isLogin && user;
-  const disableSidebarForStudentMobile = !!shouldShowNav && user.role === 'student' && isMobile;
   const showPublicChatbot = !user && [
     '/',
     '/login',
@@ -102,7 +101,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
 
   return (
     <div className="flex min-h-screen">
-      {shouldShowNav && !disableSidebarForStudentMobile && (
+      {shouldShowNav && (
         <Suspense fallback={<LoadingFallback />}>
           <Sidebar />
         </Suspense>
@@ -112,7 +111,7 @@ function AppContent({ isLogin, children }: { isLogin: boolean; children: React.R
         className={clsx("relative flex min-h-screen min-w-0 flex-1 flex-col bg-white dark:bg-slate-950")}
         style={shouldShowNav && !isMobile ? { marginLeft: `${sidebarWidth}px` } : undefined}
       >
-        {shouldShowNav && <TopNavbar showMenuButton={!disableSidebarForStudentMobile} />}
+        {shouldShowNav && <TopNavbar showMenuButton />}
         <main
           className={clsx('flex-1', {
             'bg-white px-3 pb-24 pt-4 sm:px-4 md:px-6 md:pb-8 md:pt-6 dark:bg-slate-950': !isLogin,

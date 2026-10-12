@@ -16,19 +16,15 @@ export default function BottomNav() {
 
   const allNavLinks = getNavLinksForRole(user.role);
   const { bottomNav } = splitNavLinksForMobile(allNavLinks);
-  const isStudent = user.role === 'student';
-  const navItems = isStudent
-    ? allNavLinks.filter((link) => ['Dashboard', 'My Reports', 'Maintenance Request', 'Security/Disciplinary Issue', 'UAT Survey'].includes(link.label)).slice(0, 5)
-    : bottomNav;
-  const useStudentGrid = isStudent && navItems.length <= 4;
+  const navItems = bottomNav.slice(0, 4);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-gray-300 bg-white/95 shadow-[0_-1px_2px_rgba(15,23,42,0.06),0_-4px_12px_-4px_rgba(15,23,42,0.1)] backdrop-blur dark:border-gray-700 dark:bg-gray-900/95 dark:shadow-none md:hidden">
-      <div className={useStudentGrid ? 'grid grid-cols-4 gap-1 px-1 py-1.5 sm:px-2 sm:py-2' : 'flex overflow-x-auto px-1 py-1.5 sm:px-2 sm:py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'}>
+      <div className="grid grid-cols-4 gap-1 px-1 py-1.5 sm:px-2 sm:py-2">
         {navItems.map((link) => {
           const Icon = link.icon;
           const isActive = isNavigationPathActive(pathname, link.path, searchParams);
-          const commonClasses = `${useStudentGrid ? 'w-full min-w-0' : 'min-w-[64px] flex-1 sm:min-w-[76px]'} rounded-2xl px-2 py-1.5 text-center transition sm:px-3 sm:py-2 ${
+          const commonClasses = `w-full min-w-0 rounded-2xl px-2 py-1.5 text-center transition sm:px-3 sm:py-2 ${
             isActive
               ? 'bg-kmuGreen/10 text-kmuGreen dark:bg-kmuGreen/20'
               : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
