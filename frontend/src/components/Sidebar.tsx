@@ -32,7 +32,7 @@ export default function Sidebar() {
   const { bottomNav, sidebarNav } = splitNavLinksForMobile(allNavLinks);
   const isCollapsed = isDesktop && isCollapsedDesktop;
 
-  const sidebarBase = `fixed inset-y-0 left-0 z-50 flex h-full flex-col overflow-hidden border-r border-slate-300 bg-white text-slate-900 shadow-[4px_0_8px_-4px_rgba(15,23,42,0.06),8px_0_16px_-8px_rgba(15,23,42,0.1)] transition-[transform,width] duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-none ${
+  const sidebarBase = `fixed inset-y-0 left-0 z-[70] flex h-full flex-col overflow-hidden border-r border-slate-300 bg-white text-slate-900 shadow-[4px_0_8px_-4px_rgba(15,23,42,0.06),8px_0_16px_-8px_rgba(15,23,42,0.1)] transition-[transform,width] duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-none ${
     isOpenMobile ? 'translate-x-0' : '-translate-x-full md:translate-x-0 md:w-auto'
   }`;
 
@@ -189,7 +189,7 @@ export default function Sidebar() {
     <>
       {isOpenMobile && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          className="fixed inset-0 z-[65] bg-black/50 md:hidden"
           onClick={() => setIsOpenMobile(false)}
         />
       )}

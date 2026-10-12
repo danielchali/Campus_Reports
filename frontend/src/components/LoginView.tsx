@@ -697,19 +697,15 @@ export default function LoginView() {
                     <span className="mx-4 flex-shrink-0 text-[10px] text-slate-400">or login with</span>
                     <div className="flex-grow border-t border-slate-200 dark:border-slate-800" />
                   </div>
-                  <div className="relative mx-auto min-h-[44px] w-full max-w-[280px]">
-                    {!googleButtonReady && (
-                      <div
-                        role="status"
-                        className={`absolute inset-0 flex items-center justify-center gap-2 rounded-xl border px-4 text-sm font-medium ${theme === 'dark' ? 'border-slate-700 bg-slate-800 text-slate-300' : 'border-slate-200 bg-white text-slate-600'}`}
-                      >
-                        <img src="/google-mark.svg" alt="" aria-hidden="true" className="h-5 w-5" />
-                        <span>{googleScriptFailed ? 'Google sign-in unavailable' : 'Preparing Google sign-in…'}</span>
-                      </div>
-                    )}
+                  <div
+                    className={`relative mx-auto flex h-11 w-11 items-center justify-center rounded-full border shadow-sm transition-colors ${theme === 'dark' ? 'border-slate-700 bg-slate-800 hover:bg-slate-700' : 'border-slate-200 bg-white hover:bg-slate-50'}`}
+                    aria-label="Sign in with Google"
+                  >
+                    <img src="/google-mark.svg" alt="Google" className="h-5 w-5" />
+                    {!googleButtonReady && <span role="status" className="sr-only">{googleScriptFailed ? 'Google sign-in unavailable' : 'Preparing Google sign-in…'}</span>}
                     <div
                       ref={googleButtonRef}
-                      className={`relative z-10 flex min-h-[44px] items-center justify-center ${googleButtonReady ? '' : 'pointer-events-none opacity-0'}`}
+                      className={`absolute inset-0 z-10 flex items-center justify-center ${googleButtonReady ? 'opacity-0' : 'pointer-events-none opacity-0'}`}
                       aria-hidden={googleButtonReady ? undefined : true}
                     />
                   </div>
