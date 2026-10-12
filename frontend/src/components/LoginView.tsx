@@ -229,12 +229,10 @@ export default function LoginView() {
       });
       googleInitializedRef.current = true;
       google.accounts.id.renderButton(container, {
-        type: 'standard',
+        type: 'icon',
         theme: theme === 'dark' ? 'filled_black' : 'outline',
         size: 'large',
-        shape: 'rectangular',
-        text: 'signin_with',
-        width: 280,
+        shape: 'circle',
       });
       setGoogleButtonReady(true);
     };

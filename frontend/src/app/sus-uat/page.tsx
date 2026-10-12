@@ -8,16 +8,16 @@ import { API_BASE_URL } from "@/config/constants";
 import { authHeaders } from "@/utils/api";
 
 const SUS_STATEMENTS = [
-  "I think that I would like to use this system frequently.",
-  "I found the system unnecessarily complex.",
-  "I thought the system was easy to use.",
-  "I think that I would need the support of a technical person to use this system.",
-  "I found that the functions in this system were well integrated.",
-  "I thought there was too much inconsistency in this system.",
-  "I would imagine that most people would learn to use this system very quickly.",
-  "I found the system very cumbersome to use.",
-  "I felt very confident using the system.",
-  "I needed to learn a lot of things before I could get going with this system.",
+  "I would like to use this system often. (often = many times)",
+  "I found this system more complicated than it needs to be. (complicated = not simple)",
+  "I found this system easy to use. (easy = not difficult)",
+  "I would need help from a technical person to use this system. (technical person = someone with computer knowledge)",
+  "The different parts of this system work well together. (parts = sections or features)",
+  "This system does not always work in the same way. (inconsistency = not being the same each time)",
+  "Most people would learn to use this system very quickly. (learn = understand how to use)",
+  "I found this system difficult and awkward to use. (cumbersome = difficult and awkward)",
+  "I felt sure when using this system. (confident = sure)",
+  "I needed to learn many things before I could start using this system. (get going = start using)",
 ] as const;
 
 const SCALE = [
