@@ -1,5 +1,6 @@
 import SusSurveyModel from '../models/susSurvey.js';
 import { logAudit } from './auditController.js';
+import { getClientIpAddress } from '../utils/requestMetadata.js';
 
 const SUS_ITEM_COUNT = 10;
 
@@ -94,7 +95,7 @@ export async function submitSusSurvey(req, res) {
       entityId: response._id,
       user: req.user?.username,
       details: { score, respondentRole: response.respondentRole },
-      ipAddress: req.ip,
+      ipAddress: getClientIpAddress(req),
       userAgent: req.get('User-Agent'),
     });
 
