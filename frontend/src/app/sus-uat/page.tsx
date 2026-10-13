@@ -6,6 +6,7 @@ import RoleProtectedRoute from "@/app/(protected)/RoleProtectedRoute";
 import { useAuth } from "@/context/AuthContext";
 import { API_BASE_URL } from "@/config/constants";
 import { authHeaders } from "@/utils/api";
+import { useAlertDialog } from "../../components/AppDialog";
 
 const SUS_STATEMENTS = [
   "I would like to use this system often. (often = many times)",
@@ -99,6 +100,7 @@ function SurveySkeleton() {
 
 function SurveyContent() {
   const { token, user } = useAuth();
+  const { showAlert, alertDialog } = useAlertDialog();
   const [answers, setAnswers] = useState<Array<number | null>>(() => Array(10).fill(null));
   const [taskFeedback, setTaskFeedback] = useState("");
   const [additionalFeedback, setAdditionalFeedback] = useState("");
@@ -174,7 +176,15 @@ function SurveyContent() {
       if (!response.ok) throw new Error(data?.error || "Unable to submit the UAT survey.");
 
       setExistingResponse(data as SusResponse);
-      setSuccess(existingResponse ? "Your UAT response has been updated." : "Thank you — your UAT response has been recorded.");
+      const confirmationMessage = existingResponse
+        ? "Your UAT response has been updated."
+        : "Thank you — your UAT response has been recorded.";
+      setSuccess(confirmationMessage);
+      showAlert({
+        title: existingResponse ? "UAT response updated" : "Thank you",
+        message: confirmationMessage,
+        tone: "success",
+      });
       if (isAdmin) {
         const summaryResponse = await fetch(`${API_BASE_URL}/sus-surveys/summary`, { headers: authHeaders() });
         const summaryData = await summaryResponse.json().catch(() => null);
@@ -193,6 +203,7 @@ function SurveyContent() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-4 pb-6">
+      {alertDialog}
       <section className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-slate-50 px-4 py-5 text-slate-900 shadow-sm dark:border-emerald-900/60 dark:from-emerald-950/70 dark:via-slate-900 dark:to-slate-950 dark:text-white sm:px-5 sm:py-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
@@ -217,7 +228,6 @@ function SurveyContent() {
         </div>
       )}
       {error && <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200">{error}</div>}
-      {success && <div role="status" className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-200"><CheckCircle2 size={18} className="mt-0.5 shrink-0" />{success}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-5">

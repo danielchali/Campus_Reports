@@ -24,6 +24,7 @@ import { applyGuidedFieldsToAnonymousReport } from '../../utils/applyGuidedRepor
 import { getTodayDateInputValue } from '../../utils/dateTimeDefaults';
 import { buildDefaultDetailValues, getCategoryById } from '../../utils/formSchemas';
 import CampusBackground from '../../components/CampusBackground';
+import { useAlertDialog } from '../../components/AppDialog';
 
 type Category = 'disciplinary_case' | 'maintenance_issue' | 'other';
 
@@ -31,6 +32,7 @@ type Step = 'form' | 'success';
 
 export default function AnonymousReportPage() {
   const { schema } = useFormSchema('anonymous_report');
+  const { showAlert, alertDialog } = useAlertDialog();
   const [step, setStep] = useState<Step>('form');
   const [category, setCategory] = useState<Category>('disciplinary_case');
   const [title, setTitle] = useState('');
@@ -95,7 +97,17 @@ export default function AnonymousReportPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || 'Submission failed. Please try again.');
+        const message = data.error || 'Submission failed. Please try again.';
+        if (message.toLowerCase().includes('already exists')) {
+          showAlert({
+            title: 'Duplicate maintenance report',
+            message,
+            tone: 'warning',
+          });
+          setError('');
+        } else {
+          setError(message);
+        }
         return;
       }
 
@@ -162,6 +174,7 @@ export default function AnonymousReportPage() {
 
   return (
     <div className="relative min-h-screen flex flex-col bg-slate-100 dark:bg-slate-950 md:bg-transparent">
+      {alertDialog}
       <CampusBackground />
 
       <div className="relative z-10 flex-1 w-full px-4 md:px-8 py-3 md:py-4 flex flex-col gap-3 md:gap-4">

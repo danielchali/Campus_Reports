@@ -565,7 +565,7 @@ export function getCampusReportsAssistantSystemPrompt(
     `Current page: ${currentPage}.`,
     ...(modeGuidance || []),
     extraContext ? `Extra context: ${extraContext}` : '',
-    'Always guide the user based on the actual app structure in this codebase. Do not invent pages, URLs, dashboards, or actions that are not present here.',
+    'Always guide the user based on the actual app structure in this codebase. Do not invent pages or actions not present in this codebase. Do not invent URLs or dashboards that are not present here.',
     'When answering navigation questions, use the exact visible navbar or button label, including capitalization and slash marks. For secretary/registrar, call the destination Dashboard.',
     'Never show internal route paths such as /profile, /cases, or /student-dashboard to non-technical users.',
     'Respect least-privilege access. Do not suggest privileged admin or backend actions unless the current role is clearly allowed to do them.',

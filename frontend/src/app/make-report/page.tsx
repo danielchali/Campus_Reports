@@ -22,6 +22,7 @@ import {
 import { subscribeGuidedApply } from "../../utils/guidedReportBridge";
 import { applyGuidedFieldsToMakeReport } from "../../utils/applyGuidedReportFields";
 import { getTodayDateInputValue } from "../../utils/dateTimeDefaults";
+import { useAlertDialog } from "../../components/AppDialog";
 
 type ReporterProfile = {
   name?: string;
@@ -168,6 +169,7 @@ export default function MakeReportPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showAlert, alertDialog } = useAlertDialog();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -430,7 +432,17 @@ export default function MakeReportPage() {
       setAccessInstructions("");
       setAttachments([]);
     } catch (submitError: any) {
-      setError(submitError?.message || "Failed to submit report.");
+      const message = submitError?.message || "Failed to submit report.";
+      if (message.toLowerCase().includes("already exists")) {
+        showAlert({
+          title: "Duplicate maintenance report",
+          message,
+          tone: "warning",
+        });
+        setError("");
+      } else {
+        setError(message);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -438,6 +450,7 @@ export default function MakeReportPage() {
 
   return (
     <section className="w-full space-y-6 md:space-y-8">
+      {alertDialog}
       {error && (
         <div className="rounded-lg md:rounded-2xl border border-red-200 bg-red-50 dark:bg-red-900/20 p-3 md:p-4 text-red-700 dark:text-red-300">
           <div className="flex items-start gap-2 md:gap-3">
