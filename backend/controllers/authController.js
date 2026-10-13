@@ -6,6 +6,7 @@ import UserModel from '../models/user.js';
 import StudentModel from '../models/student.js';
 import StaffModel from '../models/staff.js';
 import { logAudit } from './auditController.js';
+import { getClientIpAddress } from '../utils/requestMetadata.js';
 import { clearLoginAttempts, recordFailedLoginAttempt } from '../middleware/loginRateLimit.js';
 import {
     escapeHtml,
@@ -16,14 +17,19 @@ import {
 } from '../utils/emailService.js';
 import {
     createTwoFactorChallenge,
+    createTrustedDeviceToken,
     hashTwoFactorChallenge,
+    hashTrustedDeviceToken,
     isValidTwoFactorCode,
     MANAGEMENT_ROLES,
-    requiresTwoFactorAuthentication
+    requiresTwoFactorAuthentication,
+    getTrustedDeviceTtlMs
 } from '../utils/twoFactorAuth.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme';
 const MAX_TWO_FACTOR_ATTEMPTS = 5;
+const TRUSTED_DEVICE_COOKIE = 'campus_reports_trusted_2fa';
+const MAX_TRUSTED_DEVICES_PER_USER = 5;
 const GOOGLE_REGISTRATION_ROLES = new Set(['student', 'general_user']);
 
 function createAuthenticatedUserPayload(user, displayName) {
@@ -43,6 +49,58 @@ function clearTwoFactorChallenge(user) {
     user.twoFactorAttempts = 0;
 }
 
+function getCookieValue(req, name) {
+    const cookies = String(req.headers.cookie || '').split(';');
+    const cookie = cookies.find((item) => item.trim().startsWith(`${name}=`));
+    if (!cookie) return '';
+
+    try {
+        return decodeURIComponent(cookie.trim().slice(name.length + 1));
+    } catch {
+        return '';
+    }
+}
+
+function hasValidTrustedDevice(req, user) {
+    const token = getCookieValue(req, TRUSTED_DEVICE_COOKIE);
+    if (!token || !Array.isArray(user.trustedTwoFactorDevices)) return false;
+
+    const tokenHash = hashTrustedDeviceToken(token);
+    return user.trustedTwoFactorDevices.some((device) => (
+        device.tokenHash === tokenHash &&
+        new Date(device.expiresAt).getTime() > Date.now()
+    ));
+}
+
+function setTrustedDeviceCookie(res, token) {
+    const secure = process.env.NODE_ENV === 'production';
+    res.cookie(TRUSTED_DEVICE_COOKIE, token, {
+        httpOnly: true,
+        secure,
+        sameSite: secure ? 'none' : 'lax',
+        maxAge: getTrustedDeviceTtlMs(),
+        path: '/'
+    });
+}
+
+function rememberTrustedDevice(req, res, user) {
+    const trustedDevice = createTrustedDeviceToken();
+    const activeDevices = (Array.isArray(user.trustedTwoFactorDevices) ? user.trustedTwoFactorDevices : [])
+        .filter((device) => new Date(device.expiresAt).getTime() > Date.now())
+        .slice(-(MAX_TRUSTED_DEVICES_PER_USER - 1));
+
+    user.trustedTwoFactorDevices = [
+        ...activeDevices,
+        {
+            tokenHash: trustedDevice.tokenHash,
+            createdAt: new Date(),
+            expiresAt: trustedDevice.expiresAt,
+            userAgent: String(req.get('User-Agent') || '').slice(0, 500)
+        }
+    ];
+    setTrustedDeviceCookie(res, trustedDevice.token);
+}
+
 function createAuthenticationToken(payload) {
     return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 }
@@ -58,7 +116,7 @@ async function recordSuccessfulLogin({ req, user, username, twoFactorVerified })
             ...(twoFactorVerified ? { twoFactorVerified: true } : {}),
             timestamp: new Date().toISOString()
         },
-        ipAddress: req.ip,
+        ipAddress: getClientIpAddress(req),
         userAgent: req.get('User-Agent')
     });
 }
@@ -124,7 +182,7 @@ async function issueTwoFactorChallenge({ req, user, username, authMethod = 'pass
             expiresAt: challenge.expiresAt.toISOString(),
             timestamp: new Date().toISOString()
         },
-        ipAddress: req.ip,
+        ipAddress: getClientIpAddress(req),
         userAgent: req.get('User-Agent')
     });
 
@@ -345,7 +403,7 @@ export async function login(req, res) {
                 { username: normalizedIdentifier },
                 { role: { $ne: 'student' }, email: normalizedIdentifier }
             ]
-        });
+        }).select('+trustedTwoFactorDevices');
         console.log('User found:', !!user, user && user.username, user && user.role);
 
         if (!user) {
@@ -358,7 +416,7 @@ export async function login(req, res) {
                     reason: 'User not found',
                     timestamp: new Date().toISOString()
                 },
-                ipAddress: req.ip,
+                ipAddress: getClientIpAddress(req),
                 userAgent: req.get('User-Agent')
             });
             recordFailedLoginAttempt(loginAttemptKey);
@@ -377,7 +435,7 @@ export async function login(req, res) {
                     reason: 'Invalid password',
                     timestamp: new Date().toISOString()
                 },
-                ipAddress: req.ip,
+                ipAddress: getClientIpAddress(req),
                 userAgent: req.get('User-Agent')
             });
             recordFailedLoginAttempt(loginAttemptKey);
@@ -385,6 +443,16 @@ export async function login(req, res) {
         }
 
         if (requiresTwoFactorAuthentication(user.role)) {
+            if (hasValidTrustedDevice(req, user)) {
+                const displayName = await resolveUserDisplayName(user);
+                const payload = createAuthenticatedUserPayload(user, displayName);
+                const token = createAuthenticationToken(payload);
+
+                await recordSuccessfulLogin({ req, user, username, twoFactorVerified: true });
+                clearLoginAttempts(loginAttemptKey);
+                return res.json({ token, user: payload });
+            }
+
             const challengeResponse = await issueTwoFactorChallenge({
                 req,
                 user,
@@ -420,10 +488,14 @@ export async function googleLogin(req, res) {
         // Prefer the management account if duplicate email records exist so a
         // management identity can never bypass the second factor by matching a
         // lower-privilege record first.
-        const user = await UserModel.findOne({
+        let user = await UserModel.findOne({
             email: googleUser.email,
             role: { $in: [...MANAGEMENT_ROLES] }
-        }) || await UserModel.findOne({ email: googleUser.email });
+        }).select('+trustedTwoFactorDevices');
+        if (!user) {
+            user = await UserModel.findOne({ email: googleUser.email })
+                .select('+trustedTwoFactorDevices');
+        }
 
         if (!user) {
             await logAudit({
@@ -435,7 +507,7 @@ export async function googleLogin(req, res) {
                     reason: 'No matching account',
                     timestamp: new Date().toISOString()
                 },
-                ipAddress: req.ip,
+                ipAddress: getClientIpAddress(req),
                 userAgent: req.get('User-Agent')
             });
             return res.json({
@@ -450,6 +522,20 @@ export async function googleLogin(req, res) {
         }
 
         if (MANAGEMENT_ROLES.has(user.role)) {
+            if (hasValidTrustedDevice(req, user)) {
+                const displayName = await resolveUserDisplayName(user);
+                const payload = createAuthenticatedUserPayload(user, displayName);
+                const token = createAuthenticationToken(payload);
+
+                await recordSuccessfulLogin({
+                    req,
+                    user,
+                    username: user.username,
+                    twoFactorVerified: true
+                });
+                return res.json({ token, user: payload });
+            }
+
             const challengeResponse = await issueTwoFactorChallenge({
                 req,
                 user,
@@ -548,7 +634,7 @@ export async function googleRegister(req, res) {
                     program: studentPayload.program,
                     timestamp: new Date().toISOString()
                 },
-                ipAddress: req.ip,
+                ipAddress: getClientIpAddress(req),
                 userAgent: req.get('User-Agent')
             });
         } else {
@@ -578,7 +664,7 @@ export async function googleRegister(req, res) {
                     role: user.role,
                     timestamp: new Date().toISOString()
                 },
-                ipAddress: req.ip,
+                ipAddress: getClientIpAddress(req),
                 userAgent: req.get('User-Agent')
             });
         }
@@ -602,6 +688,7 @@ export async function googleRegister(req, res) {
 export async function verifyTwoFactor(req, res) {
     const challengeId = String(req.body.challengeId || '').trim();
     const code = String(req.body.code || '').trim();
+    const trustDevice = req.body.trustDevice === true;
 
     if (!challengeId || !isValidTwoFactorCode(code)) {
         return res.status(400).json({ error: 'Enter a valid six-digit verification code.' });
@@ -612,7 +699,7 @@ export async function verifyTwoFactor(req, res) {
         const user = await UserModel.findOne({
             twoFactorChallengeHash: challengeHash,
             twoFactorExpiresAt: { $gt: new Date() }
-        }).select('+twoFactorChallengeHash +twoFactorCodeHash +twoFactorExpiresAt +twoFactorAttempts');
+        }).select('+twoFactorChallengeHash +twoFactorCodeHash +twoFactorExpiresAt +twoFactorAttempts +trustedTwoFactorDevices');
 
         if (!user || !requiresTwoFactorAuthentication(user.role)) {
             return res.status(401).json({ error: 'This verification code is invalid or has expired. Sign in again.' });
@@ -637,7 +724,7 @@ export async function verifyTwoFactor(req, res) {
                     attemptsRemaining: attemptsExhausted ? 0 : MAX_TWO_FACTOR_ATTEMPTS - user.twoFactorAttempts,
                     timestamp: new Date().toISOString()
                 },
-                ipAddress: req.ip,
+                ipAddress: getClientIpAddress(req),
                 userAgent: req.get('User-Agent')
             });
 
@@ -648,6 +735,9 @@ export async function verifyTwoFactor(req, res) {
         const payload = createAuthenticatedUserPayload(user, displayName);
         const token = createAuthenticationToken(payload);
         clearTwoFactorChallenge(user);
+        if (trustDevice) {
+            rememberTrustedDevice(req, res, user);
+        }
         await user.save();
 
         await recordSuccessfulLogin({
@@ -720,7 +810,7 @@ export async function register(req, res) {
                 ...(normalizedRole === 'warden' ? { hostel } : {}),
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
 
@@ -763,7 +853,7 @@ export async function registerGeneralUser(req, res) {
                 houseNumberProvided: Boolean(userPayload.profile.houseNumber),
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
 
@@ -829,7 +919,7 @@ export async function registerStudent(req, res) {
                 program: student.program,
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
 
@@ -953,7 +1043,7 @@ export async function resetPassword(req, res) {
             entityId: user._id || user.id,
             user: user.username,
             details: { timestamp: new Date().toISOString() },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
 

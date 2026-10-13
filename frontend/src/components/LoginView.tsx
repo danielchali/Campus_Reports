@@ -52,6 +52,7 @@ export default function LoginView() {
   const [twoFactorChallengeId, setTwoFactorChallengeId] = useState<string | null>(null);
   const [twoFactorDigits, setTwoFactorDigits] = useState<string[]>(emptyTwoFactorDigits);
   const [twoFactorMessage, setTwoFactorMessage] = useState('');
+  const [trustTwoFactorDevice, setTrustTwoFactorDevice] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isOnline, setIsOnline] = useState(true);
@@ -186,6 +187,7 @@ export default function LoginView() {
         setTwoFactorChallengeId(result.challengeId);
         setTwoFactorMessage(result.message || 'Enter the verification code sent to your email address.');
         setTwoFactorDigits(emptyTwoFactorDigits());
+        setTrustTwoFactorDevice(false);
         return;
       }
 
@@ -260,7 +262,7 @@ export default function LoginView() {
     setLoading(true);
     setError('');
     try {
-      await verifyTwoFactorLogin(twoFactorChallengeId, code);
+      await verifyTwoFactorLogin(twoFactorChallengeId, code, trustTwoFactorDevice);
     } catch (err) {
       setError(getLoginErrorMessage(err));
     } finally {
@@ -349,6 +351,7 @@ export default function LoginView() {
           setTwoFactorChallengeId(result.challengeId);
           setTwoFactorMessage(result.message || 'Enter the verification code sent to your email address.');
           setTwoFactorDigits(emptyTwoFactorDigits());
+          setTrustTwoFactorDevice(false);
           setPassword('');
           return;
         }
@@ -380,6 +383,7 @@ export default function LoginView() {
     setTwoFactorChallengeId(null);
     setTwoFactorDigits(emptyTwoFactorDigits());
     setTwoFactorMessage('');
+    setTrustTwoFactorDevice(false);
     setError('');
   };
 
@@ -602,6 +606,20 @@ export default function LoginView() {
                     ))}
                   </div>
                 </div>
+
+                <label className="flex cursor-pointer items-start gap-3 text-sm text-slate-600 dark:text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={trustTwoFactorDevice}
+                    onChange={(event) => setTrustTwoFactorDevice(event.target.checked)}
+                    disabled={loading}
+                    className="mt-0.5 h-4 w-4 rounded border-slate-300 text-kmuGreen focus:ring-kmuGreen"
+                  />
+                  <span>
+                    <span className="font-medium text-slate-800 dark:text-slate-100">Trust this device</span>
+                    <span className="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">Skip email verification on this device for 30 days.</span>
+                  </span>
+                </label>
 
                 <button
                   type="submit"

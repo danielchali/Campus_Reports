@@ -57,7 +57,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<LoginResult>;
   loginWithGoogle: (credential: string) => Promise<LoginResult>;
   registerWithGoogle: (credential: string, details: GoogleRegistrationDetails) => Promise<boolean>;
-  verifyTwoFactorLogin: (challengeId: string, code: string) => Promise<boolean>;
+  verifyTwoFactorLogin: (challengeId: string, code: string, trustDevice?: boolean) => Promise<boolean>;
   loginOffline: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>;
@@ -331,6 +331,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await fetch(`${API_BASE_URL}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ username: identifier, password }),
       });
 
@@ -346,6 +347,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await fetch(`${API_BASE_URL}/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ credential }),
       });
 
@@ -372,12 +374,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const verifyTwoFactorLogin = async (challengeId: string, code: string): Promise<boolean> => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/verify-2fa`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ challengeId, code: code.trim() }),
+  const verifyTwoFactorLogin = async (challengeId: string, code: string, trustDevice = false): Promise<boolean> => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/verify-2fa`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ challengeId, code: code.trim(), trustDevice }),
       });
 
       const data = await response.json().catch(() => null);

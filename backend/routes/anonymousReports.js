@@ -13,6 +13,7 @@ import {
 import { applyNlpToDocument } from "../utils/nlpAnalytics.js";
 import { emitDashboardRefresh } from "../utils/socket.js";
 import { escapeRegex } from "../utils/inputSanitization.js";
+import { getClientIpAddress } from "../utils/requestMetadata.js";
 import StudentReportModel from "../models/studentReport.js";
 import {
   findActiveMaintenanceReportDuplicate,
@@ -174,8 +175,7 @@ router.post("/", async (req, res) => {
       attempts < 10
     );
 
-    const ip =
-      req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "";
+    const ip = getClientIpAddress(req);
     const ip_hash = hashIp(ip);
 
     const report = await AnonymousReportModel.create({

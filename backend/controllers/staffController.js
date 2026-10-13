@@ -1,6 +1,7 @@
 import StaffModel from '../models/staff.js';
 import CaseModel from '../models/case.js';
 import { logAudit } from './auditController.js';
+import { getClientIpAddress } from '../utils/requestMetadata.js';
 import { escapeRegex, pickFields } from '../utils/inputSanitization.js';
 
 export async function listStaff(req, res) {
@@ -85,7 +86,7 @@ export async function createStaff(req, res) {
                 },
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
         res.json(staff);
@@ -109,7 +110,7 @@ export async function updateStaff(req, res) {
                 changes: staffData,
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
         res.json(staff);
@@ -129,7 +130,7 @@ export async function deleteStaff(req, res) {
             details: {
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
         res.json({ success: true });

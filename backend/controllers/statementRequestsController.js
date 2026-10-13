@@ -4,6 +4,7 @@ import StudentModel from '../models/student.js';
 import UserModel from '../models/user.js';
 import CaseModel from '../models/case.js';
 import { logAudit } from './auditController.js';
+import { getClientIpAddress } from '../utils/requestMetadata.js';
 import { createNotification } from '../utils/notifications.js';
 
 function caseIncludesStudent(caseDoc, studentId) {
@@ -121,7 +122,7 @@ export async function createStatementRequest(req, res) {
                 dueAt: created.dueAt || null,
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
 
@@ -203,7 +204,7 @@ export async function submitStatementRequest(req, res) {
                 submittedAt: record.submittedAt,
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
 

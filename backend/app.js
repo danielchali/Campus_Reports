@@ -31,8 +31,13 @@ import susSurveysRouter from "./routes/susSurveys.js";
 
 const app = express();
 const API_V1_BASE = "/api/v1";
+const configuredTrustProxyHops = Number.parseInt(process.env.TRUST_PROXY_HOPS || '', 10);
+const trustProxyHops = Number.isInteger(configuredTrustProxyHops) && configuredTrustProxyHops >= 0
+  ? configuredTrustProxyHops
+  : process.env.NODE_ENV === 'production' ? 1 : 0;
 
 app.disable("x-powered-by");
+app.set('trust proxy', trustProxyHops);
 // API responses do not render HTML, so Helmet's browser CSP is owned by the
 // Next.js frontend. Keep the remaining security headers on every API response.
 app.use(helmet({ contentSecurityPolicy: false }));

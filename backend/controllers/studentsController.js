@@ -2,6 +2,7 @@ import StudentModel from '../models/student.js';
 import UserModel from '../models/user.js';
 import CaseModel from '../models/case.js';
 import { logAudit } from './auditController.js';
+import { getClientIpAddress } from '../utils/requestMetadata.js';
 import { escapeRegex } from '../utils/inputSanitization.js';
 
 function normalizeStudentStatus(status) {
@@ -135,7 +136,7 @@ export async function createStudent(req, res) {
                 },
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
         res.json(student);
@@ -170,7 +171,7 @@ export async function updateStudent(req, res) {
                 changes: req.body,
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
         res.json(student);
@@ -191,7 +192,7 @@ export async function deleteStudent(req, res) {
                 timestamp: new Date().toISOString(),
                 reason: 'Student permanently deleted'
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
         res.json({ success: true });
@@ -297,7 +298,7 @@ export async function importStudents(req, res) {
                 errors: errors.length,
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
 

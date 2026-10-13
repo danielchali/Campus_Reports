@@ -7,6 +7,7 @@ import {
 } from "../utils/reportRedaction.js";
 import { buildPortalConfig } from "../utils/formSchemaValidation.js";
 import { buildAnalyticsSummary, buildReportActivity, classifyDisciplinaryIssue, classifyMaintenanceIssue } from "../utils/analytics.js";
+import { createTrustedDeviceToken, getTrustedDeviceTtlMs, hashTrustedDeviceToken } from "../utils/twoFactorAuth.js";
 
 const report = {
   owner_id: "student-1",
@@ -15,6 +16,17 @@ const report = {
   student_involved: true,
   category: "disciplinary_case",
 };
+
+test("trusted-device tokens are random, hashable, and expire within the configured default window", () => {
+  const first = createTrustedDeviceToken();
+  const second = createTrustedDeviceToken();
+
+  assert.notEqual(first.token, second.token);
+  assert.equal(first.tokenHash, hashTrustedDeviceToken(first.token));
+  assert.equal(first.tokenHash.length, 64);
+  assert.ok(first.expiresAt.getTime() > Date.now());
+  assert.ok(first.expiresAt.getTime() - Date.now() <= getTrustedDeviceTtlMs());
+});
 
 test("isReportOwner accepts either the user id or username", () => {
   assert.equal(isReportOwner({ id: "student-1" }, report), true);

@@ -1,6 +1,7 @@
 import CaseModel from '../models/case.js';
 import CounterModel from '../models/counter.js';
 import { logAudit } from './auditController.js';
+import { getClientIpAddress } from '../utils/requestMetadata.js';
 import { emitDashboardRefresh } from '../utils/socket.js';
 import { escapeRegex, pickFields } from '../utils/inputSanitization.js';
 
@@ -255,7 +256,7 @@ export async function createCase(req, res) {
                 },
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
 
@@ -299,7 +300,7 @@ export async function updateCase(req, res) {
                     changes: req.body,
                     timestamp: new Date().toISOString()
                 },
-                ipAddress: req.ip,
+                ipAddress: getClientIpAddress(req),
                 userAgent: req.get('User-Agent')
             });
         }
@@ -314,7 +315,7 @@ export async function updateCase(req, res) {
                     changes: req.body,
                     timestamp: new Date().toISOString()
                 },
-                ipAddress: req.ip,
+                ipAddress: getClientIpAddress(req),
                 userAgent: req.get('User-Agent')
             });
         }
@@ -338,7 +339,7 @@ export async function deleteCase(req, res) {
                 timestamp: new Date().toISOString(),
                 reason: 'Case permanently deleted'
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
         res.json({ success: true });

@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { getUploadDirectory } from '../utils/uploadPaths.js';
 import { logAudit } from './auditController.js';
+import { getClientIpAddress } from '../utils/requestMetadata.js';
 
 export async function listEvidence(req, res) {
     try {
@@ -63,7 +64,7 @@ export async function uploadEvidence(req, res) {
                 mimeType: file.mimetype,
                 timestamp: new Date().toISOString()
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
 
@@ -111,7 +112,7 @@ export async function deleteEvidence(req, res) {
                 timestamp: new Date().toISOString(),
                 reason: 'Evidence permanently deleted'
             },
-            ipAddress: req.ip,
+            ipAddress: getClientIpAddress(req),
             userAgent: req.get('User-Agent')
         });
 
