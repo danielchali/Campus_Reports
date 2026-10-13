@@ -11,9 +11,10 @@ export default function WardenDashboard() {
       metricKeys={['totalReports', 'openReports', 'pendingStatements', 'submittedStatements', 'totalStaff']}
       dataset="anonymousReports"
       quickActions={[
-        { href: '/anonymous-report', label: 'Open Anonymous Reports' },
-        { href: '/staff', label: 'Open Staff' },
         { href: '/inbox', label: 'Open Inbox' },
+        { href: '/work-orders', label: 'Open Work Orders' },
+        { href: '/analytics', label: 'Open Analytics' },
+        { href: '/cases/new', label: 'Create a Case' },
       ]}
     />
   );
