@@ -33,47 +33,11 @@ function percentile(values, percentileValue) {
   return Math.round(sorted[Math.min(Math.ceil(sorted.length * percentileValue) - 1, sorted.length - 1)] * 100) / 100;
 }
 
-function escapeRegex(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 function emptyScope() {
   return { _id: null };
 }
 
-async function resolveWardenHostel(user) {
-  const tokenHostel = String(user?.hostel || '').trim();
-  if (tokenHostel) return tokenHostel;
-  if (!user?.id) return '';
-
-  const account = await UserModel.findById(user.id).select('hostel').lean();
-  return String(account?.hostel || '').trim();
-}
-
-function getLocationScope(hostel) {
-  if (!hostel) return emptyScope();
-  return { location: { $regex: escapeRegex(hostel), $options: 'i' } };
-}
-
-function getAnalyticsScope(role, hostel) {
-  if (role === 'warden') {
-    const locationScope = getLocationScope(hostel);
-    return {
-      studentReports: locationScope,
-      anonymousReports: locationScope,
-      workOrders: locationScope,
-      cases: emptyScope(),
-      includeWorkOrders: true,
-      scope: {
-        kind: 'hostel',
-        label: hostel || 'Unassigned hostel',
-        description: hostel
-          ? `Reports and work orders whose recorded location matches ${hostel}.`
-          : 'No hostel assignment is available, so no operational records are shown.',
-      },
-    };
-  }
-
+function getAnalyticsScope(role) {
   if (role === 'maintenance') {
     return {
       studentReports: getStaffReportScope({ role }) || {},
@@ -130,8 +94,7 @@ async function buildPerformanceSummary() {
 
 router.get('/summary', authenticate, authorize(ANALYTICS_ROLES), async (req, res) => {
   try {
-    const hostel = req.user.role === 'warden' ? await resolveWardenHostel(req.user) : '';
-    const scopedData = getAnalyticsScope(req.user.role, hostel);
+    const scopedData = getAnalyticsScope(req.user.role);
 
     const [studentReports, anonymousReports, cases, users, workOrders] = await Promise.all([
       StudentReportModel.find(scopedData.studentReports)

@@ -478,7 +478,7 @@ export function getCampusReportsAssistantSystemPrompt(
     security_officer: 'Security Officer: Dashboard, Discipline Cases, Evidence, Students, New Case, Analytics, Audit/Logs, Profile & Settings, Help',
     chief_security_officer: 'Chief Security Officer: Dashboard, Inbox, Analytics, Audit/Logs, Profile & Settings, Help',
     dean_of_students: 'Dean of Students: Dashboard, Discipline Cases, New Case, Evidence, Students, Inbox, Maintenance Issues, Work Orders, Analytics, Audit/Logs, Profile & Settings, Help',
-    warden: 'Warden: Dashboard, Inbox, Maintenance Issues, Work Orders, Analytics, Audit/Logs, Profile & Settings, Help',
+    warden: 'Warden: Dashboard, Inbox, Maintenance Issues, Work Orders, Analytics, Profile & Settings, Help',
     registrar: 'Registrar: Dashboard, Inbox, Maintenance Issues, Work Orders, Analytics, Audit/Logs, Profile & Settings, Help',
     secretary: 'Secretary: Dashboard, Inbox, Maintenance Issues, Work Orders, Analytics, Audit/Logs, Profile & Settings, Help',
     maintenance: 'Maintenance: Dashboard, Inbox, Maintenance Issues, Work Orders, Staff, Analytics, Audit/Logs, Profile & Settings, Help',
@@ -508,7 +508,7 @@ export function getCampusReportsAssistantSystemPrompt(
       'Support fair, evidence-based student case handling and ensure sanctions, follow-ups, and interventions are framed as student support and procedural review.',
     ],
     warden: [
-      'Warden mode: prioritize resident oversight, incident follow-up, maintenance issues, and campus safety visibility through Dashboard, Inbox, Maintenance Issues, Work Orders, Analytics, Audit/Logs, Profile & Settings, and Help.',
+      'Warden mode: prioritize resident oversight, incident follow-up, maintenance issues, and campus safety visibility through Dashboard, Inbox, Maintenance Issues, Work Orders, Analytics, Profile & Settings, and Help.',
       'Focus on monitoring residential or housing-related concerns, escalation paths, maintenance backlog, and communication with student welfare and security teams.',
       'If the user is asking about a disciplinary issue, direct them to the relevant case or evidence workflow but keep the guidance grounded in the current role permissions.',
     ],
@@ -527,7 +527,7 @@ export function getCampusReportsAssistantSystemPrompt(
     navigation: [
       'General navigation mode: explain which page to open for the user role and what each page is used for.',
       'If the user is a student or general user, prefer Dashboard and then My Reports, Maintenance Request, Security/Disciplinary Issue, My Profile or Help.',
-      'If they are staff, security, dean, warden, registrar, secretary, maintenance, or chief security, guide them to Dashboard and then to Discipline Cases, Evidence, Maintenance Issues, Analytics, or Audit/Logs as appropriate.',
+      'If they are staff, security, dean, warden, registrar, secretary, maintenance, or chief security, guide them to Dashboard and then to the role-appropriate cases, evidence, maintenance, inbox, or analytics workflow.',
       'Always ground the answer in the available page names and permissions used by this app.',
     ],
   };

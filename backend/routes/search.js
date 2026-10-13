@@ -24,7 +24,7 @@ const ROLE_ACCESS = {
     ownReports: ['student', 'general_user'],
     anonymousReports: ['admin', 'chief_security_officer', 'dean_of_students', 'warden', 'secretary', 'security_officer', 'maintenance'],
     evidence: ['admin', 'security_officer'],
-    auditLogs: ['admin', 'chief_security_officer', 'dean_of_students', 'warden', 'secretary', 'security_officer', 'maintenance'],
+    auditLogs: ['admin', 'chief_security_officer', 'dean_of_students', 'secretary', 'security_officer', 'maintenance'],
     users: ['admin'],
 };
 

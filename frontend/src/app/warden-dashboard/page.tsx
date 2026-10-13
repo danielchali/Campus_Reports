@@ -14,7 +14,6 @@ export default function WardenDashboard() {
         { href: '/anonymous-report', label: 'Open Anonymous Reports' },
         { href: '/staff', label: 'Open Staff' },
         { href: '/inbox', label: 'Open Inbox' },
-        { href: '/audit', label: 'Audit Logs' },
       ]}
     />
   );
