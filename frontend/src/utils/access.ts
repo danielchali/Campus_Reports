@@ -30,7 +30,6 @@ export const PAGE_ACCESS = {
     "secretary",
     "registrar",
     "security_officer",
-    "maintenance",
   ],
   inbox: [
     "admin",
@@ -67,7 +66,6 @@ export const PAGE_ACCESS = {
     "warden",
     "secretary",
     "registrar",
-    "maintenance",
   ],
   cases: ["admin", "security_officer", "dean_of_students", "warden"],
   caseCreate: ["admin", "security_officer", "dean_of_students", "warden"],

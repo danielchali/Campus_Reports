@@ -314,9 +314,7 @@ function getBaseNavLinksForRole(role?: string): NavLink[] {
         path: "/maintenance-issues",
       },
       { icon: navIcons.workOrders, label: "Work Orders", path: "/work-orders" },
-      { icon: navIcons.staff, label: "Staff", path: "/staff" },
       { icon: navIcons.analytics, label: "Analytics", path: "/analytics" },
-      { icon: navIcons.audit, label: "Audit/Logs", path: "/audit" },
       { icon: navIcons.profile, label: "Profile & Settings", path: "/profile" },
       { icon: navIcons.help, label: "Help", path: "/help" },
       {

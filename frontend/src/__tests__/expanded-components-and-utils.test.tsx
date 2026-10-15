@@ -12,6 +12,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { getNavLinksForRole, isNavigationPathActive, splitNavLinksForMobile } from "../utils/navigation";
 import { getCampusReportsAssistantSystemPrompt } from "../utils/guidedReporting";
+import { canAccessPage } from "../utils/access";
 import { canEditWorkOrderPart, workOrderPartLabel } from "../utils/workOrderPermissions";
 import { getDisplayFirstName, getDisplayFullName } from "../utils/userDisplay";
 
@@ -53,6 +54,14 @@ describe("navigation utilities", () => {
       "UAT Survey",
     ]);
     expect(getNavLinksForRole("unknown").map((link) => link.label)).toEqual(["Logout"]);
+  });
+
+  it("does not expose staff or audit routes to maintenance users", () => {
+    const maintenanceLinks = getNavLinksForRole("maintenance");
+    expect(maintenanceLinks.map((link) => link.path)).not.toContain("/staff");
+    expect(maintenanceLinks.map((link) => link.path)).not.toContain("/audit");
+    expect(canAccessPage("maintenance", "staff")).toBe(false);
+    expect(canAccessPage("maintenance", "audit")).toBe(false);
   });
 
   it("uses the actual role and route map in the assistant system prompt", () => {
