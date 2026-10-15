@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
     name: String,
     email: { type: String, trim: true, lowercase: true },
     role: { type: String, default: 'user' },
+    twoFactorEnabled: { type: Boolean, default: true },
     hostel: {
         type: String,
         trim: true,

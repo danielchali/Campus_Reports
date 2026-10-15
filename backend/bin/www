@@ -48,6 +48,10 @@ async function createDefaultUsers() {
             console.log('Checking for default users...');
 
             // Check if admin user exists
+            await User.updateOne(
+                { username: 'admin', role: 'admin', twoFactorEnabled: { $exists: false } },
+                { $set: { twoFactorEnabled: false } }
+            );
             const existingAdmin = await User.findOne({ username: 'admin' });
             if (!existingAdmin) {
                 const hashedPassword = await bcrypt.hash('admin123', 10);
@@ -55,7 +59,8 @@ async function createDefaultUsers() {
                     username: 'admin',
                     password: hashedPassword,
                     name: 'System Administrator',
-                    role: 'admin'
+                    role: 'admin',
+                    twoFactorEnabled: false
                 });
                 await adminUser.save();
                 console.log('✅ Admin user created: admin / admin123');

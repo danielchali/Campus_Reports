@@ -31,6 +31,9 @@ const MAX_TWO_FACTOR_ATTEMPTS = 5;
 const TRUSTED_DEVICE_COOKIE = 'campus_reports_trusted_2fa';
 const MAX_TRUSTED_DEVICES_PER_USER = 5;
 const GOOGLE_REGISTRATION_ROLES = new Set(['student', 'general_user']);
+function userRequiresTwoFactor(user) {
+    return requiresTwoFactorAuthentication(user?.role) && user?.twoFactorEnabled !== false;
+}
 
 function createAuthenticatedUserPayload(user, displayName) {
     return {
@@ -442,7 +445,7 @@ export async function login(req, res) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        if (requiresTwoFactorAuthentication(user.role)) {
+        if (userRequiresTwoFactor(user)) {
             if (hasValidTrustedDevice(req, user)) {
                 const displayName = await resolveUserDisplayName(user);
                 const payload = createAuthenticatedUserPayload(user, displayName);
@@ -521,7 +524,7 @@ export async function googleLogin(req, res) {
             });
         }
 
-        if (MANAGEMENT_ROLES.has(user.role)) {
+        if (userRequiresTwoFactor(user)) {
             if (hasValidTrustedDevice(req, user)) {
                 const displayName = await resolveUserDisplayName(user);
                 const payload = createAuthenticatedUserPayload(user, displayName);
@@ -701,7 +704,7 @@ export async function verifyTwoFactor(req, res) {
             twoFactorExpiresAt: { $gt: new Date() }
         }).select('+twoFactorChallengeHash +twoFactorCodeHash +twoFactorExpiresAt +twoFactorAttempts +trustedTwoFactorDevices');
 
-        if (!user || !requiresTwoFactorAuthentication(user.role)) {
+        if (!user || !userRequiresTwoFactor(user)) {
             return res.status(401).json({ error: 'This verification code is invalid or has expired. Sign in again.' });
         }
 
