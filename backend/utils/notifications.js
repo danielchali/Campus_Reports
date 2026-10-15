@@ -81,3 +81,61 @@ export async function createNotification({ userId, type, message, link = null })
         return null;
     }
 }
+
+export async function notifyWardensOfNewReport({ report, anonymous = false }) {
+    if (!report) return { sent: 0, failed: 0 };
+
+    try {
+        const wardens = await UserModel.find({ role: 'warden' }).select('_id').lean();
+        const resolvedEmails = await Promise.all(wardens.map((warden) => getNotificationEmail(warden._id)));
+        const recipients = [...new Set(
+            resolvedEmails
+                .map((email) => String(email || '').trim().toLowerCase())
+                .filter(Boolean),
+        )];
+        if (recipients.length === 0) return { sent: 0, failed: 0 };
+
+        const frontendUrl = String(process.env.FRONTEND_URL || process.env.APP_URL || '').replace(/\/$/, '');
+        const reportTitle = String(report.title || 'Untitled report').trim();
+        const reportType = anonymous ? 'anonymous report' : 'report';
+        const category = String(report.category || 'other').replace(/_/g, ' ');
+        const location = String(report.location || 'Not provided').trim();
+        const trackingCode = String(report.tracking_code || 'Not available').trim();
+        const linkUrl = frontendUrl ? `${frontendUrl}/inbox` : '';
+        const subject = `New ${reportType}: ${reportTitle}`;
+        const text = [
+            `A new ${reportType} has been submitted to Campus Reports.`,
+            '',
+            `Title: ${reportTitle}`,
+            `Category: ${category}`,
+            `Location: ${location}`,
+            `Tracking code: ${trackingCode}`,
+            linkUrl ? `Open the staff inbox: ${linkUrl}` : '',
+        ].filter(Boolean).join('\n');
+        const html = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                <div style="background-color: #059669; padding: 20px;">
+                    <h1 style="color: white; margin: 0; font-size: 22px;">New ${escapeHtml(reportType)}</h1>
+                </div>
+                <div style="padding: 30px; color: #1e293b;">
+                    <p>A new ${escapeHtml(reportType)} has been submitted to Campus Reports.</p>
+                    <p><strong>Title:</strong> ${escapeHtml(reportTitle)}</p>
+                    <p><strong>Category:</strong> ${escapeHtml(category)}</p>
+                    <p><strong>Location:</strong> ${escapeHtml(location)}</p>
+                    <p><strong>Tracking code:</strong> ${escapeHtml(trackingCode)}</p>
+                    ${linkUrl ? `<p><a href="${escapeHtml(linkUrl)}" style="color: #059669; font-weight: 700;">Open the staff inbox</a></p>` : ''}
+                </div>
+            </div>
+        `;
+
+        const results = await Promise.allSettled(
+            recipients.map((to) => sendEmail({ to, subject, text, html })),
+        );
+        const failed = results.filter((result) => result.status === 'rejected');
+        failed.forEach((result) => console.error('Failed to send new-report email to warden:', result.reason));
+        return { sent: recipients.length - failed.length, failed: failed.length };
+    } catch (error) {
+        console.error('Failed to notify wardens of new report:', error);
+        return { sent: 0, failed: 1 };
+    }
+}

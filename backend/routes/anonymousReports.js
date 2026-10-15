@@ -10,6 +10,7 @@ import {
   sendAnonymousReporterStatusUpdate,
   sendAnonymousReporterCategoryUpdate,
 } from "../utils/emailService.js";
+import { notifyWardensOfNewReport } from "../utils/notifications.js";
 import { applyNlpToDocument } from "../utils/nlpAnalytics.js";
 import { emitDashboardRefresh } from "../utils/socket.js";
 import { escapeRegex } from "../utils/inputSanitization.js";
@@ -204,6 +205,9 @@ router.post("/", async (req, res) => {
     if (isEmailEnabled()) {
       sendAnonymousReportNotification(report).catch((err) => {
         console.error("Failed to send admin anonymous report notification:", err);
+      });
+      notifyWardensOfNewReport({ report, anonymous: true }).catch((err) => {
+        console.error("Failed to send new anonymous report email to wardens:", err);
       });
       if (report.contact_email) {
         sendAnonymousReporterConfirmation(report).catch((err) => {

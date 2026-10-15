@@ -6,7 +6,7 @@ import StudentReportModel from "../models/studentReport.js";
 import AnonymousReportModel from "../models/anonymousReport.js";
 import StudentModel from "../models/student.js";
 import { authenticate, authorize } from "../middleware/auth.js";
-import { createNotification, getNotificationEmail } from "../utils/notifications.js";
+import { createNotification, getNotificationEmail, notifyWardensOfNewReport } from "../utils/notifications.js";
 import { getUploadDirectory } from "../utils/uploadPaths.js";
 import {
   isEmailEnabled,
@@ -410,6 +410,9 @@ router.post(
           .catch((err) => {
             console.error("Failed to send student reporter confirmation email:", err);
           });
+        notifyWardensOfNewReport({ report }).catch((err) => {
+          console.error("Failed to send new student report email to wardens:", err);
+        });
       }
 
       applyNlpToDocument(StudentReportModel, report._id, report)
